@@ -1,0 +1,447 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring中如何使用工厂模式实现程序解耦？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring中如何使用工厂模式实现程序解耦？</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/12093138.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#啥是耦合解耦">1、 啥是耦合、解耦？</a></li>
+        <li><a href="#jdbc程序进行解耦">2、 jdbc程序进行解耦</a></li>
+        <li><a href="#传统daoservicecontroller的程序耦合性">3、传统dao、service、controller的程序耦合性</a></li>
+        <li><a href="#使用工厂模式实现解耦">4、使用工厂模式实现解耦</a></li>
+        <li><a href="#工厂模式改进">5、工厂模式改进</a></li>
+        <li><a href="#结语">6、结语</a></li>
+        </ul>
+    </div>
+</div>
+<p>@</p>
+<h2 id="啥是耦合解耦">1、 啥是耦合、解耦？</h2>
+<p>既然是程序解耦，那我们必须要先知道啥是耦合，耦合简单来说就是程序的依赖关系，而依赖关系则主要包括</p>
+<blockquote>
+<p>1、 类之间的依赖<br />
+2、 方法间的依赖</p>
+</blockquote>
+<p>比如下面这段代码：</p>
+<pre><code><code>  public class A{
+        public int i;
+    }
+
+    public class B{
+        public void put(A a){
+            System.out.println(a.i);
+        }
+    }</code></pre>
+<p>上面这个例子中A类和B类之间存在一种强耦合关系，<code>B</code>类直接依赖<code>A</code>类，<code>B</code>类的<code>put</code>方法非<code>A</code>类类型不可，我们把这种情况叫做强耦合关系。</p>
+<p>实际开发中应该做到：<font color=red><strong>编译期不依赖，运行时才依赖。</strong></font>怎么理解呢？我们很容易想到<font color=red><strong>多态向上转型</strong></font>，是的，编译时不确定，运行时才确定,当然接触面更广一点的童鞋会想到<font color=red><strong>接口回调</strong></font>，是的接口回调方式也能有效的解耦！如下代码：</p>
+<pre><code><code>//一个接口叫做Inter，里面定义了一个happy（）方法，有两个类A、B实现了这个接口
+
+interface Inter{
+    void happy();
+}
+
+class A implements Inter{
+
+    @Override
+    public void happy() {
+        System.out.println(&quot;happy...A&quot;);
+    }
+}
+
+class B implements Inter{
+
+    @Override
+    public void happy() {
+        System.out.println(&quot;happy...B&quot;);
+    }
+}
+
+public class Test{
+    public void happys(Inter inter){
+        inter.happy();
+    }
+}</code></pre>
+<p>是的，如上代码正是典型的接口回调，<code>Test</code>类中的<code>happys</code>方法参数变的相对灵活起来，代码中<code>Test类</code>与<code>A类</code>、<code>B类</code>之间就存在一种弱耦合关系，<code>Test类</code>的<code>happys</code>方法的参数可以使<code>A类</code>类型也可以是<code>B类</code>类型，不像强耦合关系中非<code>A类</code>类型不可的情形。</p>
+<p><font color=red><strong>从某一意义上来讲使用类的向上转型或接口回调的方式进行解耦都是利用多态的思想！</strong></font></p>
+<p>当然解耦的方式还有很多，从根本意义上讲实现低耦合就是对两类之间进行解耦，解除类之间的直接关系，将直接关系转换成间接关系，从而也有很多设计模式也对程序进行解耦，比如：适配器模式、观察者模式、工厂模式....总之，必须明确一点：耦合性强的程序独立性很差！</p>
+<h2 id="jdbc程序进行解耦">2、 jdbc程序进行解耦</h2>
+<p>先来看一段代码：</p>
+<pre><code><code>//1、注册驱动
+DriverManager.registerDriver(new com.mysql.jdbc.Driver()); //如果把jdbc的MySQLjar包依赖去除直接编译失败提示没有mysql    
+//2、获取连接
+Connection conn=DriverManager.getConnection(&quot;jdbc:mysql://localhost:3306/ufida&quot;,&quot;root&quot;,&quot;root&quot;);
+//3、获取操作数据库的预处理对象
+PreparedStatement pstm=conn.prepareStatement(&quot;select * from client&quot;);
+//4、执行SQL，得到结果集
+ResultSet rs=pstm.executeQuery();
+//5\遍历结果集
+while(rs.next()){
+    System.out.println(rs.getString(&quot;name&quot;));
+}
+//6、释放资源
+rs.close();
+pstm.close();
+conn.close();</code></pre>
+<p>等等等等，好熟悉好怀念的代码.....</p>
+<p>没错就是jdbc的代码，不是用来怀旧的，而是如果这样设计，你会觉得这样的程序耦合性如何？又如何进行解耦？先仔细思考一番。</p>
+<p>一分钟过去了.....<br />
+两分钟过去了.....</p>
+<p>好了，我们都知道jdbc连接MySQL需要一个<code>mysql-connector</code>的jar包，如果我们把这个jar包依赖或者这个jar包给去掉，显然上面的这个程序会编译报错，如下图<br />
+<img src="./images/Spring中如何使用工厂模式实现程序解耦？0.png" alt="在这里插入图片描述" /><br />
+显然这样的程序耦合性过高！于是我们可以这样设计，将第一步的注册驱动代码new的方式改成反射的方式如下：</p>
+<pre><code><code> //1、new的方式注册驱动
+DriverManager.registerDriver(new com.mysql.jdbc.Driver()); //如果把jdbc的MySQLjar包依赖去除直接编译失败提示没有mysql相关的jar包
+
+改为如下方式
+
+ //2、反射的方式注册驱动
+Class.forName(&quot;com.mysql.jdbc.Driver&quot;); //改用这种方式注册驱动会发现不会编译失败，相比上面的方式相对解耦，但是依然存在缺陷：若连接改为Oracle数据库，这里的字符串又要进行改动！</code></pre>
+<p>正如注释的解释一样，又一个缺陷就浮现了：若连接改为Oracle数据库，这里的字符串又要进行改动！</p>
+<p>于是对于这个jdbc程序来说就有这样的一个解耦思路：</p>
+<blockquote>
+<p>第一步：通过反射来创建对象，尽量避免使用new关键字<br />
+第二步：通过读取配置文件来获取创建的对象全限定类名</p>
+</blockquote>
+<h2 id="传统daoservicecontroller的程序耦合性">3、传统dao、service、controller的程序耦合性</h2>
+<p>顺着jdbc程序的解耦思路，我们再来看看传统dao、service、controller的程序耦合性分析</p>
+<p>由于只是一个demo，省去dao层的操作.....</p>
+<p>定义一个Service接口</p>
+<pre><code><code>public interface IAccountOldService{
+    public void save();
+}</code></pre>
+<p>Service接口实现类</p>
+<pre><code><code>public class AccountServiceOldImpl implements IAccountOldService{
+
+    @Override
+    public void save() {
+        System.out.println(&quot;save成功一个账户....&quot;);
+    }
+}</code></pre>
+<p>controller代码：</p>
+<pre><code><code>public class AccountCencollertOld {
+    public static void main(String[] args) {
+        IAccountOldService iaccount=new AccountServiceOldImpl (); 
+        iaccount.save();  //运行结果：save成功一个账户....
+    }
+}</code></pre>
+<p>到这里，有何想法？表面上来看是没有一点问题的，So Beautiful，但仔细的看。表现层与业务层、业务层与持久层紧紧的互相依赖关联，这与我们开发程序的高内聚低耦合原则相违背,哦My God,So Bad！我们顺着jdbc程序的解耦思路，我们应该尽量避免使用new关键字，我们发现这些层里面service层new 持久层dao，controller表现层new 业务层service....太糟糕了</p>
+<p>那么对此，你有何解耦思路？</p>
+<h2 id="使用工厂模式实现解耦">4、使用工厂模式实现解耦</h2>
+<p>别想了，工厂模式实现程序解耦你值得拥有！顺着jdbc程序的解耦思路：</p>
+<blockquote>
+<p>1、通过读取配置文件来获取创建的对象全限定类名<br />
+2、通过反射来创建对象，尽量避免使用new关键字</p>
+</blockquote>
+<p>首先在resources目录下中写一个bean.properties配置类，具体内容如下</p>
+<pre><code><code>accountServiceOld=com.factory.service.impl.AccountServiceOldImpl</code></pre>
+<p>接着使用工厂方法代码：</p>
+<pre><code><code>/**
+ * 一个创建Bean对象的工厂
+ *
+ *    1、需要一个配置文件来配置我们的service和dao    配置文件的内容：唯一标识=全限定类名（key-value）
+ *    2、通过读取配置文件中配置的内容，反射创建对象
+ *
+ *    场景：主要是service调用dao，controller调用service的程序。这里面耦合性非常的高，互相new互相依赖
+ *
+ *    为了解耦，利用工厂模式进行
+ */
+ public class BeanFactoryOld {
+    private static Properties props;
+
+    static{
+        try {
+            //实例化对象
+            props = new Properties();
+
+            //获取properties文件的流对象
+            InputStream in = BeanFactory.class.getClassLoader().getResourceAsStream(&quot;bean.properties&quot;);
+            props.load(in);//加载其对应路径下的配置文件
+
+        }catch (Exception e){
+            throw new ExceptionInInitializerError(&quot;初始化properties失败！&quot;);
+        }
+    }
+
+    //根据bean的名称获取bean对象
+    public static Object getBean(String beanName){
+        Object bean=null;
+        try {
+        String beanPath= props.getProperty(beanName);
+        bean = Class.forName(beanPath).newInstance();   //这里的newInstance创建实例（默认无参构造器）每次执行都需要创建一次
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bean;
+    }
+}
+</code></pre>
+<p>此时，controller的代码就可以编写为</p>
+<pre><code><code>/**
+ * 这里模拟一个controller调用service
+ *
+ */
+public class AccountCencollertOld {
+    public static void main(String[] args) {
+   //    IAccountOldService iaccount=new AccountServiceOldImpl ();  //使用工厂方法不再通过new方式
+
+        IAccountOldService iaccount= (IAccountOldService) BeanFactoryOld.getBean(&quot;accountServiceOld&quot;);
+        iaccount.save(); //运行结果：save成功一个账户....   说明成功调用了service
+    }
+}</code></pre>
+<p>通过运行结果，属实没毛病，成功降低程序耦合！So Beautiful！先高兴一会吧，因为马上出现.....但是，随之而来的问题又出现了，我们对这个controller进行一下改写</p>
+<pre><code><code>for(int i=0;i&lt;5;i++){
+        IAccountOldService iaccount= (IAccountOldService) BeanFactoryOld.getBean(&quot;accountServiceOld&quot;);
+        iaccount.save(); 
+     }</code></pre>
+<p>打印结果：</p>
+<pre><code><code>com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+com.factory.service.impl.AccountServiceImpl@677327b6
+save成功一个账户....
+com.factory.service.impl.AccountServiceImpl@14ae5a5
+save成功一个账户....
+com.factory.service.impl.AccountServiceImpl@7f31245a
+save成功一个账户....
+com.factory.service.impl.AccountServiceImpl@6d6f6e28
+save成功一个账户....</code></pre>
+<p>打印的是五个不同的对象，说明是多例的，每次调用getBean的时候都会newInstance出一个新对象，如下<br />
+<img src="./images/Spring中如何使用工厂模式实现程序解耦？1.png" alt="在这里插入图片描述" /><br />
+多例每次都要创建对象，资源浪费、效率低下</p>
+<p>针对单例多例情况，我们再对service业务层代码进行修改：</p>
+<pre><code><code>public class AccountServiceImpl implements IAccountService {
+    //定义类成员
+    private int i=1; 
+
+    @Override
+    public void save() {
+        System.out.println(&quot;save成功一个账户....&quot;);
+        System.out.println(i);
+        i++;
+    }
+}</code></pre>
+<p>运行controller代码，运行结果</p>
+<pre><code><code>save成功一个账户....
+1
+save成功一个账户....
+1
+save成功一个账户....
+1
+save成功一个账户....
+1
+save成功一个账户....
+1</code></pre>
+<p>why？多例因为每次都是新的对象，上面也验证过了，因此每次创建新对象都会初始化一次，重新赋值，所以都是1，如果我们把类成员改为局部成员变量如下</p>
+<pre><code><code>public class AccountServiceOldImpl implements IAccountOldService {
+
+//    private int i=1; 
+    @Override
+    public void save() {
+        int i=1;   //改为局部变量
+        System.out.println(&quot;save成功一个账户....&quot;);
+        System.out.println(i);
+        i++;
+    }
+}</code></pre>
+<p>不用猜，运行结果同样是1。算了还是运行一下吧哈哈哈</p>
+<pre><code><code>save成功一个账户....
+1
+save成功一个账户....
+1
+save成功一个账户....
+1
+save成功一个账户....
+1
+save成功一个账户....
+1</code></pre>
+<p>说了这么多，通过观察service和dao之间单不单例好像无所谓，因为他们之间并没有业务方法中改变的类成员，所以并不需要多例来保证线程安全。那说这些有何意义？不要忘了，由于使用了工厂改进如下中的.<code>newInstance</code>创建实例（默认无参构造器）每次执行都需要创建一次，这样就不好了（浪费资源），因此我们要设计出只<code>newInstance</code>创建一次实例就很完美了，这也是我为啥要在<code>service</code>和<code>controller</code>中都添加一个<code>Old</code>关键字的原因了，接下来我们来看看工厂是如何改进的！</p>
+<h2 id="工厂模式改进">5、工厂模式改进</h2>
+<p>为了不被搞晕，我们重新写代码，也就是重头开始写代码~其实就是把Old去掉~</p>
+<p>由于只是一个demo，省去dao层的操作.....</p>
+<p>定义一个Service接口</p>
+<pre><code><code>public interface IAccountService {
+    public void save();
+}</code></pre>
+<p>Service接口实现类</p>
+<pre><code><code>public class AccountServiceImpl implements IAccountService{
+
+    @Override
+    public void save() {
+        System.out.println(&quot;save成功一个账户....&quot;);
+    }
+}</code></pre>
+<p>controller代码：</p>
+<pre><code><code>/**
+ * 这里模拟一个controller调用service
+ *
+ */
+public class AccountCencollert {
+    public static void main(String[] args) {
+//        IAccountService iaccount=new AccountServiceImpl(); 
+
+        IAccountService iaccount= (IAccountService) BeanFactory.getBean(&quot;accountService&quot;);
+        iaccount.save(); //运行结果：save成功一个账户....   说明了成功调用了service
+      }
+ }</code></pre>
+<p>改进的工厂方法代码：</p>
+<pre><code><code>public class BeanFactory {
+    private static Properties props;
+
+    //定义一个map容器，用于存放创建的对象
+    private static Map&lt;String,Object&gt; beans; //改进的代码============
+
+    static{
+        try {
+            //实例化对象
+            props = new Properties();
+
+            //获取properties文件的流对象
+            InputStream in = BeanFactory.class.getClassLoader().getResourceAsStream(&quot;bean.properties&quot;);
+            props.load(in);//加载其对应路径下的配置文件
+
+            ////////////////////以下是改进的代码=======================
+            //实例化容器
+            beans=new HashMap&lt;String,Object&gt;();
+            //取出配置文件中所有的key值
+            Enumeration&lt;Object&gt; keys = props.keys();
+            //遍历枚举
+            while(keys.hasMoreElements()){
+                //取出每个key
+                String key = keys.nextElement().toString();
+                //根据key取出对应的value  (这里因为每个value值对应着类路径)
+                String beanPath = props.getProperty(key);
+                //反射创建对象
+                Object value = Class.forName(beanPath).newInstance();
+                //把key和value存入容器中
+                beans.put(key,value);
+            }
+        }catch (Exception e){
+            throw new ExceptionInInitializerError(&quot;初始化properties失败！&quot;);
+        }
+    }
+
+
+    //随着代码的改进，我们就可以简化下面的获取bean对象的方法，如下代码
+    /**
+     * 根据bean的名称获取对象（单例）
+     */
+    public static Object getBean(String beanName){
+        //通过Map容器对应key来获取对应对象
+        return beans.get(beanName);    //这里通过Map容器中获取，这样就不会每次都创建一次实例！
+    }
+
+//不再使用下面的方法
+  /*
+    //根据bean的名称获取bean对象
+    public static Object getBean(String beanName){
+        Object bean=null;
+        try {
+        String beanPath= props.getProperty(beanName);
+        bean = Class.forName(beanPath).newInstance();   //这里的newInstance创建实例（默认无参构造器）每次执行都需要创建一次，这样就不好了
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bean;
+    }*/
+}</code></pre>
+<p>从上面改进的工厂代码，我们可以发现一开始就定义一个Map容器，用于存放创建的对象，为啥要先定义一个Map容器呢？用一个容器将这个实例装起来，这是由于不把这个对象装存起来的话，这个对象不使用很容易被GC掉，何况我们现在只使用这一个对象！</p>
+<p>定义一个Map容器存放配置好的文件中的每个对象，之后我们就直接提供一个根据Map的key来取value的getBean方法，这样不仅仅扩展了程序的配置文件的灵活性而且还保证了只产生一个对象，保证资源不浪费，So Beautiful !</p>
+<p>那如何证明已经是单例的模式了呢？很简单，如下设计一下service业务层、controller表现层代码即可：</p>
+<p>service业务层：添加一个类成员属性，并在方法内部 i++;</p>
+<pre><code><code>public class AccountServiceImpl implements IAccountService {
+
+    private int i=1; //类成员属性
+
+    @Override
+    public void save() {
+        System.out.println(&quot;save成功一个账户....&quot;);
+        System.out.println(i);
+        i++;//二次改革代码
+    }
+}</code></pre>
+<p>controller表现层: 创建调用工厂5次创建对象的方法</p>
+<pre><code><code>/**
+ * 这里模拟一个controller调用service
+ *
+ */
+public class AccountCencollert {
+    public static void main(String[] args) {
+        for(int i=0;i&lt;5;i++){
+            IAccountService iaccount= (IAccountService) BeanFactory.getBean(&quot;accountService&quot;);
+            System.out.println(iaccount);  //打印的是五个不同的对象，说明是多例的
+            iaccount.save();  //会发现打印的i值都是1，并没有自增成功
+        }
+    }</code></pre>
+<p>运行代码结果：</p>
+<pre><code><code>com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+1
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+2
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+3
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+4
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+5</code></pre>
+<p>发现，确实5个对象都是同一个，并且出现了改变类成员属性的现象。</p>
+<p>如果我们把类成员属性改为局部成员属性呢？</p>
+<pre><code><code>public class AccountServiceImpl implements IAccountService {
+
+    @Override
+    public void save() {
+        int i=1; //局部成员属性
+        System.out.println(&quot;save成功一个账户....&quot;);
+        System.out.println(i);
+        i++;
+    }
+}</code></pre>
+<p>运行结果</p>
+<pre><code><code>com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+1
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+1
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+1
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+1
+com.factory.service.impl.AccountServiceImpl@1540e19d
+save成功一个账户....
+1</code></pre>
+<p>看到这个结果，我们就能联想到，之前为什么servlet中为啥要避免定义类成员，原因就在这里！多例情况下，就不会出现这种情况！！！！</p>
+<h2 id="结语">6、结语</h2>
+<p>到这里我们已经基本了解了程序间的耦合与解耦，并且对单例多例也一并进行了进一步的了解。而spring中正是使用工厂模式来实现程序解耦的，spring是一个大工厂, 或许你并没有察觉哈哈哈哈.....</p>
+<p><strong>如果本文对你有一点点帮助，那么请点个赞呗，你的赞同是我最大的动力，谢谢~</strong></p>
+<blockquote>
+<p><strong>最后，若有不足或者不正之处，欢迎指正批评，感激不尽！如果有疑问欢迎留言，绝对第一时间回复！</strong></p>
+</blockquote>
+<p>欢迎各位关注我的公众号，里面有一些java学习资料和一大波java电子书籍，比如说周志明老师的深入java虚拟机、java编程思想、核心技术卷、大话设计模式、java并发编程实战.....都是java的圣经，不说了快上Tomcat车，咋们走！最主要的是一起探讨技术，向往技术，追求技术，说好了来了就是盆友喔...</p>
+<p><img src="./images/Spring中如何使用工厂模式实现程序解耦？2.png" alt="在这里插入图片描述" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

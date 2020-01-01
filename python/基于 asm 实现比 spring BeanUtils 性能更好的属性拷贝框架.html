@@ -1,0 +1,167 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修基于 asm 实现比 spring BeanUtils 性能更好的属性拷贝框架' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>基于 asm 实现比 spring BeanUtils 性能更好的属性拷贝框架</center></div><div class='banquan'>原文出处:本文由博客园博主叶止水提供。<br/>
+原文连接:https://www.cnblogs.com/houbbBlogs/p/12056551.html</div><br>
+    <h1 id="bean-mapping">Bean-Mapping</h1>
+<p>日常开发中经常需要将一个对象的属性，赋值到另一个对象中。</p>
+<p>常见的工具有很多，但都多少不够简洁，要么不够强大。</p>
+<p>我们经常使用的 Spring BeanUtils 性能较好，但是特性不足。</p>
+<p><a href="https://github.com/houbb/bean-mapping">Bean-Mapping</a> 提供了很多丰富的特性，便于日常开发。</p>
+<p>如果你追求更加极致的性能，可以考虑使用 asm 实现的模块，该实现性能优于 spring BeanUtils 35% 左右。</p>
+<h2 id="特性">特性</h2>
+<ul>
+<li><p>支持对象属性的浅拷贝</p></li>
+<li><p>支持不同名称字段的指定赋值</p></li>
+<li><p>支持自定义字段属性赋值的条件，比如目标字段不为 null 才进行赋值</p></li>
+<li><p>支持自定义字段值转换，可以转换为其他类型，或者相同类型</p></li>
+<li><p>支持属性字段为【对象】【集合】【数组】的赋值，对象赋值更加方便。</p></li>
+<li><p>支持基于 asm 实现的高性能复制</p></li>
+</ul>
+<h1 id="快速开始">快速开始</h1>
+<h2 id="准备">准备</h2>
+<p>JDK1.7 及其以上版本</p>
+<p>Maven 3.X 及其以上版本</p>
+<h2 id="maven-项目依赖">maven 项目依赖</h2>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.github.houbb&lt;/groupId&gt;
+    &lt;artifactId&gt;bean-mapping-core&lt;/artifactId&gt;
+    &lt;version&gt;0.2.5&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<h2 id="核心类说明">核心类说明</h2>
+<h3 id="beanutil">BeanUtil</h3>
+<p>提供一个简单的静态方法 copyProperties。</p>
+<pre class="java"><code>/**
+ * 复制属性
+ * 将 source 中的赋值给 target 中名称相同，且可以赋值的类型中去。类似于 spring 的 BeanUtils。
+ * @param source 原始对象
+ * @param target 目标对象
+ */
+public static void copyProperties(final Object source, Object target)</code></pre>
+<h1 id="测试代码参考">测试代码参考</h1>
+<p>详情参见 bean-mapping-test 模块下的测试代码。</p>
+<h1 id="示例代码">示例代码</h1>
+<h2 id="对象的定义">对象的定义</h2>
+<ul>
+<li>BaseSource.java &amp; BaseTarget.java</li>
+</ul>
+<p>其中 BaseSource 对象和 BaseTarget 对象的属性是相同的。</p>
+<pre class="java"><code>public class BaseSource {
+
+    /**
+     * 名称
+     */
+    private String name;
+
+    /**
+     * 年龄
+     */
+    private int age;
+
+    /**
+     * 生日
+     */
+    private Date birthday;
+
+    /**
+     * 字符串列表
+     */
+    private List&lt;String&gt; stringList;
+    
+    //getter &amp; setter
+}</code></pre>
+<h2 id="属性赋值测试案例">属性赋值测试案例</h2>
+<p>我们构建 BaseSource 的属性，然后调用</p>
+<pre class="java"><code>BeanUtil.copyProperties(baseSource, baseTarget);</code></pre>
+<p>类似于 spring BeanUtils 和 Apache BeanUtils，并验证结果符合我们的预期。</p>
+<pre class="java"><code>    /**
+     * 基础测试
+     */
+    @Test
+    public void baseTest() {
+        BaseSource baseSource = buildBaseSource();
+        BaseTarget baseTarget = new BaseTarget();
+        BeanUtil.copyProperties(baseSource, baseTarget);
+
+        // 断言赋值后的属性和原来相同
+        Assertions.assertEquals(baseSource.getAge(), baseTarget.getAge());
+        Assertions.assertEquals(baseSource.getName(), baseTarget.getName());
+        Assertions.assertEquals(baseSource.getBirthday(), baseTarget.getBirthday());
+        Assertions.assertEquals(baseSource.getStringList(), baseTarget.getStringList());
+    }
+
+    /**
+     * 构建用户信息
+     * @return 用户
+     */
+    private BaseSource buildBaseSource() {
+        BaseSource baseSource = new BaseSource();
+        baseSource.setAge(10);
+        baseSource.setName(&quot;映射测试&quot;);
+        baseSource.setBirthday(new Date());
+        baseSource.setStringList(Arrays.asList(&quot;1&quot;, &quot;2&quot;));
+        return baseSource;
+    }</code></pre>
+<h1 id="asm-复制">asm 复制</h1>
+<h2 id="简介">简介</h2>
+<p>有时候我们对于性能要求较高，而对便利性要求没有这么高。</p>
+<p>本框架也提供了基于 asm 的复制方式，性能比 spring 好 35% 左右。</p>
+<p>见文末的 benchmark。</p>
+<h2 id="maven-引入">maven 引入</h2>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.github.houbb&lt;/groupId&gt;
+    &lt;artifactId&gt;bean-mapping-asm&lt;/artifactId&gt;
+    &lt;version&gt;0.2.5&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<h2 id="测试代码">测试代码</h2>
+<p>和 <code>BeanUtil#copyProperties(Object, Object)</code> 使用类似，但是暂时不支持注解等更加丰富的功能。</p>
+<pre class="java"><code>BaseSource baseSource = buildBaseSource();
+BaseTarget baseTarget = new BaseTarget();
+AsmBeanUtil.copyProperties(baseSource, baseTarget);</code></pre>
+<h1 id="拓展阅读">拓展阅读</h1>
+<p>实际工作中，我们遇到的情况会比这个复杂一些。</p>
+<p>比如两个字段名称不同，我们也想进行赋值，值得处理转换等等。</p>
+<h2 id="深入学习">深入学习</h2>
+<p>Bean-Mapping 相关文档:</p>
+<p><a href="https://github.com/houbb/bean-mapping/tree/master/doc/blog/属性复制框架-00-项目模块和预期功能.md">01-项目模块简介和预期功能</a></p>
+<p><a href="https://github.com/houbb/bean-mapping/tree/master/doc/blog/属性复制框架-01-BeanMapping%20注解引入.md">02-BeanMapping 注解的引入</a></p>
+<p><a href="doc/blog/属性复制框架-02-BeanMapping%20名称属性.md">03-不同名称字段的指定赋值</a></p>
+<p><a href="https://github.com/houbb/bean-mapping/tree/master/doc/blog/属性复制框架-03-BeanMapping%20赋值条件.md">04-自定义赋值生效的条件</a></p>
+<p><a href="https://github.com/houbb/bean-mapping/tree/master/doc/blog/属性复制框架-04-BeanMapping%20字段转换.md">05-自定义字段转换实现</a></p>
+<p><a href="https://github.com/houbb/bean-mapping/tree/master/doc/blog/属性复制框架-05-BeanMappingEntry.md">06-支持属性字段为【对象】【集合】【数组】的赋值</a></p>
+<p><a href="doc/blog/属性复制框架-06-新增工具类方法.md">07-BeanUtil#copyProperties(Object, Class) 方法</a></p>
+<h1 id="性能">性能</h1>
+<h2 id="对比图">对比图</h2>
+<p><img src="./images/基于 asm 实现比 spring BeanUtils 性能更好的属性拷贝框架0.png" alt="benchmark" /></p>
+<p>可见框架默认 bean-mapping 实现性能一般，涉及到了太多的特性，导致复制性能略低于 spring。</p>
+<p>基于 <a href="https://houbb.github.io/2018/07/20/asm-14-reflectasm">reflectasm</a> 实现的 asm-bean-mapping 的性能高于 spring。</p>
+<p>代码示例参见 <a href="https://github.com/houbb/bean-mapping/blob/master/bean-mapping-test/src/test/java/com/github/houbb/bean/mapping/test/core/benchmark/BeanUtilBeanchmarkTest.java">BeanUtilBeanchmarkTest.java</a></p>
+<h2 id="展望">展望</h2>
+<p>相对 BeanCopier 这种实现方式，我们的实现方式性能还是有很大提升空间。</p>
+<p>后期可以考虑实现类似 BeanCopier 的方式。</p>
+<h1 id="开源地址">开源地址</h1>
+<p>这个框架的源代码全部开源，也便于我们学习。</p>
+<blockquote>
+<p><a href="https://github.com/houbb/bean-mapping">Bean-Mapping</a></p>
+</blockquote>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

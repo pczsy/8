@@ -1,0 +1,797 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修(Concurrent)HashMap的存储过程及原理。' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>(Concurrent)HashMap的存储过程及原理。</center></div><div class='banquan'>原文出处:本文由博客园博主大龄剩男找茬必娶提供。<br/>
+原文连接:https://www.cnblogs.com/wangfl5/p/12074488.html</div><br>
+    <p><span style="color: #008000;"><strong>1.前言</strong></span></p>
+<p>　　看完咕泡Jack前辈的有关hashMap的视频（非宣传，jack自带1.5倍嘴速，高效），收益良多，所以记录一下学习到的东西。</p>
+<p><span style="color: #008000;"><strong>2.基础用法</strong></span></p>
+<p>　　<img src="./images/(Concurrent)HashMap的存储过程及原理。0.png" alt="" width="392" height="170" /></p>
+<p>&nbsp;　　源码的注释首先就介绍了哈希表是基于Map接口，所以它的用法和其他集合的用法差不多。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**
+ * Hash table based implementation of the &lt;tt&gt;Map&lt;/tt&gt; interface.  This             * 哈希表的实现基于&lt;tt&gt;Map&lt;/ tt&gt;接口。
+ * implementation provides all of the optional map operations, and permits          * 此实现提供所有可选的映射操作，
+ * &lt;tt&gt;null&lt;/tt&gt; values and the &lt;tt&gt;null&lt;/tt&gt; key.  (The &lt;tt&gt;HashMap&lt;/tt&gt;           * 并允许&lt;tt&gt; null &lt;/ tt&gt;值和&lt;tt&gt; null &lt;/ tt&gt;键。
+ * class is roughly equivalent to &lt;tt&gt;Hashtable&lt;/tt&gt;, except that it is             * （&lt;tt&gt; HashMap &lt;/ tt&gt;类与&lt;tt&gt; Hashtable &lt;/ tt&gt;大致等效，
+ * unsynchronized and permits nulls.)  This class makes no guarantees as to         * 除了它是不同步的，并且允许为null。） ， 此类不保证映射的顺序。
+ * the order of the map; in particular, it does not guarantee that the order        * 特别是不能保证订单将随着时间的推移保持不变。
+ * will remain constant over time.</span></pre>
+</div>
+<p>　　对应的源码，如图所示，它继承了抽象Map类，实现了Map接口：</p>
+<p>　　　&nbsp;&nbsp;&nbsp; public class HashMap&lt;K,V&gt;&nbsp;<span style="color: #33cccc;">extends</span> <span style="color: #33cccc;">AbstractMap&lt;K,V&gt;&nbsp;</span>&nbsp;<span style="color: #ff6600;">implements Map&lt;K,V&gt;</span>, Cloneable, Serializable { ... }</p>
+<p>　&nbsp; &nbsp; 至于具体咋用，不多介绍，推一个链接，HashMap的基础用法：https://blog.csdn.net/lzx_cherry/article/details/98947819</p>
+<p><span style="color: #008000;"><strong>3.存储方式</strong></span></p>
+<p><span>下面就是介绍一个HashMap完成put(key, value)操作之后的存储流程。</span></p>
+<p>　　（1）HashMap key、value被put后的存储方式：</p>
+<p>　　&nbsp; 在JDK1.7及其之前都是用的&nbsp;<span style="color: #008000;">数组+链表</span>&nbsp;的方式，JDK1.8之后存储方式优化成了&nbsp;<span style="color: #339966;"><span style="color: #008000;">数组+链表+红黑树</span>&nbsp;</span>的方式。</p>
+<p>　　（JDK1.8后，如果单链表存储的长度大于8则转换为红黑树存储，采用这样的改善有利于解决hash冲突中链表过长引发的性能下降问题）</p>
+<p>　　（2）图解HashMap的主要数据结构：</p>
+<p>　　　　　<img src="./images/(Concurrent)HashMap的存储过程及原理。1.png" alt="" width="500" height="262" /></p>
+<p><strong>　<span style="color: #999999;">　&lt;1&gt;存储单元 Node</span></strong></p>
+<p>　　图中的每一个格子代表每一个Node对象。Node的信息主要包含它的存储位置，key，value，如果在链表中则会有下一个Node的信息，如果存储在红黑树中则包含红黑树的相关信息。</p>
+<p>　　由上面我们可以写出Node数据结构的伪代码：<br />&nbsp;&nbsp;&nbsp;　　 Node[] table;&nbsp; &nbsp;数组<br />&nbsp;&nbsp;&nbsp; 　　class Node{ Node next; }&nbsp; 链表<br />&nbsp;&nbsp;&nbsp; 　　TreeNode(left, right, parent, boolean flag = red| black)&nbsp; 红黑树</p>
+<p>　　而HashMap源码中Node的代码和上面伪代码的一致：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**
+     * Basic hash bin node, used for most entries.  (See below for
+     * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
+     */</span>
+    <span style="color: #0000ff;">static class</span> Node&lt;K,V&gt; <span style="color: #0000ff;">implements</span> Map.Entry&lt;K,V&gt;<span> {
+<span style="color: #008000;">        //通过hash算法得出的存储位置</span>
+       <span style="color: #0000ff;"> final int</span><span> hash;
+<span style="color: #008000;">        //key</span>
+        <span style="color: #0000ff;">final</span><span> K key;
+<span style="color: #008000;">        //value</span>
+<span>        V value;
+<span style="color: #008000;">        //链表的下个Node</span>
+        Node&lt;K,V&gt; next;<br />　　　　　...<br />　　}</span></span></span></span></pre>
+</div>
+<p>　　HashMap源码中TreeMap的代码(建议之前先了解红黑树的原理)：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">    static final class</span> TreeNode&lt;K,V&gt; <span style="color: #0000ff;">extends</span> LinkedHashMap.Entry&lt;K,V&gt;<span> {
+        TreeNode&lt;K,V&gt; parent;<span style="color: #008000;">  // red-black tree links
+        TreeNode&lt;K,V&gt;</span><span><span style="color: #008000;"> left;</span>
+        TreeNode&lt;K,V&gt;<span> right;
+        TreeNode&lt;K,V&gt; prev;  <span style="color: #008000;">  // needed to unlink next upon deletion</span>
+        <span style="color: #0000ff;">boolean</span> red;<br />　　　　... }</span></span></span></pre>
+</div>
+<p><strong>　　<span style="color: #999999;">&lt;2&gt;存储过程</span><br /></strong></p>
+<p>　　根据HashMap的数据结构，可以大致推断出它的存储过程。</p>
+<p>　　　　a.先创建一个数组</p>
+<p>　　　　b.计算出存储key value的Node的位置</p>
+<p>　　　　c.如果hash冲突了，判断冲突数目的长度决定使用链表还是红黑树结构</p>
+<p>　　　　d.数组不够需要进行扩容</p>
+<p>　　下面对存储过程进行细致的分析。</p>
+<p>　　<span style="color: #ff0000;">1.计算出存储key value的Node的位置</span></p>
+<p>　　先分析这个有助于其他的理解，这也是理解存储过程一个比较基础重要的内容。</p>
+<p>　　计算出Node的位置，就是需要得到Node在数组中的整型数下标，但是前提是不超出数组的大小。HashMap数组的大小可以采用默认值，也可以自行规定，这边我们采用默认的值16进行分析。</p>
+<p>　　首先，要保证是个整型数，最好还是和key value有关联的，所以最好的方式就是通过key.hashCode()。其次，我们需要保证Node的index大小在0~15之间。所以我们可以先进行一个取余判断，判断： 整型数%16 = [ 0 , 15 ]。</p>
+<p>　　 分析取余：</p>
+<p>　　&nbsp; 例如一个数字1，hashCode的值为49，那么取余的操作就为 49 % 16 = 1。但是这样的取模方式还可以进行优化，49的10进制整型数转化为32位二进制：<br />&nbsp; &nbsp;&nbsp; 　　　　　　　　&nbsp;　　　　　　0000 0000 0000 0000 0000 0000 0011 0001 % 16 = 1<br />&nbsp; &nbsp;&nbsp; 　对16进行取余，其实效果就相当于对（16-1）进行与操作：0000 0000 0000 0000 0000 0000 0011 0001 &amp; 0111，因为与操作时候与的时候，最后四位的范围是[0,15]，如果大于15的话，就进位了，这样可以更有效控制整形数的范围。　　　　　</p>
+<p><span style="color: #008000;">&nbsp; &nbsp;&nbsp; 　　　　　　　　&nbsp;0000 0000 0000 0000 0000 0000 0011 0001&nbsp;</span><br /><span style="color: #008000;">&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;　　　　　　　　　　　　　　　 0 1111&nbsp; &amp;操作&nbsp;&nbsp; （数组大小 - 1）</span><br /><span style="color: #008000;">&nbsp;&nbsp; 　　　　　　　　&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</span><br /><span style="color: #008000;">&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp; 　　　　　　　　　　　　　　　0001（结果）</span></p>
+<p>&nbsp;&nbsp;&nbsp; 　 最终返回的结果就是Node在数组中的位置index了。index如果相同的话就会产生位置冲突，这时候就需要链表和红黑树数据结构，但这样会使得我们去获取key value变得更加耗时。所以我们需要尽量保证index就是Node的位置不要太容易就出现重复的情况。</p>
+<p>　　 从上的与过程中我们可以看出，能决定Node位置取决在两个相与的数（暂称为key1和key2），这两个数的后4位决定了Node的位置，如果要保证hash不冲突的话，就要先分析他们。与操作，一方为0就结果为0，key2的最后四位值如果一个为0的话，无论key1对应的是什么，结果都是0，这样极其容易导致冲突，所以我们要尽量保证key2除了最高为0外。其他位置都1。例如：01111（15）、011111（31）、0111111（63），不难看出key2的值，其实就是2的n次幂-1。<span style="color: #008000;">所以我们需要尽量保证数组的大小为2的n次幂。</span>但是即便保证了后四位都为1的话，毕竟只有4位，4位进行与操作，还是很容易出现一个重复情况，对于这种情况，HashMap采用了异或（xor）操作（ a&oplus;b = (&not;a &and; b) &or; (a &and;&not;b) ）。</p>
+<p>　　具体操作，将32位的二进制数字一分为二，左边16位的高16位为一份，右边的低16位为另一份。两者进行异或运算，降低重复的可能性。</p>
+<p>　　　　　　　　如：</p>
+<p><span style="color: #008000;">　　　　　　　　　　&nbsp; 高16位 &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 低16位</span></p>
+<p><span style="color: #008000;">　　　　　　　　0101 0101 0010 1001&nbsp;&nbsp; | &nbsp; 0001 0001 0001 0110&nbsp;</span></p>
+<p>　　其实这就是HashMap中的hash算法，源码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">    static</span> <span style="color: #0000ff;">final int</span><span> hash(Object key) {
+        <span style="color: #0000ff;">int</span><span> h;<br /><span style="color: #008000;">        //如果key为null则返回0，如果不为null则返回key的hashCode高低16位异或运算的结果</span>
+        <span style="color: #0000ff;">return</span> (key == <span style="color: #0000ff;">null</span>) ? 0 : (h = key.hashCode()) ^ (h &gt;&gt;&gt; 16<span>);
+    }</span></span></span></pre>
+</div>
+<p>　　如果再重复就只能形成链表和红黑树了。</p>
+<p>　　<span style="color: #ff0000;">2.创建数组以及数组的扩容</span></p>
+<p>　　如果采用默认的大小的话，默认的数组大小为16。源码：&nbsp; &nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**</span><br /><span style="color: #008000;">     * The default initial capacity - MUST be a power of two.</span><br /><span style="color: #008000;">　　　* 默认初始容量为16，必须为2的幂</span><br /><span style="color: #008000;">　　　* 表示1，左移4位，变成10000，也就是16
+     */</span><br />
+    <span style="color: #0000ff;">static final int</span> DEFAULT_INITIAL_CAPACITY = 1 &lt;&lt; 4; <span style="color: #008000;">// aka 16</span></pre>
+</div>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;至于为什么不采用int DEFAULT_INITIAL_CAPACITY = 16；，一方面是省略了中间一些复杂的转换过程,直接以二进制形式去运行运算，另一方面也是配合2次幂的约束条件。</p>
+<p>　　当然我们知道，HashMap数组的大小也是可以自己定义的。自己定义和默认有啥区别，如果你使用了阿里的checkstyle，初始化HashMap使用了默认的大小，这时候规约就会提示你需要自己定义</p>
+<p>HashMap的大小。我们可以看一下阿里巴巴的规约：</p>
+<p><img src="./images/(Concurrent)HashMap的存储过程及原理。2.png" alt="" width="500" height="118" /></p>
+<p>　　上面说的很清楚了，如果不指定初始化的大小，容易引起多次的扩容操作，影响性能。并给出了推荐的初始化值 = （需要存储的元素个数 / 负载因子） + 1；</p>
+<p>　　负载因子决定了数组扩容的阔值，如果一个数组大小为20，负载因子为0.75，那么数组长度到达15的时候，数组就会进行扩容操作。15也就是数组扩容的阔值，0.75就称为负载因子，附上源码：</p>
+<p>　　源码中的load factor也就是负载因子，规定的大小为0.75，也就是3/4。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**
+     * The load factor used when none specified in constructor.
+     */</span>
+   <span style="color: #0000ff;"> static final float</span> DEFAULT_LOAD_FACTOR = 0.75f;</pre>
+</div>
+<p>　　如果自己进行初始化数组的值，那么是不是就可以随意设置值了呢？看一下源码就知道了：</p>
+<p>　　初始化大小必须大于等于0，且是有最大值的。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**
+     * Constructs an empty &lt;tt&gt;HashMap&lt;/tt&gt; with the specified initial
+     * capacity and load factor.
+     *
+     * @param  initialCapacity the initial capacity      初始化大小
+     * @param  loadFactor      the load factor       负载因子
+     * @throws IllegalArgumentException if the initial capacity is negative
+     *         or the load factor is nonpositive
+     */</span>
+    <span style="color: #0000ff;">public</span> HashMap(<span style="color: #0000ff;">int</span> initialCapacity, <span style="color: #0000ff;">float</span><span> loadFactor) {
+<span style="color: #008000;">        //如果初始化大小小于0，抛出异常</span>
+        <span style="color: #0000ff;">if</span> (initialCapacity &lt; 0<span>)
+            <span style="color: #0000ff;">throw new</span> IllegalArgumentException("Illegal initial capacity: " +<span>
+                                               initialCapacity);
+<span style="color: #008000;">        //如果初始化大小大于最大值，则将初始化值设为最大值</span>
+        <span style="color: #0000ff;">if</span> (initialCapacity &gt;<span> MAXIMUM_CAPACITY)
+            initialCapacity =<span> MAXIMUM_CAPACITY;
+        <span style="color: #0000ff;">if</span> (loadFactor &lt;= 0 ||<span> Float.isNaN(loadFactor))
+            <span style="color: #0000ff;">throw new</span> IllegalArgumentException("Illegal load factor: " +<span>
+                                               loadFactor);
+        <span style="color: #0000ff;">this</span>.loadFactor =<span> loadFactor;
+<span style="color: #008000;">        //阔值，该方法保证了数组初始化大小为2的次幂</span>
+        <span style="color: #0000ff;">this</span>.threshold =<span> tableSizeFor(initialCapacity);
+    }</span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p>　　最大值：（1073741824）</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">    static final int</span> MAXIMUM_CAPACITY = 1 &lt;&lt; 30;</pre>
+</div>
+<p>　　如果你初始化数组大小时候，没有按照前面的要求将数组的大小设为n的二次幂，也就是key2不是0111111这样子的形式，是不是会增加到hash冲突的概率呢。其实，HashMap源码里面针对这种情况进行了</p>
+<p>调整，保证了每一个数组大小为2的次幂，具体源码看下面&ldquo;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**
+     * Returns a power of two size for the given target capacity.
+     */</span>
+    <span style="color: #0000ff;">static final int</span> tableSizeFor(<span style="color: #0000ff;">int</span><span> cap) {
+        <span style="color: #0000ff;">int</span> n = cap - 1<span>;
+<span style="color: #008000;">        //位或操作，一步一步保证最后几位都1</span>
+        n |= n &gt;&gt;&gt; 1<span>;
+        n |= n &gt;&gt;&gt; 2<span>;
+        n |= n &gt;&gt;&gt; 4<span>;
+        n |= n &gt;&gt;&gt; 8<span>;
+        n |= n &gt;&gt;&gt; 16<span>;
+<span style="color: #008000;">        //如果n小于0返回1，不然返回小于最大值的n+1值</span>
+        <span style="color: #0000ff;">return</span> (n &lt; 0) ? 1 : (n &gt;= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1<span>;
+    }</span></span></span></span></span></span></span></span></pre>
+</div>
+<p>　　上面就是哈希中数组初始化的内容，接下来说一下数组扩容的方式。</p>
+<p>　　<span style="color: #ff00ff;">1.需要先知道的是，扩容是把原始的数组扩成多大的容量。</span></p>
+<p>　　从源码中的must be power of two，就是必须是2的n次幂就可以推断出扩容的方式是double，也就是将数组的大小翻倍。</p>
+<p>　　<span style="color: #ff00ff;">2.新数组如何创建，以及如何重新散列。（重新散列：把老数组中的Node移到到新的数组。）</span></p>
+<p>　　新数组的大小我们已经可以确定为旧数组大小的2倍，现在主要的问题就是重新散列，也就是把旧的数组中Node转移到新的数组中去。普遍的做法就是遍历旧的数组，将非空的Node依次赋值给新的数组。</p>
+<p>如果Node节点下面是链表就遍历链表，再赋值给新数组的Node节点。如果是红黑树，也是一样先打散再重排。这样的做法理解起来很简单，让我们一起看一下源码（较长）:</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /** 
+     * 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*初始化或增加表大小。 如果为null，则分配
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*符合在现场阈值中保持的初始容量目标。
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*否则，因为我们使用的是二次幂扩展，所以
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*每个bin中的元素必须保持相同的索引或移动
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*在新表中具有两个偏移量的幂。
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*
+     * Initializes or doubles table size.  If null, allocates in
+     * accord with initial capacity target held in field threshold.
+     * Otherwise, because we are using power-of-two expansion, the
+     * elements from each bin must either stay at same index, or move
+     * with a power of two offset in the new table.
+     *
+     * @return the table
+     */</span>
+    <span style="color: #0000ff;">final</span> Node&lt;K,V&gt;<span>[] resize() {
+<span style="color: #008000;">        //旧的Node数组</span>
+        Node&lt;K,V&gt;[] oldTab =<span> table;
+<span style="color: #008000;">        //获取旧的数组长度，如果为null则返回0</span>
+        <span style="color: #0000ff;">int</span> oldCap = (oldTab == <span style="color: #0000ff;">null</span>) ? 0<span> : oldTab.length;
+<span style="color: #008000;">        //旧数组的阔值</span>
+<span style="color: #008000;">        //threshold ：The next size value at which to resize (capacity * load factor).
+        //下一个要调整大小的大小值（容量*负载系数）。</span>
+<span style="color: #008000;">        int oldThr =</span><span><span style="color: #008000;"> threshold;
+        //新的数组和新的阔值</span>
+        <span style="color: #0000ff;">int</span> newCap, newThr = 0<span>;
+<span style="color: #008000;">        //如果旧数组长度大于0</span>
+        <span style="color: #0000ff;">if</span> (oldCap &gt; 0<span>) {
+<span style="color: #008000;">            //限制最大值</span>
+            <span style="color: #0000ff;">if</span> (oldCap &gt;=<span> MAXIMUM_CAPACITY) {
+                threshold =<span> Integer.MAX_VALUE;
+                <span style="color: #0000ff;">return</span><span> oldTab;
+            }
+<span style="color: #008000;">            //限制新的阔值大小</span>
+            <span style="color: #0000ff;">else if</span> ((newCap = oldCap &lt;&lt; 1) &lt; MAXIMUM_CAPACITY &amp;&amp;<span>
+                     oldCap &gt;=<span> DEFAULT_INITIAL_CAPACITY)
+<span style="color: #008000;">                //这边就是对新的数组阔值进行翻倍</span>
+                newThr = oldThr &lt;&lt; 1; <span style="color: #008000;">// double threshold</span>
+<span>        }
+<span style="color: #008000;">        //初始化新数组的值</span>
+        <span style="color: #0000ff;">else if</span> (oldThr &gt; 0) <span style="color: #008000;">// initial capacity was placed in threshold</span>
+            newCap =<span> oldThr;
+        <span style="color: #0000ff;">else</span> {               <span style="color: #008000;">// zero initial threshold signifies using defaults</span>
+<span style="color: #008000;">            //如果之前的阔值小于0，新的数组大小设置为16，阔值设置为 16 * 0.75f</span>
+            newCap =<span> DEFAULT_INITIAL_CAPACITY;
+            newThr = (int)(DEFAULT_LOAD_FACTOR *<span> DEFAULT_INITIAL_CAPACITY);
+        }
+        <span style="color: #0000ff;">if</span> (newThr == 0<span>) {
+<span style="color: #008000;">            //如果之前的阔值=0，赋值给新的阔值</span>
+            <span style="color: #0000ff;">float</span> ft = (<span style="color: #0000ff;">float</span>)newCap *<span> loadFactor;
+            newThr = (newCap &lt; MAXIMUM_CAPACITY &amp;&amp; ft &lt; (<span style="color: #0000ff;">float</span>)MAXIMUM_CAPACITY ?<span>
+                      (<span style="color: #0000ff;">int</span><span>)ft : Integer.MAX_VALUE);
+        }
+<span style="color: #008000;">        //全局变量的阔值变化</span>
+        threshold =<span> newThr;
+        @SuppressWarnings({"rawtypes","unchecked"<span>})
+            Node&lt;K,V&gt;[] newTab = (Node&lt;K,V&gt;[])new<span> Node[newCap];
+<span style="color: #008000;">        //新的哈希表</span>
+        table =<span> newTab;
+        <span style="color: #0000ff;">if</span> (oldTab != <span style="color: #0000ff;">null</span><span>) {
+<span style="color: #008000;">            //不为空的情况下遍历</span>
+            <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; oldCap; ++<span>j) {
+                Node&lt;K,V&gt;<span> e;
+ <span style="color: #008000;">               //如果Node节点不为null</span>
+                <span style="color: #0000ff;">if</span> ((e = oldTab[j]) != <span style="color: #0000ff;">null</span><span>) {
+<span style="color: #008000;">                    //之前的值删除（就是设置为null）</span>
+                    oldTab[j] = null<span>;
+<span style="color: #008000;">                    //如果不为链表和红黑树</span>
+                    <span style="color: #0000ff;">if</span> (e.next == <span style="color: #0000ff;">null</span><span>)
+<span style="color: #008000;">                        //直接赋值给新的哈希表</span>
+                        newTab[e.hash &amp; (newCap - 1)] =<span> e;
+                 <span style="color: #008000;">   //如果Node是红黑树数据结构，打散重排</span>
+                    <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (e instanceof<span> TreeNode)
+                        ((TreeNode&lt;K,V&gt;)e).split(this<span>, newTab, j, oldCap);
+                    <span style="color: #0000ff;">else</span> { <span style="color: #008000;">// preserve order</span>
+<span style="color: #008000;">                        //不然就是链表，对链表进行遍历 赋值到新的的哈希表</span>
+                        Node&lt;K,V&gt; loHead = <span style="color: #0000ff;">null</span>, loTail = <span style="color: #0000ff;">null</span><span>;
+                        Node&lt;K,V&gt; hiHead = <span style="color: #0000ff;">null</span>, hiTail = <span style="color: #0000ff;">null</span><span>;
+                        Node&lt;K,V&gt;<span> next;
+                        <span style="color: #0000ff;">do</span><span> {
+                            next =<span> e.next;
+                            <span style="color: #0000ff;">if</span> ((e.hash &amp; oldCap) == 0<span>) {
+                                <span style="color: #0000ff;">if</span> (loTail == null<span>)
+                                    loHead =<span> e;
+                                <span style="color: #0000ff;">else</span><span>
+                                    loTail.next =<span> e;
+                                loTail =<span> e;
+                            }
+                            <span style="color: #0000ff;">else</span><span> {
+                                <span style="color: #0000ff;">if</span> (hiTail == <span style="color: #0000ff;">null</span><span>)
+                                    hiHead =<span> e;
+                                <span style="color: #0000ff;">else</span><span>
+                                    hiTail.next =<span> e;
+                                hiTail =<span> e;
+                            }
+                        } <span style="color: #0000ff;">while</span> ((e = next) != <span style="color: #0000ff;">null</span><span>);
+                        <span style="color: #0000ff;">if</span> (loTail != <span style="color: #0000ff;">null</span><span>) {
+                            loTail.next = <span style="color: #0000ff;">null</span><span>;
+                            newTab[j] =<span> loHead;
+                        }
+                        <span style="color: #0000ff;">if</span> (hiTail != <span style="color: #0000ff;">null</span><span>) {
+                            hiTail.next = <span style="color: #0000ff;">null</span><span>;
+                            newTab[j + oldCap] =<span> hiHead;
+                        }
+                    }
+                }
+            }
+        }
+        <span style="color: #0000ff;">return</span><span> newTab;
+    }</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p>　　但是在赋值的过程中，需要注意所有的位置都进行了新的一轮hash运算，在 <span style="color: #ff0000;">【1.计算出存储key value的Node的位置 】</span>中可以知道key2的值形式要保持是01111&hellip;&hellip;11的形式。</p>
+<p>　　之前的操作是这样的：</p>
+<p><span style="color: #008000;">&nbsp;&nbsp; &nbsp; &nbsp;　　　　　　 0000 0000 0000 0000 0000 0000 0011 0001&nbsp;</span><br /><span style="color: #008000;">&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;　　　　　　　　　　　&nbsp; &nbsp; &nbsp; &nbsp; 0 1111&nbsp; &amp;操作&nbsp;&nbsp; （数组大小 - 1）</span><br /><span style="color: #008000;">&nbsp;&nbsp; 　　　　　　　　&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</span><br /><span style="color: #008000;">&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp; 　　　　　　　　　　　&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;0001（结果）&nbsp; --- 1</span></p>
+<p>　　　但是我们现在对key2的值进行了翻倍，那么随之与操作的结果也会变化，也就是在新的数组中Node的位置以及发生了变化，具体看下面：</p>
+<p><span style="color: #008000;">&nbsp; &nbsp; &nbsp; 　　　　 0000 0000 0000 0000 0000 0000 0010&nbsp;0001&nbsp; &nbsp; &nbsp;&nbsp;key1的值 第一种情况</span></p>
+<p><span style="color: #008080;">　&nbsp; &nbsp; &nbsp; 　　　 <span style="color: #008000;">0000 0000 0000 0000 0000 0000 001</span><span style="color: #ff00ff;">1</span> <span style="color: #008000;">0001&nbsp; &nbsp;</span> &nbsp;<span style="color: #ff00ff;">&nbsp;key1的值 第二种情况</span></span><br /><span style="color: #008000;">&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;　　　　　　　&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 01 1111&nbsp; &amp;操作&nbsp;&nbsp; （新数组大小 = 旧数组大小 * 2，比之前左边多了一位1）</span><br /><span style="color: #008000;">&nbsp;&nbsp; 　　　　　　　　&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</span></p>
+<p><span style="color: #008000;">&nbsp;　　　　　　　　　　　　　　　　　　　　&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;00&nbsp; 0001（第一种结果） ---1&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span></p>
+<p><span style="color: #008000;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 第一种情况，key1的值和之前的值一样，也就是重新散列的位置不变</span><br /><span style="color: #008080;">&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp; 　　　　　　　　&nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff00ff;"> 01&nbsp; 0001（第二种结果） ---17　</span>　　　　</span></p>
+<p><span style="color: #008080;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff00ff;">&nbsp;第二种情况，key1的值比之前的值大16（数组的长度），也就是重新散列的位置发生了变化</span></span></p>
+<p>　　所以，哈希resize后，之前旧数组的Node在新数组中的位置有两种情况：1.保持和旧数组一样&nbsp; 2.旧数组的位置+旧数组的大小</p>
+<p>　　在注释部分，就交代了&ldquo;刷新&rdquo;操作是会重建内部数据结构的。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;"> * &lt;p&gt;An instance of &lt;tt&gt;HashMap&lt;/tt&gt; has two parameters that affect its            * &lt;p&gt; &lt;tt&gt; HashMap &lt;/ tt&gt;的实例有两个参数会影响其性能：&lt;i&gt;初始容量&lt;/ i&gt;和&lt;i&gt;负载系数&lt;/ i&gt;。
+ * performance: &lt;i&gt;initial capacity&lt;/i&gt; and &lt;i&gt;load factor&lt;/i&gt;.  The                * 容量只是创建哈希表时的容量。
+ * &lt;i&gt;capacity&lt;/i&gt; is the number of buckets in the hash table, and the initial        * &lt;i&gt;负载因子&lt;/ i&gt;是衡量哈希表允许填充的程度的度量在容量自动增加之前获取 。
+ * capacity is simply the capacity at the time the hash table is created.  The        * 当哈希表中的条目超过了负载系数和当前容量，
+ * &lt;i&gt;load factor&lt;/i&gt; is a measure of how full the hash table is allowed to           * 哈希表被&lt;i&gt;刷新&lt;/ i&gt;（即内部数据结构已重建），
+ * get before its capacity is automatically increased.  When the number of            * 因此哈希表的大小大约是原来容量的2倍。
+ * entries in the hash table exceeds the product of the load factor and the            
+ * current capacity, the hash table is &lt;i&gt;rehashed&lt;/i&gt; (that is, internal data    
+ * structures are rebuilt) so that the hash table has approximately twice the        
+ * number of buckets.
+ *</span></pre>
+</div>
+<p>　<span style="color: #ff0000;">　3.key和value的put经历</span></p>
+<p><span style="color: #0000ff;">　　</span>上面说的都是关于Node的位置问题，如果Node位置确定了，那么剩下的就只剩putNode里面的key和value了。首先，一个数组里面put一个Node，我们需要思考这个位置是否是NULL，如果为NULL的话，就在该位置new一个新的Node ；如果不为NULL，那么就需要判断put的内容是覆盖原来的value还是新增一个Node，新增又分为链表新增和红黑树的新增。具体的源码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">   /**
+     * Implements Map.put and related methods 实现Map.put及相关方法
+     *
+     * @param hash hash for key hash算法算出的Node位置
+     * @param key the key 键 
+     * @param value the value to put 放置的值
+     * @param onlyIfAbsent if true, don't change existing value onlyIfAbsent如果为true，请不要更改现有值
+     * @param evict if false, the table is in creation mode. 退出，如果为false，则表处于创建模式。
+     * @return previous value, or null if none  上一个值，如果没有则返回null
+     */</span>
+    <span style="color: #0000ff;">final</span> V putVal(<span style="color: #0000ff;">int</span> hash, K key, V value, <span style="color: #0000ff;">boolean</span><span> onlyIfAbsent,
+                   <span style="color: #0000ff;">boolean</span><span> evict) {
+        Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; <span style="color: #0000ff;">int</span><span> n, i;
+<span style="color: #008000;">        //初始化哈希表</span>
+        <span style="color: #0000ff;">if</span> ((tab = table) == <span style="color: #0000ff;">null</span> || (n = tab.length) == 0<span>)
+            n = (tab =<span> resize()).length;
+<span style="color: #008000;">        //获取在哈希表中的位置，并且判断该位置是否为null，如果是null 直接就创建新的Node</span>
+        <span style="color: #0000ff;">if</span> ((p = tab[i = (n - 1) &amp; hash]) == <span style="color: #0000ff;">null</span><span>)
+            tab[i] = newNode(hash, key, value, <span style="color: #0000ff;">null</span><span>);
+        <span style="color: #0000ff;">else</span><span> {
+         <span style="color: #008000;">   //如果该位置不为null，则可能为链表或者红黑树</span>
+            Node&lt;K,V&gt;<span> e; K k;
+      <span style="color: #008000;">      //如果key值相同，hash也相同，则替换value的值</span>
+            <span style="color: #0000ff;">if</span> (p.hash == hash &amp;&amp;<span>
+                ((k = p.key) == key || (key != <span style="color: #0000ff;">null</span> &amp;&amp;<span> key.equals(k))))
+                e =<span> p;
+           <span style="color: #008000;"> //红黑树存储</span>
+           <span style="color: #0000ff;"> else if</span> (p <span style="color: #0000ff;">instanceof</span><span> TreeNode)
+                e = ((TreeNode&lt;K,V&gt;)p).putTreeVal(this<span>, tab, hash, key, value);
+           <span style="color: #008000;"> //链表存储</span>
+            <span style="color: #0000ff;">else</span><span> {
+                <span style="color: #008000;">//遍历链表</span>
+                <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> binCount = 0; ; ++<span>binCount) {
+                    <span style="color: #0000ff;">if</span> ((e = p.next) == <span style="color: #0000ff;">null</span><span>) {
+                       <span style="color: #008000;"> //尾部插入</span>
+                        p.next = newNode(hash, key, value, null<span>);
+                        <span style="color: #008000;">//如果长度大于8 （TREEIFY_THRESHOLD = 8）</span>
+                        <span style="color: #0000ff;">if</span> (binCount &gt;= TREEIFY_THRESHOLD - 1) <span style="color: #008000;">// -1 for 1st</span>
+                           <span style="color: #008000;"> //链表转换为红黑树</span>
+<span>                            treeifyBin(tab, hash);
+                        <span style="color: #0000ff;">break</span><span>;
+                    }
+                    <span style="color: #0000ff;">if</span> (e.hash == hash &amp;&amp;<span>
+                        ((k = e.key) == key || (key != <span style="color: #0000ff;">null</span> &amp;&amp;<span> key.equals(k))))
+                        <span style="color: #0000ff;">break</span><span>;
+                    p =<span> e;
+                }
+            }
+            <span style="color: #0000ff;">if</span> (e != <span style="color: #0000ff;">null</span>) {<span style="color: #008000;"> // existing mapping for key</span>
+                V oldValue =<span> e.value;
+                <span style="color: #0000ff;">if</span> (!onlyIfAbsent || oldValue == <span style="color: #0000ff;">null</span><span>)
+                    e.value =<span> value;
+                afterNodeAccess(e);
+                <span style="color: #0000ff;">return</span><span> oldValue;
+            }
+        }
+        ++<span>modCount;
+<span style="color: #008000;">        //数组长度大于阔值</span>
+        <span style="color: #0000ff;">if</span> (++size &gt;<span> threshold)<br />　　　　　　　<span style="color: #008080;">//扩容</span>
+            resize();
+        afterNodeInsertion(evict);
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span>;
+    }</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p>&nbsp;　　getNode的源码和上面的如出一辙，也很好理解，根据hash先找到Node的头节点，如果头节点的hash和key都相同，就直接返回第一个数组的值，否在判断该Node是否是链表或者红黑树结构，再根据key获取值，贴一下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**
+     * Implements Map.get and related methods
+     *
+     * @param hash hash for key
+     * @param key the key
+     * @return the node, or null if none
+     */</span>
+    <span style="color: #0000ff;">final</span> Node&lt;K,V&gt; getNode(<span style="color: #0000ff;">int</span><span> hash, Object key) {
+        Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; <span style="color: #0000ff;">int</span><span> n; K k;
+        <span style="color: #0000ff;">if</span> ((tab = table) != <span style="color: #0000ff;">null</span> &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;<span>
+            (first = tab[(n - 1) &amp; hash]) != <span style="color: #0000ff;">null</span><span>) {
+            <span style="color: #0000ff;">if</span> (first.hash == hash &amp;&amp; <span style="color: #008000;">// always check first node</span>
+                ((k = first.key) == key || (key != <span style="color: #0000ff;">null</span> &amp;&amp;<span> key.equals(k))))
+                return<span> first;
+            <span style="color: #0000ff;">if</span> ((e = first.next) != <span style="color: #0000ff;">null</span><span>) {
+                <span style="color: #0000ff;">if</span> (first <span style="color: #0000ff;">instanceof</span><span> TreeNode)
+                    <span style="color: #0000ff;">return</span> ((TreeNode&lt;K,V&gt;<span>)first).getTreeNode(hash, key);
+                <span style="color: #0000ff;">do</span><span> {
+                    <span style="color: #0000ff;">if</span> (e.hash == hash &amp;&amp;<span>
+                        ((k = e.key) == key || (key != <span style="color: #0000ff;">null</span> &amp;&amp;<span> key.equals(k))))
+                        return<span> e;
+                } while ((e = e.next) != <span style="color: #0000ff;">null</span><span>);
+            }
+        }
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span>;
+    }</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p><span style="color: #ff0000;"><strong><span style="color: #008000;">4.ConcurrentHashMap以及线程安全</span></strong></span></p>
+<p><strong>　　</strong>先看一下同样是线程安全的HashTable是如何保证线程安全的：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">    public synchronized</span><span> V put(K key, V value) {
+<span style="color: #008000;">        // Make sure the value is not null</span>
+        <span style="color: #0000ff;">if</span> (value == <span style="color: #0000ff;">null</span><span>) {
+            <span style="color: #0000ff;">throw</span> new<span> NullPointerException();
+        }</span></span></span></pre>
+</div>
+<p>　　由上面的源码可以看出synchronized关键字直接约束了整个put方法，这样线程虽然是安全的，但是效率过于低下。对比之下ConcurrentHashMap的锁设计就更为精确化，因为对于一个put方法，后者把它大致分为几个步骤，通过对每个步骤进行线程安全约束来提升效率。（index：这边当作数组下标）</p>
+<p>　　大致的put步骤：map.put（K,V）&mdash;&gt;&nbsp; new Node[]创建数组 &mdash;&gt; index == null（数组位置值为null，直接创建） &mdash;&gt; index!=null(加入链表，红黑树) &mdash;&gt; resize（）扩容</p>
+<p>　　<strong>1.保证初始化哈希表线程安全</strong></p>
+<p>　　在创建数组的时候，通过乐观锁机制（CAS）保证只有一个线程去初始化数组；</p>
+<p>　　初始化的源码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//putVal 方法中</span> <br /><span style="color: #0000ff;">if</span> (tab == null || (n = tab.length) == 0<span>)<br /><span style="color: #008000;">　　　　　　　　　　//初始化</span>
+           tab = initTable();</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**
+     * Initializes table, using the size recorded in sizeCtl.
+     */</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Node&lt;K,V&gt;<span>[] initTable() {
+        Node&lt;K,V&gt;[] tab; <span style="color: #0000ff;">int</span><span> sc;
+        while ((tab = table) == <span style="color: #0000ff;">null</span> || tab.length == 0<span>) {
+<span style="color: #008000;">            //如果SIZECTL&lt;0,就代表已经有一个线程在执行初始化了，进行线程让步</span>
+            <span style="color: #0000ff;">if</span> ((sc = sizeCtl) &lt; 0<span>)
+                Thread.yield();<span style="color: #008000;"> // lost initialization race; just spin</span>
+<span style="color: #008000;">            //CAS 乐观锁机制保证数组初始化线程安全，如果当前对象的值==SIZECTL，则认为线程安全，返回-1</span>
+            <span style="color: #0000ff;">else if</span> (U.compareAndSwapInt(this, SIZECTL, sc, -1<span>)) {
+                <span style="color: #0000ff;">try</span><span> {
+                    <span style="color: #0000ff;">if</span> ((tab = table) == <span style="color: #0000ff;">null</span> || tab.length == 0<span>) {
+                        <span style="color: #0000ff;">int</span> n = (sc &gt; 0) ?<span> sc : DEFAULT_CAPACITY;
+                        @SuppressWarnings("unchecked"<span>)
+                        Node&lt;K,V&gt;[] nt = (Node&lt;K,V&gt;[])new Node&lt;?,?&gt;<span>[n];
+                        table = tab =<span> nt;
+                        sc = n - (n &gt;&gt;&gt; 2<span>);
+                    }
+                } <span style="color: #0000ff;">finally</span><span> {
+                    sizeCtl =<span> sc;
+                }
+                <span style="color: #0000ff;">break</span><span>;
+            }
+        }
+        <span style="color: #0000ff;">return</span><span> tab;
+    }</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p>　　<strong>2.数组下标index为null时候</strong></p>
+<p>　　如果数组下标的值为null，也是通过乐观锁机制保证线程安全，源码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /** Implementation for put and putIfAbsent */</span>
+    <span style="color: #0000ff;">final</span> V putVal(K key, V value, <span style="color: #0000ff;">boolean</span><span> onlyIfAbsent) {
+        <span style="color: #0000ff;">if</span> (key == null || value == null) <span style="color: #0000ff;">throw</span> new<span> NullPointerException();
+        <span style="color: #0000ff;">int</span> hash =<span> spread(key.hashCode());
+        <span style="color: #0000ff;">int</span> binCount = 0<span>;
+        for (Node&lt;K,V&gt;[] tab =<span> table;;) {
+            Node&lt;K,V&gt; f; <span style="color: #0000ff;">int</span><span> n, i, fh;
+            if (tab == <span style="color: #0000ff;">null</span> || (n = tab.length) == 0<span>)
+                tab =<span> initTable();
+<span style="color: #008000;">            //如果数组下标的值为null，也是通过乐观锁机制保证线程安全</span>
+            <span style="color: #0000ff;">else if</span> ((f = tabAt(tab, i = (n - 1) &amp; hash)) == <span style="color: #0000ff;">null</span><span>) {
+                <span style="color: #0000ff;">if</span> (casTabAt(tab, i, <span style="color: #0000ff;">null</span><span>,
+                             new Node&lt;K,V&gt;(hash, key, value, <span style="color: #0000ff;">null</span><span>)))
+                    <span style="color: #0000ff;">break</span>;                   <span style="color: #008000;">// no lock when adding to empty bin</span>
+            }</span></span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p>　　<strong>3.数组下标不为null</strong></p>
+<p>　　数组下标不为null的话，那么就是链表和红黑树结构，如果再用CAS去保证线程安全就需要对链表和红黑树中的元素依次去进行compareAndSwapInt，很麻烦。所以在这边，我们可以将链表或者红黑树的头节点锁住，就可以保证一整个链表红黑树的线程安全，这样影响的范围就会缩小。</p>
+<p>　　源码：</p>
+<p>　　通过对头节点（数组下标）的锁，保证一整个链表和红黑树的线程安全。</p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #008000;">//</span><span style="color: #008000;">如果数组下标的值为null，也是通过乐观锁机制保证线程安全</span>
+            <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((f = tabAt(tab, i = (n - 1) &amp; hash)) == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">if</span> (casTabAt(tab, i, <span style="color: #0000ff;">null</span><span style="color: #000000;">,
+                             </span><span style="color: #0000ff;">new</span> Node&lt;K,V&gt;(hash, key, value, <span style="color: #0000ff;">null</span><span style="color: #000000;">)))
+                    </span><span style="color: #0000ff;">break</span>;                   <span style="color: #008000;">//</span><span style="color: #008000;"> no lock when adding to empty bin</span>
+<span style="color: #000000;">            }
+            </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((fh = f.hash) ==<span style="color: #000000;"> MOVED)
+                tab </span>=<span style="color: #000000;"> helpTransfer(tab, f);
+            </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                V oldVal </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">如果下标不为null，那么就是链表和红黑树结构，如果再用CAS去保证线程安全就需要对链表和红黑树中的元素依次去进行compareAndSwapInt，
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">所以在这边，我们可以将链表或者红黑树的头节点锁住，就可以保证一整个链表红黑树的线程安全</span>
+                <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (f) {
+                    </span><span style="color: #0000ff;">if</span> (tabAt(tab, i) ==<span style="color: #000000;"> f) {
+                        </span><span style="color: #0000ff;">if</span> (fh &gt;= 0<span style="color: #000000;">) {
+                            binCount </span>= 1<span style="color: #000000;">;
+                            </span><span style="color: #0000ff;">for</span> (Node&lt;K,V&gt; e = f;; ++<span style="color: #000000;">binCount) {
+                                K ek;
+                                </span><span style="color: #0000ff;">if</span> (e.hash == hash &amp;&amp;<span style="color: #000000;">
+                                    ((ek </span>= e.key) == key ||<span style="color: #000000;">
+                                     (ek </span>!= <span style="color: #0000ff;">null</span> &amp;&amp;<span style="color: #000000;"> key.equals(ek)))) {
+                                    oldVal </span>=<span style="color: #000000;"> e.val;
+                                    </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">onlyIfAbsent)
+                                        e.val </span>=<span style="color: #000000;"> value;
+                                    </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                                }</span></pre>
+</div>
+<p>　　完整的putVal源码：</p>
+<div class="cnblogs_code">
+<pre><code>   <span style="color: #008000;">/**</span><span style="color: #008000;"> Implementation for put and putIfAbsent </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">final</span> V putVal(K key, V value, <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> onlyIfAbsent) {
+        </span><span style="color: #0000ff;">if</span> (key == <span style="color: #0000ff;">null</span> || value == <span style="color: #0000ff;">null</span>) <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> NullPointerException();
+        </span><span style="color: #0000ff;">int</span> hash =<span style="color: #000000;"> spread(key.hashCode());
+        </span><span style="color: #0000ff;">int</span> binCount = 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">for</span> (Node&lt;K,V&gt;[] tab =<span style="color: #000000;"> table;;) {
+            Node</span>&lt;K,V&gt; f; <span style="color: #0000ff;">int</span><span style="color: #000000;"> n, i, fh;
+            </span><span style="color: #0000ff;">if</span> (tab == <span style="color: #0000ff;">null</span> || (n = tab.length) == 0<span style="color: #000000;">)
+                tab </span>=<span style="color: #000000;"> initTable();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">如果数组下标的值为null，也是通过乐观锁机制保证线程安全</span>
+            <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((f = tabAt(tab, i = (n - 1) &amp; hash)) == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">if</span> (casTabAt(tab, i, <span style="color: #0000ff;">null</span><span style="color: #000000;">,
+                             </span><span style="color: #0000ff;">new</span> Node&lt;K,V&gt;(hash, key, value, <span style="color: #0000ff;">null</span><span style="color: #000000;">)))
+                    </span><span style="color: #0000ff;">break</span>;                   <span style="color: #008000;">//</span><span style="color: #008000;"> no lock when adding to empty bin</span>
+<span style="color: #000000;">            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">如果不是初始化数组的线程的话，就去帮忙重新散列
+　　　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">MOVED 的值为-1</span>
+            <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((fh = f.hash) ==<span style="color: #000000;"> MOVED)
+                tab </span>=<span style="color: #000000;"> helpTransfer(tab, f);
+            </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                V oldVal </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">如果下标不为null，那么就是链表和红黑树结构，如果再用CAS去保证线程安全就需要对链表和红黑树中的元素依次去进行compareAndSwapInt，
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">所以在这边，我们可以将链表或者红黑树的头节点锁住，就可以保证一整个链表红黑树的线程安全</span>
+                <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (f) {
+                    </span><span style="color: #0000ff;">if</span> (tabAt(tab, i) ==<span style="color: #000000;"> f) {
+                        </span><span style="color: #0000ff;">if</span> (fh &gt;= 0<span style="color: #000000;">) {
+                            binCount </span>= 1<span style="color: #000000;">;
+                            </span><span style="color: #0000ff;">for</span> (Node&lt;K,V&gt; e = f;; ++<span style="color: #000000;">binCount) {
+                                K ek;
+                                </span><span style="color: #0000ff;">if</span> (e.hash == hash &amp;&amp;<span style="color: #000000;">
+                                    ((ek </span>= e.key) == key ||<span style="color: #000000;">
+                                     (ek </span>!= <span style="color: #0000ff;">null</span> &amp;&amp;<span style="color: #000000;"> key.equals(ek)))) {
+                                    oldVal </span>=<span style="color: #000000;"> e.val;
+                                    </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">onlyIfAbsent)
+                                        e.val </span>=<span style="color: #000000;"> value;
+                                    </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                                }
+                                Node</span>&lt;K,V&gt; pred =<span style="color: #000000;"> e;
+                                </span><span style="color: #0000ff;">if</span> ((e = e.next) == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                                    pred.next </span>= <span style="color: #0000ff;">new</span> Node&lt;K,V&gt;<span style="color: #000000;">(hash, key,
+                                                              value, </span><span style="color: #0000ff;">null</span><span style="color: #000000;">);
+                                    </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                                }
+                            }
+                        }
+                        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (f <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> TreeBin) {
+                            Node</span>&lt;K,V&gt;<span style="color: #000000;"> p;
+                            binCount </span>= 2<span style="color: #000000;">;
+                            </span><span style="color: #0000ff;">if</span> ((p = ((TreeBin&lt;K,V&gt;<span style="color: #000000;">)f).putTreeVal(hash, key,
+                                                           value)) </span>!= <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                                oldVal </span>=<span style="color: #000000;"> p.val;
+                                </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">onlyIfAbsent)
+                                    p.val </span>=<span style="color: #000000;"> value;
+                            }
+                        }
+                    }
+                }
+                </span><span style="color: #0000ff;">if</span> (binCount != 0<span style="color: #000000;">) {
+                    </span><span style="color: #0000ff;">if</span> (binCount &gt;=<span style="color: #000000;"> TREEIFY_THRESHOLD)
+                        treeifyBin(tab, i);
+                    </span><span style="color: #0000ff;">if</span> (oldVal != <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> oldVal;
+                    </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                }
+            }
+        }
+　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">每次put都会统计数组的大小，以确定是否扩容</span>
+        addCount(1L<span style="color: #000000;">, binCount);
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }</span></pre>
+</div>
+<p>　　<strong>4.扩容的线程安全</strong></p>
+<p>　　一个线程去扩容的时候，其他的线程进行扩容或进行put操作都会引起线程安全问题，所以在一个线程在扩容的时候，其他的线程需要进入等待状态。这样等待状态的线程占据着CPU但是却不做事情，所以源码对此进行了优化。首先，保证只有一个线程能去初始化。其次，剩下等待的线程共同帮助完成重新散列。</p>
+<p>　　比如一个数组tab[]大小16，一个线程去负责扩容成大小32的新数组。剩下的等待线程就会去帮着重新散列，如：等待线程a就会去从数组末尾开始向前领取一个区间的Node进行重新散列，例如区间（tab[13]~tab[15] ），a线程去负责对区间的Node进行重新散列。如果在a完成了，还没有其他的扩容（或者put）线程进入变成等待线程的话，a就会继续领取一个区间的任务继续进行重新散列，如果有一个线程b要进行扩容，因为扩容操作已经有线程在做了，b随之进入等待状态，这时候b线程就会去帮着a线程去完成剩下区间的散列任务。以此反复，其中的每一个线程帮着完成重新散列任务都是会提交自己的进度的，所以不要担心会重复或少工作这么一个情况。</p>
+<p>　　上面的过程，侧重点就2个，第一个保证一个线程初始化数组，第二保证剩下的线程去帮助扩容。</p>
+<p>　　源码实现：</p>
+<p>　　统计源码，决定什么时候能扩容：</p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #008000;">/**</span><span style="color: #008000;">
+     * Adds to count, and if table is too small and not already
+     * resizing, initiates transfer. If already resizing, helps
+     * perform transfer if work is available.  Rechecks occupancy
+     * after a transfer to see if another resize is already needed
+     * because resizings are lagging additions.
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> x the count to add
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> check if &lt;0, don't check resize, if &lt;= 1 only check if uncontended
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">void</span> addCount(<span style="color: #0000ff;">long</span> x, <span style="color: #0000ff;">int</span><span style="color: #000000;"> check) {
+        CounterCell[] as; </span><span style="color: #0000ff;">long</span><span style="color: #000000;"> b, s;
+        </span><span style="color: #0000ff;">if</span> ((as = counterCells) != <span style="color: #0000ff;">null</span> ||
+            !U.compareAndSwapLong(<span style="color: #0000ff;">this</span>, BASECOUNT, b = baseCount, s = b +<span style="color: #000000;"> x)) {
+            CounterCell a; </span><span style="color: #0000ff;">long</span> v; <span style="color: #0000ff;">int</span><span style="color: #000000;"> m;
+            </span><span style="color: #0000ff;">boolean</span> uncontended = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">if</span> (as == <span style="color: #0000ff;">null</span> || (m = as.length - 1) &lt; 0 ||<span style="color: #000000;">
+                (a </span>= as[ThreadLocalRandom.getProbe() &amp; m]) == <span style="color: #0000ff;">null</span> ||
+                !(uncontended =<span style="color: #000000;">
+                  U.compareAndSwapLong(a, CELLVALUE, v </span>= a.value, v +<span style="color: #000000;"> x))) {
+                fullAddCount(x, uncontended);
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+            </span><span style="color: #0000ff;">if</span> (check &lt;= 1<span style="color: #000000;">)
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">统计的结果s</span>
+            s =<span style="color: #000000;"> sumCount();
+        }
+        </span><span style="color: #0000ff;">if</span> (check &gt;= 0<span style="color: #000000;">) {
+            Node</span>&lt;K,V&gt;[] tab, nt; <span style="color: #0000ff;">int</span><span style="color: #000000;"> n, sc;
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">如果s大于阔值，则需要进行扩容</span>
+            <span style="color: #0000ff;">while</span> (s &gt;= (<span style="color: #0000ff;">long</span>)(sc = sizeCtl) &amp;&amp; (tab = table) != <span style="color: #0000ff;">null</span> &amp;&amp;<span style="color: #000000;">
+                   (n </span>= tab.length) &lt;<span style="color: #000000;"> MAXIMUM_CAPACITY) {
+                </span><span style="color: #0000ff;">int</span> rs =<span style="color: #000000;"> resizeStamp(n);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">sc = 阔值</span>
+                <span style="color: #0000ff;">if</span> (sc &lt; 0<span style="color: #000000;">) {
+                    </span><span style="color: #0000ff;">if</span> ((sc &gt;&gt;&gt; RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||<span style="color: #000000;">
+                        sc </span>== rs + MAX_RESIZERS || (nt = nextTable) == <span style="color: #0000ff;">null</span> ||<span style="color: #000000;">
+                        transferIndex </span>&lt;= 0<span style="color: #000000;">)
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">if</span> (U.compareAndSwapInt(<span style="color: #0000ff;">this</span>, SIZECTL, sc, sc + 1<span style="color: #000000;">))
+                        <span style="color: #ff00ff;">transfer</span>(tab, nt);
+                }
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">阔值大于0 进行初始化 乐观锁保证线程安全</span>
+                <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (U.compareAndSwapInt(<span style="color: #0000ff;">this</span><span style="color: #000000;">, SIZECTL, sc,
+                                             (rs </span>&lt;&lt; RESIZE_STAMP_SHIFT) + 2<span style="color: #000000;">))
+                    <span style="color: #ff00ff;">transfer</span>(tab, </span><span style="color: #0000ff;">null</span><span style="color: #000000;">);
+                s </span>=<span style="color: #000000;"> sumCount();
+            }
+        }
+    }</span></pre>
+</div>
+<p>　　任务代码：　　</p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #008000;">/**</span><span style="color: #008000;">
+     * Moves and/or copies the nodes in each bin to new table. See
+     * above for explanation.
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">void</span> transfer(Node&lt;K,V&gt;[] tab, Node&lt;K,V&gt;<span style="color: #000000;">[] nextTab) {
+        </span><span style="color: #0000ff;">int</span> n =<span style="color: #000000;"> tab.length, stride;
+　　　　 </span><span style="color: #008000;">//</span><span style="color: #008000;">确定任务的大小=16</span>
+        <span style="color: #0000ff;">if</span> ((stride = (NCPU &gt; 1) ? (n &gt;&gt;&gt; 3) / NCPU : n) &lt;<span style="color: #000000;"> MIN_TRANSFER_STRIDE)
+            stride </span>= MIN_TRANSFER_STRIDE; <span style="color: #008000;">//</span><span style="color: #008000;"> subdivide range
+　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">初始化数组线程，如果入参的nextTab为null的话</span>
+
+        <span style="color: #0000ff;">if</span> (nextTab == <span style="color: #0000ff;">null</span>) {            <span style="color: #008000;">//</span><span style="color: #008000;"> initiating</span>
+            <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                @SuppressWarnings(</span>"unchecked"<span style="color: #000000;">)
+                Node</span>&lt;K,V&gt;[] nt = (Node&lt;K,V&gt;[])<span style="color: #0000ff;">new</span> Node&lt;?,?&gt;[n &lt;&lt; 1<span style="color: #000000;">];
+                nextTab </span>=<span style="color: #000000;"> nt;
+            } </span><span style="color: #0000ff;">catch</span> (Throwable ex) {      <span style="color: #008000;">//</span><span style="color: #008000;"> try to cope with OOME</span>
+                sizeCtl =<span style="color: #000000;"> Integer.MAX_VALUE;
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+            nextTable </span>=<span style="color: #000000;"> nextTab;
+            transferIndex </span>=<span style="color: #000000;"> n;
+        }
+　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">非初始化线程，nextTab不为null</span>
+        <span style="color: #0000ff;">int</span> nextn =<span style="color: #000000;"> nextTab.length;
+        ForwardingNode</span>&lt;K,V&gt; fwd = <span style="color: #0000ff;">new</span> ForwardingNode&lt;K,V&gt;<span style="color: #000000;">(nextTab);
+　　　　　</span><span style="color: #008000;">//保证true，使其</span><span style="color: #008000;">不断领取任务</span>
+        <span style="color: #0000ff;">boolean</span> advance = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">标记重新散列任务是否完成</span>
+        <span style="color: #0000ff;">boolean</span> finishing = <span style="color: #0000ff;">false</span>; <span style="color: #008000;">//</span><span style="color: #008000;"> to ensure sweep before committing nextTab</span>
+        <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0, bound = 0<span style="color: #000000;">;;) {
+            Node</span>&lt;K,V&gt; f; <span style="color: #0000ff;">int</span><span style="color: #000000;"> fh;
+　　　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">领取散列任务</span>
+            <span style="color: #0000ff;">while</span><span style="color: #000000;"> (advance) {
+                </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> nextIndex, nextBound;
+                </span><span style="color: #0000ff;">if</span> (--i &gt;= bound ||<span style="color: #000000;"> finishing)
+                    advance </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((nextIndex = transferIndex) &lt;= 0<span style="color: #000000;">) {
+                    i </span>= -1<span style="color: #000000;">;
+                    advance </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                }
+                </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span><span style="color: #000000;"> (U.compareAndSwapInt
+                         (</span><span style="color: #0000ff;">this</span><span style="color: #000000;">, TRANSFERINDEX, nextIndex,
+                          nextBound </span>= (nextIndex &gt; stride ?<span style="color: #000000;">
+                                       nextIndex </span>- stride : 0<span style="color: #000000;">))) {
+                    bound </span>=<span style="color: #000000;"> nextBound;
+                    i </span>= nextIndex - 1<span style="color: #000000;">;
+                    advance </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                }
+            }
+　　　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">执行散列</span>
+            <span style="color: #0000ff;">if</span> (i &lt; 0 || i &gt;= n || i + n &gt;=<span style="color: #000000;"> nextn) {
+                </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> sc;
+　　　　　　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">完成扩容</span>
+                <span style="color: #0000ff;">if</span><span style="color: #000000;"> (finishing) {
+                    nextTable </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                    table </span>=<span style="color: #000000;"> nextTab;
+　　　　　　　　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">扩展改变</span>
+                    sizeCtl = (n &lt;&lt; 1) - (n &gt;&gt;&gt; 1<span style="color: #000000;">);
+                    </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+                }
+　　　　　　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">没有完成扩容，汇报自己的完成任务</span>
+                <span style="color: #0000ff;">if</span> (U.compareAndSwapInt(<span style="color: #0000ff;">this</span>, SIZECTL, sc = sizeCtl, sc - 1<span style="color: #000000;">)) {
+                    </span><span style="color: #0000ff;">if</span> ((sc - 2) != resizeStamp(n) &lt;&lt;<span style="color: #000000;"> RESIZE_STAMP_SHIFT)
+                        </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+                    finishing </span>= advance = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                    i </span>= n; <span style="color: #008000;">//</span><span style="color: #008000;"> recheck before commit</span>
+<span style="color: #000000;">                }
+            }
+            </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((f = tabAt(tab, i)) == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                advance </span>= casTabAt(tab, i, <span style="color: #0000ff;">null</span><span style="color: #000000;">, fwd);
+            </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((fh = f.hash) ==<span style="color: #000000;"> MOVED)
+                advance </span>= <span style="color: #0000ff;">true</span>; <span style="color: #008000;">//</span><span style="color: #008000;"> already processed</span>
+            <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+　　　　　　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">迁移数据操作，和HashMap一致</span>
+                <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (f) {
+                    </span><span style="color: #0000ff;">if</span> (tabAt(tab, i) ==<span style="color: #000000;"> f) {
+                        Node</span>&lt;K,V&gt;<span style="color: #000000;"> ln, hn;
+                        </span><span style="color: #0000ff;">if</span> (fh &gt;= 0<span style="color: #000000;">) {
+                            </span><span style="color: #0000ff;">int</span> runBit = fh &amp;<span style="color: #000000;"> n;
+                            Node</span>&lt;K,V&gt; lastRun =<span style="color: #000000;"> f;
+                            </span><span style="color: #0000ff;">for</span> (Node&lt;K,V&gt; p = f.next; p != <span style="color: #0000ff;">null</span>; p =<span style="color: #000000;"> p.next) {
+                                </span><span style="color: #0000ff;">int</span> b = p.hash &amp;<span style="color: #000000;"> n;
+                                </span><span style="color: #0000ff;">if</span> (b !=<span style="color: #000000;"> runBit) {
+                                    runBit </span>=<span style="color: #000000;"> b;
+                                    lastRun </span>=<span style="color: #000000;"> p;
+                                }
+                            }
+                            </span><span style="color: #0000ff;">if</span> (runBit == 0<span style="color: #000000;">) {
+                                ln </span>=<span style="color: #000000;"> lastRun;
+                                hn </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                            }
+                            </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                                hn </span>=<span style="color: #000000;"> lastRun;
+                                ln </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                            }
+                            </span><span style="color: #0000ff;">for</span> (Node&lt;K,V&gt; p = f; p != lastRun; p =<span style="color: #000000;"> p.next) {
+                                </span><span style="color: #0000ff;">int</span> ph = p.hash; K pk = p.key; V pv =<span style="color: #000000;"> p.val;
+                                </span><span style="color: #0000ff;">if</span> ((ph &amp; n) == 0<span style="color: #000000;">)
+                                    ln </span>= <span style="color: #0000ff;">new</span> Node&lt;K,V&gt;<span style="color: #000000;">(ph, pk, pv, ln);
+                                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                                    hn </span>= <span style="color: #0000ff;">new</span> Node&lt;K,V&gt;<span style="color: #000000;">(ph, pk, pv, hn);
+                            }
+                            setTabAt(nextTab, i, ln);
+                            setTabAt(nextTab, i </span>+<span style="color: #000000;"> n, hn);
+                            setTabAt(tab, i, fwd);
+                            advance </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                        }
+                        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (f <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> TreeBin) {
+                            TreeBin</span>&lt;K,V&gt; t = (TreeBin&lt;K,V&gt;<span style="color: #000000;">)f;
+                            TreeNode</span>&lt;K,V&gt; lo = <span style="color: #0000ff;">null</span>, loTail = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                            TreeNode</span>&lt;K,V&gt; hi = <span style="color: #0000ff;">null</span>, hiTail = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                            </span><span style="color: #0000ff;">int</span> lc = 0, hc = 0<span style="color: #000000;">;
+                            </span><span style="color: #0000ff;">for</span> (Node&lt;K,V&gt; e = t.first; e != <span style="color: #0000ff;">null</span>; e =<span style="color: #000000;"> e.next) {
+                                </span><span style="color: #0000ff;">int</span> h =<span style="color: #000000;"> e.hash;
+                                TreeNode</span>&lt;K,V&gt; p = <span style="color: #0000ff;">new</span> TreeNode&lt;K,V&gt;<span style="color: #000000;">
+                                    (h, e.key, e.val, </span><span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+                                </span><span style="color: #0000ff;">if</span> ((h &amp; n) == 0<span style="color: #000000;">) {
+                                    </span><span style="color: #0000ff;">if</span> ((p.prev = loTail) == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                                        lo </span>=<span style="color: #000000;"> p;
+                                    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                                        loTail.next </span>=<span style="color: #000000;"> p;
+                                    loTail </span>=<span style="color: #000000;"> p;
+                                    </span>++<span style="color: #000000;">lc;
+                                }
+                                </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                                    </span><span style="color: #0000ff;">if</span> ((p.prev = hiTail) == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                                        hi </span>=<span style="color: #000000;"> p;
+                                    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                                        hiTail.next </span>=<span style="color: #000000;"> p;
+                                    hiTail </span>=<span style="color: #000000;"> p;
+                                    </span>++<span style="color: #000000;">hc;
+                                }
+                            }
+                            ln </span>= (lc &lt;= UNTREEIFY_THRESHOLD) ?<span style="color: #000000;"> untreeify(lo) :
+                                (hc </span>!= 0) ? <span style="color: #0000ff;">new</span> TreeBin&lt;K,V&gt;<span style="color: #000000;">(lo) : t;
+                            hn </span>= (hc &lt;= UNTREEIFY_THRESHOLD) ?<span style="color: #000000;"> untreeify(hi) :
+                                (lc </span>!= 0) ? <span style="color: #0000ff;">new</span> TreeBin&lt;K,V&gt;<span style="color: #000000;">(hi) : t;
+                            setTabAt(nextTab, i, ln);
+                            setTabAt(nextTab, i </span>+<span style="color: #000000;"> n, hn);
+                            setTabAt(tab, i, fwd);
+                            advance </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                        }
+                    }
+                }
+            }
+        }
+    }</span></pre>
+</div>
+<p>　　再精细的就不会了。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

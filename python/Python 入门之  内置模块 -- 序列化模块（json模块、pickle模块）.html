@@ -1,0 +1,216 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python 入门之  内置模块 -- 序列化模块（json模块、pickle模块）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python 入门之  内置模块 -- 序列化模块（json模块、pickle模块）</center></div><div class='banquan'>原文出处:本文由博客园博主永亮提供。<br/>
+原文连接:https://www.cnblogs.com/caiyongliang/p/11506378.html</div><br>
+    <h1 id="python-入门之-内置模块----序列化模块json模块pickle模块">Python 入门之 内置模块 -- 序列化模块（json模块、pickle模块）</h1>
+<h2 id="序列化">1、序列化</h2>
+<p>Python中这种序列化模块有三种：</p>
+<p>​ json模块 :</p>
+<p>​ 不同语言都遵循的一种数据转化格式，即不同语言都使用的特殊字符串。（比如Python的一个列表[1, 2, 3]利用json转化成特殊的字符串，然后在编码成bytes发送给php的开发者，php的开发者就可以解码成特殊的字符串，然后在反解成原数组(列表): [1, 2, 3]）</p>
+<p>​ json序列化只支持部分Python数据结构：dict,list, tuple,str,int, float,True,False,None</p>
+<p>​ pickle模块：</p>
+<p>​ 只能是Python语言遵循的一种数据转化格式，只能在python语言中使用。</p>
+<p>​ 支持Python所有的数据类型包括实例化对象。</p>
+<p>​ shelve模块：类似于字典的操作方式去操作特殊的字符串。</p>
+<p>序列化的本质就是将一种数据结构（如字典，列表）等转换成一个特殊的序列（字符串或者bytes）的过程就叫做序列化。</p>
+<h3 id="序列化模块就是将一个常见的数据结构转化成一个特殊的序列并且这个特殊的序列还可以反解回去">（1）序列化模块就是将一个常见的数据结构转化成一个特殊的序列，并且这个特殊的序列还可以反解回去。</h3>
+<h3 id="主要用途">（2）主要用途：</h3>
+<h4 id="文件读写数据">&lt;1&gt; 文件读写数据</h4>
+<h4 id="网络传输数据">&lt;2&gt; 网络传输数据</h4>
+<h3 id="json模块">（3）json模块</h3>
+<h4 id="json模块是将满足条件的数据结构转化成特殊的字符串并且也可以反序列化还原回去">&lt;1&gt; json模块是将满足条件的数据结构转化成特殊的字符串，并且也可以反序列化还原回去</h4>
+<h4 id="能够序列的数据类型字典列表元组">&lt;2&gt; 能够序列的数据类型：字典，列表，元组</h4>
+<p>​ 4方法 2组</p>
+<h5 id="dumps-loads------用于网络传输">dumps loads ---- 用于网络传输</h5>
+<h5 id="dump-load------用于文件存储">dump load ---- 用于文件存储</h5>
+<h4 id="dumpsloads"><strong>1&gt; dumps、loads</strong></h4>
+<h5 id="将字典类型转换成字符串类型">[1] 将字典类型转换成字符串类型</h5>
+<pre><code><code>import json
+dic = {&#39;k1&#39;:&#39;v1&#39;,&#39;k2&#39;:&#39;v2&#39;,&#39;k3&#39;:&#39;v3&#39;}
+str_dic = json.dumps(dic)  #序列化：将一个字典转换成一个字符串
+print(type(str_dic),str_dic)  #&lt;class &#39;str&#39;&gt; {&quot;k3&quot;: &quot;v3&quot;, &quot;k1&quot;: &quot;v1&quot;, &quot;k2&quot;: &quot;v2&quot;}
+#注意，json转换完的字符串类型的字典中的字符串是由&quot;&quot;表示的</code></pre>
+<h5 id="将字符串类型的字典转换成字典类型">[2] 将字符串类型的字典转换成字典类型</h5>
+<pre><code><code>import json
+dic2 = json.loads(str_dic)  #反序列化：将一个字符串格式的字典转换成一个字典
+#注意，要用json的loads功能处理的字符串类型的字典中的字符串必须由&quot;&quot;表示
+print(type(dic2),dic2)  #&lt;class &#39;dict&#39;&gt; {&#39;k1&#39;: &#39;v1&#39;, &#39;k2&#39;: &#39;v2&#39;, &#39;k3&#39;: &#39;v3&#39;}</code></pre>
+<h5 id="还支持列表类型">[3] 还支持列表类型</h5>
+<pre><code><code>list_dic = [1,[&#39;a&#39;,&#39;b&#39;,&#39;c&#39;],3,{&#39;k1&#39;:&#39;v1&#39;,&#39;k2&#39;:&#39;v2&#39;}]
+str_dic = json.dumps(list_dic) #也可以处理嵌套的数据类型 
+print(type(str_dic),str_dic) #&lt;class &#39;str&#39;&gt; [1, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], 3, {&quot;k1&quot;: &quot;v1&quot;, &quot;k2&quot;: &quot;v2&quot;}]
+list_dic2 = json.loads(str_dic)
+print(type(list_dic2),list_dic2) #&lt;class &#39;list&#39;&gt; [1, [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;], 3, {&#39;k1&#39;: &#39;v1&#39;, &#39;k2&#39;: &#39;v2&#39;}]</code></pre>
+<h4 id="dumpload"><strong>2&gt; dump、load</strong></h4>
+<h5 id="将对象转换成字符串写入到文件当中">[1] 将对象转换成字符串写入到文件当中</h5>
+<pre><code><code>import json
+f = open(&#39;json_file.json&#39;,&#39;w&#39;)
+dic = {&#39;k1&#39;:&#39;v1&#39;,&#39;k2&#39;:&#39;v2&#39;,&#39;k3&#39;:&#39;v3&#39;}
+json.dump(dic,f)  #dump方法接收一个文件句柄，直接将字典转换成json字符串写入文件
+f.close()
+# json文件也是文件，就是专门存储json字符串的文件。</code></pre>
+<h5 id="将文件中的字符串类型的字典转换成字典">[2] 将文件中的字符串类型的字典转换成字典</h5>
+<pre><code><code>import json
+f = open(&#39;json_file.json&#39;)
+dic2 = json.load(f)  #load方法接收一个文件句柄，直接将文件中的json字符串转换成数据结构返回
+f.close()
+print(type(dic2),dic2)</code></pre>
+<h5 id="其他参数说明"><strong>其他参数说明</strong></h5>
+<p><code>ensure_ascii</code>:，当它为True的时候，所有非ASCII码字符显示为\uXXXX序列，只需在dump时将ensure_ascii设置为False即可，此时存入json的中文即可正常显示。</p>
+<p><code>separators</code>：分隔符，实际上是(item_separator, dict_separator)的一个元组，默认的就是(,,:)；这表示dictionary内keys之间用“,”隔开，而KEY和value之间用“：”隔开。</p>
+<p><code>sort_keys</code>：将数据根据keys的值进行排序。</p>
+<h4 id="json序列化存储多个数据到同一个文件中"><strong>json序列化存储多个数据到同一个文件中</strong></h4>
+<p>对于json序列化，存储多个数据到一个文件中是有问题的，默认一个json文件只能存储一个json数据，但是也可以解决，举例说明：</p>
+<pre><code><code>对于json 存储多个数据到文件中
+dic1 = {&#39;name&#39;:&#39;oldboy1&#39;}
+dic2 = {&#39;name&#39;:&#39;oldboy2&#39;}
+dic3 = {&#39;name&#39;:&#39;oldboy3&#39;}
+f = open(&#39;序列化&#39;,encoding=&#39;utf-8&#39;,mode=&#39;a&#39;)
+json.dump(dic1,f)
+json.dump(dic2,f)
+json.dump(dic3,f)
+f.close()
+
+f = open(&#39;序列化&#39;,encoding=&#39;utf-8&#39;)
+ret = json.load(f)
+ret1 = json.load(f)
+ret2 = json.load(f)
+print(ret)</code></pre>
+<p>上边的代码会报错,解决方法:</p>
+<pre><code><code>dic1 = {&#39;name&#39;:&#39;oldboy1&#39;}
+dic2 = {&#39;name&#39;:&#39;oldboy2&#39;}
+dic3 = {&#39;name&#39;:&#39;oldboy3&#39;}
+f = open(&#39;序列化&#39;,encoding=&#39;utf-8&#39;,mode=&#39;a&#39;)
+str1 = json.dumps(dic1)
+f.write(str1+&#39;\n&#39;)
+str2 = json.dumps(dic2)
+f.write(str2+&#39;\n&#39;)
+str3 = json.dumps(dic3)
+f.write(str3+&#39;\n&#39;)
+f.close()
+
+f = open(&#39;序列化&#39;,encoding=&#39;utf-8&#39;)
+for line in f:
+    print(json.loads(line))</code></pre>
+<h3 id="pickle模块">（4）pickle模块</h3>
+<h4 id="pickle模块是将python所有的数据结构以及对象等转化成bytes类型然后还可以反序列化还原回去">&lt;1&gt; pickle模块是将Python所有的数据结构以及对象等转化成bytes类型，然后还可以反序列化还原回去</h4>
+<h4 id="只有python有几乎可以序列python中所有数据类型匿名函数不能序列">&lt;2&gt; 只有Python有，几乎可以序列Python中所有数据类型，匿名函数不能序列</h4>
+<p>使用上与json几乎差不多，也是两对四个方法。</p>
+<h5 id="dumps-loads------用于网络传输-1">dumps loads ---- 用于网络传输</h5>
+<h5 id="dump-load------用于文件存储-1">dump load ---- 用于文件存储</h5>
+<h4 id="dumpsloads-1"><strong>1&gt; dumps、loads</strong></h4>
+<pre><code><code>import pickle
+dic = {&#39;k1&#39;:&#39;v1&#39;,&#39;k2&#39;:&#39;v2&#39;,&#39;k3&#39;:&#39;v3&#39;}
+str_dic = pickle.dumps(dic)
+print(str_dic)  # bytes类型
+
+dic2 = pickle.loads(str_dic)
+print(dic2)    #字典
+# 还可以序列化对象
+import pickle
+def func():
+    print(666)
+
+ret = pickle.dumps(func)
+print(ret,type(ret))  # b&#39;\x80\x03c__main__\nfunc\nq\x00.&#39; &lt;class &#39;bytes&#39;&gt;
+f1 = pickle.loads(ret)  # f1得到 func函数的内存地址
+f1()  # 执行func函数</code></pre>
+<h4 id="dumpload-1"><strong>2&gt; dump、load</strong></h4>
+<pre><code><code>dic = {(1,2):&#39;oldboy&#39;,1:True,&#39;set&#39;:{1,2,3}}
+f = open(&#39;pick序列化&#39;,mode=&#39;wb&#39;)
+pickle.dump(dic,f)
+f.close()
+with open(&#39;pick序列化&#39;,mode=&#39;wb&#39;) as f1:
+    pickle.dump(dic,f1)
+</code></pre>
+<h4 id="pickle序列化存储多个数据到一个文件中"><strong>pickle序列化存储多个数据到一个文件中</strong></h4>
+<pre><code><code>dic1 = {&#39;name&#39;:&#39;oldboy1&#39;}
+dic2 = {&#39;name&#39;:&#39;oldboy2&#39;}
+dic3 = {&#39;name&#39;:&#39;oldboy3&#39;}
+
+f = open(&#39;pick多数据&#39;,mode=&#39;wb&#39;)
+pickle.dump(dic1,f)
+pickle.dump(dic2,f)
+pickle.dump(dic3,f)
+f.close()
+
+f = open(&#39;pick多数据&#39;,mode=&#39;rb&#39;)
+while True:
+    try:
+        print(pickle.load(f))
+    except EOFError:
+        break
+f.close()
+</code></pre>
+<p>自写一个pickle写入文件上下文</p>
+<pre><code><code>class MyPickle:
+    def __init__(self,path,mode=&#39;load&#39;):
+        self.path = path
+        self.mode = &#39;ab&#39; if mode==&#39;dump&#39; else &#39;rb&#39;
+
+    def __enter__(self):
+        self.f = open(self.path, mode=self.mode)
+        return self
+
+    def dump(self,content):
+        pickle.dump(content,self.f)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.f.close()
+
+    def __iter__(self):
+        while True:
+            try:
+                yield  pickle.load(self.f)
+            except EOFError:
+                break
+
+
+class Course:
+    def __init__(self,name,price,period):
+        self.name = name
+        self.price = price
+        self.period = period
+python = Course(&#39;python&#39;,19800,&#39;6 months&#39;)
+linux = Course(&#39;linux&#39;,19800,&#39;6 months&#39;)
+
+
+with MyPickle(&#39;course_file&#39;) as p:
+    for obj in p:
+        print(obj.__dict__)
+with MyPickle(&#39;course_file&#39;,&#39;dump&#39;) as p:
+    p.dump(python)
+    p.dump(linux)
+
+with open(&#39;course_file&#39;,&#39;ab&#39;) as f:
+    pickle.dump(linux,f)
+
+with open(&#39;course_file&#39;,&#39;rb&#39;) as f:
+    while True:
+        try:
+            obj = pickle.load(f)
+            print(obj.__dict__)
+        except EOFError:
+            break</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

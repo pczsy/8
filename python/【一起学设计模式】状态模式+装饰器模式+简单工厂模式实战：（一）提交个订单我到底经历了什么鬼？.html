@@ -1,0 +1,412 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【一起学设计模式】状态模式+装饰器模式+简单工厂模式实战：（一）提交个订单我到底经历了什么鬼？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【一起学设计模式】状态模式+装饰器模式+简单工厂模式实战：（一）提交个订单我到底经历了什么鬼？</center></div><div class='banquan'>原文出处:本文由博客园博主一枝花算不算浪漫提供。<br/>
+原文连接:https://www.cnblogs.com/wang-meng/p/12038619.html</div><br>
+    <h3 id="前言">前言</h3>
+<p>之前在我的博客(<a href="https://www.cnblogs.com/wang-meng/">一枝花算不算浪漫</a>)中已经更新过两篇设计模式相关的内容</p>
+<ul>
+<li><a href="https://www.cnblogs.com/wang-meng/p/11457544.html">【一起学设计模式】策略模式实战一：基于消息发送的策略模式实战</a></li>
+<li><a href="https://www.cnblogs.com/wang-meng/p/11539977.html">【一起学习设计模式】策略模式实战二：配合注解 干掉业务代码中冗余的if else...</a></li>
+<li><a href="https://www.cnblogs.com/wang-meng/p/11982661.html">【一起学设计模式】访问者模式实战：权限管理树删节点操作</a></li>
+<li><a href="https://www.cnblogs.com/wang-meng/p/11996439.html">【一起学设计模式】命令模式+模板方法+工厂方法实战: 如何优雅的更新商品库存...</a></li>
+</ul>
+<p>上面内容都是基于真实业务场景精简后的设计(<strong>工作中真实场景使用到的</strong>)。</p>
+<p>之前为了学习设计模式，看过网上很多相关博客讲解，大都是画下UML类图，举例几个毫不相干的demo，看了几遍仍然是云里雾里。</p>
+<p>因为自己现在做的项目就是属于B2C的商城，项目中使用到了大量的设计模式，所以这里精简真实的业务场景，将核心的业务代码抽离出来。代码不涉及任何公司信息，所有敏感信息都已屏蔽，代码只用作学习交流使用。</p>
+<h3 id="业务场景">业务场景</h3>
+<p>一图流，首先看下提交订单 我们抽象出的一些场景：</p>
+<p><img src="./images/【一起学设计模式】状态模式+装饰器模式+简单工厂模式实战：（一）提交个订单我到底经历了什么鬼？0.png" alt="17C4F70C-E159-4AD8-B394-232A54F52F01.png" /></p>
+<p>订单中心：<br />
+1、订单中心创建订单<br />
+2、订单状态流转（状态模式）<br />
+3、记录操作日志（装饰器模式+简单工厂模式）<br />
+4、订单中心通知 库存中心更新库存</p>
+<p>调度中心：<br />
+1、库存中心更新本地库存（使用命令模式+模板方法模式+工厂模式）<br />
+这个上讲已经说过：<a href="https://www.cnblogs.com/wang-meng/p/11996439.html">【一起学设计模式】命令模式+模板方法+工厂方法实战: 如何优雅的更新商品库存...</a><br />
+2、将更新库存数据放到消息中，调度中心消费消息（中介模式）<br />
+3、放入消息队列中，判断队列是否放满了，如果放满了需要建立离线存储（备忘录模式）<br />
+4、异步监听消息处理结果（观察者模式）</p>
+<p>这个模型应该很简单，我们来一步步拆解 一步步代码分析</p>
+<h3 id="订单状态流转-操作日志记录">订单状态流转 + 操作日志记录</h3>
+<h4 id="代码实现">代码实现</h4>
+<ol>
+<li><p>订单中心提交订单操作</p>
+<pre><code><code>/**
+* 订单状态管理器
+*/
+@Autowired
+private LoggedOrderStateManager orderStateManager;
+
+public OrderInfoDTO save(OrderInfoDTO order) throws Exception {
+    // 检查库存是否充足
+    if(!isStockEnough(order)) {
+        return order;
+    }
+
+    // 将订单信息保存到本地数据库
+    saveOrder(order);
+    // 订单状态流转
+    orderStateManager.create(order); 
+
+    // other logic
+    return order;
+}</code></pre></li>
+<li><p>订单状态管理器</p>
+<pre><code><code>/**
+ * 会自动记录日志的订单状态管理器
+ * @author wangmeng
+ *
+ */
+@Component
+public class LoggedOrderStateManager implements OrderStateManager {
+
+    /**
+     * 订单状态管理器
+     */
+    @Autowired
+    private OrderStateManagerImpl orderStateManager;
+
+    /**
+     * 订单操作日志DAO组件
+     */
+    @Autowired
+    private OrderOperateLogDAO orderOperateLogDAO;
+
+    /**
+     * 订单操作内容工厂
+     */
+    @Autowired
+    private OrderOperateLogFactory orderOperateLogFactory;
+
+    @Override
+    public void create(OrderInfoDTO order) throws Exception {
+        orderStateManager.create(order); 
+        orderOperateLogDAO.save(orderOperateLogFactory.get(order, OrderOperateType.CREATE_ORDER));      
+    }
+
+    @Override
+    public Boolean canCancel(OrderInfoDTO order) throws Exception {
+        return orderStateManager.canCancel(order);
+    }
+
+    @Override
+    public void cancel(OrderInfoDTO order) throws Exception {
+        orderStateManager.cancel(order); 
+        orderOperateLogDAO.save(orderOperateLogFactory.get(order, OrderOperateType.CANCEL_ORDER)); 
+    }
+}</code></pre></li>
+<li><p>日志操作工厂</p>
+<pre><code><code>/**
+ * 订单操作内容工厂
+ * @author wangmeng
+ *
+ */
+@Component
+public class OrderOperateLogFactory {
+
+    /**
+     * 日期辅助组件
+     */
+    @Autowired
+    private DateProvider dateProvider;
+
+    /**
+     * 获取订单操作内容
+     * @param operateType 订单操作类型
+     * @return 订单操作内容
+     */
+    public OrderOperateLogDO get(OrderInfoDTO order, Integer operateType) throws Exception {
+        String operateContent = null;
+
+        if(OrderOperateType.CREATE_ORDER.equals(operateType)) {
+            operateContent = &quot;完成订单创建，订单编号为：&quot; + order.getOrderNo(); 
+        } else if(OrderOperateType.CANCEL_ORDER.equals(operateType)) {
+            operateContent = &quot;取消订单，订单编号为：&quot; + order.getOrderNo();
+        } else if(OrderOperateType.PAY_ORDER.equals(operateType)) {
+            operateContent = &quot;支付订单，订单编号为：&quot; + order.getOrderNo() + &quot;，支付金额为：&quot; + order.getPayableAmount();
+        } else if(OrderOperateType.GOODS_DELIVERY.equals(operateType)) {
+            operateContent = &quot;已经将订单中的商品进行发货&quot;; 
+        } else if(OrderOperateType.CONFIRM_RECEIPT.equals(operateType)) {
+            operateContent = &quot;完成确认收货&quot;; 
+        } else if(OrderOperateType.APPLY_RETURN_GOODS.equals(operateType)) {
+            operateContent = &quot;申请退货&quot;; 
+        } else if(OrderOperateType.RETURN_GOODS_REJECTED.equals(operateType)) {
+            operateContent = &quot;退货申请审核不通过&quot;; 
+        } else if(OrderOperateType.RETURN_GOODS_APPROVED.equals(operateType)) {
+            operateContent = &quot;退货申请审核已通过&quot;; 
+        } else if(OrderOperateType.SEND_OUT_RETURN_GOODS.equals(operateType)) {
+            operateContent = &quot;寄送退货商品&quot;; 
+        } else if(OrderOperateType.CONFIRM_RETURN_GOODS_RECEIPT.equals(operateType)) {
+            operateContent = &quot;确认收到退货商品&quot;; 
+        } else if(OrderOperateType.FINISHED_RETURN_GOODS_INPUT.equals(operateType)) {
+            operateContent = &quot;完成退货商品入库&quot;; 
+        } else if(OrderOperateType.FINISHED_RETURN_GOODS_REFUND.equals(operateType)) {
+            operateContent = &quot;完成退款&quot;; 
+        }     
+
+        OrderOperateLogDO log = create(order, operateType, operateContent);
+        return log;
+    }
+
+    /**
+     * 创建订单操作日志
+     * @param operateType 订单操作类型
+     * @param operateContent 订单操作内容
+     * @return 订单操作日志
+     * @throws Exception
+     */
+    private OrderOperateLogDO create(OrderInfoDTO order ,
+            Integer operateType, String operateContent) throws Exception {
+        OrderOperateLogDO log = new OrderOperateLogDO();
+
+        log.setOrderInfoId(order.getId()); 
+        log.setOperateType(operateType);
+        log.setOperateContent(operateContent); 
+        log.setGmtCreate(new Date());
+        log.setGmtModified(new Date()); 
+        return log;
+    }
+
+}</code></pre></li>
+<li><p>订单状态流转<br />
+我们只列出来订单create和cacel两种状态，因为状态流转时要判断当前状态是否可以流转到下一个状态，所以这里还有一个canCancel方法。</p>
+<pre><code><code>/**
+ * 订单状态管理器接口
+ * @author wangmeng
+ *
+ */
+interface OrderStateManager {
+
+    /**
+     * 创建订单
+     * @param order 订单
+     * @throws Exception
+     */
+    void create(OrderInfoDTO order) throws Exception;
+
+    /**
+     * 订单能否执行取消操作
+     * @param order 订单
+     * @return 能否执行取消操作
+     * @throws Exception
+     */
+    Boolean canCancel(OrderInfoDTO order) throws Exception;
+
+    /**
+     * 执行取消订单操作
+     * @param order 订单
+     * @throws Exception
+     */
+    void cancel(OrderInfoDTO order) throws Exception;
+
+    // 这里还会有更多的订单状态：支付、确认收货、发货、退货等等状态流转
+}</code></pre></li>
+<li><p>OrderStateManager实现类</p>
+<pre><code><code>/**
+ * 订单状态管理器
+ * @author wangmeng
+ *
+ */
+@Component
+public class OrderStateManagerImpl implements OrderStateManager {
+
+    /**
+     * 已取消状态
+     */
+    @Autowired
+    private CanceledOrderState canceledOrderState;
+
+    /**
+     * 待付款状态
+     */
+    @Autowired
+    private WaitForPayOrderState waitForPayOrderState;
+
+    /**
+     * 创建订单
+     * @param order 订单
+     * @throws Exception
+     */
+    @Override
+    public void create(OrderInfoDTO order) throws Exception {
+        waitForPayOrderState.doTransition(order);
+    }
+
+    /**
+     * 订单能否执行取消操作
+     * @param order 订单
+     * @return 能否执行取消操作
+     * @throws Exception
+     */
+    @Override
+    public Boolean canCancel(OrderInfoDTO order) throws Exception {
+        return getOrderState(order).canCancel(order);
+    }
+
+    /**
+     * 执行取消订单操作
+     * @param order 订单
+     * @throws Exception
+     */
+    @Override
+    public void cancel(OrderInfoDTO order) throws Exception {
+        canceledOrderState.doTransition(order); 
+    }
+
+    /**
+     * 获取订单状态组件
+     * @param order 订单
+     * @return 订单状态组件
+     * @throws Exception
+     */
+    private OrderState getOrderState(OrderInfoDTO order) throws Exception {
+        if(OrderStatus.WAIT_FOR_PAY.equals(order.getOrderStatus())) {
+            return waitForPayOrderState;
+        } else if(OrderStatus.CANCELED.equals(order.getOrderStatus())) {
+            return canceledOrderState;
+        } else if(OrderStatus.WAIT_FOR_DELIVERY.equals(order.getOrderStatus())) {
+            return waitForDeliveryOrderState;
+        } else if(OrderStatus.WAIT_FOR_RECEIVE.equals(order.getOrderStatus())) {
+            return waitForReceiveOrderState;
+        } else if(OrderStatus.FINISHED.equals(order.getOrderStatus())) {
+            return finishedOrderState;
+        } else if(OrderStatus.WAIT_FOR_RETURN_GOODS_APPROVE.equals(order.getOrderStatus())) {
+            return waitForReturnGoodsApproveOrderState;
+        }
+        return defaultOrderState;
+    }
+}</code></pre>
+<p>OrderState:</p>
+<pre><code><code>/**
+ * 订单状态
+ * @author wangmeng
+ *
+ */
+public interface OrderState {
+
+    /**
+     * 订单流转到当前这个状态
+     * @param order 订单
+     * @throws Exception
+     */
+    void doTransition(OrderInfoDTO order) throws Exception;
+
+    /**
+     * 判断当前状态下能否执行取消订单操作
+     * @param order 订单
+     * @return 能否执行取消订单操作
+     * @throws Exception
+     */
+    Boolean canCancel(OrderInfoDTO order) throws Exception;
+}</code></pre>
+<p>WaitForPayOrderState:</p>
+<pre><code><code>/**
+ * 待付款状态
+ * @author wangmeng
+ *
+ */
+@Component
+public class WaitForPayOrderState extends AbstractOrderState {
+
+    @Autowired
+    public WaitForPayOrderState(DateProvider dateProvider, OrderInfoDAO orderInfoDAO) {
+        super(dateProvider, orderInfoDAO);
+    }
+
+    @Override
+    protected Integer getOrderStatus(OrderInfoDTO order) throws Exception {
+        return OrderStatus.WAIT_FOR_PAY;
+    }
+
+    @Override
+    public Boolean canPay(OrderInfoDTO order) throws Exception {
+        return true;
+    }
+
+    @Override
+    public Boolean canCancel(OrderInfoDTO order) throws Exception {
+        return true;
+    }
+}</code></pre>
+<p>AbstractOrderState:</p>
+<pre><code><code>
+/**
+ * 订单状态的抽象基类
+ * @author wangmeng
+ *
+ */
+public abstract class AbstractOrderState implements OrderState {
+
+    /**
+     * 订单管理DAO组件
+     */
+    protected OrderInfoDAO orderInfoDAO;
+
+    public AbstractOrderState(OrderInfoDAO orderInfoDAO) {
+        this.orderInfoDAO = orderInfoDAO;
+    }
+
+    /**
+     * 订单流转到当前这个状态
+     * @param order 订单
+     */
+    @Override
+    public void doTransition(OrderInfoDTO order) throws Exception {
+        Integer orderStatus = getOrderStatus(order);
+        order.setOrderStatus(orderStatus);
+        orderInfoDAO.updateStatus(order.getId(), orderStatus);  
+    }
+
+    /**
+     * 获取订单状态
+     * @param order 订单
+     * @return 订单状态
+     * @throws Exception
+     */
+    protected abstract Integer getOrderStatus(OrderInfoDTO order) throws Exception;
+
+    /**
+     * 判断当前状态下能否执行取消订单操作
+     * @param order 订单
+     * @return 能否执行取消订单操作
+     */
+    @Override
+    public Boolean canCancel(OrderInfoDTO order) throws Exception {
+        return false;
+    }
+}</code></pre></li>
+</ol>
+<h4 id="总结">总结</h4>
+<p>上面只是讲了 订单中心提交订单中使用了<code>状态模式</code>、<code>简单工厂模式</code>、<code>装饰器模式</code></p>
+<p>状态模式：OrderStat + OrderStateManager等<br />
+简单工厂模式：OrderOperateLogFactory<br />
+装饰器模式：LoggedOrderStateMananger</p>
+<p>其中LoggedOrderStateMananger实现了OrderStateManager接口，增强了create、cancel、pay等方法的实现，添加了记录日志的功能，使得状态流转后 可以自动记录日志的功能。</p>
+<p>这里只是将精简后的代码提供出来，我相信认真看一下还是很易懂的，后面还有提交订单 后面的一些流程，会单独在开一片文章来讲解，敬请期待。</p>
+<h3 id="申明">申明</h3>
+<p>本文章首发自本人博客：<a href="https://www.cnblogs.com/wang-meng/">https://www.cnblogs.com/wang-meng</a> 和公众号：<strong>壹枝花算不算浪漫</strong>，如若转载请标明来源!</p>
+<p>感兴趣的小伙伴可关注个人公众号：壹枝花算不算浪漫</p>
+<p><img src="./images/【一起学设计模式】状态模式+装饰器模式+简单工厂模式实战：（一）提交个订单我到底经历了什么鬼？1.png" alt="22.jpg" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

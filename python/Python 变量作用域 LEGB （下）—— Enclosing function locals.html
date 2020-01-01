@@ -1,0 +1,92 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python 变量作用域 LEGB （下）—— Enclosing function locals' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python 变量作用域 LEGB （下）—— Enclosing function locals</center></div><div class='banquan'>原文出处:本文由博客园博主yvivid提供。<br/>
+原文连接:https://www.cnblogs.com/yvivid/p/python_LEGB_2.html</div><br>
+    <p>上篇：Python 变量作用域 LEGB （上）&mdash;&mdash; Local，Global，Builtin</p>
+<p><a href="https://www.cnblogs.com/yvivid/p/python_LEGB_1.html">https://www.cnblogs.com/yvivid/p/python_LEGB_1.html</a></p>
+<p>下篇 没想到 拖这么久，距离上篇完成 都一年多了。</p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><strong>一、闭包常规形态下的 locals作用域</strong></span></p>
+<p><strong>&nbsp;典型的闭包 如下：</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span> outer(x = 3<span style="color: #000000;">):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner(y):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">yvivid's test</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">Locals =</span><span style="color: #800000;">"</span><span style="color: #000000;">, locals())
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">Globals =</span><span style="color: #800000;">"</span><span style="color: #000000;">, globals())<br />        return x+y
+    </span><span style="color: #0000ff;">return</span> inner</pre>
+</div>
+<p>运行结果如下：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; Enclose_Func = outer(73<span style="color: #000000;">)
+</span>&gt;&gt;&gt; Enclose_Func(10<span style="color: #000000;">)
+yvivid</span><span style="color: #000000;">'s test<br /></span>Locals = {'y': 10, 'x': 73}<br />Globals = {'__name__': '__main__', '__doc__': None, '__package__': None, <br />           '__loader__': &lt;class '_frozen_importlib.BuiltinImporter'&gt;, <br />           '__spec__': None, '__annotations__': {}, '__builtins__': &lt;module 'builtins' (built-in)&gt;, <br />           'outer': &lt;function outer at 0x0000018AFDB0CD90&gt;, <br />           'Enclose_Func': &lt;function outer.&lt;locals&gt;.inner at 0x0000018AFB091EA0&gt;}<br />83</pre>
+</div>
+<p>可以看到，在 闭包内查看 locals() 时，可以看到 x 和 y。</p>
+<p>为了进一步看，x 和 y 是否变化，yvivid将<strong>代码变更为如下：</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span> outer(x = 3<span style="color: #000000;">):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner(y):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">yvivid's test</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">Locals =</span><span style="color: #800000;">"</span><span style="color: #000000;">, locals())
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">Globals =</span><span style="color: #800000;">"</span><span style="color: #000000;">, globals())
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(id(x), id(y))
+        </span><span style="color: #0000ff;">return</span> x +<span style="color: #000000;"> y
+    </span><span style="color: #0000ff;">return</span> inner</pre>
+</div>
+<p>即，仅增加了 id 的判定。考虑到 python 数字引用机制，使用大于255的数字进行测试。</p>
+<p><strong>运行结果如下：</strong></p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; Enclose_Func = outer(500<span style="color: #000000;">)
+</span>&gt;&gt;&gt; Enclose_Func(322<span style="color: #000000;">)
+</span><span style="color: #000000;"><em>yvivid</em><em>'s test
+Locals = {'y': 322, 'x': 500}
+Globals = {'__name__': '__main__', '__doc__': None, '__package__': None, <br />           '__loader__': &lt;class '_frozen_importlib.BuiltinImporter'&gt;, </em></span><br /><span style="color: #000000;"><em>           '__spec__': None, '__annotations__': {}, '__builtins__': &lt;module 'builtins' (built-in)&gt;, </em></span><br /><span style="color: #000000;"><em>           'outer': &lt;function outer at 0x0000021A09E8CD90&gt;, <br />           'Enclose_Func': &lt;function outer.&lt;locals&gt;.inner at 0x0000021A09E86158&gt;}
+2310858531312 2310858531600</em></span><br /><em>822</em></pre>
+<pre><code>&gt;&gt;&gt; Enclose_Func(322<span>)
+<em>yvivid's test
+Locals = {'y': 322, 'x': 500}
+Globals = {'__name__': '__main__', '__doc__': None, '__package__': None, <br />           '__loader__': &lt;class '_frozen_importlib.BuiltinImporter'&gt;, <br />           '__spec__': None, '__annotations__': {}, '__builtins__': &lt;module 'builtins' (built-in)&gt;, <br />           'outer': &lt;function outer at 0x0000021A09E8CD90&gt;, <br />           'Enclose_Func': &lt;function outer.&lt;locals&gt;.inner at 0x0000021A09E86158&gt;}
+2310858531312 2310858531920<br />822</em></span></pre>
+</div>
+<p>可以看到 运行两次，其中 id(y) 是不变更的，而 id(x) 发生了变更，因此 每次 x 是作为形参传入的。而 y 是在 Enclose_Func = outer(500) 时 确定的。</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>二、闭包特殊形态下的 locals作用域</strong></span></p>
+<p>在 Python 中 部分特殊的 闭包形式。</p>
+<p><span style="font-size: 15px;"><strong>1、列表推导</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; [ 'Locals =' + repr(locals()) for i in range(4)]<br /><span style="color: #000000;"><em>["Locals ={'i': 0, '.0': &lt;range_iterator object at 0x000002C2563CE330&gt;}", </em></span><br /><span style="color: #000000;"><em> "Locals ={'i': 1, '.0': &lt;range_iterator object at 0x000002C2563CE330&gt;}", </em></span><br /><span style="color: #000000;"><em> "Locals ={'i': 2, '.0': &lt;range_iterator object at 0x000002C2563CE330&gt;}", </em></span><br /><span style="color: #000000;"><em> "Locals ={'i': 3, '.0': &lt;range_iterator object at 0x000002C2563CE330&gt;}"]</em></span><br /><br />&gt;&gt;&gt; print("Globals =", globals())<br /><em>'Globals =', {'__name__': '__main__', '__doc__': None, '__package__': None, <br />              '__loader__': &lt;class '_frozen_importlib.BuiltinImporter'&gt;,<br />              '__spec__': None, '__annotations__': {}, <br />              '__builtins__': &lt;module 'builtins' (built-in)&gt;}<br /><br /></em>&gt;&gt;&gt; i<br />Traceback (most recent call last):<br />File "&lt;pyshell#99&gt;", line 1, in &lt;module&gt;<br /><em id="__mceDel"><em id="__mceDel"><em id="__mceDel"><em id="__mceDel">i<br /></em></em></em></em><em id="__mceDel"><em id="__mceDel"><em id="__mceDel"><em id="__mceDel"><em id="__mceDel">NameError: name 'i' is not defined</em></em></em></em></em></pre>
+</div>
+<p>可以看到 在yvivid做的 列表推导测试中，globals() 中 是看不到 列表推导中 变量 i 的。</p>
+<p>这个和 for 循环有很大的不同。</p>
+<p><span style="font-size: 15px;"><strong>2、生成器</strong></span></p>
+<pre><code>yvivid_generator = ('Locals =' + repr(locals()) for i in range(4))</pre>
+<p><strong>3、集合推导</strong></p>
+<pre><code>yvivid_set = {'Locals =' + repr(locals()) for i in range(4)}</pre>
+<p>&nbsp;</p>
+<p>-------</p>
+<p>A、代码 都基于 Python 3.6 环境。</p>
+<p>B、参考书籍 《Python学习手册（第四版）》</p>
+<p>【原创文档，引用请声明出处，yvivid】<a href="https://www.cnblogs.com/yvivid/p/python_LEGB_2.html">https://www.cnblogs.com/yvivid/p/python_LEGB_2.html</a></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

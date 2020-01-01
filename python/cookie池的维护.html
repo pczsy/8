@@ -1,0 +1,64 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修cookie池的维护' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>cookie池的维护</center></div><div class='banquan'>原文出处:本文由博客园博主爱吃猫的鱼i提供。<br/>
+原文连接:https://www.cnblogs.com/zwp-627/p/11296032.html</div><br>
+    <p>&nbsp;</p>
+<h3>存储形式：</h3>
+<ul>
+<li>存储在redis中，&ldquo;spider_name:username&ndash;password":cookie</li>
+</ul>
+<h3>建立py文件及包含方法：</h3>
+<ul>
+<li>initcookies() 初始化所有账号的cookies，将所有账号对用进行登陆获取cookies并保存在redis中</li>
+<li>update_cookie(spider_name,username,password)&nbsp; &nbsp;# 重新获取账号对应的cookies，并存入redis中</li>
+<li>remove_cookie(spider_name,usrname,password)&nbsp; &nbsp; # 从redis中删除改账号对应的cookie</li>
+<li>get_cookie(username,password)&nbsp; &nbsp; # 尝试登陆该账号获取cookies</li>
+</ul>
+<h3>在scrapy下载器中间件的process_request()随机从cookie池选择一个cookie，对request进行设置，并在request的meta中保存cookie对应的账号</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_request(self,request,spider):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取redis中所有的键（假设redis中只保存了cookies）</span>
+    redisKeys =<span style="color: #000000;"> self.rconn.keys()
+    elem </span>=<span style="color: #000000;"> random.choice(redisKeys)
+    request.cookies </span>=<span style="color: #000000;"> cookie
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 在请求中记录当前cookies对应的账号和密码</span>
+    request.meta[<span style="color: #800000;">"</span><span style="color: #800000;">accountText</span><span style="color: #800000;">"</span>] = elem.split(<span style="color: #800000;">"</span><span style="color: #800000;">:</span><span style="color: #800000;">"</span>)[-1]</pre>
+</div>
+<h3>在下载器中间件的process_response()获取响应，如果响应状态码为301、302等，说明页面重定向，该cookie失效，进行cookie的更新与删除</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_response(self,request,response,spider):
+    </span><span style="color: #0000ff;">if</span> response.status <span style="color: #0000ff;">in</span> [300, 301, 302, 303<span style="color: #000000;">]:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取重定向的url</span>
+        redirect_url = response.headers[<span style="color: #800000;">"</span><span style="color: #800000;">location</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+        </span><span style="color: #0000ff;">if</span> url == <span style="color: #800000;">"</span><span style="color: #800000;">login_url</span><span style="color: #800000;">"</span>:<span style="color: #008000;">#</span><span style="color: #008000;"> 如果是登陆页面，说明当前cookies失效了，需要更新</span>
+            username,passworod = request.meta[<span style="color: #800000;">'</span><span style="color: #800000;">accountText</span><span style="color: #800000;">'</span>].split(<span style="color: #800000;">"</span><span style="color: #800000;">--</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+            update_cookie(spider_name,username,password)
+        </span><span style="color: #0000ff;">elif</span> url==<span style="color: #800000;">"</span><span style="color: #800000;">验证页面</span><span style="color: #800000;">"</span>:<span style="color: #008000;">#</span><span style="color: #008000;"> 说明账号被封了</span>
+            username,passworod = request.meta[<span style="color: #800000;">'</span><span style="color: #800000;">accountText</span><span style="color: #800000;">'</span>].split(<span style="color: #800000;">"</span><span style="color: #800000;">--</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+            remove_cookie(spider_name,username,password)
+        request </span>=<span style="color: #000000;"> request.copy()
+        request.dont_filter </span>=<span style="color: #000000;"> True
+        </span><span style="color: #0000ff;">return</span> request   </pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,325 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修深入 .NET Core 基础 - 2：共享框架' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>深入 .NET Core 基础 - 2：共享框架</center></div><div class='banquan'>原文出处:本文由博客园博主冠军提供。<br/>
+原文连接:https://www.cnblogs.com/haogj/p/12008207.html</div><br>
+    <p>&nbsp;</p>
+<h1 class="md-end-block md-heading"><span class="md-plain md-expand">深入 .NET Core 基础 - 2：共享框架</span></h1>
+<p class="md-end-block md-p"><span class="md-plain">原文地址：<span class="md-link"><a href="https://natemcmaster.com/blog/2018/08/29/netcore-primitives-2/">https://natemcmaster.com/blog/2018/08/29/netcore-primitives-2/</a></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">共享框架从 .NET Core 1.0 就成为基础部分。ASP.NET Core 从 .NET Core 2.1 开始也作为共享框架发布。你可能没有注意到该进展是否顺利。但是，这里有一些关于该设计的颠簸和讨论。本文将深入到共享框架，并探讨它的一些常见陷阱。</span></p>
+<h2 class="md-end-block md-heading"><span class="md-plain">1. 基础</span></h2>
+<p class="md-end-block md-p"><span class="md-plain">.NET Core 应用程序有两种运行模型：基于框架或者自包含。在我的 MacBook 上，最小的自包含 ASP.NET Core 应用程序的尺寸是 83MB 和 350 个文件。另一方面，最小的框架依赖应用的尺寸是 239KB 和 5 个文件。</span></p>
+<p class="md-end-block md-p"><span class="md-plain">可以通过下面的命令来生成两种应用程序</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>dotnet new web
+dotnet publish --runtime osx-x64 --output bin/self_contained_app/
+dotnet publish --output bin/framework_dependent_app/</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-image md-img-loaded" data-src="./images/深入 .NET Core 基础 - 2：共享框架0.png"><img src="./images/深入 .NET Core 基础 - 2：共享框架0.png" alt="" /></span></p>
+<p class="md-end-block md-p"><span class="md-plain">在应用程序运行的时候，两种模式的功能是等效的。所以为什么存在不同类型的模型？如微软的文档所述：</span></p>
+<blockquote>
+<p class="md-end-block md-p"><span class="md-plain">框架依赖的发布基于共享的系统范围的 .NET Core 版本......</span></p>
+<p class="md-end-block md-p"><span class="md-plain">而自包含的发布不依赖与目标系统上的共享组件。所有的组件......都包含在应用程序中。</span></p>
+</blockquote>
+<p class="md-end-block md-p"><span class=" md-link"><a href="https://docs.microsoft.com/en-us/dotnet/core/deploying/"><span class="md-plain">该文档</span></a><span class="md-plain">非常好地解释了每种模式的优点。</span></span></p>
+<h2 class="md-end-block md-heading"><span class="md-plain">2. 共享框架</span></h2>
+<p class="md-end-block md-p"><span class="md-plain">长短短说，.NET Core 共享框架是一个包含程序集 (*.dll 文件) 的，不在应用程序文件夹中的文件夹。这些程序集一起版本化和发布。该文件夹是 "共享的系统范围的 .NET Core 版本" 的一部分，通常在 <span><code>C:/Program Files/dotnet/shared</code><span class="md-plain"> 文件夹中。</span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">当你执行 <span><code>dotnet.exe WebApp.dll</code><span class="md-plain"> 的时候，<span><strong>.NET Core 宿主</strong><span class="md-plain"> 必须：</span></span></span></span></span></p>
+<ol class="ol-list" start="">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">发现你的应用所依赖的名称和版本</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">在公共位置找到这些依赖内容</span></p>
+</li>
+</ol>
+<p class="md-end-block md-p"><span class="md-plain">这些依赖可以在多个位置发现，包括，但是不限于，这些共享框架。在上一篇文章中，我已经总结了 <span><code>deps.json</code><span class="md-plain"> 和 <span><code>runtimeconfig.json</code><span class="md-plain"> 文件是如何配置宿主的行为。请查看它来得到更详细的说明。</span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">.NET Core 宿主读取 <span><code>*.runtimeconfig.json</code><span class="md-plain"> 文件来得到需要加载哪个共享框架。其内容可能类似于如下：</span></span></span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:javascript;gutter:true;">{
+  "runtimeOptions": {
+    "framework": {
+      "name": "Microsoft.AspNetCore.App",
+      "version": "2.1.1"
+    }
+  }
+}</pre>
+</div>
+<p class="md-end-block md-p"><span><strong>共享框架名称</strong><span class="md-plain"> 只是一个名称。根据约定，该名称以 <span><code>App</code><span class="md-plain"> 结束，但可以是任何名称，比如 "FooBananaShark"。</span></span></span></span></p>
+<p class="md-end-block md-p md-focus"><span><strong>共享框架版本</strong><span class="md-plain md-expand"> 表示最小版本。.NET Core 宿主从不运行在最小版本上，而是试图运行在更高的版本上。</span></span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.1 我已经安装的共享框架是哪些？</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">执行 <span><code>dotnet --list-runtimes</code><span class="md-plain"> 。它将会显示名称、版本和共享框架的位置。对于 .NET Core 3.1，共享框架的列表如下所示。</span></span></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>dotnet --list-runtimes
+Microsoft.AspNetCore.App 3.1.0 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+Microsoft.NETCore.App 3.1.0 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+Microsoft.WindowsDesktop.App 3.1.0 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]</pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.2 比较 Microsoft.NETCore.App，AspNetCore.App 和 AspNetCore.All</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">在 .NET Core 2.2 中，有如下三种共享框架：</span></p>
+<table class="md-table">
+<thead>
+<tr class="md-end-block"><th><span class="td-span"><span class="md-plain">框架名称</span></span></th><th><span class="td-span"><span class="md-plain">说明</span></span></th></tr>
+</thead>
+<tbody>
+<tr class="md-end-block">
+<td><span class="td-span"><span class="md-plain">Microsoft.NETCore.App</span></span></td>
+<td><span class="td-span"><span class="md-plain">基础运行时. 它支持类似 <span><code>System.Object</code><span class="md-plain">, <span><code>List</code><span class="md-plain">, <span><code>string</code><span class="md-plain">, 内存管理，文件和网络 I/O，线程等等</span></span></span></span></span></span></span></span></td>
+</tr>
+<tr class="md-end-block">
+<td><span class="td-span"><span class="md-plain">Microsoft.AspNetCore.App</span></span></td>
+<td><span class="td-span"><span class="md-plain">默认的 Web 运行时. 它导入了 Microsoft.NETCore.App, 并添加了使用 Kestrel Mvc、SingalR、Razor 和部分 EF Core 构建 HTTP 服务的 API</span></span></td>
+</tr>
+<tr class="md-end-block">
+<td><span class="td-span"><span class="md-plain">Microsoft.AspNetCore.All</span></span></td>
+<td><span class="td-span"><span class="md-plain">集成了第三方内容。它导入了 Microsoft.AspNetCore.App. 加入了对 EF Core + SQLite 支持, 使用 Redis 的扩展, 从 Azure Key Vault 进行配置, 以及更多内容. (在 .NET Core 3.0 中将被退役 <span class=" md-link"><a href="https://github.com/aspnet/Announcements/issues/314"><span class="md-plain">deprecated in 3.0.</span></a><span class="md-plain">)</span></span></span></span></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p class="md-end-block md-p"><span class="md-plain">.NET Core 3.0 增加了 Microsoft.WindowsDesktop.App，并删除了 <span><code>Microsoft.AspNetCore.All</code><span class="md-plain">。</span></span></span></p>
+</blockquote>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.3 与 NuGet package 的关系</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">.NET Core SDK 生成 <span><code>runtimeconfig.json</code><span class="md-plain"> 文件。在 .NET Core 1 和 2 中，它使用项目文件中的两个片段来决定该文件中框架部分的内容：</span></span></span></p>
+<ol class="ol-list" start="">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><code>MicrosoftNETPlatformLibrary</code><span class="md-plain"> 属性。默认对于所有的 .NET Core 项目设置为 <span><code>Microsoft.NETCore.App</code></span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">NuGet 恢复的结果，它必须包含一个同名的包</span></p>
+</li>
+</ol>
+<p class="md-end-block md-p"><span class="md-plain">对于所有的项目，.NET Core SDK 对 <span><code>Microsoft.NETCore.App</code><span class="md-plain">添加隐式的包引用。ASP.NET Core 默认设置 <span><code>MicrosoftNETPlatformLibrary</code><span class="md-plain"> 为 <span><code>Microsoft.AspNetCore.App</code></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">此 NuGet 包，实际上，<span><strong>并不提供共享框架</strong><span class="md-plain">。重复一遍，这个 NuGet 包 <span><strong>不提供共享框架</strong><span class="md-plain">(后面我还会再次重复)。该 NuGet 包仅仅为编译器提供 API 集和很少的其它 SDK 部分。共享框架文件来自于安装的运行时，或者在 Visual Studio 中打包，Docker 映像，以及一些 Azure 服务。</span></span></span></span></span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.4 版本前滚</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">如前所述，runtimeconfig.json 是最小版本号。实际使用的版本基于版本前滚策略。常见的方式：</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">如果某个应用程序的最小版本是 2.1.0，那么 2.1.* 的最高版本将会被应用</span></p>
+</li>
+</ul>
+<p class="md-end-block md-p"><span class="md-plain">我将会在下一篇详细说明。</span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.5 层化的共享框架</span></h3>
+<blockquote>
+<p class="md-end-block md-p"><span class="md-plain">此特性在 .NET Core 2.1 被加入。</span></p>
+</blockquote>
+<p class="md-end-block md-p"><span class="md-plain">共享框架可以依赖于其它的共享框架。它被引入来支持 ASP.NET Core，它被从包的运行时存储转换成了共享框架。</span></p>
+<p class="md-end-block md-p"><span class="md-plain">例如，如果你进入并查看 <span><code>$DOTNET_ROOT/shared/Microsoft.AspNetCore.All/$version/</code><span class="md-plain"> 文件夹，你将会看到一个 <span><code>Microsoft.AspNetCore.All.runtimeconfig.json</code><span class="md-plain"> 文件。</span></span></span></span></span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:javascript;gutter:true;">{
+  "runtimeOptions": {
+    "tfm": "netcoreapp2.1",
+    "framework": {
+      "name": "Microsoft.AspNetCore.App",
+      "version": "2.1.2"
+    }
+  }
+}</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">在 .NET Core 3.1 中，内容如下：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:javascript;gutter:true;">{
+  "runtimeOptions": {
+    "tfm": "netcoreapp3.1",
+    "framework": {
+      "name": "Microsoft.NETCore.App",
+      "version": "3.1.0"
+    },
+    "rollForward": "LatestPatch"
+  }
+}
+</pre>
+</div>
+<p>　　</p>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.6 多层查找</span></h3>
+<blockquote>
+<p class="md-end-block md-p"><span class="md-plain">此特性在 .NET Core 2.0 加入。</span></p>
+</blockquote>
+<p class="md-end-block md-p"><span class="md-plain">宿主会探测多个位置来寻找合适的共享框架。查找从 <span><strong>dotnet root</strong><span class="md-plain"> 开始，这是包含 <span><code>dotnet</code><span class="md-plain"> 可执行程序的文件夹。它可以被环境变量 <span><code>DOTNET_ROOT</code><span class="md-plain"> 所指定的文件夹覆盖。第一个探测的位置是</span></span></span></span></span></span></span></p>
+<pre class="md-fences md-end-block ty-contain-cm modeLoaded"><strong><span class="cm-def">$DOTNET_ROOT/shared/<span class="cm-def">$name/<span class="cm-def">$version</span></span></span></strong></pre>
+<p class="md-end-block md-p"><span class="md-plain">如果没有合适的文件夹存在，将会使用 <span><strong>多层查找</strong><span class="md-plain"> 试图查看预定义的全局位置。此特性可以通过环境变量 <span><code>DOTNET_MULTILEVEL_LOOKUP=0</code><span class="md-plain"> 来关闭。默认的全局位置是：</span></span></span></span></span></p>
+<table class="md-table">
+<thead>
+<tr class="md-end-block"><th><span class="td-span"><span class="md-plain">OS</span></span></th><th><span class="td-span"><span class="md-plain">Location</span></span></th></tr>
+</thead>
+<tbody>
+<tr class="md-end-block">
+<td><span class="td-span"><span class="md-plain">Windows</span></span></td>
+<td><span class="td-span"><span><code>C:\Program Files\dotnet</code><span class="md-plain"> (64-bit processes)<span class="md-br md-tag"> <span class="md-plain"> <span><code>C:\Program Files (x86)\dotnet</code><span class="md-plain"> (32-bit processes) (<span class=" md-link"><a href="https://github.com/dotnet/core-setup/blob/v2.1.3/src/corehost/common/pal.windows.cpp#L203-L210"><span class="md-plain">See in the source code</span></a><span class="md-plain">)</span></span></span></span></span></span></span></span></span></td>
+</tr>
+<tr class="md-end-block">
+<td><span class="td-span"><span class="md-plain">macOS</span></span></td>
+<td><span class="td-span"><span><code>/usr/local/share/dotnet</code><span class="md-plain"> (<span class=" md-link"><a href="https://github.com/dotnet/core-setup/blob/v2.1.3/src/corehost/common/pal.unix.cpp#L195"><span class="md-plain">source code</span></a><span class="md-plain">)</span></span></span></span></span></td>
+</tr>
+<tr class="md-end-block">
+<td><span class="td-span"><span class="md-plain">Unix</span></span></td>
+<td><span class="td-span"><span><code>/usr/share/dotnet</code><span class="md-plain"> (<span class=" md-link"><a href="https://github.com/dotnet/core-setup/blob/v2.1.3/src/corehost/common/pal.unix.cpp#L197"><span class="md-plain">source code</span></a><span class="md-plain">)</span></span></span></span></span></td>
+</tr>
+</tbody>
+</table>
+<p class="md-end-block md-p"><span class="md-plain">宿主将检测的目录位于：</span></p>
+<pre class="md-fences md-end-block ty-contain-cm modeLoaded"><strong>$GLOBAL_DOTNET_ROOT/shared/$name/$version</strong></pre>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.7 ReadyToRun</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">共享框架中的程序集语境使用名为 <span><code>crossgen</code><span class="md-plain"> 的工具进行了预优化。该过程生成了 <span><code>ReadyToRun</code><span class="md-plain"> 版本的程序集，其对特定版本的操作系统和 CPU 架构进行了优化。主要的性能收益在于缩短了 JIT 花费在启动阶段的代码准备时间。</span></span></span></span></span></p>
+<h2 class="md-end-block md-heading"><span class="md-plain">3. 陷阱</span></h2>
+<p class="md-end-block md-p"><span class="md-plain">我想每个 .NET Core 开发者都可能在某个时候落入某个陷阱中。我将试图说明它是如何发生的。</span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.1 HTTP Error 502.5 Process Failure</span></h3>
+<p class="md-end-block md-p">&nbsp;<img src="./images/深入 .NET Core 基础 - 2：共享框架1.png" alt="" /></p>
+<p class="md-end-block md-p">&nbsp;</p>
+<p class="md-end-block md-p"><span class="md-plain">当在 IIS 上寄宿 ASP.NET Core 或者在 Azure 的 Web Services 上寄宿的时候，这是最常见的问题。典型发生在开发者升级项目之后，或者部署到一台最近没有更新的机器上。实际的错误来自于共享框架没有被找到，导致 .NET Core 应用程序不能启动。当 .NET Core 不能运行应用程序，IIS 输出 <span><code>502.5</code><span class="md-plain"> 错误，但是并没有暴露内部的错误信息。</span></span></span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.2 &ldquo;The specified framework was not found&rdquo;</span></h3>
+<div class="cnblogs_Highlighter">
+<pre><code>It was not possible to find any compatible framework version
+The specified framework 'Microsoft.AspNetCore.App', version '2.1.3' was not found.
+  - Check application dependencies and target a framework version installed at:
+      /usr/local/share/dotnet/
+  - Installing .NET Core prerequisites might help resolve this problem:
+      http://go.microsoft.com/fwlink/?LinkID=798306&amp;clcid=0x409
+  - The .NET Core framework and SDK can be installed from:
+      https://aka.ms/dotnet-download
+  - The following versions are installed:
+      2.1.1 at [/usr/local/share/dotnet/shared/Microsoft.AspNetCore.App]
+      2.1.2 at [/usr/local/share/dotnet/shared/Microsoft.AspNetCore.App]</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">此错误通常潜伏在 HTTP 502.5 之后，或者 Visual Studio 测试管理器的错误中。</span></p>
+<p class="md-end-block md-p"><span class="md-plain">它发生在 runtimeconfig.json 文件中指定了特定的框架名称和版本，而宿主不能使用多级查找和前向错略找到对应的版本。如前所述。</span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.3 为 Microsoft.AspNetCore.App 更新 NuGet 包</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">NuGet 中的 <span><code>Microsoft.AspNetCore.App</code><span class="md-plain"> 包不提供共享框架。仅仅提供用于 C#/ F# 编译器的 API 和一些 SDK 支持。你必须单独下载并安装共享框架。</span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">另外，基于前滚策略，你也不必升级 NuGet 包的版本来使得你的应用程序运行在更新的共享框架版本上。</span></p>
+<p class="md-end-block md-p"><span class="md-plain">将共享框架表现为项目文件中的一个 NuGet 包可能是 ASP.NET Core 团队的一个设计错误。表现共享框架的包并不是一个正常的包。不像多数的其它包，它不是自满足的。我们有理由期待在项目使用 <span><code>&lt;PackageReference&gt;</code><span class="md-plain"> 引用某个包的时候，NuGet 能够安装任何所需要的内容，令人沮丧的是，这里的包偏离了该模式。有多个提案建议修复该问题。我期望某个提案很快落地。</span></span></span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.4 <span>&lt;<span class="md-plain">PackageReference Include="Microsoft.AspNetCore.App" /&gt;</span></span></span></h3>
+<p class="md-end-block md-p"><span class="md-plain">所有其它的 <span>&lt;<span class="md-plain">PackageReference&gt; 都必须包含 <span><code>Version</code><span class="md-plain"> 属性。缺失版本的包引用仅仅工作于项目开始部分使用 <span>&lt;<span class="md-plain">Project Sdk="Microsoft.NET.Sdk.Web"&gt;。且仅仅工作于 <span><code>Microsoft.AspNetCore.{App, All}</code><span class="md-plain"> 包。Web SDK 将基于项目中的其它值自动提取这些包的版本，例如 <span>&lt;<span class="md-plain">TargetFramework&gt; 和 <span>&lt;<span class="md-plain">RuntimeIdentifier&gt;</span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">如果你为包引用元素指定了版本的话，或者你没有使用 Web SDK，该魔法将不会工作。很难建议一个好的解决方案，因为最佳的方式依赖于你理解的水平和项目的类型。</span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.5 发布修剪</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">当你使用 <span><code>dotnet publish</code><span class="md-plain"> 创建一个框架依赖的应用程序时，SDK 使用 NuGet 恢复结果来决定哪个程序集将会包含到发布文件夹中。有些从 NuGet 包中复制过来，有些不会，因为它们被期望存在于共享框架中。</span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">这很容易导致错误，因为 ASP.NET Core 作为共享框架存在，<span><strong>也作为 NuGet 包存在</strong><span class="md-plain">。修剪使用进行某些图匹配来决定传递依赖、升级等等，来选取正确的文件。</span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">例如，对于下面的项目</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>&lt;PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.1" /&gt;
+&lt;PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.9" /&gt;</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">MVC 实际上是 Microsoft.AspNetCore.App 的一部分，但是，当执行 <span><code>dotnet publish</code><span class="md-plain"> 的时候，它发现你的项目决定 <span><strong>升级</strong><span class="md-plain"> <span><code>Microsoft.AspNetCore.Mvc.dll</code><span class="md-plain"> 到比 <span><code>Microsoft.AspNetCore.App</code><span class="md-plain"> 的版本 2.1.1 更高的版本，所以，它将会把 Mvc.dll 放到发布目录中。</span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">这样是不理想的，因为你的应用程序尺寸变得更大了，并且你没有得到 <span><code>ReadyToRun</code><span class="md-plain"> 优化之后的 <span><code>Microsoft.AspNetCore.Mvc.dll</code><span class="md-plain"> 。如果你通过 ProjectReference 传递升级或者通过第三方依赖升级，就会无意中发生。</span></span></span></span></span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.6 困惑于共享框架的目标框架名称</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">很容易认为：<span><code>"netcoreapp2.0" == "Microsoft.NETCore.App, v2.0.0"</code><span class="md-plain">。但这不是真的。目标框架名称 (也称为 TFM) 在项目文件中使用 <span>&lt;<span class="md-plain">TargetFramework&gt; 指定。"netcoreapp2.0" 是一个友好的，你所使用的 .NET Core 版本名称。</span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">这个 TFM 的缺陷在于它太短了。它不能说明像多个共享框架这样的问题，特定版本的补丁，版本前滚，输出类型，以及自包含和框架依赖的发布等等。SDK 将试图从 TFM 来推断这些设置，但它不能推断所有的事情。</span></p>
+<p class="md-end-block md-p"><span class="md-plain">所以，精确地说，&ldquo;netcoreapp2.0&rdquo; 表示至少 V2.0.0 的 "Microsoft.NETCore.App&ldquo;</span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.7 困惑的项目设置</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">最后一个提醒的陷阱是项目设置。许多术语和设置的名称并不确切。使用令人困惑的术语，所以，如果你搞混了它们，这并不是你的过错。</span></p>
+<p class="md-end-block md-p"><span class="md-plain">下面，我列出常见的项目设置，以及实际的含义。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">PropertyGroup</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">TargetFramework</span><span style="color: #0000ff;">&gt;</span>netcoreapp2.1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">TargetFramework</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * The API set version to use when resolving compilation references from NuGet packages.
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">TargetFrameworks</span><span style="color: #0000ff;">&gt;</span>netcoreapp2.1;net471<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">TargetFrameworks</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * Compile for two different API version sets. This does not represent multi-layered shared frameworks.
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">MicrosoftNETPlatformLibrary</span><span style="color: #0000ff;">&gt;</span>Microsoft.AspNetCore.App<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">MicrosoftNETPlatformLibrary</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * The name of the top-most shared framework
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">RuntimeFrameworkVersion</span><span style="color: #0000ff;">&gt;</span>2.1.2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">RuntimeFrameworkVersion</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * version of the implicit package reference to Microsoft.NETCore.App which then becomes
+        the _minimum_ shared framework version.
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">RuntimeIdentifier</span><span style="color: #0000ff;">&gt;</span>win-x64<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">RuntimeIdentifier</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * Operating system kind + CPU architecture
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">RuntimeIdentifiers</span><span style="color: #0000ff;">&gt;</span>win-x64;win-x86<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">RuntimeIdentifiers</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * A list of operating systems and CPU architectures which this project _might_ run on.
+        You still have to select one by setting RuntimeIdentifier.
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">PropertyGroup</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+​
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">ItemGroup</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">PackageReference </span><span style="color: #ff0000;">Include</span><span style="color: #0000ff;">="Microsoft.AspNetCore.App"</span><span style="color: #ff0000;"> Version</span><span style="color: #0000ff;">="2.1.2"</span> <span style="color: #0000ff;">/&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * Use the Microsoft.AspNetCore.App shared framework.
+      * Minimum version = 2.1.2
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">PackageReference </span><span style="color: #ff0000;">Include</span><span style="color: #0000ff;">="Microsoft.AspNetCore.Mvc"</span><span style="color: #ff0000;"> Version</span><span style="color: #0000ff;">="2.1.2"</span> <span style="color: #0000ff;">/&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * Use the Microsoft.AspNetCore.Mvc package.
+      * Exact version = 2.1.2
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+  </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">FrameworkReference </span><span style="color: #ff0000;">Include</span><span style="color: #0000ff;">="Microsoft.AspNetCore.App"</span> <span style="color: #0000ff;">/&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">
+    Actual meaning:
+      * Use the Microsoft.AspNetCore.App shared framework.
+    (This is new and unreleased...see https://github.com/dotnet/sdk/pull/2486)
+  </span><span style="color: #008000;">--&gt;</span><span style="color: #000000;">
+​
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">ItemGroup</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>&nbsp;</p>
+<h2 class="md-end-block md-heading"><span class="md-plain">4. 总结</span></h2>
+<p class="md-end-block md-p"><span class="md-plain">共享框架是 .NET Core 一个可选特性，我可以合理地认为多数的用户憎恨陷阱。我仍然认为对于 .NET Core 开发者来说，理解背后发生了什么是有用的。并期望这是关于共享框架的有用的总结。我还给出了官方的链接和指南，以便帮助你找到更多信息。如果有任何问题，欢迎留言。</span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">More </span></h3>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">Packages, metapackages and frameworks: <span class="md-link"><a href="https://docs.microsoft.com/en-us/dotnet/core/packages">https://docs.microsoft.com/en-us/dotnet/core/packages</a></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">.NET Core application deployment: <span class="md-link"><a href="https://docs.microsoft.com/en-us/dotnet/core/deploying/">https://docs.microsoft.com/en-us/dotnet/core/deploying/</a><span class="md-plain">. Especially read the part about &ldquo;Framework-dependent deployments (FDD)&rdquo;</span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">Specs on runtimeconfig.json and deps.json:</span></p>
+</li>
+</ul>
+<p class="md-end-block md-p"><span class="md-link"><a href="https://github.com/dotnet/cli/blob/v2.1.400/Documentation/specs/runtime-configuration-file.md">https://github.com/dotnet/cli/blob/v2.1.400/Documentation/specs/runtime-configuration-file.md</a></span></p>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">The implementation of the shared framework lookup: <span class="md-link"><a href="https://github.com/dotnet/core-setup/blob/v2.1.3/src/corehost/cli/fxr/fx_muxer.cpp#L464">https://github.com/dotnet/core-setup/blob/v2.1.3/src/corehost/cli/fxr/fx_muxer.cpp#L464</a></span></span></p>
+</li>
+</ul>
+<p class="md-end-block md-p">&nbsp;</p>
+<p><span class="md-plain">&nbsp;</span></p>
+<p class="md-end-block md-p">&nbsp;</p>
+<p class="md-end-block md-p">&nbsp;</p>
+<p class="md-end-block md-p">&nbsp;</p>
+<p class="md-end-block md-p">&nbsp;</p>
+<p>&nbsp;</p>
+<p><audio controls="controls" style="display: none;"></audio></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

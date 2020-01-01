@@ -1,0 +1,637 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python装饰器完全解读' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python装饰器完全解读</center></div><div class='banquan'>原文出处:本文由博客园博主奥辰提供。<br/>
+原文连接:https://www.cnblogs.com/chenhuabin/p/11369359.html</div><br>
+    <h1 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">1 引言</h1>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">装饰器（Decorators）可能是Python中最难掌握的概念之一了，也是最具Pythonic特色的技巧，深入理解并应用装饰器，你会更加感慨&mdash;&mdash;人生苦短，我用Python。</p>
+<h1 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">2 初步理解装饰器</h1>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">2.1 什么是装饰器</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">在解释什么是装饰器之前，我们有必要回顾一下Python中的一些思想和概念。我们都知道，Python是一门面向对象的语言，Python基本思想就是一些皆对象，数据类型是对象、类是对象、类实例也是对象&hellip;&hellip;对于接下来我们要说的装饰器而言，最重要的是，函数也是对象！</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">你没看错，函数也和数据类型等概念一样，都是对象，那么既然数据类型可以进行赋值操作，那么函数是不是也可以赋值呢？当然可以！</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">完成一些功能</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do </span>=<span style="color: #000000;"> do_something
+    do()</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">完成一些功能</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">看，原本我们定义的函数名是do_something，但我们把函数赋值给do后，也可以通过do()调用函数。不仅如此，函数当做参数传递给其他函数：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">正在完成功能</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    f()
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    func(do_something)</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">完成一些功能</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">正是因为Python中函数既可以赋值给其他变量名，也可以当做参数参数进其他函数，所以，上面的代码没有任何问题。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">当然，毕竟被称呼为函数，有别有变量之类的概念，所以它也有自己的特性，例如在函数内部，还可以定义函数，甚至作为返回值返回：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func():
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner_func():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">我是內部函数</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    fun1 </span>=<span style="color: #000000;"> func()
+    fun1()</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">输出结果：</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">我是內部函数</span></p>
+<p>我们来总结一下函数的这几个特性：</p>
+<ul>
+<li>
+<p>可以赋值给其他变量；</p>
+</li>
+<li>
+<p>可以作为参数传递给其他函数；</p>
+</li>
+<li>
+<p>可以在内部定义一个函数；</p>
+</li>
+<li>
+<p>可以当做返回值返回。</p>
+</li>
+</ul>
+<p>不要疑惑我为什么要着重说明Python中函数的这几个特性，因为装饰器中正是这几个特性为基石。为什么这么说呢？从本质上来说，装饰器就是一个函数，它也具有我们上面说到的4个特性，而且充分利用了这4个特性。装饰器接受一个普通函数作为参数，并在内部定义了一个函数，在这个内部函数中实现了一些功能，并调用了传递进来的函数，最后将内部函数作为返回值返回。如果一个函数把这个步骤全走了一遍，我们就可以认为，这个函数是一个装饰器函数，或者说装饰器。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">我们来动手写一个装饰器：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner_func():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        f()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">正在完成功能</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something </span>=<span style="color: #000000;"> func(do_something)
+    do_something()</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">正在完成功能</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">在上面代码中，我们将do_something方法作为参数传递给func方法，在func方法内部我们定义了一个inner_func方法，并在这个方法中添加了函数开始执行和结束执行的提示，在func方法最后，我们将inner_func作为参数返回，更加值得一说的是，我们重新将func函数的返回值赋给了do_something，所以，最后一行我们<span style="font-weight: bold;">再次调用的do_something方法已经不再是最初的do_something函数，而是func方法内定义的inner_func函数，所以最后执行do_something函数时，会有函数开始执行和结束执行的提示功能，而后面再调用do_something函数时，也都直接使用do_something()。</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">正如你所预料，func函数就是一个装饰器，捋一捋你会发现，func函数把我们上面说过的所有特性、步骤全实现了。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">如果你在别处见过Python装饰器的使用，你可能会疑惑，我们实现的func装饰器跟你见过的装饰器不都一样，因为在实际应用中，装饰器大多是与&ldquo;@&rdquo;符号结合起来使用。其实&ldquo;@&rdquo;符号所实现的功能就是 do_something = func(do_something)这行代码的功能。来，我们尝试一下使用&ldquo;@&rdquo;：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner_func():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        f()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+<span style="color: #ff0000;"><strong>@func
+</strong></span></span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">正在完成功能</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something()</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">正在完成功能</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">之前我们知道，func函数就是一个装饰器，所以使用&ldquo;@&rdquo;符号时，我们只需要在被装饰的函数前面加上&ldquo;@func&rdquo;就表示该函数被func装饰器装饰，在需要处直接调用do_something函数即可。</p>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">2.2 为什么要用装饰器</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">在上面代码中，我们写了一个装饰器func，在这个装饰器中，使用装饰器的好处就已经初见端倪了。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">（1）可以在不对被装饰函数做任何修改的前提下，给被装饰函数附加上一些功能。使用@func对do_something函数进行装饰时，我们没有对do_something函数的代码做什么的改变，但是被装饰后的do_something函数却多了开始运行和结束运行的功能。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">（2）不改变被装饰函数的调用方式。在被装饰前，我们通过do_something()调用这个函数，被装饰后，还是通过do_something()调用这个函数。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">（3）代码更加精简。在上面代码中，我们只是用@func装饰了do_something一个函数，但是如果有多个函数需要添加开始运行和结束运行的提示功能，如果不用装饰器，那么就需要对每一个函数进行修改，则工作量和需要修改的代码量&hellip;&hellip;用了装饰器之后，只需要在需要添加这一功能的函数前面添加@func就可以了。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">一言以盖之，装饰器可以在不改变原函数调用方式和代码情况下，为函数添加一些功能，使代码更加精简。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">我们在写一个装饰器来加深一下理解。相比大家都写过代码来统计一个函数的运行时间的功能，我们使用装饰器来实现一下这个功能：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> timmer(f):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner_func():
+        start_time </span>=<span style="color: #000000;"> time.time()
+        f()
+        end_time </span>=<span style="color: #000000;"> time.time()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数运行消耗时间为：{}</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span>, end_time-<span style="color: #000000;">start_time))
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+@timmer
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">do_something函数运行&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    time.sleep(</span>1<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something()</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数运行消耗时间为：1.000662088394165</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">在上面例子中，我们首先定义了一个计时装饰器timmer，当需要统计某个函数运行时间时，只需要在函数定义时，在前面添加一行写上@timmer即可，例如上面对do_something函数运行时间进行统计，对do_something原来要实现什么功能就继续实现这一功能，原来代码该怎样还怎样，该怎么调用还怎么调用。所以说，使用装饰器可以在不改变原函数代码和调用方式的情况下附加上其他功能。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">如果你阅读到了这里，我想你对装饰器已经有了初步的理解。接下来，我们继续聊一聊更加复杂的装饰器。</p>
+<h1 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">3 深入理解装饰器</h1>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">3.1 被装饰的函数带返回值</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">我们上面写的两个装饰器所装饰的do_something函数是没有返回值的，但大多数函数可都是有返回值的。针对有返回值的函数，装饰器该怎么写呢？</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner_func():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        ret </span>=<span style="color: #000000;"> f()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        </span><span style="color: #0000ff;">return</span> ret  <span style="color: #008000;">#</span><span style="color: #008000;"> 这里返回值</span>
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+@func
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">正在完成功能</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">我是返回值</span><span style="color: #800000;">'</span>
+
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    ret </span>=<span style="color: #000000;"> do_something()
+    </span><span style="color: #0000ff;">print</span>(ret)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">正在完成功能</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">我是返回值</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">我们知道，被装饰后的do_something函数其实不再是最初的do_something函数，而是装饰器内部定义的inner_func函数，所以，被装饰的函数的返回值只需要通过装饰器内部定义的inner_func函数返回返回即可即可。有点绕，不过对着上面的代码应该好理解。</p>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">3.2 被装饰函数带参数</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">对于装饰器，我们要深刻理解一件事：以上面的装饰器func和被装饰函数do_something为例，<span style="font-weight: bold;">被装饰后的do_something函数已经不再是原来的do_something函数，而是装饰器内部的inner_func函数。这句话我已经在上文中我已经不止提过一次，因为真的很重要。如果被装饰的函数有参数（加入参数为name），我们还是通过do_something(name)的方式传递传输，不过，既然我们最终调用的时候，通过do_something实质调用的inner_func函数，那么在定义装饰器是，定义的inner_func函数时也需要接受参数。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> inner_func(name):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        ret </span>=<span style="color: #000000;"> f(name)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+@func
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">我是返回值</span><span style="color: #800000;">'</span>
+
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    ret </span>= do_something(<span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(ret)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">我是返回值</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">一个装饰器可用于装饰千千万万个函数，则千千万万个函数参数情况可能各不相同，有的没有参数，有的可能多个参数，甚至还有关键字参数，对于这参数情况不同的函数，我们不可能为每个函数都写一个func装饰器，那怎么办呢？</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">Python中提供了*args， **kwargs这种机制来接受任意位置的位置参数和关键字参数，参数前面带*表示接受任意个数位置参数，接收到的所有位置参数存储在变量名为args的元组中，带**表示接受任意个数的关键字参数，接收到的所有关键字参数以字典的形式参数在变量名为kwargs的字典中。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">当我们知道只有位置参数，但不知道有多少个位置参数是func装饰器可以这么写：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">def</span> inner_func(*<span style="color: #000000;">name):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        ret </span>= f(*<span style="color: #000000;">name)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+@func
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+@func
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something_2(name_1, name_2):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name_1))
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name_2))
+
+@func
+</span><span style="color: #0000ff;">def</span> do_something_3(*<span style="color: #000000;">name):
+    </span><span style="color: #0000ff;">for</span> n <span style="color: #0000ff;">in</span><span style="color: #000000;"> name:
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(n))
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something(</span><span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    do_something_2(</span><span style="color: #800000;">'</span><span style="color: #800000;">姚大明</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">姚小明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    do_something_3(</span><span style="color: #800000;">'</span><span style="color: #800000;">姚一明</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">姚二明</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">姚三明</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">姚四明</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_2函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚大明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚小明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_2函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_3函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚一明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚二明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚三明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚四明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_3函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">上面例子定义func装饰器时，我们用*name来接受任意个数的位置参数，可别以为只能用*args，args只是一个变量名，只不过约定俗成，用的多一些，实际开发时你爱取啥名就用啥名，对于这个知识点不再多说，毕竟本篇主角是装饰器。我们继续装饰器内容！</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">当我们知道只有关键字参数，却不知道参数个数时，可以func装饰器这么写：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">def</span> inner_func(**<span style="color: #000000;">name):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        ret </span>= f(**<span style="color: #000000;">name)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+@func
+</span><span style="color: #0000ff;">def</span> do_something(name=<span style="color: #800000;">'</span><span style="color: #800000;">无名氏</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+@func
+</span><span style="color: #0000ff;">def</span> do_something_2(name_1=<span style="color: #800000;">'</span><span style="color: #800000;">无名氏</span><span style="color: #800000;">'</span>, name_2=<span style="color: #800000;">'</span><span style="color: #800000;">无名氏</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name_1))
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name_2))
+
+@func
+</span><span style="color: #0000ff;">def</span> do_something_3(**<span style="color: #000000;">name):
+    </span><span style="color: #0000ff;">for</span> n <span style="color: #0000ff;">in</span><span style="color: #000000;"> name.keys():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name[n]))
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    do_something_2(name_1</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚大明</span><span style="color: #800000;">'</span>, name_2=<span style="color: #800000;">'</span><span style="color: #800000;">姚小明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    do_something_3(name_1</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚一明</span><span style="color: #800000;">'</span>, name_2=<span style="color: #800000;">'</span><span style="color: #800000;">姚二明</span><span style="color: #800000;">'</span>, name_3=<span style="color: #800000;">'</span><span style="color: #800000;">姚三明</span><span style="color: #800000;">'</span>, name_4=<span style="color: #800000;">'</span><span style="color: #800000;">姚四明</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_2函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚大明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚小明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_2函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_3函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚一明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚二明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚三明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚四明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_3函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">事实上，大多数情况下，我们对被装饰函数是一无所知的&mdash;&mdash;我们不知道有多少个位置参数、多少个关键字参数，甚至对有没有位置参数、关键字参数都不知道，这时候，我们就只能*args和**kwargs齐上阵了：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">def</span> inner_func(*name1, **<span style="color: #000000;">name2):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        ret </span>= f(*name1, **<span style="color: #000000;">name2)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+@func
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+@func
+</span><span style="color: #0000ff;">def</span> do_something_2(name_1, name_2=<span style="color: #800000;">'</span><span style="color: #800000;">无名氏</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name_1))
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name_2))
+
+@func
+</span><span style="color: #0000ff;">def</span> do_something_3(*name1, **<span style="color: #000000;">name2):
+    </span><span style="color: #0000ff;">for</span> n <span style="color: #0000ff;">in</span><span style="color: #000000;"> name1:
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(n))
+    </span><span style="color: #0000ff;">for</span> n <span style="color: #0000ff;">in</span><span style="color: #000000;"> name2.keys():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name2[n]))
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    do_something_2(name_1</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚大明</span><span style="color: #800000;">'</span>, name_2=<span style="color: #800000;">'</span><span style="color: #800000;">姚小明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    do_something_3(</span><span style="color: #800000;">'</span><span style="color: #800000;">姚一明</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">姚二明</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">姚三明</span><span style="color: #800000;">'</span>, name_4=<span style="color: #800000;">'</span><span style="color: #800000;">姚四明</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_2函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚大明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚小明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_2函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_3函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚一明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚二明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚三明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚四明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_3函数结束运行&hellip;&hellip;</span></p>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">3.3 装饰器本身带参数</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">我们上面写的装饰器都没有参数，或者说只有一个自带参数，也就是被装饰函数f。其实，装饰器也是可以有其他参数的，这样的装饰器更加灵活。我们通过实例来说明：现在我们要对上面的func装饰器进行改进，需要做到灵活控制装饰器是用中文输出还是用英文输出，代码如下。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span> language(lang=<span style="color: #800000;">'</span><span style="color: #800000;">中文</span><span style="color: #800000;">'</span>):  <span style="color: #008000;">#</span><span style="color: #008000;"> 这里带参数</span>
+    <span style="color: #0000ff;">def</span> func(f):  <span style="color: #008000;">#</span><span style="color: #008000;"> 往里嵌套了一层</span>
+        <span style="color: #0000ff;">def</span> inner_func(*name1, **<span style="color: #000000;">name2):
+            </span><span style="color: #0000ff;">if</span> lang==<span style="color: #800000;">'</span><span style="color: #800000;">中文</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+                </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+            </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+                </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">The function of {} starts runging&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+            ret </span>= f(*name1, **<span style="color: #000000;">name2)
+            </span><span style="color: #0000ff;">if</span> lang==<span style="color: #800000;">'</span><span style="color: #800000;">中文</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+                </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+            </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+                </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">The function of {} ends runging&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> func
+
+@language(</span><span style="color: #800000;">'</span><span style="color: #800000;">中文</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+@language(</span><span style="color: #800000;">'</span><span style="color: #800000;">English</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something_2(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    do_something_2(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出如下：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">The function of do_something_2 starts runging&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">The function of do_something_2 ends runging&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">可以看到，通过装饰器带参数的方式，我们只需要在定义被装饰函数时，指定装饰器参数，就可以灵活控制每个被装饰函数提示的语言。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">当然，必须承认，装饰器带参数后，看起来更加复杂，需要多嵌套一层函数，由最外层的函数接受参数，里层函数才是真正的装饰器。使用装饰器时，会首先运行带参数的最外层函数，返回装饰器，这一步Python会自动帮我们完成。所以，带参数的装饰器甚至可以这么使用：</p>
+<div class="cnblogs_code">
+<pre><code>h = language(<span style="color: #800000;">'</span><span style="color: #800000;">中文</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+@h
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span>.format(name))</pre>
+</div>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">3.4 多层装饰器</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">装饰器也是可以多层嵌套使用的，也就是说，一个函数可以通过是被多个装饰器所装饰，执行顺序是从下到上的优先顺序加载装饰：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*- coding: utf-8 -*-</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+
+</span><span style="color: #0000ff;">print</span>(1<span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(f):
+    </span><span style="color: #0000ff;">print</span>(2<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> inner_func(*name1, **<span style="color: #000000;">name2):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        f(</span>*name1, **<span style="color: #000000;">name2)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+    </span><span style="color: #0000ff;">print</span>(3<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_func
+
+</span><span style="color: #0000ff;">print</span>(4<span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> timmer(f):
+    </span><span style="color: #0000ff;">print</span>(5<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> inner_timmer(*args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">开始计时&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        start_time </span>=<span style="color: #000000;"> time.time()
+        f(</span>*args, **<span style="color: #000000;">kwargs)
+        end_time </span>=<span style="color: #000000;"> time.time()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">开始结束&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        time_cost </span>= end_time -<span style="color: #000000;"> start_time
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数运行时长为：{}秒</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">, time_cost))
+    </span><span style="color: #0000ff;">print</span>(6<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_timmer
+
+</span><span style="color: #0000ff;">print</span>(7<span style="color: #000000;">)
+@func
+@timmer
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    time.sleep(</span>1<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+</span><span style="color: #0000ff;">print</span>(8<span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something_2(name):
+    time.sleep(</span>1<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">print</span>(9<span style="color: #000000;">)
+    do_something(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    func(timmer(do_something_2))(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 执行效果与上面使用了@符号的do_something一样</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">1</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">4</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">7</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">5</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">6</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">2</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">3</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">8</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">9</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">inner_timmer函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">开始计时&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">开始结束&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数运行时长为：1.0004358291625977秒</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">inner_timmer函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">5</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">6</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">2</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">3</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">inner_timmer函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">开始计时&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">开始结束&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something_2函数运行时长为：1.000028133392334秒</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">inner_timmer函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">在上面代码中，我们同时用func和timmer两个装饰器来装饰do_something，从运行结果中可以看出，两个装饰器都发挥了作用。同时，为了方便大家理解，我们使用不带@符号的来使用两个装饰器装饰，两者运行结果是一样的，结合代码中的输出标记，我们来分析一下装饰器的执行过程：开始运行后，1-&gt;4-&gt;7这几个过程我相信大家都是可以理解的，到了位置7后，遇到了@符号标识的装饰器，而且是多层的，两个@装饰器相当于func(timmer(do_something_2))，所以是先执行timmer函数获取返回值作为参数传递给func，所以有了7之后是5-&gt;6，timmer函数返回值是inner_timmer函数，这时候就相当于func(inner_timmer),所以程序退出timmer函数后进入func函数，就有了2-&gt;3,从func函数返回后，继续向下执行遇到位置8，然后就进入了主函数运行，所以是8-&gt;9，此时的函数是被装饰过的，本质已经是func函数返回的inner_func函数了，所以最终在主函数中执行do_something时执行的是inner_func方法，所以先输出了func装饰器的函数开始提示，然后才是timmer装饰器的计时开始提示。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">嗯，有点复杂！</p>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">3.5 类装饰器</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">通过上面的介绍，我想你已经知道，@符号是装饰器的一个表示，或者说一个装饰器语法糖，当使用@时，例如@A，这种语法糖会自动将被装饰函数f作为参数传递给A函数，然后将A函数的返回值重新f给f这个变量名，这就是@语法糖帮我们做的事情，概括来说就是f=A(f)()。</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">我们现在发散一下思维，假设A如果是一个类会怎么样呢？我们知道当A是一个类时，A()表示调用A类的构造函数__init__实例化一个A类对象，那么A(f)就表示将函数f作为参数传递给A类的构造方法__init__来构造一个A类实例对象，如果使用了@符号，那么这种语法机制就还会在A(f)后面加一个括号变成A(f)()，这是什么鬼？执行一个类实例对象？不过话要说回来，如果A(f)()这种结构要是没有问题，能够成功执行，是不是就意味着Python中类也可以成为装饰器了呢？确实如此。我们先看看通过A()()执行一个类实例对象会怎么样：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> A(object):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">实例化一个A类对象</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(self, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">__call__方法被调用&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    A()()</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">实例化一个A类对象</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">__call__方法被调用&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">看到没，通过A()()执行一个类实例对象时，执行的是A类内部的__call__方法。那么如果用A用作装饰器时，@A返回的就是A类内部定义的__call__方法，相当于函数装饰器func内的inner_func。来，我们感受一下类装饰器：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> A(object):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, f):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">实例化一个A类对象&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.f </span>=<span style="color: #000000;"> f
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(self, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(self.f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        self.f(</span>*args, **<span style="color: #000000;">kwargs)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(self.f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+
+@A
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something(</span><span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">实例化一个A类对象&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">如果类装饰器带参数呢？这时候，类装饰器的参数也可定是通过@A(t)的形式传递，这时候，因为@语法糖会自动加括号的原因，结构就编程这样A(t)()，A(t)是类实例对象，A(t)()就是__call__方法，所以，@语法糖会把被装饰函数f作为参数传递给__call__方法，被装饰函数的参数需要在__call__内部定义一个函数来接受。也就是话说，定义类装饰器时，装饰器的参数通过__init__构造方法接收，被装饰函数的作为参数被__call__方法接收，。（这段子很绕，有点烧脑，没点儿Python基础还真不好理解，语言表达能力优先感觉要枯竭了）</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> A(object):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, t):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">实例化一个A类对象&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.t </span>=<span style="color: #000000;"> t
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span><span style="color: #000000;">(self, f):
+        </span><span style="color: #0000ff;">def</span> inner_A(*args, **<span style="color: #000000;">kwargs):
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">延迟{}秒后开始执行&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(self.t))
+            time.sleep(self.t)
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数开始运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+            f(</span>*args, **<span style="color: #000000;">kwargs)
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{}函数结束运行&hellip;&hellip;</span><span style="color: #800000;">'</span>.format(f.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner_A
+
+@A(</span>1<span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> do_something(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你好，{}！</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    do_something(</span><span style="color: #800000;">'</span><span style="color: #800000;">姚明</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">实例化一个A类对象&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">延迟1秒后开始执行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数开始运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">你好，姚明！</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">do_something函数结束运行&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">无论是函数装饰器还是类装饰器，原理上是一样的，区别在于如果A是函数，A()是直接调用函数，而A是类时，A()是实例化，通过A()()是调用A类的__call__方法。</p>
+<h1 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">4 Python中内置的装饰器</h1>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">4.1 @property，@setter，@deleter</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">@property，@setter，@deleter这三个装饰器提供了更加友好的方式来获取、设置或删除类中的属性。@property装饰器所装饰的函数可以像访问属性一样调用函数，注意，@property装饰器必须先于@setter，@deleter使用，且三者说装饰的函数必须同名。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> A(object):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, v):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">实例化一个A类对象&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.</span><span style="color: #800080;">__value</span> =<span style="color: #000000;"> v
+
+    @property
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> value(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">取值时被调用</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__value</span><span style="color: #000000;">
+
+    @value.setter
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> value(self, value):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">赋值时被调用</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.</span><span style="color: #800080;">__value</span> =<span style="color: #000000;"> value
+
+    @value.deleter
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> value(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">删除值时被调用&hellip;&hellip;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">del</span> self.<span style="color: #800080;">__value</span>
+
+
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    a </span>= A(123<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">__value的值为：{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(a.value))
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    a.value </span>= 234
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">__value的值为：{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(a.value))
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">--------------</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">del</span><span style="color: #000000;"> a.value
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">__value的值为：{}</span><span style="color: #800000;">'</span>.format(a.value))</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出为：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">Traceback (most recent call last):</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">实例化一个A类对象&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">取值时被调用</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">File "E:/WorkProjectCode/study_pymysql/study_secorators/test2.py", line 33, in &lt;module&gt;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">__value的值为：123</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">-------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">print('__value的值为：{}'.format(a.value))</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">赋值时被调用</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">取值时被调用</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">__value的值为：234</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">File "E:/WorkProjectCode/study_pymysql/study_secorators/test2.py", line 11, in value</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">--------------</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">return self.__value</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">删除值时被调用&hellip;&hellip;</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">取值时被调用</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">AttributeError: 'A' object has no attribute '_A__value'</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">运行产生异常，因为最后访问了已经删除了的元素。</p>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">4.2 @classmethod</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">在一个类中，如果一个方法被@classmethod所装饰，就代表该方法与类绑定，而不是与实例对象绑定，第一个参数cls由Python机制自动传递，表示类本身。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> A(object):
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> f(cls):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">当前类名为：{}</span><span style="color: #800000;">'</span>.format(cls.<span style="color: #800080;">__name__</span><span style="color: #000000;">))
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    A.f()</span></pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出结果：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">当前类名为：A</span></p>
+<h2 style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">4.3 @staticmethod</h2>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">被@staticmethod所装饰的方法为静态方法，静态方法一般使用场景就是和类相关的操作，但是又不会依赖和改变类、实例的状态，比如一些工具方法。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> A(object):
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> f():
+        time_now </span>= time.strftime(<span style="color: #800000;">'</span><span style="color: #800000;">%Y-%m-%d %H:%M:%S</span><span style="color: #800000;">'</span><span style="color: #000000;">, time.localtime(time.time()))
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> time_now
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(A.f())
+    </span><span style="color: #0000ff;">print</span>(A().f())</pre>
+</div>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;">输出：</p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">2019-08-16 19:29:32</span></p>
+<p style="white-space: pre-wrap; text-align: left; line-height: 1.75; font-size: 14px;"><span style="font-family: 仿宋; font-size: 16px;">2019-08-16 19:29:32</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

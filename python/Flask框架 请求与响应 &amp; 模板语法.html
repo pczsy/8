@@ -1,0 +1,514 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Flask框架 请求与响应 &amp; 模板语法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Flask框架 请求与响应 &amp; 模板语法</center></div><div class='banquan'>原文出处:本文由博客园博主郭楷丰提供。<br/>
+原文连接:https://www.cnblogs.com/guokaifeng/p/11587311.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#flask框架-请求与响应-模板语法">Flask框架 请求与响应 &amp; 模板语法</a><ul>
+        <li><a href="#简单了解flask框架">简单了解Flask框架</a></li>
+        <li><a href="#flask-框架-与-django-框架对比">Flask 框架 与 Django 框架对比</a></li>
+        <li><a href="#简单使用flask提供服务">简单使用Flask提供服务</a></li>
+        <li><a href="#flask-中的-response响应">Flask 中的 Response(响应)</a></li>
+        <li><a href="#flask-中的-request请求">Flask 中的 Request(请求)</a></li>
+        <li><a href="#flask-模板语言简单使用">Flask 模板语言简单使用</a></li>
+        <li><a href="#flask框架参考手册">Flask框架参考手册</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h2 id="flask框架-请求与响应-模板语法">Flask框架 请求与响应 &amp; 模板语法</h2>
+<h3 id="简单了解flask框架">简单了解Flask框架</h3>
+<pre><code><code>    Flask是一个轻量级的可定制框架，使用Python语言编写，较其他同类型框架更为灵活、轻便、安全且容易上手。
+它可以很好地结合MVC模式进行开发，开发人员分工合作，小型团队在短时间内就可以完成功能丰富的中小型网站或Web服务的实现。
+另外，Flask还有很强的定制性，用户可以根据自己的需求来添加相应的功能，在保持核心功能简单的同时实现功能的丰富与扩展，
+其强大的插件库可以让用户实现个性化的网站定制，开发出功能强大的网站。 
+
+#安装Flask 
+- pip3 install Flask - 1.1.1
+
+Flask库文件(安装Flask时自动安装)
+    - Jinja2 模板渲染库
+    - MarkupSafe 返回安全标签 只要Flask 返回模板或者标签时都会依赖MarkupSafe
+    - Werkzeug 德文“工具” == uWSGI 底层是 WSGI Flask项目启动都是基于Werkzeug</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法0.png" /></p>
+<h3 id="flask-框架-与-django-框架对比">Flask 框架 与 Django 框架对比</h3>
+<pre><code><code>Django 框架
+- 原生组件非常丰富       教科书式框架
+- Django.Model - ORM    面向对象操作数据库
+- Django.Form           Form组件
+- Django.ModelForm      ModelForm
+- Django.Session Model  Session
+- Admin CsrfToken       跨站请求伪造 
+
+Django框架(缺点) 加载项巨大 资源浪费
+Django框架 适合大型,密集型项目
+
+Flask Web框架 - 
+Flask 非常短小精悍 - 精简到只有一个 Session
+Flask 第三方组件 非常全
+
+Flask框架(缺点) 第三方组件 - 运行稳定性相对较差
+Flask框架 适合小型,API服务类项目       </code></pre>
+<h3 id="简单使用flask提供服务">简单使用Flask提供服务</h3>
+<pre><code><code># 三行启动Flask 提供服务
+from flask import Flask
+app = Flask(__name__)
+app.run()
+#访问一下看看效果</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法1.png" /></p>
+<pre><code><code># 启动Flask 提供服务,访问返回页面,&quot;HelloWorld&quot;
+from flask import Flask  # 导入Flask 类创建Flask应用对象
+app = Flask(__name__)  # app = application
+
+@app.route(&quot;/index&quot;)  # 为 Flask 应用对象增加路由
+def index():  # 与路由绑定的视图函数 视图函数名尽可能保持唯一 
+    return &quot;HelloWorld&quot;  # “” 相当于 Django 中的 HttpResponse
+
+if __name__ == &#39;__main__&#39;:  # 当前文件处于脚本状态时运行如下代码
+    app.run()  # 启动Flask 应用
+    
+#访问一下看看效果    </code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法2.png" /></p>
+<h3 id="flask-中的-response响应">Flask 中的 Response(响应)</h3>
+<h4 id="return-字符">return &quot;字符&quot;</h4>
+<pre><code><code>@app.route(&quot;/index&quot;)  
+def index(): 
+    return &quot;HelloWorld&quot;  # &quot;HelloWorld&quot; 相当于 Django中的HttpResponse返回响应 (效果如上图)</code></pre>
+<h4 id="render_templatehtml文件">render_template(&quot;HTML文件&quot;)</h4>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法3.png" /></p>
+<pre><code><code>#html代码
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;郭楷丰&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;你好&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+#python代码 
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route(&quot;/home&quot;)
+def home():
+    return render_template(&quot;home.html&quot;)  # 模板存放路径 templates
+
+if __name__ == &#39;__main__&#39;:
+    app.run()
+#访问一下看看效果   </code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法4.png" /></p>
+<h4 id="redirecthome-重定向">redirect(&quot;/home&quot;) 重定向</h4>
+<pre><code><code>from flask import Flask, render_template, redirect
+
+app = Flask(__name__)
+
+@app.route(&quot;/home&quot;)
+def home():
+    return render_template(&quot;home.html&quot;)  
+
+@app.route(&quot;/re&quot;)
+def re():
+    return redirect(&quot;/home&quot;)  #重定向到home
+
+if __name__ == &#39;__main__&#39;:
+    app.run()
+#访问一下看看效果      </code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法5.png" /></p>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法6.png" /></p>
+<pre><code><code>    小结:
+    # 3xx HTTP status 
+    # 4xx 错误 客户端
+    # 5xx 错误 服务器
+    redirect(&quot;/home&quot;) 其实就是在ResponseHeaders 中加入了一个 Location:http://127.0.0.1:5000/home     </code></pre>
+<h4 id="send_file文件路径-返回文件">send_file(&quot;文件路径&quot;) 返回文件</h4>
+<pre><code><code>#返回图片示例  代码
+#先准备一张图片 1.jpg
+from flask import Flask,send_file
+
+app = Flask(__name__)
+
+@app.route(&quot;/get_file&quot;)
+def get_file():
+    return send_file(&quot;1.jpg&quot;)
+
+if __name__ == &#39;__main__&#39;:
+    app.run()    
+    
+#访问一下试试看</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法7.png" /></p>
+<pre><code><code>小结:
+# 打开并返回文件内容 自动识别文件类型 在ResponseHeaders中加入
+# Content-Type:文件类型 - *文件类型 是可以被客户端识别的文件类型(如MP4,MP3,文本,图片等)
+# 不能识别的类型 下载处理 - 浏览器会下载</code></pre>
+<h4 id="jsonify字符串或数据类型">jsonify(&quot;字符串或数据类型&quot;)</h4>
+<pre><code><code>from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route(&quot;/get_json&quot;)
+def get_json():
+    d = {
+        &quot;name&quot;: &quot;gkf&quot;
+    }
+    return jsonify(d) 
+
+if __name__ == &#39;__main__&#39;:
+    app.run()
+
+#访问一下试试看    </code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法8.png" /></p>
+<pre><code><code>小结:
+jsonify(&quot;字符串或数据类型&quot;)  返回标准格式的JSON字符串
+# Content-Type:application/json == 标准格式
+# Flask 1.1.1 目前版本 支持return d 使用
+# return d  # 暂时不建议使用 兼容性差
+# 直接返回dict时 本质上在执行jsonify(d)
+
+jsonify()做了那些事
+# 1.打包JSON 序列化JSON字符串
+# 2.编写ResponseHeaders 加入 Content-Type:application/json
+
+应用场景:
+# API 接口 AJAX.post({username:123}){function(data){ obj = data }}</code></pre>
+<h3 id="flask-中的-request请求">Flask 中的 Request(请求)</h3>
+<h4 id="request.method请求类型">request.method(请求类型)</h4>
+<pre><code><code>#可以判断客户端的请求来做一些操作
+@app.route(&quot;/index&quot;)
+def index():
+    print(request.method)  
+    if request.method == &#39;GET&#39;: #如果是get请求,返回一个index.html文件
+        return render_template(&quot;index.html&quot;)</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法9.png" /></p>
+<h4 id="request.form-获取form提交数据">request.form (获取form提交数据)</h4>
+<pre><code><code>#html代码
+&lt;form action=&quot;&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+  &lt;p&gt;username: &lt;input type=&quot;text&quot; name=&quot;username&quot;&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;input type=&quot;file&quot; name=&quot;my_file&quot;&gt;&lt;/p&gt;
+  &lt;input type=&quot;submit&quot; value=&quot;登录&quot;&gt;
+&lt;/form&gt;
+#python代码
+def login():
+    if request.method == &#39;GET&#39;:
+        return render_template(&#39;login.html&#39;)
+
+    if request.method == &#39;POST&#39;:
+        print(request.form.get(&quot;username&quot;)) #直接获取到username对应的值
+        return redirect(&quot;/index&quot;)</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法10.png" /></p>
+<h4 id="request.args-获取url中的数据">request.args (获取URL中的数据)</h4>
+<pre><code><code>#代码
+@app.route(&quot;/index&quot;)
+def index():
+    if request.method == &#39;GET&#39;:
+        print(request.args) #request.args.get(&#39;键&#39;) 来取值
+        return render_template(&quot;index.html&quot;)</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法11.png" /></p>
+<h4 id="request.url-请求地址">request.url (请求地址)</h4>
+<pre><code><code>@app.route(&quot;/index&quot;)
+def index():
+    if request.method == &#39;GET&#39;:
+        print(request.url)
+        return render_template(&quot;index.html&quot;)
+#当页面输入 http://127.0.0.1:5000/index 打印结果
+http://127.0.0.1:5000/index  
+#当页面输入 http://127.0.0.1:5000/index?郭楷丰=318 打印结果
+http://127.0.0.1:5000/index?郭楷丰=318</code></pre>
+<h4 id="request.url_charset-url-编码方式">request.url_charset (URL 编码方式)</h4>
+<pre><code><code>@app.route(&quot;/index&quot;)
+def index():
+    if request.method == &#39;GET&#39;:
+        print(request.url_charset)
+        return render_template(&quot;index.html&quot;)
+    
+#打印结果
+utf-8</code></pre>
+<h4 id="request.url_root-完整请求地址">request.url_root (完整请求地址)</h4>
+<pre><code><code># print(request.url_root) # 请求地址 完整请求地址 host
+
+@app.route(&quot;/index&quot;)
+def index():
+    if request.method == &#39;GET&#39;:
+        print(request.url_root)
+        return render_template(&quot;index.html&quot;)
+        
+#访问http://127.0.0.1:5000/index 打印结果
+http://127.0.0.1:5000/</code></pre>
+<h4 id="request.url_rule-请求路由地址">request.url_rule (请求路由地址)</h4>
+<pre><code><code> print(request.url_rule) # 请求路由地址(参数不会获取)
+ 
+ #访问http://127.0.0.1:5000/index 打印结果
+ /index</code></pre>
+<h4 id="request.values-接收所有请求中的数据">request.values (接收所有请求中的数据)</h4>
+<pre><code><code>#接收所有(GET,POST)请求中的数据,包含了 URL 和 FormData 中的数据  
+#一般不使用这个 因为url中的参数和form表的的参数它都会获取,如果key值重名,会报错
+
+print(request.values)
+#访问http://127.0.0.1:5000/index?郭楷丰=318  打印结果
+CombinedMultiDict([ImmutableMultiDict([(&#39;郭楷丰&#39;, &#39;318&#39;)]), ImmutableMultiDict([])])
+
+#to_dict 转为字典形式
+print(request.values.to_dict()) 
+#访问http://127.0.0.1:5000/index?郭楷丰=318  打印结果
+{&#39;郭楷丰&#39;: &#39;318&#39;}</code></pre>
+<h4 id="request.files-获取页面提交的文件">request.files (获取页面提交的文件)</h4>
+<pre><code><code>@app.route(&quot;/login&quot;,methods=[&quot;GET&quot;,&quot;POST&quot;]) #重新methods让它只接受&quot;GET&quot;,&quot;POST&quot;请求
+def login():
+    if request.method == &#39;GET&#39;:
+        return render_template(&#39;login.html&#39;)
+
+    if request.method == &#39;POST&#39;:
+        print(request.files)  
+        print(request.files.get(&quot;my_file&quot;))
+        return redirect(&quot;/index&quot;)  
+
+#访问http://127.0.0.1:5000/login  并提交一个文件 执行结果
+ImmutableMultiDict([(&#39;my_file&#39;, &lt;FileStorage: &#39;1_副本.png&#39; (&#39;image/png&#39;)&gt;)]) 
+&lt;FileStorage: &#39;1_副本.png&#39; (&#39;image/png&#39;)&gt;  #获取文件名字</code></pre>
+<h4 id="request.files-保存文件示例">request.files (保存文件示例)</h4>
+<pre><code><code>#upload.html文件代码
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;文件上传演示&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;form action=&quot;&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+  &lt;p&gt;&lt;input type=&quot;file&quot; name=&quot;my_file&quot;&gt;&lt;/p&gt;
+  &lt;input type=&quot;submit&quot; value=&quot;上传图片&quot;&gt;
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+#python代码
+import os
+from flask import Flask, request, render_template
+
+app = Flask(__name__)
+app.secret_key = &quot;!@#$%^&amp;*()&quot; #密钥(对session进行加密)
+app.debug = True #开启Debug模式 修改代码自动重启项目
+
+@app.route(&quot;/upload&quot;,methods=[&quot;GET&quot;,&quot;POST&quot;])#重写methods只接收GET与POST请求
+def upload():
+    if request.method == &#39;GET&#39;:
+        return render_template(&#39;upload.html&#39;)
+
+    if request.method == &#39;POST&#39;:
+        dir_name = &#39;./美女图片&#39;
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        my_file = request.files.get(&quot;my_file&quot;)
+        new_file = os.path.join(dir_name, my_file.filename)
+        my_file.save(new_file)
+        return &quot;上传文件成功&quot;
+
+if __name__ == &#39;__main__&#39;:
+    app.run()</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法12.png" /></p>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法13.png" /></p>
+<h4 id="request-获取其他数据">request (获取其他数据)</h4>
+<pre><code><code># 获取其他数据
+# request.headers 请求头中的信息
+# request.cookies 请求中cookies的信息
+# request.path == request.url_rule  路由地址
+# request.host == &quot;127.0.0.1:9527&quot; 获取访问主机地址
+# request.host_url == &quot;http://127.0.0.1:9527/&quot; 路由地址
+
+# 特殊提交方式数据获取
+# request.json 获取Content-Type:application/json时提交的数据
+# Content-Type:application/json
+# request.data 获取 原始请求体中的数据 b&quot;&quot;类型
+# Content-Type 无法被识别 或 不包含Form字眼</code></pre>
+<h3 id="flask-模板语言简单使用">Flask 模板语言简单使用</h3>
+<pre><code><code>模板引擎的作用就是读取并执行模板中的特殊语法标记，并根据传入的数据将变量替换为实际值，
+输出最终的HTML页面，这个过程被称为渲染（rendering）Flask默认使用的模板引擎是Jinja2
+
+Jinja2允许你在模板中使用大部分Python对象，比如字符串、列表、字典、元组、整型、浮点型、布尔值。
+它支持基本的运算符号（+、-、*、/等）、比较符号（比如==、！=等）、逻辑符号（and、or、not和括号）
+以及in、is、None和布尔值（True、False）
+
+注释       {#...#}
+表达式     字符串、变量、函数调用等  使用    {{  ...  }}
+逻辑相关   if判断,for循环           使用   {%  ...  %}
+
+# if 语法
+{% if 判断条件 %}
+    判断成功执行代码
+{% else %}
+    判断不成功执行代码
+{% endif %}
+
+    
+# for语法
+{% for user in users %}
+    {{ user }}
+{% endfor %}
+    
+{% for key, value in my_dict.items() %}
+    &lt;p&gt;{{ key }}&lt;/p&gt;
+    &lt;p&gt;{{ value }}&lt;/p&gt;
+{% endfor %}
+&#39;&#39;&#39;    Jinja2 for循环特殊变量
+oop.index               循环迭代计数（从1开始）
+
+loop.index0             循环迭代计数（从0开始）
+
+loop.revindex           循环迭代倒序计数（从len开始，到1结束）
+
+loop.revindex0           循环迭代倒序计数（从len－1开始，到0结束）
+
+loop.first              是否为循环的第一个元素
+
+loop.last               是否为循环的最后一个元素
+
+loop.length             循环序列中元素的个数
+
+loop.cycle              在给定的序列中轮循，如上例在”odd”和”even”两个值间轮循
+
+loop.depth              当前循环在递归中的层级（从1开始）
+
+loop.depth0             当前循环在递归中的层级（从0开始）   
+&#39;&#39;&#39;</code></pre>
+<pre><code><code>#python代码
+from flask import Flask, render_template
+
+#传给模板的数据
+STUDENT = {&#39;name&#39;: &#39;Old&#39;, &#39;age&#39;: 38, &#39;gender&#39;: &#39;中&#39;} 
+STUDENT_LIST = [
+    {&#39;name&#39;: &#39;Old&#39;, &#39;age&#39;: 38, &#39;gender&#39;: &#39;中&#39;},
+    {&#39;name&#39;: &#39;Boy&#39;, &#39;age&#39;: 73, &#39;gender&#39;: &#39;男&#39;},
+    {&#39;name&#39;: &#39;EDU&#39;, &#39;age&#39;: 84, &#39;gender&#39;: &#39;女&#39;}
+]
+STUDENT_DICT = {
+    1: {&#39;name&#39;: &#39;Old&#39;, &#39;age&#39;: 38, &#39;gender&#39;: &#39;中&#39;},
+    2: {&#39;name&#39;: &#39;Boy&#39;, &#39;age&#39;: 73, &#39;gender&#39;: &#39;男&#39;},
+    3: {&#39;name&#39;: &#39;EDU&#39;, &#39;age&#39;: 84, &#39;gender&#39;: &#39;女&#39;},
+}
+
+app = Flask(__name__)
+app.debug = True
+
+@app.template_global()
+def ab(a, b):
+    return a + b
+
+@app.route(&quot;/stu&quot;)
+def stu():
+    return render_template(&quot;stuinfo.html&quot;, stu_info=STUDENT, stu_list=STUDENT_LIST, stu_dict=STUDENT_DICT)
+
+if __name__ == &#39;__main__&#39;:
+    app.run()</code></pre>
+<pre class="html"><code>&lt;!--stuinfo.html模板代码--&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;title&gt;学生信息&lt;/title&gt;
+  &lt;style type=&#39;text/css&#39;&gt;
+  p{
+  background-color:#00ffaa;
+  }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+{{ stu_info }}
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+&lt;table border=&quot;1px&quot;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;name&lt;/td&gt;
+    &lt;td&gt;age&lt;/td&gt;
+    &lt;td&gt;gender&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;{{ stu_info.name }}&lt;/td&gt;
+    &lt;td&gt;{{ stu_info.get(&quot;age&quot;) }}&lt;/td&gt;
+    &lt;td&gt;{{ stu_info[&quot;gender&quot;] }}&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+{{ stu_list }}
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+&lt;table border=&quot;1px&quot;&gt;
+  &lt;tr&gt;
+    &lt;td&gt;name&lt;/td&gt;
+    &lt;td&gt;age&lt;/td&gt;
+    &lt;td&gt;gender&lt;/td&gt;
+  &lt;/tr&gt;
+  {% for stu in stu_list %}
+    &lt;tr&gt;
+      &lt;td&gt;{{ stu.name }}&lt;/td&gt;
+      &lt;td&gt;{{ stu.get(&quot;age&quot;) }}&lt;/td&gt;
+      &lt;td&gt;
+        {% if  stu[&quot;gender&quot;] != &quot;男&quot; and stu[&quot;gender&quot;] != &quot;女&quot; %}
+          李杰
+        {% else %}
+          {{ stu[&quot;gender&quot;] }}
+        {% endif %}
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  {% endfor %}
+&lt;/table&gt;
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+{{ stu_dict }}
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+{% for foo in stu_dict %}
+  {{ stu_dict[foo].get(&quot;name&quot;) }}
+  {{ stu_dict[foo][&quot;age&quot;] }}
+  {{ stu_dict[foo].gender }}
+{% endfor %}
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+{% for foo,item in stu_dict.items() %}
+  {{ foo }}
+  {{ item.name }}
+{% endfor %}
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+{{ ab(666,2) }}
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+{% macro my_input(ty,na) %}
+  请输入用户名 -&gt; &lt;input type=&quot;{{ ty }}&quot; name=&quot;{{ na }}&quot;&gt;
+{% endmacro %}
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+&lt;p&gt;这就是我自己创造的input标签：{{ my_input(&quot;text&quot;,&quot;username&quot;) }} {{ my_input(&quot;password&quot;,&quot;pass&quot;) }} {{ my_input(&quot;file&quot;,&quot;myfile&quot;) }}&lt;/p&gt;
+&lt;p&gt;- - - - - - - -✂ - - - - - - - - - - - -分割线- - - - - - - - - - - -✂- - - - - - - -&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法14.png" /></p>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法15.png" /></p>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法16.png" /></p>
+<p><img src="./images/Flask框架 请求与响应 &amp; 模板语法17.png" /></p>
+<h3 id="flask框架参考手册">Flask框架参考手册</h3>
+<ul>
+<li><a href = 'http://docs.jinkan.org/docs/flask/' target = '_blank'>参考手册</a></li>
+</ul>
+<div id="MySignature" style="display: block;">
+    <div><b>作    者：</b><a href="https://www.cnblogs.com/guokaifeng/" target="_blank">郭楷丰</a></div>
+    <div><b>出    处：</b><a href="https://www.cnblogs.com/guokaifeng/" target="_blank">https://www.cnblogs.com/guokaifeng/</a></div>
+    <div><b>声援博主：</b>如果您觉得文章对您有帮助，可以点击文章右下角 <strong><span style="color: #ff0000; font-size: 12pt;">【<a id="post-up" onclick="votePost(11221919,'Digg')">推荐</a>】</span></strong>一下。您的鼓励是博主的最大动力！</div>
+    <div><b>自    勉：</b>生活，需要追求；梦想，需要坚持；生命，需要珍惜；但人生的路上，更需要坚强。<b>带着感恩的心启程，学会爱，爱父母，爱自己，爱朋友，爱他人。</b></div>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

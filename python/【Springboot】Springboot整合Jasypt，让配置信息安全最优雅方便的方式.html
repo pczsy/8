@@ -1,0 +1,245 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【Springboot】Springboot整合Jasypt，让配置信息安全最优雅方便的方式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【Springboot】Springboot整合Jasypt，让配置信息安全最优雅方便的方式</center></div><div class='banquan'>原文出处:本文由博客园博主南瓜慢说提供。<br/>
+原文连接:https://www.cnblogs.com/larrydpk/p/12037857.html</div><br>
+    <h1 id="简介">1 简介</h1>
+<p>在上一篇文章中，介绍了<code>Jasypt</code>及其用法，具体细节可以查看<a href="https://mp.weixin.qq.com/s/arg8D9nzNHYvSmhyHqn-Vw">【Java库】如何使用优秀的加密库Jasypt来保护你的敏感信息？</a>。如此利器，用之得当，那将事半功倍。本文将介绍<strong>Springboot</strong>整合<code>Jasypt</code>，实现配置信息的安全，如数据库连接、账号和密码、接口凭证信息等。</p>
+<p>Jasypt可以为Springboot加密的信息很多，主要有：</p>
+<ul>
+<li>System Property 系统变量</li>
+<li>Envirnment Property 环境变量</li>
+<li>Command Line argument 命令行参数</li>
+<li>Application.properties 应用配置文件</li>
+<li>Yaml properties 应用配置文件</li>
+<li>other custom property sources 其它配置文件</li>
+</ul>
+<p>经测试，Springboot 2.1.9版本与jasypt-spring-boot最新版本的3.0.0和2.1.2均有问题，本文使用2.1.1成功。</p>
+<h1 id="如何加入依赖">2 如何加入依赖</h1>
+<p>Jasypt整合到Springboot是另一个开源项目<a href="https://github.com/ulisesbocchio/jasypt-spring-boot">jasypt-spring-boot</a>，主要有三种整合方式：</p>
+<h2 id="jasypt-spring-boot-starter">2.1 jasypt-spring-boot-starter</h2>
+<p>如果项目使用<code>@SpringBootApplication</code>或<code>@EnableAutoConfiguration</code>注解，在pom中加入以下依赖即可对整个Spring的环境的配置信息进行加密解密。</p>
+<pre><code><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.github.ulisesbocchio&lt;/groupId&gt;
+  &lt;artifactId&gt;jasypt-spring-boot-starter&lt;/artifactId&gt;
+  &lt;version&gt;2.1.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<h2 id="jasypt-spring-boot">2.2 jasypt-spring-boot</h2>
+<p>如果项目不使用<code>@SpringBootApplication</code>或<code>@EnableAutoConfiguration</code>注解，我们就使用下面的依赖，然后在配置Java类中加上注解<code>@EnableEncryptableProperties</code>。</p>
+<pre><code><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.github.ulisesbocchio&lt;/groupId&gt;
+  &lt;artifactId&gt;jasypt-spring-boot&lt;/artifactId&gt;
+  &lt;version&gt;2.1.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<p>配置类如下：</p>
+<pre class="java"><code>@Configuration
+@EnableEncryptableProperties
+public class MyApplication {
+ 
+}</code></pre>
+<h2 id="只对特定配置加密解密">2.3 只对特定配置加密解密</h2>
+<p>如果不想使用以上两种方式对所有配置信息都进行加密解密的话，可以使用注解<code>@EncryptablePropertySource</code>指定配置文件，依赖如下：</p>
+<pre><code><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.github.ulisesbocchio&lt;/groupId&gt;
+  &lt;artifactId&gt;jasypt-spring-boot&lt;/artifactId&gt;
+  &lt;version&gt;2.1.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<p>配置类如下：</p>
+<pre class="java"><code>@Configuration
+@EncryptablePropertySource(name = &quot;EncryptedProperties&quot;, value = &quot;classpath:encrypted.properties&quot;)
+public class MyApplication {
+    
+}</code></pre>
+<h1 id="生成加密字符">3 生成加密字符</h1>
+<p>生成加密字符有多种方式，在实践中使用过以下几种方式。</p>
+<h2 id="java命令行">3.1 Java命令行</h2>
+<p>Jasypt提供了一个类专门用于加密解密，提供了main方法，调用如下：</p>
+<pre class="bash"><code>java -cp ./jasypt-1.9.3.jar org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI password=pkslow algorithm=PBEWithMD5AndTripleDES input=larry</code></pre>
+<p>输出为：</p>
+<pre class="bash"><code>----ENVIRONMENT-----------------
+Runtime: Oracle Corporation Java HotSpot(TM) 64-Bit Server VM 25.212-b10 
+
+----ARGUMENTS-------------------
+input: larry
+algorithm: PBEWithMD5AndTripleDES
+password: pkslow
+
+----OUTPUT----------------------
+SUfiOs8MvmAUjg+oWl/6dQ==</code></pre>
+<h2 id="脚本命令">3.2 脚本命令</h2>
+<p>Jasypt为我们提供了脚本，可以直接用于加密解密，从http://www.jasypt.org/download.html可以下载。下载解压后的文件有：</p>
+<pre class="bash"><code># 解压后文件
+LICENSE.txt NOTICE.txt  README.txt  apidocs     bin         lib
+# bin文件夹的文件
+decrypt.bat    decrypt.sh
+digest.bat    digest.sh
+encrypt.bat    encrypt.sh
+listAlgorithms.bat listAlgorithms.sh</code></pre>
+<p>在bin目录下面，我们可以根据自己的系统选择使用什么脚本来生成密文，使用参数与Java命令一样。其实这些脚本就是封装了一个调用Java类的工具。使用如下：</p>
+<pre class="bash"><code>$ sh encrypt.sh password=pkslow algorithm=PBEWithMD5AndTripleDES input=larry
+
+----ENVIRONMENT-----------------
+Runtime: Oracle Corporation Java HotSpot(TM) 64-Bit Server VM 25.212-b10 
+
+----ARGUMENTS-------------------
+input: larry
+algorithm: PBEWithMD5AndTripleDES
+password: pkslow
+
+----OUTPUT----------------------
+xRvdeEnk7zgKtX5uVGCIug==</code></pre>
+<h2 id="java代码">3.3 Java代码</h2>
+<p>既然是Java的库，那肯定能用Java代码来加密解密了。具体细节可以参考<a href="https://mp.weixin.qq.com/s/arg8D9nzNHYvSmhyHqn-Vw">【Java库】如何使用优秀的加密库Jasypt来保护你的敏感信息？</a>。</p>
+<h1 id="配置密文与其它项">4 配置密文与其它项</h1>
+<h2 id="配置密文">4.1 配置密文</h2>
+<p>生成密文后，就要把密文配置在相应的位置，如下：</p>
+<pre class="yaml"><code>username: ENC(SUfiOs8MvmAUjg+oWl/6dQ==)
+
+jasypt:
+  encryptor:
+    password: pkslow
+    algorithm: PBEWithMD5AndTripleDES</code></pre>
+<p>配置密文的默认格式：ENC(密文)，这个格式可以通过<code>jasypt.encryptor.property.prefix</code>和<code>jasypt.encryptor.property.suffix</code>配置，这里不再演示。</p>
+<h2 id="其它配置项">4.2 其它配置项</h2>
+<p>配置信息只有 <strong>jasypt.encryptor.password</strong> 是必须的，配置项有：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">配置项</th>
+<th style="text-align: center;">必须</th>
+<th style="text-align: left;">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">jasypt.encryptor.password</td>
+<td style="text-align: center;"><strong>True</strong></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">jasypt.encryptor.algorithm</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">PBEWITHHMACSHA512ANDAES_256</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">jasypt.encryptor.keyObtentionIterations</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">1000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">jasypt.encryptor.poolSize</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">jasypt.encryptor.providerName</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">SunJCE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">jasypt.encryptor.providerClassName</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">null</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">jasypt.encryptor.saltGeneratorClassname</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">org.jasypt.salt.RandomSaltGenerator</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">jasypt.encryptor.ivGeneratorClassname</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">org.jasypt.iv.RandomIvGenerator</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">jasypt.encryptor.stringOutputType</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">base64</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">jasypt.encryptor.proxyPropertySources</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: left;">false</td>
+</tr>
+</tbody>
+</table>
+<h1 id="如何安放你的密钥">5 如何安放你的密钥</h1>
+<p>密钥是非常重要的信息，放在什么地方，决定着你的密文是否真的安全。可以有以下几类方式：</p>
+<p>（1）放在application.properties</p>
+<p>这样能获得配置文件的人就能知道密钥，不够安全。但它是一种方便简单的方式。存在密文和密钥放在同一个配置文件的风险。</p>
+<p>（2）JVM参数</p>
+<p>在启动Java程序时加参数：<code>-Djasypt.encryptor.password=pkslow</code>，这样就不会把密钥放在代码中去了。</p>
+<p>（3）服务器的环境变量</p>
+<p>把密钥放在linux系统的环境变量中去，只有能拿到服务器访问权限的人，才有可能知道密钥在哪。例如：</p>
+<pre class="bash"><code># 配置profile文件
+export JASYPT_PASSWORD = pkslow
+
+# 生效 
+source /etc/profile
+
+# 运行java程序时
+java -jar -Djasypt.encryptor.password=${JASYPT_PASSWORD} xxx.jar</code></pre>
+<p>（4）使用自定义的Encryptor来存放</p>
+<p>以上我们都使用了官方提供的Encryptor，其实我们是可以自定义的，如下：</p>
+<pre class="java"><code>@Bean(&quot;jasyptStringEncryptor&quot;)
+public StringEncryptor stringEncryptor() {
+  PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+  SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+  config.setPassword(&quot;password&quot;);
+  config.setAlgorithm(&quot;PBEWITHHMACSHA512ANDAES_256&quot;);
+  config.setKeyObtentionIterations(&quot;1000&quot;);
+  config.setPoolSize(&quot;1&quot;);
+  config.setProviderName(&quot;SunJCE&quot;);
+  config.setSaltGeneratorClassName(&quot;org.jasypt.salt.RandomSaltGenerator&quot;);
+  config.setIvGeneratorClassName(&quot;org.jasypt.iv.RandomIvGenerator&quot;);
+  config.setStringOutputType(&quot;base64&quot;);
+  encryptor.setConfig(config);
+  return encryptor;
+}</code></pre>
+<p>把密钥写在代码里，只有能获得jar包并反编译的人，才能获得密文。</p>
+<p>如果我们把密钥的一部分写在代码里，另一部分通过外部方式来配置，这样就会更加安全。</p>
+<h1 id="结果测试">6 结果测试</h1>
+<p>我们已经完成了密文的生成，现在我们测试一下是否能正常解密，测试代码如下：</p>
+<pre class="java"><code>@RestController
+@RequestMapping(&quot;/jasypt&quot;)
+public class JasyptController {
+    @Value(&quot;${username}&quot;)
+    private String username;
+
+    @GetMapping(&quot;/name&quot;)
+    public Mono&lt;String&gt; sendNormalText() {
+        return Mono.just(username);
+    }
+}</code></pre>
+<p>访问该接口，能返回加密前的字符串，整个流程测试成功：</p>
+<p><img src="./images/【Springboot】Springboot整合Jasypt，让配置信息安全最优雅方便的方式0.png" alt="file" /></p>
+<h1 id="总结">7 总结</h1>
+<p>本文简介了Springboot整合Jasypt实现配置信息的安全化，在实际项目中应用还是很多的。</p>
+<p>另外，如果项目中是采用Spring Cloud Config的，它提供了统一的加解密方式，也方便使用。但如果应用配置没有走配置中心，还是应该使用Jasypt。</p>
+<hr />
+<p>欢迎关注公众号&lt;<strong>南瓜慢说</strong>&gt;，将持续为你更新...</p>
+<p><img src="./images/【Springboot】Springboot整合Jasypt，让配置信息安全最优雅方便的方式1.png" alt="file" /></p>
+<p>欢迎加博主微信，做一个点赞之友，哈哈...</p>
+<p><img src="./images/【Springboot】Springboot整合Jasypt，让配置信息安全最优雅方便的方式2.png" alt="file" /></p>
+<p><strong>多读书，多分享；多写作，多整理。</strong></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

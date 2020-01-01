@@ -1,0 +1,94 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修图论算法的数学模型' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>图论算法的数学模型</center></div><div class='banquan'>原文出处:本文由博客园博主lcyfrog提供。<br/>
+原文连接:https://www.cnblogs.com/lcyfrog/p/12067015.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#图论算法的数学模型">图论算法的数学模型</a><ul>
+        <li><a href="#引入最短路的数学形式">引入：最短路的数学形式</a></li>
+        <li><a href="#最小割的数学形式">最小割的数学形式</a></li>
+        <li><a href="#一些没用的总结">一些没用的总结</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h2 id="图论算法的数学模型">图论算法的数学模型</h2>
+<p>今天听敦敦敦的课总结一下...</p>
+<p>前置芝士：网络流，最小割</p>
+<h3 id="引入最短路的数学形式">引入：最短路的数学形式</h3>
+<p>松弛操作：</p>
+<p>对于一条边<span class="math inline">\((u,v,w)\)</span>，<span class="math inline">\(\text {if}~(dis_u+w(u,v)&lt;dis_v)~\text{then}~dis_v=dis_u+w(u,v)\)</span></p>
+<p>所以对于求出来的dis，有<span class="math inline">\(dis_v\leq dis_u+w(u,v)\)</span>对吧。。。<br />
+那么这和差分约束中<span class="math inline">\(x_i-x_j\leq a_k\)</span>是对应的，就可以从<span class="math inline">\(~j~\)</span>连到<span class="math inline">\(~i~\)</span>一条权值为<span class="math inline">\(~a_k~\)</span>的边<br />
+这也给了我们一个启发：如果能把要求的贡献/条件转化为图论算法要求的形式，数学问题也可以解决</p>
+<h3 id="最小割的数学形式">最小割的数学形式</h3>
+<p>考虑对于<span class="math inline">\(~01~\)</span>变量<span class="math inline">\(~x~\)</span>，令<span class="math inline">\(x=0\)</span>则与源点联通，<span class="math inline">\(x=1\)</span>则与汇点联通</p>
+<p>考虑边<span class="math inline">\((S,x,a)\)</span>，即从源点向<span class="math inline">\(x\)</span>连了流量为<span class="math inline">\(a\)</span>的边对最小割的贡献<br />
+那么仅当<span class="math inline">\(~x~\)</span>连与汇点联通时才能算把这条边割掉的贡献，此时<span class="math inline">\(x=1\)</span></p>
+<p>那么就可以简单地把答案表示为<span class="math inline">\(a*x\)</span></p>
+<p>同样地，对于边<span class="math inline">\((x,T,a)\)</span>，答案即为<span class="math inline">\(a*(1-x)\)</span></p>
+<p>最后考虑边<span class="math inline">\((x,y,a)\)</span>，注意是有向边<br />
+那么这条边要被割掉仅当<span class="math inline">\(x\)</span>与源点联通，<span class="math inline">\(y\)</span>与汇点联通，贡献即为<span class="math inline">\(a(1-x)y\)</span></p>
+<p>求最小割的本质就是给x赋值对吧<br />
+那么我们把要求的贡献表示成这三种形式，不就可以通过最小割算出最小的贡献了？<br />
+（最大割是np问题~）</p>
+<p>来看一道例题吧：</p>
+<h4 id="zroj1209">ZROJ1209</h4>
+<p><del>放心你们找不到</del></p>
+<p>说下题意：</p>
+<blockquote>
+<p>有一个 <span class="math inline">\(n×m\)</span> 的方格，一开始所有格子都是白色的，你的最终目的是把方格涂成你想要的颜色</p>
+<p>你有三种刷的方法：</p>
+<ul>
+<li>横着刷连续的 <span class="math inline">\(k\)</span> 格，代价是 <span class="math inline">\(ak+b\)</span></li>
+<li>竖着刷连续的 <span class="math inline">\(k\)</span> 格，代价是 <span class="math inline">\(ak+b\)</span></li>
+<li>只刷某个格子，代价是 <span class="math inline">\(c\)</span></li>
+</ul>
+<p>每个格子的颜色是最后刷它的那个刷子的颜色，但是有以下几个限制：</p>
+<ul>
+<li>每个格子最多只能被刷两次，无论这些刷子是否同色</li>
+<li>每个格子不能先刷白色刷子再刷黑色刷子，因为白色染料比较特殊，这会导致格子变成灰色，但是你可以先刷黑色刷子再刷白色刷子，也可以在一开始格子是初始颜色白色时刷黑色刷子</li>
+</ul>
+<p>现在你需要求出，刷出指定颜色的最小代价</p>
+</blockquote>
+<p>有个结论:不会被横刷子涂两次，这样不是白给吗</p>
+<p>因为最开始都是白的，我们考虑先刷黑的，再刷白的，最后刷单点，这样一定最优</p>
+<p>设<span class="math inline">\(bh[x][y]\)</span>表示 (x,y)是否被横着的黑刷子刷了，<span class="math inline">\(wv[x][y]\)</span> 表示是否被竖着的白刷子刷了<br />
+然后设<span class="math inline">\(\text{_bv[x][y]}\)</span>表示1-(x,y)是否被竖着的黑刷子刷了，<span class="math inline">\(\text{_wh[x][y]}\)</span>表示是否被横着的白刷子刷了<br />
+这样设是为了表示答案方便，好用最小割求解</p>
+<p>考虑横竖刷子的代价<span class="math inline">\(ak+b\)</span> ，可以把a摊到每个格子上，b算到最后一个格子<br />
+那么横着的黑刷子对每个点的贡献就是<span class="math inline">\(bh[x][y]*a+b*bh[x][y]*(1-bh[x][y+1])\)</span><br />
+其他的同理，显然符合最小割的贡献形式</p>
+<p>考虑单点的代价，被单点修改仅当没有被刷子刷过<br />
+黑格子贡献：<span class="math inline">\(c*(1-bh[x][y])*(\text{_bv[x][y]})\)</span><br />
+又因为不能被白的刷过，贡献<span class="math inline">\(inf*wv[x][y]+inf*(1-\text{_wh[x][y]})\)</span></p>
+<p>那么白格子单点贡献：之前涂了黑但没被涂白<br />
+<span class="math inline">\(c*bh[x][y]*(1-wv[x][y])+x*(1-\text{_bv[x][y]})*\text{_wh[x][y]}\)</span><br />
+而且不能被黑刷子刷两次：<span class="math inline">\(inf*bh[x][y]*\text{(1-_bv[x][y])}\)</span></p>
+<p>然后对应连点，求最小割，就做完了</p>
+<h3 id="一些没用的总结">一些没用的总结</h3>
+<p>所以对于一些难抽象出图论模型的最小割题，可以转化成数学模型做，具体就是设设变量然后看看形式对不对应，变量可以设两种形式</p>
+<p>比如有一道著名的文理分科题，你想想不就是设每个点选文还是选理，二分图染色设变量为x或1-x，贡献分别就是<span class="math inline">\(ax,a(1-x)\)</span>，组合的贡献就是<span class="math inline">\(c(x)(1-y),c(1-x)y\)</span>这样讨论吗？</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

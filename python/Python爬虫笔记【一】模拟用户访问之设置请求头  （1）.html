@@ -1,0 +1,142 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python爬虫笔记【一】模拟用户访问之设置请求头  （1）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python爬虫笔记【一】模拟用户访问之设置请求头  （1）</center></div><div class='banquan'>原文出处:本文由博客园博主薛定谔的猫~提供。<br/>
+原文连接:https://www.cnblogs.com/dfy-blog/p/11518406.html</div><br>
+    <p>学习的课本为《python网络数据采集》，大部分代码来此此书。</p>
+<p>　　网络爬虫爬取数据首先就是要有爬取的权限，没有爬取的权限再好的代码也不能运行。所以首先要伪装自己的爬虫，让爬虫不像爬虫而是像人一样访问网页。废话不多说开始伪装。</p>
+<h1>　　1.修改请求头</h1>
+<p>　　这里要用到python的requests的模块，首相介绍一下http请求头，它就是你每次在访问网页时，向服务器传输的一组属性和配置信息。下面有七个字段被大多数浏览器用来初始化网络请求。</p>
+<table border="0">
+<tbody>
+<tr>
+<td style="width: 120px; height: 30px;">
+<p>属性</p>
+</td>
+<td style="width: 600px; height: 30px;">内容</td>
+</tr>
+<tr>
+<td style="width: 120px; height: 30px;">Host</td>
+<td style="width: 600px; height: 30px;">https://www.google.com/</td>
+</tr>
+<tr>
+<td style="width: 120px; height: 30px;">Connection</td>
+<td style="width: 600px; height: 30px;">keep-alive</td>
+</tr>
+<tr>
+<td style="width: 120px; height: 30px;">Accept</td>
+<td style="width: 600px; height: 30px;">text/html，application/xhtml+xml，application/xml;q=0.9，image/webp，*/*;q=0.8</td>
+</tr>
+<tr>
+<td style="width: 120px; height: 30px;">User-Agent</td>
+<td style="width: 600px; height: 30px;">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like<br />Gecko) Chrome/39.0.2171.95 Safari/537.36</td>
+
+
+
+
+</tr>
+<tr>
+<td style="width: 120px; height: 30px;">Referrer</td>
+<td style="width: 600px; height: 30px;">https://www.google.com/</td>
+
+
+
+
+</tr>
+<tr>
+<td style="width: 120px; height: 30px;">Accept-Encoding</td>
+<td style="width: 600px; height: 30px;">gzip，deflate，sdch</td>
+
+
+
+
+</tr>
+<tr>
+<td style="width: 120px; height: 30px;">Accept-Language</td>
+<td style="width: 600px; height: 30px;">en-US,en;q=0.8</td>
+
+
+
+
+</tr>
+
+
+
+
+</tbody>
+
+
+
+
+</table>
+<p>这是用户在访问网页时所发出的host请求（图为书中作者的请求，打开F12可查看自己的host请求）。一下为不加请求头时python爬虫发出的请求。</p>
+<table style="height: 30px; width: 260px;" border="0" align="center">
+<tbody>
+<tr>
+<td style="width: 500px; height: 30px;" align="center">Accept-Encoding</td>
+<td style="width: 250px; height: 30px;">identity</td>
+
+
+
+
+</tr>
+<tr>
+<td style="width: 400px; height: 30px;" align="center">User-Agent</td>
+<td style="width: 250px; height: 30px;">
+<p>Python- urllib/3.4</p>
+
+
+
+
+</td>
+
+
+
+
+</tr>
+
+
+
+
+</tbody>
+
+
+
+
+</table>
+<p>用requests模块可以对请求头自定义。我们用下面的程序来采集这个网站的信息，验证我们浏览器的cookie 设置：　　</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">from</span> bs4 <span style="color: #0000ff;">import</span><span style="color: #000000;"> BeautifulSoup<br />
+</span><span style="color: #008080;"> 3</span> session =<span style="color: #000000;"> requests.Session()  <span class="comment">#&nbsp;创建一个session对象</span>
+</span><span style="color: #008080;"> 4</span> headers = {<span style="color: #800000;">"</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5)</span>
+<span style="color: #008080;"> 5</span> 　　　　　　AppleWebKit 537.36 (KHTML, like Gecko) Chrome<span style="color: #800000;">"</span><span style="color: #800000;">,</span>
+<span style="color: #008080;"> 6</span> 　　　　　　<span style="color: #800000;">"</span><span style="color: #800000;">Accept</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">text/html,application/xhtml+xml,application/xml;</span>
+<span style="color: #008080;"> 7</span> 　　　　　　q=0.9,image/webp,*/*;q=0.8<span style="color: #800000;">"</span><span style="color: #800000;">}<br /></span>
+<span style="color: #008080;"> 8</span> url = <span style="color: #800000;">"</span><span style="color: #800000;">https://www.whatismybrowser.com/</span>developers/what-http-headers-<span style="color: #0000ff;">is</span>-my-browser-sending<span style="color: #800000;">"  #这个网站可以把请求头显示在页面上方便我们验证
+</span><span style="color: #008080;">10</span> req = session.get(url, headers=<span style="color: #000000;">headers)  #发起get请求
+</span><span style="color: #008080;">11</span> bsObj =<span style="color: #000000;"> BeautifulSoup(req.text)
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;">print</span>(bsObj.find(<span style="color: #800000;">"</span><span style="color: #800000;">table</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">class</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">table-striped</span><span style="color: #800000;">"</span>}).get_text)</pre>
+</div>
+<p>输出结果中的请求头应该和程序中设置的headers 是一样的。这样就完成了模拟用户访问的第一步模拟请求头。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

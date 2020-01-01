@@ -1,0 +1,74 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修关于C#异步编程你应该了解的几点建议' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>关于C#异步编程你应该了解的几点建议</center></div><div class='banquan'>原文出处:本文由博客园博主依乐祝提供。<br/>
+原文连接:https://www.cnblogs.com/yilezhu/p/12099219.html</div><br>
+    <p>前段时间写了一篇关于C#异步编程入门的文章，你可以点击《<a href="https://www.cnblogs.com/yilezhu/p/12045018.html">C#异步编程入门看这篇就够了</a>》查看。这篇文章我们来讨论下关于C#异步编程几个不成文的建议，希望对你写出高性能的异步编程代码有所帮助。注：本文的很多内容都是学习《Effective C#》的总结。</p>
+<blockquote>
+<p>作者：依乐祝</p>
+<p>原文地址：<a href="https://www.cnblogs.com/yilezhu/p/12099219.html" class="uri">https://www.cnblogs.com/yilezhu/p/12099219.html</a></p>
+</blockquote>
+<h3 id="尽量不要编写返回值类型为void的异步方法">尽量不要编写返回值类型为void的异步方法</h3>
+<p>在通常情况下，建议大家不要编写那种返回值类型为<code>void</code>的异步方法，因为这样做会破坏该方法的启动者与方法本身之间的约定，这套约定本来可以确保主调方能够捕获到异步方法所发生的异常。<br />
+正常的异步方法是通过它返回的<code>Task</code>对象来汇报异常的。如果执行过程中发生了异常，那么<code>Task</code>对象就进入了<code>faulted</code>（故障）状态。主调方在对异步方法所返回的<code>Task</code>对象做<code>await</code>操作时，该对象若已处在<code>faulted</code>状态，系统则会将执行异步方法的过程中所发生的异常抛出，反之，若<code>Task</code>尚未执行到抛出异常的那个地方，则主调方的执行进度会暂停在await语句这里，等系统稍后安排某个线程继续执行该语句下方的那些代码时，异常才会抛出。</p>
+<blockquote>
+<p>总结一句话就是：<code>void</code>的异步方法发生异常时，开发者得不到任何通知，程序既不会触发普通的异常处理程序，也不会把这些异常记录下来。总之，这会让相关的线程默默的终止掉。</p>
+</blockquote>
+<h3 id="不要把同步方法与异步方法组合起来使用">不要把同步方法与异步方法组合起来使用</h3>
+<p>用<code>async</code>关键字来修饰的方法意味着该方法有可能会在执行完所有工作之前就把控制权返回给主调方，而且，它返回给主调方的是个代表工作进度的<code>Task</code>对象。主调方可以查询此对象的状态，以了解该工作是否已经完成、尚未完成还是在执行过程中发生了故障。此外，这种方法还在暗示主调方：本方法所执行的工作可能要花费很长时间，因此建议你先去做其他一些事情，稍后再来向我索要结果。<br />
+与此相反，如果把某个方法设计成同步方法，那么意味着当该方法执行完毕时，它的后置条件必定能够得到满足。无论这个方法要花多长时间去完成工作，它都会采用与主调方相同的资源来完成，主调方必须等这个方法彻底执行完毕才能向下执行。<br />
+这两种方法单独写起来都很清晰，但是如果把他们组合在一起就会让方法变得十分难用，而且有可能导致各种bug，如死锁。因此，这里提出两条重要的原则。第一，不要让同步方法必须等待异步方法执行完毕才能往下执行（尽量不用<code>Wait()</code>以及<code>.result</code>这些阻塞式的方法）。第二，不要让异步方法把虽然耗时很长、计算量很大但是完全可以由自己执行的工作转交给另一个异步任务去做。’<br />
+当然对于第二点，这并不是说计算量较大的任务绝对不能放在单独的线程中执行，而是说不应该把只用一个线程就能迅速做好的任务刻意的拆解成许多个较小的部分，并把他们分别放在多个新的线程上执行，而是应该把整个任务都交给某个线程来执行才对。</p>
+<h3 id="使用异步方法时应尽量避免线程分配">使用异步方法时应尽量避免线程分配</h3>
+<p>异步任务看上去好像很神奇，因为这种任务刻意转移到另一个地方去做，使得开启这项任务的异步方法可以在该任务完成之后，从早前暂停的地方继续往下推进。不过，要想发挥异步任务的功效，就必须保证把这项任务交出去确实能够少占用一些资源，而不是仅仅会在相似的资源之间进行上下文切换。<br />
+如：对于一个控制台程序，如果只是执行一项计算量较大且耗时较长的任务（或者说，运行时间较长的CPU密集型的任务），那么把该任务单独放在另一个线程中并没有多大好处。因为这样做只能让工作线程始终处于繁忙状态，而主线程则必须一直卡在那里等待工作线程把任务做完。在这种情况下，实际上是用两个线程来完成原本只需要一个线程就能做好的工作，造成了资源的浪费。</p>
+<h3 id="避免不必要的上下文切换">避免不必要的上下文切换</h3>
+<p>目前C#代码中使用<code>async</code>以及<code>await</code>实现的异步方法默认是把<code>await</code>之后的代码放在早前捕获的那个上下文中执行的，这是因为这样做比较稳妥，它最多只会引发几次无谓的上下文切换，而不会使程序出现重大的错误，与之相反，如果系统不把山下文切换回去，那么万一遇到的是只能在特定的上下文中才能执行的代码，那么程序就有可能崩溃。因此，无论有没有必要切换上下文，系统都会切换至早前捕获到的那个上下文，并把<code>await</code>之后的语句放在那个上下文执行。<br />
+如果不想让系统做出这样的安排，那么可以调用<code>ConfigureAwait()</code>方法。这表示接下来的那些代码无须放在早前捕获的上下文中执行。例如在很多程序集中，await语句之后的那些代码一般都与上下文无关，因此与，可以调用Task对象的<code>ConfigureAwait()</code>方法告诉系统，在执行完这项任务之后，不必专门把<code>await</code>下面的代码放在早前捕获的上下文中运行。如下所示：</p>
+<pre><code><code>public static async Task&lt;XElement&gt; ReadPacket(string url)
+{
+    var result=await DownloadAsync(url)
+                .ConfigureAwait(false);
+    return XElement.Parse(result);          
+}</code></pre>
+<p>C#语言默认让程序把<code>await</code>下面的语句都放在早前捕获的上下文中执行，这样做虽然较为安全，但是会降低程序的效率。因此为了让用户能够更加顺畅的使用程序，我们应该调整代码的结构，把必须运行在特定上下文的代码剥离出来，并尽量考虑在<code>await</code>语句那里调用<code>ConfigureAwait(false)</code>，使得程序可以把语句下面的代码放在默认上下文中运行，而不是切换回早前的上下文。</p>
+<h3 id="通过task对象来进行异步开发">通过Task对象来进行异步开发</h3>
+<p>Task（任务）是一种抽象机制，可以用来表示某项工作，于是，就能够把该工作转交给其他资源去完成。Task类型以及与之相关的类与结构体提供了丰富的API，让开发者可以操控Task对象以及由该对象所表示的工作。此外，Task对象自身也具备一些方法与属性，可以用来操作本对象所表示的任务。这些Task对象可以合起来构成一项比较大的任务，他们之间既能够按照顺序执行，也能够平行的执行。<br />
+可以通过await语句来确保某些任务之间能够按照一定的顺序执行，也就是说，只有当该语句所要等待的那项工作完毕之后，语句下方的代码才能够执行。<br />
+总之，由于C#提供了一套丰富的API，因此可以写出相当优雅的算法来处理Task对象，并对这些对象所表示的任务进行安排。对任务的用法理解的越透彻，写出来的异步代码越清晰。<br />
+这里简单说明两个常用的API:</p>
+<ol>
+<li>WhenAll：会根据现有的一批任务创建出一项新的任务，只有当那批任务全部执行完毕时，这项新人物才能够完成。对Task.WhenAll所返回的新任务进行<code>await</code>操作会获得一份列表，早前的那些任务的执行结果就位于该列表中。</li>
+<li>WhenAny：为了尽早的获得某个结果，可能启动多项任务，使得他们分别从不同的途径去获取该结果。只要其中有一项任务完成，你的目标就达成了，针对这项需求，可以考虑使用<code>Task.WhenAny</code>方法，并把自己所创建的那批任务传进去。对<code>WhenAny</code>方法所返回的<code>Task</code>对象进行<code>await</code>操作可以获取到一项任务，它指的就是这批任务中最先执行完毕的那项任务。</li>
+</ol>
+<h3 id="考虑实现任务的取消协议">考虑实现任务的取消协议</h3>
+<p>异步任务的编程模型（也叫基于任务的异步编程模型）提供了标准的API，用来取消任务或者广播任务的执行进度。虽然这些API是可选的，但如果某项任务确实能够汇报其进度，或者能够予以取消，那就可以考虑用合适的办法来实现这些API。</p>
+<p>针对需要取消的任务，我们可以通过<code>CanclelationTokenSource</code>对象来进行取消操作。这种对象是一种起到中介作用的对象。该对象处在有可能发出取消请求的客户代码与支持取消功能的那项操作之间。</p>
+<p>如果正在执行的任务发现客户端想要取消该操作，那么它就会通过<code>ThrowIfCanclellationRequested()</code>方法抛出<code>TaskCanclledException</code>异常，庸医表示整个工作流程没有能够完全得到执行。</p>
+<p>此外，返回值类型为<code>void</code>类型的异步方法不应该支持取消功能。</p>
+<h3 id="缓存泛型异步方法的返回值">缓存泛型异步方法的返回值</h3>
+<p>可能你在进行异步编程的时候对异步方法设置的返回类型都是<code>Task</code>或者<code>Task&lt;T&gt;</code>，然而有些时候把返回值类型设为<code>Task</code>可能会影响性能。如果某个循环或某段代码需要频繁的运行，那么系统就有可能分配很多个<code>Task</code>对象，从而占用相当多的资源。好在C#提供了一种新的类型，叫做<code>ValueTask&lt;T&gt;</code>对象，他用起来比普通的Task更为高效。该类型是值类型，因此创建这种类型的对象时，不需要再分配额外的空间。这个好处使得我们可以多创建一些这样的对象，而不用担心它会像Task对象那样占据过多的资源。如果你的异步方法可以根据早前缓存起来的结果直接返回相应的值，那么尤其应该考虑把返回值类型设置为<code>ValueTask&lt;T&gt;</code>。</p>
+<p>其次，<code>ValueTask</code>提供了一个能够接受Task参数的构造函数，这个构造函数会在其内部等候该<code>Task</code>的执行结果。</p>
+<h3 id="总结">总结</h3>
+<p>今天分享的内容比较多，而且很多都比较难理解，不过确实是写出高性能异步方法所必须要掌握的技巧。由于时间较短，因此也没来得及通过代码进行讲述，所以需要有一定的基础才能看懂，不过还是希望对您有所帮助。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

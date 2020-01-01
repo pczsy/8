@@ -1,0 +1,559 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修正则与re模块' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>正则与re模块</center></div><div class='banquan'>原文出处:本文由博客园博主Sroxi提供。<br/>
+原文连接:https://www.cnblogs.com/notfind/p/11442767.html</div><br>
+    <h3 id="一正则表达式">一、正则表达式</h3>
+<p><em>在线测试工具 http://tool.chinaz.com/regex/</em></p>
+<h4 id="字符组">1.字符组</h4>
+<ol>
+<li>​ 在<strong>同一个位置</strong>可能出现的各种字符组成一个字符组，在正则表达中用[ ]表示</li>
+<li>​ 一个正则就是一条匹配规则，可以规定一次匹配字符的长度，字符组每次匹配一个长度为1的字符，例如：待匹配字符为：2a+ 使用字符组进行匹配时就会进行三次比较</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>正则</th>
+<th>待匹配字段</th>
+<th>匹配结果</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>[0123456789]</td>
+<td>5</td>
+<td>5</td>
+<td>在一个字符组里枚举所有合法的字符，待匹配字符与其中一个相同，即便匹配成功</td>
+</tr>
+<tr class="even">
+<td>[0123456789]</td>
+<td>56</td>
+<td>5和6</td>
+<td>匹配个数为2 (见第二条说明)</td>
+</tr>
+<tr class="odd">
+<td>[0-9]</td>
+<td>7</td>
+<td>7</td>
+<td>用-表示范围,[0-9]和[0123456789]规则相同</td>
+</tr>
+<tr class="even">
+<td>[a-z]</td>
+<td>h</td>
+<td>h</td>
+<td>匹配所有的小写字母</td>
+</tr>
+<tr class="odd">
+<td>[a-z]</td>
+<td>7h</td>
+<td>h</td>
+<td>匹配个数为1</td>
+</tr>
+<tr class="even">
+<td>[A-Z]</td>
+<td>B</td>
+<td>B</td>
+<td>匹配所有的大写字母</td>
+</tr>
+<tr class="odd">
+<td>[0-9a-dA-D]</td>
+<td>1ecD</td>
+<td>1、c和D</td>
+<td>匹配个数为3 (该正则可以匹配十六进制字符)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="字符">2.字符</h4>
+<table>
+<thead>
+<tr class="header">
+<th>元字符</th>
+<th>待匹配字符</th>
+<th>匹配个数</th>
+<th>匹配说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>.</td>
+<td>1$,a</td>
+<td>4</td>
+<td>匹配除换行符以外的任意字符</td>
+</tr>
+<tr class="even">
+<td>\w</td>
+<td>_1w@</td>
+<td>3</td>
+<td>匹配字母数字下划线</td>
+</tr>
+<tr class="odd">
+<td>\W</td>
+<td>_1w@</td>
+<td>1</td>
+<td>匹配非字母数字下划线</td>
+</tr>
+<tr class="even">
+<td>\s</td>
+<td></td>
+<td></td>
+<td>匹配空白（空格、换行和tab）</td>
+</tr>
+<tr class="odd">
+<td>\S</td>
+<td></td>
+<td></td>
+<td>匹配非空白</td>
+</tr>
+<tr class="even">
+<td>\d</td>
+<td></td>
+<td></td>
+<td>匹配数字</td>
+</tr>
+<tr class="odd">
+<td>\D</td>
+<td></td>
+<td></td>
+<td>匹配非数字</td>
+</tr>
+<tr class="even">
+<td>\n</td>
+<td></td>
+<td></td>
+<td>匹配一个换行符</td>
+</tr>
+<tr class="odd">
+<td>\t</td>
+<td></td>
+<td></td>
+<td>匹配一个制表符</td>
+</tr>
+<tr class="even">
+<td>\b</td>
+<td>a 2+</td>
+<td>4</td>
+<td>匹配字符的开始或结束</td>
+</tr>
+<tr class="odd">
+<td>^</td>
+<td></td>
+<td></td>
+<td>匹配字符串的开始</td>
+</tr>
+<tr class="even">
+<td>$</td>
+<td></td>
+<td></td>
+<td>匹配字符串的结束</td>
+</tr>
+<tr class="odd">
+<td>a|b</td>
+<td>acfb</td>
+<td>2</td>
+<td>符合|左右其一即可</td>
+</tr>
+<tr class="even">
+<td>（012）</td>
+<td>0123</td>
+<td>1</td>
+<td>匹配括号内的表达式（整体），与[012]区分</td>
+</tr>
+<tr class="odd">
+<td>[^123]</td>
+<td>28291</td>
+<td>2</td>
+<td>匹配非括号内的所有字符</td>
+</tr>
+</tbody>
+</table>
+<h4 id="量词">3.量词</h4>
+<table>
+<thead>
+<tr class="header">
+<th>量词</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>*</td>
+<td>重复0次或多次</td>
+</tr>
+<tr class="even">
+<td>+</td>
+<td>重复1次或多次</td>
+</tr>
+<tr class="odd">
+<td>？</td>
+<td>重复0次或1次</td>
+</tr>
+<tr class="even">
+<td>{n}</td>
+<td>重复n次</td>
+</tr>
+<tr class="odd">
+<td>{n,}</td>
+<td>重复n次或更多次（至少n次）</td>
+</tr>
+<tr class="even">
+<td>{n,m}</td>
+<td>重复n次到m次</td>
+</tr>
+</tbody>
+</table>
+<h4 id="转义">4.转义</h4>
+<table>
+<thead>
+<tr class="header">
+<th>正则</th>
+<th>待匹配字符</th>
+<th>匹配 结果</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>\n</td>
+<td>\n</td>
+<td>False</td>
+<td><code>因为在正则表达式中\是有特殊意义的字符，所以要匹配\n本身，用表达式\n无法匹配</code></td>
+</tr>
+<tr class="even">
+<td>\n</td>
+<td>\n</td>
+<td>True</td>
+<td><code>转义\之后变成\\，即可匹配</code></td>
+</tr>
+<tr class="odd">
+<td><code>\\\\n</code></td>
+<td><code>\\n</code></td>
+<td>True</td>
+<td><code>如果在python中，字符串中的'\'也需要转义，所以每一个字符串'\'又需要转义一次</code></td>
+</tr>
+<tr class="even">
+<td>r'\n'</td>
+<td>r'\n'</td>
+<td>True</td>
+<td><code>在字符串之前加r，让整个字符串不转义</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="贪婪匹配">5.贪婪匹配</h4>
+<p>贪婪匹配：在满足匹配时，匹配尽可能长的字符串，默认情况下，采用贪婪匹配</p>
+<table>
+<thead>
+<tr class="header">
+<th>正则</th>
+<th>待匹配字符</th>
+<th>匹配 结果</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>&lt;.*&gt;</td>
+<td><code>&lt;script&gt;...&lt;script&gt;</code></td>
+<td><code>&lt;script&gt;...&lt;script&gt;</code></td>
+<td>默认为贪婪匹配模式，会匹配尽量长的字符串</td>
+</tr>
+<tr class="even">
+<td>&lt;.*?&gt;</td>
+<td>r'\d'</td>
+<td><code>&lt;script&gt; &lt;script&gt;</code></td>
+<td>加上？为将贪婪匹配模式转为非贪婪匹配模式，会匹配尽量短的字符串</td>
+</tr>
+</tbody>
+</table>
+<pre><code><code>#贪婪匹配，回溯算法
+#\d+8    123456812381281766 匹配结果：12345681238128</code></pre>
+<h3 id="二re模块">二、re模块</h3>
+<p>python官方文档：https://docs.python.org/zh-cn/3.7/library/re.html?highlight=re#module-re</p>
+<h4 id="常用函数">1.常用函数</h4>
+<h5 id="findall">1.findall()</h5>
+<p>​ 返回字符串中所有<strong>非重叠</strong>匹配项的列表。</p>
+<pre class="python"><code>import re
+ret = re.findall(&#39;aba&#39;, &#39;cababa&#39;) 
+print(ret) 
+#结果：[&#39;aba&#39;]
+
+ret = re.findall(&#39;a&#39;, &#39;cababa&#39;) 
+print(ret) 
+#结果：[&#39;a&#39;, &#39;a&#39;, &#39;a&#39;]</code></pre>
+<h5 id="finditer函数">2.finditer()函数</h5>
+<p>返回一个含有所有非重叠匹配项的<strong>迭代器</strong>。</p>
+<pre class="python"><code>ret = re.finditer(&#39;a&#39;, &#39;1a2a3ab&#39;)  
+print(ret)
+r1=ret.__next__()  #r1=ret.__next__().group()
+r2=ret.__next__()
+print(r1)
+print(r2)
+#运行结果：
+&lt;callable_iterator object at 0x0370E450&gt;
+&lt;re.Match object; span=(1, 2), match=&#39;a&#39;&gt;   # a
+&lt;re.Match object; span=(3, 4), match=&#39;a&#39;&gt; 
+StopIteration
+
+
+#span(起始位置,结束位置)</code></pre>
+<h5 id="fullmatch">3.fullmatch()</h5>
+<p>​ 完全匹配。</p>
+<pre class="python"><code>ret = re.fullmatch(&#39;aba&#39;, &#39;cababa&#39;) 
+print(ret)
+#结果：
+None
+
+ret = re.fullmatch(&#39;aba&#39;, &#39;aba&#39;) 
+print(ret)
+#&lt;re.Match object; span=(0, 3), match=&#39;aba&#39;&gt;</code></pre>
+<h5 id="match">4.match()</h5>
+<p>​ 尝试在字符串的开头应用pattern，返回<strong>匹配对象</strong>(不可迭代)，如果没有找到匹配，则为None。</p>
+<pre class="python"><code>ret = re.match(&#39;aba&#39;, &#39;cababa&#39;) 
+print(ret)
+#结果：
+None
+
+ret = re.match(&#39;\d&#39;, &#39;12ab3&#39;) #相当于re.search(&#39;^\d&#39;,&#39;12ab3&#39;)
+print(ret)
+re1=ret.group(0)
+print(re1)
+#结果：
+&lt;re.Match object; span=(0, 1), match=&#39;1&#39;&gt;
+1
+
+</code></pre>
+<h5 id="search">5.search()</h5>
+<p>​ 扫描字符串，寻找与第一个符合匹配的字符串，然后返回<strong>匹配对象</strong>(不可迭代)，如果没有找到匹配，则为None。</p>
+<pre class="python"><code>ret = re.search(&#39;\d&#39;, &#39;c13ab2ab&#39;) 
+print(ret)
+#结果:
+&lt;re.Match object; span=(1, 4), match=&#39;aba&#39;&gt;
+&lt;re.Match object; span=(1, 2), match=&#39;1&#39;&gt;
+1
+#如果没有则ret为None，不可使用ret.group()
+#if ret:
+    ret.group</code></pre>
+<h5 id="splitself-string-maxsplit0">6.split(self, /, string, maxsplit=0)</h5>
+<p>​ 根据模式的出现情况拆分源字符串，返回包含结果子字符串的列表。如果捕获括号在pattern中使用，然后是all的文本模式中的组也作为结果的一部分返回列表。如果maxsplit不为零，则最多发生maxsplit拆分，字符串的其余部分作为最后一个元素返回的列表。</p>
+<pre class="python"><code>ret = re.split(&#39;aba&#39;, &#39;cababa1aba&#39;) 
+print(ret) 
+#结果:
+[&#39;c&#39;, &#39;ba1&#39;, &#39;&#39;]  
+
+ret = re.split(&#39;aba&#39;, &#39;cababa1aba2&#39;) 
+print(ret) 
+#结果:
+[&#39;c&#39;, &#39;ba1&#39;, &#39;2&#39;]
+
+ret = re.split(&#39;aba&#39;, &#39;cababa1aba2&#39;,maxsplit=1) 
+print(ret) 
+#结果:
+[&#39;c&#39;, &#39;ba12&#39;]
+
+ret = re.split(&#39;[ab]&#39;, &#39;abcd&#39;)  # 先按&#39;a&#39;分割得到&#39;&#39;和&#39;bcd&#39;,在对&#39;&#39;和&#39;bcd&#39;分别按&#39;b&#39;分割
+print(ret)  
+# 结果
+[&#39;&#39;, &#39;&#39;, &#39;cd&#39;]
+</code></pre>
+<h5 id="subpattern-repl-string-count0-flags0">7.sub(pattern, repl, string, count=0, flags=0)</h5>
+<p>​ 返回通过pattern非重叠替换repl得到的字符串。</p>
+<ul>
+<li>repl可以是字符串，也可以是可调用的;</li>
+<li>如果是字符串，则处理其中的反斜杠转义。</li>
+<li>如果它是一个可调用的对象，它传递了Match对象并必须返回要使用的替换字符串</li>
+</ul>
+<pre class="python"><code>ret = re.sub(&#39;\d{2}&#39;,&#39;+&#39;, &#39;2ad232c&#39;) 
+print(ret) 
+#结果:
+2ad+2c
+
+import random
+def fun(s):
+    i = random.randint(0,len(s))
+    return s[i]
+ret = re.sub(&#39;\d{2}&#39;,fun(&#39;#$%&#39;), &#39;2ad232c&#39;) 
+print(ret) </code></pre>
+<h5 id="subnpattern-repl-string-count0-flags0">8.subn(pattern, repl, string, count=0, flags=0)</h5>
+<p>返回通过pattern非重叠替换repl得到的字符串与替换次数组成的二元组。</p>
+<ul>
+<li>repl可以是字符串，也可以是可调用的;</li>
+<li>如果是字符串，则处理其中的反斜杠转义。</li>
+<li>如果它是一个可调用的对象，它传递了Match对象并必须返回要使用的替换字符串</li>
+</ul>
+<pre class="python"><code>ret = re.subn(&#39;\d{2}&#39;,&#39;+&#39;, &#39;2ad232c&#39;) 
+print(ret) 
+#结果：
+(&#39;2ad+2c&#39;, 1)</code></pre>
+<h5 id="compile">9.compile()</h5>
+<p>将正则表达式编译成为一个 正则表达式对象,节省编译时间</p>
+<pre class="python"><code>obj = re.compile(&#39;\d{3}&#39;) 
+ret = obj.search(&#39;abc123d&#39;) #正则表达式对象调用search，参数为待匹配的字符串
+print(ret.group()) 
+#结果：
+123</code></pre>
+<h5 id="templatepattern-flags0">10.template(pattern, flags=0)</h5>
+<p>​ 编译一个模板模式，返回一个模式对象</p>
+<h5 id="purge">11.purge()</h5>
+<p>清除正则表达式缓存</p>
+<h4 id="二分组的使用">二、分组的使用</h4>
+<pre class="python"><code>import re
+s = &#39;&lt;a&gt;dfjsjgs&lt;/a&gt;&#39;
+reg = &#39;&lt;a(&gt;)(.+)&lt;&#39;
+ret = re.search(reg,s)
+print(ret.group()) #或print(ret.group(0)) 默认是0,取所有
+print(ret.group(1))
+print(ret.group(2))
+#结果:
+&lt;a&gt;dfjsjgs&lt;
+&gt;
+dfjsjgs
+
+
+#findall(),匹配后优先返回括号内的匹配
+import re
+s = &#39;1.234+4.23&#39;
+reg = &#39;\d\.(?:\d+)&#39;
+ret = re.findall(reg,s)
+print(ret)
+#结果：[&#39;.234&#39;, &#39;.23&#39;]
+
+#取消优先  ？：
+s = &#39;1.234+4.23&#39;
+reg = &#39;\d\.(?:\d+)&#39;
+ret = re.findall(reg,s)
+print(ret)
+#结果：[&#39;1.234&#39;, &#39;4.23&#39;]
+
+
+#split()
+ret = re.split(&#39;\d+&#39;,&#39;abc12de34&#39;)
+print(ret)
+#结果：
+[&#39;abc&#39;, &#39;de&#39;, &#39;&#39;]
+ret = re.split(&#39;(\d+)&#39;,&#39;abc12de34&#39;)
+print(ret)
+#结果：
+[&#39;abc&#39;, &#39;12&#39;, &#39;de&#39;, &#39;34&#39;, &#39;&#39;]
+
+
+#分组命名
+s = &#39;&lt;a&gt;dfjsjgs&lt;/a&gt;&#39;
+reg = &#39;&lt;(?P&lt;na&gt;\w)&gt;\w+&lt;/a&gt;&#39;  #(?P&lt;na&gt;\w)分组命名为&#39;na&#39;
+ret = re.search(reg,s)
+print(ret.group(&#39;na&#39;))
+#结果：
+a
+
+#当要求满足正则并且相同时可以，使用分组命名
+s = &#39;&lt;a&gt;dfjsjgs&lt;/a&gt;&#39;
+reg = &#39;&lt;(?P&lt;na&gt;\w)&gt;\w+&lt;/(?P=na\w)&gt;&#39;
+ret = re.search(reg,s)
+print(ret.group(&#39;na&#39;))
+#结果：
+a
+
+s = &#39;&lt;a&gt;dfjsjgs&lt;/a&gt;&#39;
+reg = &#39;&lt;(?P&lt;na&gt;\w)&gt;\w+&lt;/(?P=na\w)&gt;&#39;
+ret = re.search(reg,s)
+print(ret.group(&#39;na&#39;))
+#结果：
+a
+
+#分组用法示例，匹配整数
+s = &#39;1+2.4*(32-1.5)-11.11&#39;  
+reg = &#39;\d+\.\d+|\d+&#39;
+ret = re.findall(reg,s)
+print(ret)
+#结果：
+[&#39;1&#39;, &#39;2.4&#39;, &#39;32&#39;, &#39;1.5&#39;, &#39;11.11&#39;]
+#可以对上面得到的结果进行遍历判断
+
+s = &#39;1+2.4*(32-1.5)-11.11&#39;  
+reg = &#39;(\d+\.\d+)|(\d+)&#39;
+ret = re.findall(reg,s)
+print(ret)
+#结果：
+[(&#39;&#39;, &#39;1&#39;), (&#39;2.4&#39;, &#39;&#39;), (&#39;&#39;, &#39;32&#39;), (&#39;1.5&#39;, &#39;&#39;), (&#39;11.11&#39;, &#39;&#39;)]
+#还可以利用分组进行，再次筛选
+s = &#39;1+2.4*(32-1.5)-11.11&#39;  
+reg = &#39;\d+\.\d+|(\d+)&#39;
+ret = re.findall(reg,s)
+print(ret)
+#结果：
+[&#39;1&#39;, &#39;&#39;, &#39;32&#39;, &#39;&#39;, &#39;&#39;]
+#使用列表的remove(&#39;&#39;)
+</code></pre>
+<h4 id="三flags">三、flags</h4>
+<pre><code><code>Some of the functions in this module takes flags as optional parameters:
+        A  ASCII       For string patterns, make \w, \W, \b, \B, \d, \D
+                       match the corresponding ASCII character categories
+                       (rather than the whole Unicode categories, which is the
+                       default).
+                       For bytes patterns, this flag is the only available
+                       behaviour and needn&#39;t be specified.
+        I  IGNORECASE  Perform case-insensitive matching.
+        L  LOCALE      Make \w, \W, \b, \B, dependent on the current locale.
+        M  MULTILINE   &quot;^&quot; matches the beginning of lines (after a newline)
+                       as well as the string.
+                       &quot;$&quot; matches the end of lines (before a newline) as well
+                       as the end of the string.
+        S  DOTALL      &quot;.&quot; matches any character at all, including the newline.
+        X  VERBOSE     Ignore whitespace and comments for nicer looking RE&#39;s.
+        U  UNICODE     For compatibility only. Ignored for string patterns (it
+                       is the default), and forbidden for bytes patterns.
+    
+    This module also defines an exception &#39;error&#39;.
+    
+  re模块中的一些函数含有可选参数flags
+        A           匹配相应的ASCII字符类别(而不是默认的整个Unicode)
+                    对于字节模式，A是惟一可用的，不需要指定。
+        I           执行不区分大小写的匹配     
+        M           “^”匹配行开头(换行之后)的字符串。&quot;$&quot;匹配行(换行之后)的结尾字符串
+        S           &quot;.&quot;匹配所有，包括换行
+ 
+ #re.S
+s = &#39;1Q$\n+&#39;
+ret = re.findall(&#39;.&#39;,s)
+print(ret)
+结果：
+[&#39;1&#39;, &#39;Q&#39;, &#39;$&#39;, &#39;+&#39;]
+s = &#39;1Q$\n+&#39;
+ret = re.findall(&#39;.&#39;,s,re.S)
+print(ret)
+结果：
+[&#39;1&#39;, &#39;Q&#39;, &#39;$&#39;, &#39;\n&#39;, &#39;+&#39;]
+
+
+#re.M
+s = &#39;123\n45 6&#39;
+ret = re.findall(&#39;^\d+&#39;,s)
+print(ret)
+结果：
+[&#39;123&#39;]
+
+s = &#39;123\n45 6&#39;
+ret = re.findall(&#39;^\d+&#39;,s,re.M)
+print(ret)
+结果：
+[&#39;123&#39;, &#39;45&#39;]</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

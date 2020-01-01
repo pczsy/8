@@ -1,0 +1,273 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot+apache前后端分离部署https' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot+apache前后端分离部署https</center></div><div class='banquan'>原文出处:本文由博客园博主Mason技术记录提供。<br/>
+原文连接:https://www.cnblogs.com/masonlee/p/12004638.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#引言">1. 引言</a></li>
+        <li><a href="#了解https证书openssl及keytool">2. 了解https、证书、openssl及keytool</a><ul>
+        <li><a href="#https">2.1 https</a><ul>
+        <li><a href="#什么是https">2.1.1 什么是https</a></li>
+        <li><a href="#https解决什么问题">2.1.2 https解决什么问题</a></li>
+        </ul></li>
+        <li><a href="#证书">2.2 证书</a><ul>
+        <li><a href="#证书内容">2.2.1 证书内容</a></li>
+        <li><a href="#验证证书过程">2.2.2 验证证书过程</a></li>
+        <li><a href="#证书种类">2.2.3 证书种类</a></li>
+        </ul></li>
+        <li><a href="#openssl">2.3 openssl</a></li>
+        <li><a href="#keytool">2.4 keytool</a></li>
+        </ul></li>
+        <li><a href="#自签证书">3. 自签证书</a><ul>
+        <li><a href="#证书生成过程">3.1 证书生成过程</a><ul>
+        <li><a href="#自建ca证书">3.1.1 自建CA证书</a></li>
+        <li><a href="#ca签发服务端证书">3.1.2 CA签发服务端证书</a></li>
+        <li><a href="#证书存入keystore文件">3.1.3 证书存入keystore文件</a></li>
+        </ul></li>
+        <li><a href="#证书生成注意事项">3.2 证书生成注意事项</a></li>
+        </ul></li>
+        <li><a href="#后端springboot工程添加https访问">4. 后端springboot工程添加https访问</a><ul>
+        <li><a href="#springboot工程添加ssl配置项">4.1 springboot工程添加ssl配置项</a></li>
+        <li><a href="#添加内置tomcat的http转发https">4.2 添加内置tomcat的http转发https</a></li>
+        </ul></li>
+        <li><a href="#前端apache添加https访问">5. 前端apache添加https访问</a><ul>
+        <li><a href="#apached.conf添加ssl支持">5.1 apached.conf添加ssl支持</a><ul>
+        <li><a href="#启用需要的模块">5.1.1 启用需要的模块</a></li>
+        <li><a href="#引入ssl配置">5.1.2 引入ssl配置</a></li>
+        <li><a href="#修改配置directory">5.1.3 修改配置Directory</a></li>
+        </ul></li>
+        <li><a href="#httpd-ssl.conf-添加ssl配置">5.2 httpd-ssl.conf 添加ssl配置</a></li>
+        <li><a href="#添加http转发https">5.3 添加http转发https</a></li>
+        <li><a href="#访问后端接口地址添加https地址">5.4 访问后端接口地址添加https地址</a></li>
+        </ul></li>
+        <li><a href="#客户端添加证书">6. 客户端添加证书</a></li>
+        <li><a href="#总结">7. 总结</a></li>
+        <li><a href="#参考资料">参考资料</a></li>
+        <li><a href="#往期文章">往期文章</a></li>
+        </ul>
+    </div>
+</div>
+<blockquote>
+<p>一句话概括：现在网站访问基本都需要使用https访问，否则浏览器就会报不安全提示，本文针对springboot+apache前后端分离的项目的https设置与部署进行说明。</p>
+</blockquote>
+<h1 id="引言">1. 引言</h1>
+<p>当前访问互联网上的应用，基本都使用https了，否则浏览器会提示不安全，存在信息安全风险，还影响用户体验。最近公司需要对当前http访问的项目进行https部署，当前项目是使用前后端分离，后端使用springboot，前端使用apache，本文将对部署过程进行记录，并对https及相关知识做一下梳理，主要包括以下内容：</p>
+<ul>
+<li>对https、证书、openssl和keytool进行简要解释，了解相关概念。</li>
+<li>使用openssl及keytool自签证书</li>
+<li>对springboot项目添加https访问支持</li>
+<li>对apache添加https访问支持</li>
+</ul>
+<h1 id="了解https证书openssl及keytool">2. 了解https、证书、openssl及keytool</h1>
+<h2 id="https">2.1 https</h2>
+<h3 id="什么是https">2.1.1 什么是https</h3>
+<p>使用http已经可以完成功能，为什么还需要使用https，原因是使用http传输的内容是明文的，明文的数据传输容易被拦截，造成数据容易被修改，数据内容容易泄露的危险，如何解决这种不安全问题，当然是需要对数据进行加密传输，于是，就有了https。https是<code>Hyper Text Transfer Protocol over Secure Socket Layer</code>的缩写，表示安全的超文本传输协议，它基于SSL/TLS协议对传输的数据进行加密，以保证传输过程中的安全性，所以<code>https协议=SSL/TLS+http协议</code>。</p>
+<h3 id="https解决什么问题">2.1.2 https解决什么问题</h3>
+<p>一般对于信息安全问题，主要需要解决三大问题：身份明确性，数据保密性，数据完整性，因此，https针对这三个问题的解决方法是（1）使用数字证书识别身份；（2）使用加密技术（对称加密和非对称加密）保证数据保密性；（3）使用数据签名防止数据被篡改；具体这里涉及到对称加密，非对称加密，数字签名，数字证书及SSL/TLS的运行原理等概念，此处不详细展开，可以参考文章《<a href="https://www.jianshu.com/p/29e0ba31fb8d">一文看懂HTTPS、证书机构（CA）、证书、数字签名、私钥、公钥</a>》和《<a href="http://www.ruanyifeng.com/blog/2014/02/ssl_tls.html">SSL/TLS协议运行机制的概述</a>》。</p>
+<h2 id="证书">2.2 证书</h2>
+<h3 id="证书内容">2.2.1 证书内容</h3>
+<p>刚才已经说到，https是使用数字证书来识别身份，即确定当前访问的服务器是真的。数字证书由权威的颁发机构（CA）在验证服务器身份后颁发的一种数字证书，内容包含加密后服务器的公钥、权威机构的信息、有效期，证书内容的数字签名（通过Hash函数计算得到证书数字摘要，然后用权威机构私钥加密数字摘要得到数字签名)，签名计算方法以及证书对应的域名。最重要的是服务器的公钥，另外，这里所说的CA可以是商用的，也可以自建来私有使用（只是自建的CA生成的证书浏览器不公认）。</p>
+<blockquote>
+<p>公钥、私钥是非对称加密中的概念：公钥(public key)是对外开放的，私钥(private key)是自己拥有的。公钥加密的数据，只能用私钥解密。私钥加密的数据，只能用公钥解密。</p>
+</blockquote>
+<h3 id="验证证书过程">2.2.2 验证证书过程</h3>
+<p>数字证书是使用数字签名来识别身份。当客户端收到服务器的证书之后，使用CA的公钥对证书本身进行解密得到服务端的公钥和证书的数字签名，数字签名经过CA公钥解密得到证书信息摘要。然后证书签名的方法计算一下当前证书的信息摘要，与收到的信息摘要作对比，如果一样，表示证书一定是服务器下发的，没有被中间人篡改过。详细可参见《<a href="https://blog.csdn.net/meng564764406/article/details/79156559">数字证书基本知识总结</a>》、《<a href="https://www.aneasystone.com/archives/2016/04/java-and-https.html">Java 和 HTTP 的那些事（四） HTTPS 和 证书</a>》、《<a href="https://juejin.im/post/5db11f55518825647313ac19">一次看懂 Https 证书认证</a>》</p>
+<h3 id="证书种类">2.2.3 证书种类</h3>
+<p>前面使用到的证书从使用者来看，分别有CA证书，服务端（server）证书和客户端(client)证书。其中，CA证书作为根证书，由它来签发server证书和client证书，也由它的公钥和私钥对server证书和client证书进行识别。server证书的公钥和私钥用于https通信过程数据加解密等操作。一般对于服务器的单向认证，只需要CA证书和服务端证书。</p>
+<p>按证书格式分，X.509#DER二进制格式证书，常用后缀.cer .crt；X.509#PEM文本格式证书，常用后缀.pem；有的证书内容是只包含公钥（服务器的公钥），如.crt、.cer、.pem；有的证书既包含公钥又包含私钥（服务器的私钥），如.pfx、.p12</p>
+<h2 id="openssl">2.3 openssl</h2>
+<p>openssl 是一套密码库工具，用以支持SSL/TLS 协议的实现，可以用它生成证书，进行数据加解密，计算消息摘要等等。通过它可以进行自签名证书（把自己当作CA机构），实现https访问。本文使用的就是这种方式。一般linux已自带安装，没有安装的需要下载安装。</p>
+<h2 id="keytool">2.4 keytool</h2>
+<p>keytool是一个Java数据证书的管理工具 ，位置是在java安装目录下的bin目录。keytool将密钥（key）和证书（certificates）存在一个称为keystore的文件中。 注意keystore不仅可以存储数字证书，还可以存储密钥。存储在 Keystore 文件中的对象有三种类型：Certificate、PrivateKey 和 SecretKey 。Certificate 就是证书，PrivateKey 是非对称加密中的私钥，SecretKey 用于对称加密，是对称加密中的密钥。因此，对于java应用中，可以直接使用keytool即可生成相应的keystore进行https设置。</p>
+<h1 id="自签证书">3. 自签证书</h1>
+<p>了解了基本概念后，现在开始动手进行https部署。第一步是先进行自签证书，这里使用openssl生成证书，然后使用keytool生成相应的keystore文件。</p>
+<blockquote>
+<p>以下命令操作在linux下完成，做的是服务端单向认证</p>
+</blockquote>
+<h2 id="证书生成过程">3.1 证书生成过程</h2>
+<h3 id="自建ca证书">3.1.1 自建CA证书</h3>
+<pre><code><code># 生成根证书私钥
+openssl genrsa -des3 -passout pass:111111 -out ca.key 2048
+
+# 签发根证书
+openssl req -new -x509 -days 3650 -passin pass:111111 -key ca.key -out ca.crt -subj &quot;/C=CN/ST=GD/L=GZ/O=test/OU=test/CN=${ip或域名}&quot;</code></pre>
+<p>说明，上述操作中:</p>
+<ul>
+<li><code>pass:111111</code>表示ca证书的密码，可以自定义，这样可以避免以交互方式输入密码，密码可以自定义。</li>
+<li>参数<code>-subj</code> 中，CN为根证书的域名，请根据实际情况填写。</li>
+<li>由于是自签，参数<code>days</code>可以随便填数量。</li>
+</ul>
+<h3 id="ca签发服务端证书">3.1.2 CA签发服务端证书</h3>
+<pre><code><code># 生成服务器证书私钥
+openssl genrsa -des3 -passout pass:111111 -out server.key 2048
+# 生成服务器证书请求
+openssl req -new \
+    -sha256 \
+    -key server.key \
+    -passin pass:111111 \
+    -subj &quot;/C=CN/ST=GD/L=GZ/O=test/OU=test/CN=${ip或域名}&quot; \
+    -reqexts SAN \
+    -config &lt;(cat /path/to/openssl.cnf \
+        &lt;(printf &quot;[SAN]\nsubjectAltName=IP:${ip或域名}&quot;)) \
+-out server.csr
+# 签发服务器证书
+openssl ca -in server.csr \
+    -days 3650 \
+    -passin pass:111111 \
+        -md sha256 \
+        -keyfile ca.key \
+    -cert ca.crt \
+    -extensions SAN \
+    -config &lt;(cat /path/to/openssl.cnf \
+        &lt;(printf &quot;[SAN]\nsubjectAltName=IP:${ip或域名}&quot;)) \
+-out server.crt 
+</code></pre>
+<p>说明，上述操作中：</p>
+<ul>
+<li>参数<code>-subj</code> 中，CN为根证书的域名，请根据实际情况填写。</li>
+<li><code>/path/to/openssl.cnf</code>，请根据实际的openssl.cnf位置修改。</li>
+<li>参数<code>[SAN]\nsubjectAltName</code>，若使用IP，则以<code>IP:</code>开头，若是域名，使用<code>DNS:</code>开头。</li>
+</ul>
+<h3 id="证书存入keystore文件">3.1.3 证书存入keystore文件</h3>
+<pre><code><code># 生成服务器证书转pkcs12
+openssl pkcs12 -export -in server.crt -passin pass:111111 -passout pass:111111 -inkey server.key -out server.pkcs12
+
+# pkcs12转keystore 
+keytool -importkeystore -v -srckeystore server.pkcs12 -srcstoretype pkcs12 -srcstorepass 111111 -destkeystore server.jks -deststoretype jks -deststorepass 111111 -noprompt
+</code></pre>
+<p>至此，我们已经生成了后面需要使用到的<code>ca.crt</code>，<code>server.key</code>，<code>server.crt</code>，<code>server.jks</code>。</p>
+<h2 id="证书生成注意事项">3.2 证书生成注意事项</h2>
+<ul>
+<li><p>由于Chrome 58 及以上版本只会使用 subjectAlternativeName 扩展程序（而不是 CN即commonName）来匹配域名和网站证书。因此，在生成证书时需要加上SAN。参考文章《<a href="https://moxo.io/blog/2017/08/01/problem-missing-subjectaltname-while-makeing-self-signed-cert/">OpenSSL 生成「自签名」证书遇到的 missing_subjectAltName 问题</a>》及《<a href="https://my.oschina.net/sskxyz/blog/1554093">使用 OpenSSL 制作一个包含 SAN（Subject Alternative Name）的证书</a>》</p></li>
+<li><p>遇到类似“/etc/pki/CA: No such file or directory”错误，解决方法是在当前目录（如果是默认安装的openssl，在/etc/pki/CA）执行下面命令:</p></li>
+</ul>
+<pre><code><code>mkdir -p /etc/pki/CA
+  cd /etc/pki/CA
+touch index.txt
+  touch serial
+  echo 01 &gt; serial </code></pre>
+<ul>
+<li>遇到类似”update database“错误，则清空index.txt内容再重新执行命令。</li>
+</ul>
+<h1 id="后端springboot工程添加https访问">4. 后端springboot工程添加https访问</h1>
+<h2 id="springboot工程添加ssl配置项">4.1 springboot工程添加ssl配置项</h2>
+<p>java工程使用keystore进行证书管理，先把server.jks放到springboot工程的resource目录下。然后在springboot配置文件application.properties添加以下配置：</p>
+<pre class="properties"><code># https访问端口
+server.port=443
+server.ssl.key-store=server.jks
+server.ssl.key-alias=server
+server.ssl.enabled=true
+server.ssl.key-store-password=111111
+server.ssl.key-store-type=JKS</code></pre>
+<h2 id="添加内置tomcat的http转发https">4.2 添加内置tomcat的http转发https</h2>
+<p>如果是使用tomcat部署，其实直接在tomcat的配置文件中进行配置https的connector即可。对于springboot，一般我们通过添加配置文件，以实现对tomcat的配置修改。新建TomcatConfig.java文件，添加以下代码：</p>
+<pre class="java"><code>@Bean
+public TomcatServletWebServerFactory tomcatServletWebServerFactory(Connector connector) {
+    TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() {
+        @Override
+        protected void postProcessContext(Context context) {
+            SecurityConstraint securityConstraint = new SecurityConstraint();
+            securityConstraint.setUserConstraint(&quot;CONFIDENTIAL&quot;);
+            SecurityCollection collection = new SecurityCollection();
+            collection.addPattern(&quot;/*&quot;);
+            securityConstraint.addCollection(collection);
+            context.addConstraint(securityConstraint);
+        }
+    };
+    tomcat.addAdditionalTomcatConnectors(connector);
+    return tomcat;
+}
+
+@Bean
+public Connector connector(){
+    Connector connector=new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
+    connector.setScheme(&quot;http&quot;);
+    //http端口
+    connector.setPort(8080);
+    connector.setSecure(false);
+    // https端口，即server.port
+    connector.setRedirectPort(serverPort);
+    return connector;
+}</code></pre>
+<p>说明，此处新建了http的Connector，并把http的访问都转发到https，这样，当用户访问http时直接跳转为https。若需要http和https同时使用，则把<code>setRedirectPort</code>去掉即可。</p>
+<h1 id="前端apache添加https访问">5. 前端apache添加https访问</h1>
+<h2 id="apached.conf添加ssl支持">5.1 apached.conf添加ssl支持</h2>
+<h3 id="启用需要的模块">5.1.1 启用需要的模块</h3>
+<pre class="xml"><code>LoadModule rewrite_module modules/mod_rewrite.so
+LoadModule ssl_module        modules/mod_ssl.so
+LoadModule socache_shmcb_module modules/mod_socache_shmcb.so</code></pre>
+<h3 id="引入ssl配置">5.1.2 引入ssl配置</h3>
+<p>使用Include引入ssl配置，如下：</p>
+<pre class="xml"><code> Include conf/extra/httpd-ssl.conf</code></pre>
+<h3 id="修改配置directory">5.1.3 修改配置Directory</h3>
+<p>把允许重写设置为All，把AllowOverride None 改为 AllowOverride all</p>
+<pre class="xml"><code>&lt;Directory &quot;/root/path/&quot;&gt;
+   Options Indexes FollowSymLinks
+   AllowOverride all
+   Require all granted
+&lt;/Directory&gt;</code></pre>
+<h2 id="httpd-ssl.conf-添加ssl配置">5.2 httpd-ssl.conf 添加ssl配置</h2>
+<p>前端已经引入httpd-ssl.conf文件，因此，需要对此文件进行ssl配置。如下：</p>
+<pre><code><code># 启用https端口
+Listen 443 https
+# 启用SSL并设置服务端证书及私钥
+SSLEngine on
+SSLCertificateFile &quot;/path/to/server.crt&quot;
+SSLCertificateKeyFile &quot;/path/to/server.key&quot;</code></pre>
+<p>说明：根据实际情况设置证书路径。</p>
+<h2 id="添加http转发https">5.3 添加http转发https</h2>
+<p>在网站目录下创建一个<code>.htaccess</code>文件，写入如下规则，把全部80端口的请求都转发到本机的https对应的端口（默认443）：</p>
+<pre><code><code>RewriteEngine On
+RewriteCond %{SERVER_PORT} 80     
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R,L]</code></pre>
+<h2 id="访问后端接口地址添加https地址">5.4 访问后端接口地址添加https地址</h2>
+<p>前端需要调用后端接口，由于已经改为使用https通信，因此，调用接口需要从原来http地址，改为https访问的端口。上述全部配置完成后，重启apache即可（重启需要输入server.key对应的密码）</p>
+<h1 id="客户端添加证书">6. 客户端添加证书</h1>
+<p>最后，由于使用的是自签名的证书，浏览器不认识这证书，因此，需要把自签的CA证书添加到浏览器中，才能正常访问。以chrome浏览器为例，设置-》高级》隐私设置和安全性》管理证书》受信息的根证书颁发机构，导入ca.crt。这样，就可以愉快地使用https，不提示安全问题了。</p>
+<h1 id="总结">7. 总结</h1>
+<p>本文通过操作实例进行了对springboot+apache前后端分离项目的https部署，先对https、证书、openssl及keytool进行初步的了解，然后通过openssl和keytool生成证书及keystore，接着对后端springboot及前端的apache分别进行配置。希望可以帮助到同样需要进行https部署的同学。</p>
+<h1 id="参考资料">参考资料</h1>
+<ul>
+<li><a href="https://www.jianshu.com/p/29e0ba31fb8d">一文看懂HTTPS、证书机构（CA）、证书、数字签名、私钥、公钥</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2014/02/ssl_tls.html">SSL/TLS协议运行机制的概述</a></li>
+<li><a href="https://blog.csdn.net/meng564764406/article/details/79156559">数字证书基本知识总结</a></li>
+<li><a href="https://www.aneasystone.com/archives/2016/04/java-and-https.html">Java 和 HTTP 的那些事（四） HTTPS 和 证书</a></li>
+<li><a href="https://juejin.im/post/5db11f55518825647313ac19">一次看懂 Https 证书认证</a></li>
+<li><a href="https://moxo.io/blog/2017/08/01/problem-missing-subjectaltname-while-makeing-self-signed-cert/">OpenSSL 生成「自签名」证书遇到的 missing_subjectAltName 问题</a></li>
+<li><a href="https://my.oschina.net/sskxyz/blog/1554093">使用 OpenSSL 制作一个包含 SAN（Subject Alternative Name）的证书</a></li>
+</ul>
+<h1 id="往期文章">往期文章</h1>
+<ul>
+<li><a href="https://mp.weixin.qq.com/s/ha4LaR-E1gDxfUZ11neI-Q">springboot+logback 日志输出企业实践（下）</a></li>
+<li><a href="https://mp.weixin.qq.com/s/Ti5i9vv9S1j4za5q11RWeA">springboot+logback 日志输出企业实践（上）</a></li>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzUyNDk0NTg1MA==&amp;mid=2247483919&amp;idx=1&amp;sn=01fb5723feb33983889060b468e00e76&amp;scene=19#wechat_redirect">springboot+swagger 接口文档企业实践（下）</a></li>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzUyNDk0NTg1MA==&amp;mid=2247483914&amp;idx=1&amp;sn=6dd920597557f96df5f9974e6f36d4b6&amp;scene=19#wechat_redirect">springboot+swagger接口文档企业实践（上）</a></li>
+<li><a href="http://mp.weixin.qq.com/s?__biz=MzUyNDk0NTg1MA==&amp;mid=2247483902&amp;idx=1&amp;sn=d08aa0367be84c117dffacd6dc067285&amp;chksm=fa24d12bcd53583dbad2ac788d78e395b65e2aac54c60d6cdbfd5da55cfbcdc4dadf1e2f3efd&amp;scene=21#wechat_redirect">查阅了十几篇学习资源后，我总结了这份AI学习路径</a></li>
+<li><a href="http://mp.weixin.qq.com/s?__biz=MzUyNDk0NTg1MA==&amp;mid=2247483897&amp;idx=1&amp;sn=e20bd84b3c9a0a834e2a60da024e0fef&amp;chksm=fa24d12ccd53583ae607e883eeab3acb8d06d868c489e3cc27316ffca5fcf7f92d0a2b54557b&amp;scene=21#wechat_redirect">java应用监测(8)-阿里诊断工具arthas</a></li>
+<li><a href="https://mp.weixin.qq.com/s/HvUbCdHeUIwqRX4PNPLebg">mongo同步-spring batch(8)的mongo读写组件使用</a></li>
+</ul>
+<p>关注我的公众号（搜索<code>Mason技术记录</code>），获取更多技术记录：</p>
+<p><img src="./images/springboot+apache前后端分离部署https0.png" alt="Mason技术记录" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,80 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[LeetCode] 169. 求众数' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[LeetCode] 169. 求众数</center></div><div class='banquan'>原文出处:本文由博客园博主威行天下提供。<br/>
+原文连接:https://www.cnblogs.com/powercai/p/11317552.html</div><br>
+    <p>题目链接 : <a href="https://leetcode-cn.com/problems/majority-element/" class="uri">https://leetcode-cn.com/problems/majority-element/</a></p>
+<h2 id="题目描述">题目描述:</h2>
+<p>给定一个大小为 <em>n</em> 的数组，找到其中的众数。众数是指在数组中出现次数<strong>大于</strong> <code>⌊ n/2 ⌋</code> 的元素。</p>
+<p>你可以假设数组是非空的，并且给定的数组总是存在众数。</p>
+<h2 id="示例">示例:</h2>
+<p><strong>示例 1:</strong></p>
+<pre><code><code>输入: [3,2,3]
+输出: 3</code></pre>
+<p><strong>示例 2:</strong></p>
+<pre><code><code>输入: [2,2,1,1,1,2,2]
+输出: 2</code></pre>
+<h2 id="思路">思路:</h2>
+<p>这里众数一定是唯一的，如果存在两个<strong>大于</strong> <code>⌊ n/2 ⌋</code> 的元素，不满足条件！</p>
+<p>所以，这里的众数一定是个数最多的.</p>
+<p><strong>思路一: 计数算法</strong></p>
+<pre class="python"><code>class Solution:
+    def majorityElement(self, nums: List[int]) -&gt; int:
+        return sorted(collections.Counter(nums).items(), key = lambda x:x[1])[-1][0]</code></pre>
+<p>或者采取一个 <span class="math inline">\(O(n)\)</span>时间, <span class="math inline">\(O(1)\)</span>的方法计数方式(<a href="https://www.cnblogs.com/zhonghuasong/p/6536665.html">Moore majority vote algorithm(摩尔投票算法)</a> )</p>
+<p>算法描述:</p>
+<p>算法在局部变量中定义一个序列元素(m)和一个计数器(i)，初始化的情况下计数器为0. 算法依次扫描序列中的元素，当处理元素x的时候，如果计数器为0，那么将x赋值给m，然后将计数器(i)设置为1，如果计数器不为0，那么将序列元素m和x比较，如果相等，那么计数器加1，如果不等，那么计数器减1。处理之后，最后存储的序列元素(m)，就是这个序列中最多的元素。</p>
+<p>如果不确定是否存储的元素m是最多的元素，还可以进行第二遍扫描判断是否为最多的元素。</p>
+<p>想要更多的了解，<a href="http://www.cs.utexas.edu/~moore/best-ideas/mjrty/index.html">更多信息</a>。</p>
+<pre class="python"><code>class Solution:
+    def majorityElement(self, nums: List[int]) -&gt; int:
+        count = 0
+        majority = None
+        for num in nums:
+            if count == 0:
+                majority = num 
+                count += 1
+            elif majority == num:
+                count += 1
+            else:
+                count -= 1
+        return majority</code></pre>
+<p><strong>思路二：排序</strong></p>
+<p>又因为过半，所以可以排序取上界中位数</p>
+<pre class="python"><code>class Solution:
+    def majorityElement(self, nums: List[int]) -&gt; int:
+        return sorted(nums)[len(nums)//2]</code></pre>
+<p><strong>思路三：分而治之</strong></p>
+<p>先分，合的时候选数组中多的数（思路二排序）</p>
+<pre class="python"><code>class Solution:
+    def majorityElement(self, nums: List[int]) -&gt; int:
+        if not nums: return 
+        if len(nums) == 1: return nums[0]
+        left = self.majorityElement(nums[:len(nums)//2])
+        right = self.majorityElement(nums[len(nums)//2:])
+        if left == right:
+            return left
+        return left if nums.count(left) &gt; len(nums)// 2 else right</code></pre>
+<p><strong>思路四：位运算</strong></p>
+<p>本人 「位运算」极差，留个坑，也请大佬教教我！</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

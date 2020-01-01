@@ -1,0 +1,271 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修PHP 7.4.0发布！一起看看有哪些新特性' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>PHP 7.4.0发布！一起看看有哪些新特性</center></div><div class='banquan'>原文出处:本文由博客园博主有痣青年提供。<br/>
+原文连接:https://www.cnblogs.com/zydj333/p/12057854.html</div><br>
+    <p>PHP 7.4.0 发布了，此版本标志着 PHP 7 系列的第四次特性更新。</p>
+<p>看了英文手册后，发现其进行了许多改进，并带来了一些新特性，现在将这些新特性您：</p>
+<p>&nbsp;</p>
+<p><strong>1.<span style="color: #008000;">Typed Properties</span></strong><strong>&nbsp;类型属性</strong></p>
+<p>类属性现在支持类型声明，以下示例将强制 $User-&gt; id 只能分配 int 值，而 $User-&gt; name 只能分配 string 值。</p>
+<div class="cnblogs_code">
+<pre><code>&lt;?<span style="color: #000000;">php
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+
+    </span><span style="color: #0000ff;">public</span> int <span style="color: #800080;">$id</span><span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> <span style="color: #800080;">$name</span><span style="color: #000000;">;
+
+}
+
+</span>?&gt;</pre>
+</div>
+<p>● 它们自PHP 7.4起可用。</p>
+<p>● 它们只在类中可用，并且需要访问修饰符:public、protected、private、var。</p>
+<p>● 除了void和callable之外，所有类型都是允许的。</p>
+<p>PHP是我们喜欢和讨厌的一种动态语言，它将强制类型转换做的太好，有时也会引起反作用。假设您在期望整数的地方传递了一个字符串，PHP将尝试自动转换该字符串：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Bar
+
+{
+
+    </span><span style="color: #0000ff;">public</span> int <span style="color: #800080;">$i</span><span style="color: #000000;">;
+
+}
+
+</span><span style="color: #800080;">$bar</span> = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Bar;
+
+</span><span style="color: #800080;">$bar</span>-&gt;i = '1'; <span style="color: #008000;">//</span><span style="color: #008000;"> 1</span></pre>
+</div>
+<p>如果不喜欢这种行为，可以通过声明严格类型来禁用它：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">declare</span>(strict_types=1<span>);</span></pre>
+<pre><code><em id="__mceDel"><span style="color: #800080;">$bar</span> = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Bar;
+
+</span><span style="color: #800080;">$bar</span>-&gt;i = '1'; <span style="color: #008000;">//</span><span style="color: #008000;"> 1</span>
+<span style="color: #000000;">
+Fatal error</span>: Uncaught TypeError:<span style="color: #000000;"> 
+
+Typed property Bar</span>::<span style="color: #800080;">$i</span> must be int, <span style="color: #0000ff;">string</span> used</em></pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>2.<span style="color: #008000;">Arrow Functions</span></strong><strong>&nbsp;箭头函数</strong></p>
+<p>箭头函数提供了用于定义具有隐式按值作用域绑定的函数的简写语法。</p>
+<div class="cnblogs_code">
+<pre><code>&lt;?<span style="color: #000000;">php
+
+</span><span style="color: #800080;">$factor</span> = 10<span style="color: #000000;">;
+
+</span><span style="color: #800080;">$nums</span> = <span style="color: #008080;">array_map</span>(fn(<span style="color: #800080;">$n</span>) =&gt; <span style="color: #800080;">$n</span> * <span style="color: #800080;">$factor</span>, [1, 2, 3, 4<span style="color: #000000;">]);
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> $nums = array(10, 20, 30, 40);</span>
+
+?&gt;</pre>
+</div>
+<p>● 自PHP 7.4起可用</p>
+<p>● 他们以fn关键字开头</p>
+<p>● 它们只能有一个表达式，即return语句</p>
+<p>● 不允许return关键字</p>
+<p>● 参数和返回类型可以是类型提示</p>
+<p>您没看错：短闭包只能有一个表达式。这意味着您不能包含多行。</p>
+<p>理由如下：</p>
+<p>简短闭包的目标是减少冗长。fn当然在所有情况下都比function短。然而，如果您处理的是多行函数，那么使用短闭包所获得的好处就更少。</p>
+<p>毕竟，按照定义，多行闭包已经更加冗长；因此能够跳过两个关键字（function和return）不会有太大的区别。</p>
+<p>&nbsp;</p>
+<p><strong>3.<span style="color: #008000;">Limited Return Type Covariance and Argument Type Contravariance</span></strong><strong>&nbsp;有限返回类型协变与参数类型逆变</strong></p>
+<p>仅当使用自动加载时，才提供完全协变/逆变支持。在单个文件中，只能使用非循环类型引用，因为所有类在被引用之前都必须可用。</p>
+<div class="cnblogs_code">
+<pre><code>&lt;?<span style="color: #000000;">php
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> A {}
+
+</span><span style="color: #0000ff;">class</span> B <span style="color: #0000ff;">extends</span><span style="color: #000000;"> A {}
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Producer {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">function</span> method():<span style="color: #000000;"> A {}
+
+}
+
+</span><span style="color: #0000ff;">class</span> ChildProducer <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Producer {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">function</span> method():<span style="color: #000000;"> B {}
+
+}
+
+</span>?&gt;</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>4.<span style="color: #008000;">Unpacking Inside Arrays</span></strong><strong>&nbsp;打包内部数组</strong></p>
+<div class="cnblogs_code">
+<pre><code>&lt;?<span style="color: #000000;">php
+
+</span><span style="color: #800080;">$parts</span> = ['apple', 'pear'<span style="color: #000000;">];
+
+</span><span style="color: #800080;">$fruits</span> = ['banana', 'orange', ...<span style="color: #800080;">$parts</span>, 'watermelon'<span style="color: #000000;">];
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> ['banana', 'orange', 'apple', 'pear', 'watermelon'];</span>
+
+?&gt;</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>5.<span style="color: #008000;">Numeric Literal Separator</span></strong><strong>&nbsp;数值文字分隔符</strong></p>
+<p>数字文字可以在数字之间包含下划线。</p>
+<div class="cnblogs_code">
+<pre><code>&lt;?<span style="color: #000000;">php
+
+</span>6.674_083e-11; <span style="color: #008000;">//</span><span style="color: #008000;"> float</span>
+<span style="color: #000000;">
+299_792_458;   </span><span style="color: #008000;">//</span><span style="color: #008000;"> decimal</span>
+<span style="color: #000000;">
+0xCAFE_F00D;   </span><span style="color: #008000;">//</span><span style="color: #008000;"> hexadecimal</span>
+<span style="color: #000000;">
+0b0101_1111;   </span><span style="color: #008000;">//</span><span style="color: #008000;"> binary</span>
+
+?&gt;</pre>
+</div>
+<p><strong>限制</strong></p>
+<p>唯一的限制是数字文字中的每个下划线必须直接位于两个数字之间。这条规则意味着下面的用法都不是有效的数字文字:</p>
+<div class="cnblogs_code">
+<pre><code>_100; 
+<span style="color: #000000;">
+100_;       </span>
+<span style="color: #000000;">
+1__1;       </span>
+<span style="color: #000000;">
+1_</span>.0; 1._0; 
+<span style="color: #000000;">
+0x_123;     </span>
+<span style="color: #000000;">
+0b_101;     </span>
+<span style="color: #000000;">
+1_e2; 1e_2; </span><span style="color: #008000;"><br /></span></pre>
+</div>
+<p><strong>PHP功能不受影响</strong></p>
+<p>在数字文字的数字之间添加下划线不会改变其值。下划线在词法分析阶段被删除，因此运行时不受影响。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">var_dump</span>(1_000_000); <span style="color: #008000;">//</span><span style="color: #008000;"> int(1000000)</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>6.<span style="color: #008000;">Weak References</span></strong><strong>&nbsp;弱引用</strong></p>
+<p>弱引用可以保留对对象的引用，不会阻止对象被销毁。</p>
+<p>弱引用允许保留对对象的引用，而该对象不会阻止对象被销毁;它们对于实现类似缓存的结构非常有用。</p>
+<p>原则上，弱引用对象并不复杂，只需要(ab)使用Zend或下面的层，因为我们不直接支持它。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> WeakReference {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">function</span> create(<span style="color: #0000ff;">object</span> <span style="color: #800080;">$object</span>) :<span style="color: #000000;"> WeakReference;
+  
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">function</span> get() : ?<span style="color: #0000ff;">object</span><span style="color: #000000;">;
+
+}</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>7.<span style="color: #008000;">Allow Exceptions from __toString()</span></strong><strong>&nbsp;允许从 __toString() 抛出异常</strong></p>
+<p>现在允许从 __toString() 引发异常，以往这会导致致命错误，字符串转换中现有的可恢复致命错误已转换为 Error 异常。</p>
+<p>7.4以前禁止从__toString()抛出异常，如果__toString()异常，将导致致命错误。</p>
+<p>从技术角度来看，这种限制最终是无效的，因为字符串转换期间的异常仍然可以由将可恢复错误转换为异常的错误处理程序触发:</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">set_error_handler</span>(<span style="color: #0000ff;">function</span><span style="color: #000000;">() {
+
+    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">Exception</span><span style="color: #000000;">();
+
+});
+
+</span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+
+    (</span><span style="color: #0000ff;">string</span>) <span style="color: #0000ff;">new</span><span style="color: #000000;"> stdClass;
+
+} </span><span style="color: #0000ff;">catch</span> (<span style="color: #0000ff;">Exception</span> <span style="color: #800080;">$e</span><span style="color: #000000;">) {
+
+    </span><span style="color: #0000ff;">echo</span> "(string) threw an exception...\n"<span style="color: #000000;">;
+
+}</span></pre>
+</div>
+<p>另外，将&ldquo;不能转换为字符串&rdquo;和&ldquo;__toString()必须返回一个字符串值&rdquo;可恢复的致命错误转换为正确的错误异常，这与PHP 7中建立的错误策略一致。</p>
+<p>&nbsp;</p>
+<p><strong>8.<span style="color: #008000;">Opcache Preloading</span></strong><strong>&nbsp;Opcache 预加载</strong></p>
+<p>新增 Opcache 预加载支持。</p>
+<p>在PHP 7.4中，添加了对预加载的支持，这是一个可以显著提高代码性能的特性。</p>
+<p>简而言之，这是它的工作方式：</p>
+<p>● 为了预加载文件，您需要编写一个自定义PHP脚本</p>
+<p>● 该脚本在服务器启动时执行一次</p>
+<p>● 所有预加载的文件在内存中都可用于所有请求</p>
+<p>● 在重新启动服务器之前，对预加载文件所做的更改不会产生任何影响</p>
+<p>虽然预加载是建立在opcache之上的，但它并不是完全一样的。Opcache将获取您的PHP源文件，将其编译为&ldquo; opcodes&rdquo;，然后将这些编译后的文件<strong><span style="color: #008000;">存储在磁盘上</span></strong>。</p>
+<p>您可以将操作码看作是代码的底层表示，在运行时很容易解释。因此，opcache会跳过源文件和PHP解释器在运行时实际需要之间的转换步骤。巨大的胜利！</p>
+<p>但我们还有更多的收获。Opcached文件不知道其他文件。如果类A是从类B扩展而来的，那么仍然需要在运行时将它们链接在一起。此外，opcache执行检查以查看源文件是否被修改，并将基于此使其缓存失效。</p>
+<p>因此，这就是预加载发挥作用的地方：它不仅将源文件编译为操作码，而且还将相关的类、特征和接口链接在一起。然后，它将这个&ldquo;已编译&rdquo;的可运行代码blob(即:PHP解释器可以使用的代码)<strong><span style="color: #008000;">保存在内存中</span></strong>。</p>
+<p><strong>现在，当请求到达服务器时，它可以使用已经加载到内存中的部分代码库，而不会产生任何开销。</strong></p>
+<p>为了进行预加载，开发人员必须告知服务器要加载哪些文件。这是用一个简单的PHP脚本完成的，确实没有什么困难。</p>
+<p>规则很简单：</p>
+<p>● 您提供一个预加载脚本，并使用opcache.preload命令将其链接到您的php.ini文件中。</p>
+<p>● 您要预加载的每个PHP文件都应该传递到opcache_compile_file()，或者在预加载脚本中只需要一次。</p>
+<p>假设您想要预加载一个框架，例如Laravel。您的脚本必须遍历vendor/laravel目录中的所有PHP文件，并将它们一个接一个地添加。</p>
+<p>在php.ini中：</p>
+<div class="cnblogs_code">
+<pre><code>opcache.preload=/path/to/project/preload.php</pre>
+</div>
+<p>这是一个虚拟的实现：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #800080;">$files</span> = <span style="color: #008000;">/*</span><span style="color: #008000;"> 要预加载的文件数组 </span><span style="color: #008000;">*/</span><span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">foreach</span> (<span style="color: #800080;">$files</span> <span style="color: #0000ff;">as</span> <span style="color: #800080;">$file</span><span style="color: #000000;">) {
+
+    opcache_compile_file(</span><span style="color: #800080;">$file</span><span style="color: #000000;">);
+
+}</span></pre>
+</div>
+<p>有一个警告！为了预加载文件，还<span style="color: #ff0000;"><strong>必须预加载它们的依赖项（接口，特征和父类）</strong></span>。</p>
+<p>如果类依赖项有任何问题，则会在服务器启动时通知您：</p>
+<div class="cnblogs_code">
+<pre><code>Can'<span style="color: #000000;">t preload unlinked class
+
+Illuminate\Database\Query\JoinClause: 
+
+Unknown parent 
+
+Illuminate\Database\Query\Builder</span></pre>
+</div>
+<p>这不是一个致命的问题，您的服务器可以正常工作。但你不会得到所有你想要的预加载文件。</p>
+<p>幸运的是，还有一种确保链接文件也被加载的方法：您可以使用require_once代替opcache_compile_file，让已注册的autoloader(可能是composer的)负责其余的工作。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #800080;">$files</span> = <span style="color: #008000;">/*</span><span style="color: #008000;"> 要预加载的文件数组 </span><span style="color: #008000;">*/</span><span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">foreach</span> (<span style="color: #800080;">$files</span> <span style="color: #0000ff;">as</span> <span style="color: #800080;">$file</span><span style="color: #000000;">) {
+
+    </span><span style="color: #0000ff;">require_once</span>(<span style="color: #800080;">$file</span><span style="color: #000000;">);
+
+}</span></pre>
+</div>
+<p>还有一些需要注意的地方。例如，如果您试图预加载Laravel，那么框架中的一些类依赖于其他尚不存在的类。例如，文件系统缓存类\ lighting \ filesystem \ cache依赖于\League\Flysystem\Cached\Storage\AbstractCache，如果您从未使用过文件系统缓存，则可能无法将其安装到您的项目中。</p>
+<p><strong>＃有效吗？</strong></p>
+<p>这当然是最重要的问题:所有文件都正确加载了吗?您可以简单地通过重新启动服务器来测试它，然后将<span style="color: #008000;">opcache_get_status()</span>的输出转储到PHP脚本中。您将看到它有一个名为preload_statistics的键，它将列出所有预加载的函数、类和脚本;以及预加载文件消耗的内存。</p>
+<p><strong>＃性能</strong></p>
+<p>现在到最重要的问题：预加载真的能提高性能吗?</p>
+<p>答案是肯定的：我进行了一些基准测试。</p>
+<p>有趣的是，您可以决定仅预加载代码库中经常使用的类。基准测试显示，只加载大约100个热门类，实际上可以获得比预加载所有类更好的性能收益。预加载全部类，性能提升13%，而预加载热门类，则提升有17%。</p>
+<p>当然，应该预加载哪些类取决于您的项目。明智的做法是在开始时尽可能多地预加载。</p>
+<p>此外还有一些弃用，以及从核心中删除一些扩展，详情查看英文原版手册：</p>
+<p>https://www.php.net/manual/zh/migration74.new-features.php</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

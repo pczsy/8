@@ -1,0 +1,98 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python连载26-shelve模块' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python连载26-shelve模块</center></div><div class='banquan'>原文出处:本文由博客园博主心悦君兮君不知-睿提供。<br/>
+原文连接:https://www.cnblogs.com/ruigege0000/p/11253563.html</div><br>
+    <p>一、持久化 --shelve</p>
+<p>持久化工具</p>
+<p>（1）作用：类似字典，用kv对保存数据，存取方式类似于字典</p>
+<p>（2）例子：通过一下案例创建了一个数据库，第二个程序我们读取了数据库</p>
+<div class="cnblogs_code">
+<pre><code> 
+
+<span style="color: #008000;">#</span><span style="color: #008000;">使用shelve创建文件并使用</span>
+
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> shelve
+
+shv </span>= shelve.open(r<span style="color: #800000;">"</span><span style="color: #800000;">shv.db</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+shv[</span><span style="color: #800000;">"</span><span style="color: #800000;">one</span><span style="color: #800000;">"</span>] = 1<span style="color: #000000;">
+
+shv[</span><span style="color: #800000;">"</span><span style="color: #800000;">two</span><span style="color: #800000;">"</span>] = 2<span style="color: #000000;">
+
+shv.close()</span></pre>
+</div>
+<p><img src="./images/Python连载26-shelve模块0.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code>shv = shelve.open(r<span style="color: #800000;">"</span><span style="color: #800000;">shv.db</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+
+    </span><span style="color: #0000ff;">print</span>(shv[<span style="color: #800000;">"</span><span style="color: #800000;">one</span><span style="color: #800000;">"</span><span style="color: #000000;">])
+
+    </span><span style="color: #0000ff;">print</span>(shv[<span style="color: #800000;">"</span><span style="color: #800000;">three</span><span style="color: #800000;">"</span><span style="color: #000000;">])
+
+</span><span style="color: #0000ff;">except</span><span style="color: #000000;">:
+
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">打印three时出错了</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">finally</span><span style="color: #000000;">:
+
+    shv.close()</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><img src="./images/Python连载26-shelve模块1.png" alt="" /></p>
+<p>2.shelve特性</p>
+<p>（1）注意：不支持多个应用并行写入，为了解决这个问题，open的时候可以使用writeback=True,注意一点如果不传入这个参数我们后面对数据的更改只会在内存中进行更改，而不会写回数据库</p>
+<p>（2）写回问题</p>
+<p>shelve不会等待持久化对象进行任何更改</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code>shv = shelve.open(r<span style="color: #800000;">"</span><span style="color: #800000;">shv.db</span><span style="color: #800000;">"</span>,writeback=<span style="color: #000000;">True)
+
+</span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+
+    shv[</span><span style="color: #800000;">"</span><span style="color: #800000;">one</span><span style="color: #800000;">"</span>] = {<span style="color: #800000;">"</span><span style="color: #800000;">eind</span><span style="color: #800000;">"</span>:1,<span style="color: #800000;">"</span><span style="color: #800000;">zwei</span><span style="color: #800000;">"</span>:2,<span style="color: #800000;">"</span><span style="color: #800000;">drei</span><span style="color: #800000;">"</span>:3<span style="color: #000000;">}
+
+    one </span>= shv[<span style="color: #800000;">"</span><span style="color: #800000;">one</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(one)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">这里就对 数据进行了更改，如果没有上面writeback=True,下面额语句就白写了</span>
+<span style="color: #000000;">
+    one[</span><span style="color: #800000;">"</span><span style="color: #800000;">eind</span><span style="color: #800000;">"</span>] = 100
+
+    <span style="color: #0000ff;">print</span><span style="color: #000000;">(one)
+
+</span><span style="color: #0000ff;">finally</span><span style="color: #000000;">:
+
+    shv.close()</span></pre>
+</div>
+<p><img src="./images/Python连载26-shelve模块2.png" alt="" /></p>
+<p>三、源码</p>
+<p>d22_4_shelve_module.py</p>
+<p>地址：https://github.com/ruigege66/Python_learning/blob/master/d22_4_shelve_module.py</p>
+<p>2.CSDN：https://blog.csdn.net/weixin_44630050（心悦君兮君不知-睿）</p>
+<p>3.博客园：https://www.cnblogs.com/ruigege0000/</p>
+<p>4.欢迎关注微信公众号：傅里叶变换</p>
+<p>&nbsp;<img src="./images/Python连载26-shelve模块3.png" alt="" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

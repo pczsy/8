@@ -1,0 +1,227 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修swoole运行模式加速laravel应用的详细介绍' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>swoole运行模式加速laravel应用的详细介绍</center></div><div class='banquan'>原文出处:本文由博客园博主程序媛的明天提供。<br/>
+原文连接:https://www.cnblogs.com/a609251438/p/12078354.html</div><br>
+    <p>本篇文章给大家带来的内容是关于swoole运行模式加速laravel应用的详细介绍，有一定的参考价值，有需要的朋友可以参考一下，希望对你有所帮助。</p>
+<p>&nbsp;</p>
+<p>一、Swoole</p>
+<p>Swoole号称重新定义了PHP，它是一个PHP扩展，使得PHP可以使用异步的方式执行，就像node一样，而且还能使用socket，为PHP提供了一系列异步IO、事件驱动、并行数据结构功能。<br />Swoole4支持完整的协程编程模式，可以使用完全同步的代码实现异步程序。PHP代码无需额外增加任何关键词，底层自动进行协程调度，实现异步IO 。<br />nodejs能实现的swoole几乎都能实现，而且性能比nodejs更高，毕竟nodejs是单线程的无法充分发挥cpu性能，swoole是多线程的可以充分发挥cpu的性能。<br />Swoole高效跟传统的web开发有什么区别，除了传统的LAMP/LNMP同步开发模式，swoole的异步开发模式是怎样的，如何保持高效？</p>
+<p>二、传统web开发模式<br />PHP web开发采用的方式是LAMP/LNMP架构，即Linux、Nginx，Mysql和PHP。这里以nginx来举例，大致结构为：</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>
+<img class="content_image lazy" src="./images/swoole运行模式加速laravel应用的详细介绍0.png" alt="" width="399" data-caption="" data-size="normal" data-rawwidth="399" data-rawheight="374" data-actualsrc="https://pic2.zhimg.com/v2-ba9a72ce337d7607f2261ef4e18b2ddd_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>当请求进入时，web server将请求转交给PHP-FPM,PHP-FPM是一个进程池架构的FastCGI服务,内置PHP解释器。FPM负责解释执行PHP文件生成响应，最终返回给web server，展现至前端。PHP文件中实现了许多业务逻辑，包括Mysql和Nosql的访问，调用第三方应用等等。<br />这样的结构php-fpm和nginx的配合已经运行得足够好,但是由于php-fpm本身是同步阻塞进程模型,在请求结束后释放所有的资源（包括框架初始化创建的一系列对象）,导致PHP进程&ldquo;空转&rdquo;（创建&lt;--&gt;销毁&lt;--&gt;创建）消耗大量的CPU资源,从而导致单机的吞吐能力有限。</p>
+<p>每次请求处理的过程都意味着一次PHP文件解析，环境设置等不必要的耗时操作PHP进程处理完即销毁，无法在PHP程序中使用连接池等技术实现性能优化。</p>
+<p>三、Swoole运行模式<br />针对传统架构的问题，swoole从PHP扩展出发，解决了上述问题，对于swoole的进程模型，我们已经了解过了。</p>
+<p>相比于传统架构，Swoole进程模型最大的特点在于其多线程Reactor模式处理网络请求，使得其能轻松应对大量连接。</p>
+<p>除此之外的优点还包括：</p>
+<p>全异步非阻塞，占用资源开销小，程序执行效率高</p>
+<p>程序运行只解析加载一次PHP文件，避免每次请求的重复加载</p>
+<p>进程常驻，使得连接池和请求之间信息传递等的实现成为可能</p>
+<p>四、为什么要在 Swoole 上运行 Laravel?<br />Laravel框架启动的时候需要加载很多文件，再加上其出了名的生态环境好，所以在开发过程中我们就会发现有非常多的已经造好的轮子，这也就使得Laravel的一次启动的磁盘IO特别高（就是要加载很多文件嘛）<br />laravel生命周期需要在每次请求的时候都执行一遍。因为单个请求创建的环境在请求执行结束后会立即销毁。<br />换句话说， 在传统的 PHP 生命周期中， 为了脚本执行而浪费了大量的时间去创建和销毁资源。想象一下像 Laravel 这样的框架， 在每次请求中需要加载多少文件? 同时也浪费了大量的 I/O 操作。</p>
+<p>因此如果我们利用 Swoole 内置一个应用级别的 Server， 并且所有脚本文件在加载一次之后便可以保存在内存中呢？ 这就是为什么我们需要尝试在 Swoole 上运行 Laravel。 Swoole 可以提供强大性能而 Laravel 则可以提供优雅代码结构使用。这俩儿真是完美组合 !</p>
+<p>五、使用Swoole提升Laravel的性能<br />在现有的轮子中，感觉下面这两个还是非常不错的，可以自行选择</p>
+<ul>
+<li>
+<div class="cnblogs_code">
+<pre><code>swooletw/laravel-<span style="color: #000000;">swoole
+garveen</span>/laravoole</pre>
+</div>
+<p>&nbsp;</p>
+</li>
+
+</ul>
+<p>本人选择了第一个来测试<br />使用composer安装：</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code>composer require swooletw/laravel-swoole</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>如果你使用的是laravel，那么在 config/app.php 的 providers 数组中加上</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code>SwooleTW\Http\LaravelServiceProvider::<span style="color: #0000ff;">class</span>,</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>如果你使用的是lumen，那么在 bootstrap/app.php 中加入如下代码</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code>$app-&gt;register(SwooleTW\Http\LumenServiceProvider::<span style="color: #0000ff;">class</span>); </pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>将配置文件导出到 config 目录下</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code>php artisan vendor:publish --provider=<span style="color: #800000;">"</span><span style="color: #800000;">SwooleTW\Http\HttpServiceProvider</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>然后可以去 config/swoole_http.php 中配置信息</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code><span style="color: #800000;">'</span><span style="color: #800000;">server</span><span style="color: #800000;">'</span> =&gt;<span style="color: #000000;"> [
+
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">host</span><span style="color: #800000;">'</span> =&gt; env(<span style="color: #800000;">'</span><span style="color: #800000;">SWOOLE_HTTP_HOST</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">0.0.0.0</span><span style="color: #800000;">'</span>),<span style="color: #008000;">//</span><span style="color: #008000;">监听任意ip</span>
+
+        <span style="color: #800000;">'</span><span style="color: #800000;">port</span><span style="color: #800000;">'</span> =&gt; env(<span style="color: #800000;">'</span><span style="color: #800000;">SWOOLE_HTTP_PORT</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">1215</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">options</span><span style="color: #800000;">'</span> =&gt;<span style="color: #000000;"> [
+
+            </span><span style="color: #800000;">'</span><span style="color: #800000;">pid_file</span><span style="color: #800000;">'</span> =&gt; env(<span style="color: #800000;">'</span><span style="color: #800000;">SWOOLE_HTTP_PID_FILE</span><span style="color: #800000;">'</span>, base_path(<span style="color: #800000;">'</span><span style="color: #800000;">storage/logs/swoole_http.pid</span><span style="color: #800000;">'</span><span style="color: #000000;">)),
+
+            </span><span style="color: #800000;">'</span><span style="color: #800000;">log_file</span><span style="color: #800000;">'</span> =&gt; env(<span style="color: #800000;">'</span><span style="color: #800000;">SWOOLE_HTTP_LOG_FILE</span><span style="color: #800000;">'</span>, base_path(<span style="color: #800000;">'</span><span style="color: #800000;">storage/logs/swoole_http.log</span><span style="color: #800000;">'</span><span style="color: #000000;">)),
+
+            </span><span style="color: #800000;">'</span><span style="color: #800000;">daemonize</span><span style="color: #800000;">'</span> =&gt; env(<span style="color: #800000;">'</span><span style="color: #800000;">SWOOLE_HTTP_DAEMONIZE</span><span style="color: #800000;">'</span>, <span style="color: #800080;">1</span>),<span style="color: #008000;">//</span><span style="color: #008000;">1-程序将转入后台作为守护进程运行</span>
+<span style="color: #000000;">
+        ],
+
+],</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>swoole_http.php 里还提供配置 providers 数组，</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code><span style="color: #800000;">'</span><span style="color: #800000;">providers</span><span style="color: #800000;">'</span> =&gt;<span style="color: #000000;"> [
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> App\Providers\AuthServiceProvider::class,</span>
+<span style="color: #000000;">
+]</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>因为使用swoole作为http后，这些providers会被存到内存中，所以这里配置的是每次请求都想要重新注册和重新启动的providers。</p>
+<p>现在，你可以执行以下的命令来启动 Swoole HTTP 服务。</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code>$ php artisan swoole:http start</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>然后你可以看到以下信息：</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">Starting swoole http server...
+
+Swoole http server started: </span>&lt;http:<span style="color: #008000;">//</span><span style="color: #008000;">0.0.0.0:1215&gt;</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>现在可以通过访问&nbsp;<a class=" external" href="https://link.zhihu.com/?target=http%3A//127.0.0.1%3A1215" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">http://<span class="visible">127.0.0.1:1215</span></span></a>&nbsp;来进入 Laravel 应用。<br />注意：该拓展是不支持热启动的，所以每次有代码更新都要重启服务 php artisan swoole:http restart</p>
+<p>六、性能测试<br />使用Apache的ab测试工具</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code>ab -n <span style="color: #800080;">1000</span> -c <span style="color: #800080;">10</span> http:<span style="color: #008000;">//</span><span style="color: #008000;">127.0.0.1:1215/</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>参数说明：-n 1000个请求 -c 10个并发数</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/swoole运行模式加速laravel应用的详细介绍1.png" alt="" width="598" data-caption="" data-size="normal" data-rawwidth="598" data-rawheight="705" data-original="https://pic3.zhimg.com/v2-6c310d3a064288d8e74f6cb45e4a08b2_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-6c310d3a064288d8e74f6cb45e4a08b2_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/swoole运行模式加速laravel应用的详细介绍2.png" alt="" width="756" data-caption="" data-size="normal" data-rawwidth="756" data-rawheight="159" data-original="https://pic1.zhimg.com/v2-a2598310612af62fae2fe07355954884_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-a2598310612af62fae2fe07355954884_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>图一是使用swoole作为应用服务器，图二是apache服务器<br />测试环境在虚拟机中，电脑配置也较差，性能没有完全发挥出来，可以看到apache只完成197次请求就扛不住压力了，swoole HTTP服务 完成了压测，性功完全碾压apache服务器。</p>
+<p>七、使用Nginx代理</p>
+<p>swoole在官网也提到过：swoole_http_server对Http协议的支持并不完整，建议仅作为应用服务器。并且在前端增加Nginx作为代理。<br />那么，我们就增加需要配置nginx.conf里的server：</p>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;">server {
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span>     listen <span style="color: #800080;">80</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> <span style="color: #000000;">    server_name your.domain.com;
+</span><span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span>     root /path/to/laravel/<span style="color: #0000ff;">public</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #000000;">    index index.php;
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span>  
+<span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span>     location = /<span style="color: #000000;">index.php {
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>         # Ensure that there <span style="color: #0000ff;">is</span> no such file named <span style="color: #800000;">"</span><span style="color: #800000;">not_exists</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span>         # <span style="color: #0000ff;">in</span> your <span style="color: #800000;">"</span><span style="color: #800000;">public</span><span style="color: #800000;">"</span><span style="color: #000000;"> directory.
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>         try_files /<span style="color: #000000;">not_exists @swoole;
+</span><span style="color: #008080;">20</span> 
+<span style="color: #008080;">21</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>  
+<span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>     location /<span style="color: #000000;"> {
+</span><span style="color: #008080;">26</span> 
+<span style="color: #008080;">27</span>         try_files $uri $uri/<span style="color: #000000;"> @swoole;
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">30</span> 
+<span style="color: #008080;">31</span>  
+<span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span> <span style="color: #000000;">    location @swoole {
+</span><span style="color: #008080;">34</span> 
+<span style="color: #008080;">35</span>         <span style="color: #0000ff;">set</span> $suffix <span style="color: #800000;">""</span><span style="color: #000000;">;
+</span><span style="color: #008080;">36</span> 
+<span style="color: #008080;">37</span>  
+<span style="color: #008080;">38</span> 
+<span style="color: #008080;">39</span>         <span style="color: #0000ff;">if</span> ($uri = /<span style="color: #000000;">index.php) {
+</span><span style="color: #008080;">40</span> 
+<span style="color: #008080;">41</span>             <span style="color: #0000ff;">set</span> $suffix <span style="color: #800000;">"</span><span style="color: #800000;">/</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+</span><span style="color: #008080;">42</span> 
+<span style="color: #008080;">43</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">44</span> 
+<span style="color: #008080;">45</span>  
+<span style="color: #008080;">46</span> 
+<span style="color: #008080;">47</span> <span style="color: #000000;">        proxy_set_header Host $host;
+</span><span style="color: #008080;">48</span> 
+<span style="color: #008080;">49</span> <span style="color: #000000;">        proxy_set_header SERVER_PORT $server_port;
+</span><span style="color: #008080;">50</span> 
+<span style="color: #008080;">51</span> <span style="color: #000000;">        proxy_set_header REMOTE_ADDR $remote_addr;
+</span><span style="color: #008080;">52</span> 
+<span style="color: #008080;">53</span>         proxy_set_header X-Forwarded-<span style="color: #000000;">For $proxy_add_x_forwarded_for;
+</span><span style="color: #008080;">54</span> 
+<span style="color: #008080;">55</span>  
+<span style="color: #008080;">56</span> 
+<span style="color: #008080;">57</span> <span style="color: #000000;">        # IF https
+</span><span style="color: #008080;">58</span> 
+<span style="color: #008080;">59</span>         # proxy_set_header HTTPS <span style="color: #800000;">"</span><span style="color: #800000;">on</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+</span><span style="color: #008080;">60</span> 
+<span style="color: #008080;">61</span>  
+<span style="color: #008080;">62</span> 
+<span style="color: #008080;">63</span>         proxy_pass http:<span style="color: #008000;">//</span><span style="color: #008000;">127.0.0.1:1215$suffix;</span>
+<span style="color: #008080;">64</span> 
+<span style="color: #008080;">65</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">66</span> 
+<span style="color: #008080;">67</span> }</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>配置可参考swoole方文档官 Nginx/Apache配置<br />至此，大功告成，你可以像平常一样访问你的网站了。</p>
+<p>八、使用swoole和传统php开发的缺点<br />本文主要介绍了使用swoole作为laravel的应服务器，最后说下使用swoole和传统php开发的缺点。<br />1、更难上手。这要求开发人员对于多进程的运行模式有更清晰的认识<br />2、更容易内存泄露。在处理全局变量，静态变量的时候一定要小心，这种不会被GC清理的变量会存在整个生命周期中，如果没有正确的处理，很容易消耗完所有的内存。在php-fpm下，php代码执行完内存就会被完全释放。</p>
+<p>以上就是swoole运行模式加速laravel应用的详细介绍的详细内容</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

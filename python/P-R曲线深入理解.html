@@ -1,0 +1,53 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修P-R曲线深入理解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>P-R曲线深入理解</center></div><div class='banquan'>原文出处:本文由博客园博主自然之子101提供。<br/>
+原文连接:https://www.cnblogs.com/zrzz101/p/11187549.html</div><br>
+    <p>P-R曲线就是精确率precision vs 召回率recall 曲线，以recall作为横坐标轴，precision作为纵坐标轴。首先解释一下精确率和召回率。</p>
+<p>解释精确率和召回率之前，先来看下混淆矩阵，</p>
+<p>&nbsp; 负&nbsp; &nbsp;&nbsp; &nbsp;正<br />&nbsp;负	TN&nbsp;	FP&nbsp;<br />&nbsp;正	&nbsp;FN	&nbsp;TP</p>
+<p>&nbsp;</p>
+<p><br />把正例正确分类为正例，表示为TP（true positive），把正例错误分类为负例，表示为FN（false negative），</p>
+<p>把负例正确分类为负例，表示为TN（true negative）， 把负例错误分类为正例，表示为FP（false positive）</p>
+<p>&nbsp;</p>
+<p>精确率和召回率可以从混淆矩阵中计算而来，precision = TP/(TP + FP), recall = TP/(TP +ＦＮ)</p>
+<p>那么P-R曲线是怎么来的呢？</p>
+<p>&nbsp;</p>
+<p>算法对样本进行分类时，都会有置信度，即表示该样本是正样本的概率，比如99%的概率认为样本Ａ是正例，１％的概率认为样本B是正例。通过选择合适的阈值，比如50%，对样本进行划分，概率大于50%的就认为是正例，小于50%的就是负例。</p>
+<p>&nbsp;</p>
+<p>通过置信度就可以对所有样本进行排序，再逐个样本的选择阈值，在该样本之前的都属于正例，该样本之后的都属于负例。每一个样本作为划分阈值时，都可以计算对应的precision和recall，那么就可以以此绘制曲线。那很多书上、博客上给出的P-R曲线，都长这样</p>
+<p>&nbsp;</p>
+<p>当然，这种曲线是有可能的。但是仔细琢磨就会发现一些规律和一些问题。</p>
+<p>&nbsp;</p>
+<p>根据逐个样本作为阈值划分点的方法，可以推敲出，recall值是递增的（但并非严格递增），随着划分点左移，正例被判别为正例的越来越多，不会减少。而精确率precision并非递减，二是有可能振荡的，虽然正例被判为正例的变多，但负例被判为正例的也变多了，因此precision会振荡，但整体趋势是下降。</p>
+<p>&nbsp;</p>
+<p>另外P-R曲线肯定会经过（0,0）点，比如讲所有的样本全部判为负例，则TP=0，那么P=R=0，因此会经过（0,0）点，但随着阈值点左移，precision初始很接近1，recall很接近0，因此有可能从（0,0）上升的线和坐标重合，不易区分。如果最前面几个点都是负例，那么曲线会从（0,0）点开始逐渐上升。</p>
+<p>&nbsp;</p>
+<p>曲线最终不会到（1,0）点。很多P-R曲线的终点看着都是（1,0）点，这可能是因为负例远远多于正例。</p>
+<p>最后一个点表示所有的样本都被判为正例，因此FN=0，所以recall = TP/(TP + FN) = 1, 而FP = 所有的负例样本数，因此precision = TP/(TP+FP) = 正例的占所有样本的比例，故除非负例数很多，否则precision不会为0.</p>
+<p>&nbsp;</p>
+<p>因此，较合理的P-R曲线应该是（曲线一开始被从（0，0）拉升到（0,1），并且前面的都预测对了，全是正例，因此precision一直是1,）</p>
+<p>&nbsp;</p>
+<p>另外，如果有个划分点可以把正负样本完全区分开，那么P-R曲线就是整个1*1的面积。</p>
+<p>&nbsp;</p>
+<p>总之，P-R曲线应该是从（0,0）开始画的一条曲线，切割1*1的正方形，得到一块区域。<br />--------------------- <br />作者：keep_forward <br />来源：CSDN <br />原文：https://blog.csdn.net/b876144622/article/details/80009867 <br />版权声明：本文为博主原创文章，转载请附上博文链接！</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

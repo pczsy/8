@@ -1,0 +1,231 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一篇文章教你轻松使用fastjson' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一篇文章教你轻松使用fastjson</center></div><div class='banquan'>原文出处:本文由博客园博主Java3y提供。<br/>
+原文连接:https://www.cnblogs.com/Java3y/p/12036772.html</div><br>
+    <h2 id="前言">前言</h2>
+<blockquote>
+<p>只有光头才能变强。</p>
+</blockquote>
+<blockquote>
+<p><strong>文本已收录至我的GitHub精选文章，欢迎Star</strong>：<a href="https://github.com/ZhongFuCheng3y/3y" class="uri">https://github.com/ZhongFuCheng3y/3y</a></p>
+</blockquote>
+<p><code>JSON</code>相信大家对他也不陌生了，前后端交互中常常就以<code>JSON</code>来进行<strong>数据交换</strong>。而有的时候，我们也会将<code>JSON</code>直接保存在数据库中。</p>
+<blockquote>
+<p>可能就有人不太理解，为什么要将JSON保存在关系型数据库中？</p>
+</blockquote>
+<p>我在最开始的时候也有类似的疑惑，问了几个同事，得出的结论都差不多：<strong>方便扩展</strong>，如果那些字段<strong>不需要用到索引</strong>，改动比较频繁，你又不想改动表的结构，那就可以在数据库中存入<code>JSON</code></p>
+<p>虽说存<code>JSON</code>会方便扩展，但如果你的<code>MySQL</code>版本还是相对较低的话，想要<strong>用SQL查<code>JSON</code>里某个属性</strong>，还是比较麻烦的。</p>
+<p>并且从数据库里边取出来也仅仅是一个<code>String</code>，而想要操作<code>JSON</code>里边的属性，自己写不太方便，所以就有<code>fastjson</code>给我们去用。</p>
+<p><img src="./images/一篇文章教你轻松使用fastjson0.png" alt="预览知识点" /></p>
+<p>这篇文章简单讲讲<code>fastjson</code>的使用，希望对大家有帮助。<strong>如果有帮助，给我点个赞呀！</strong></p>
+<h2 id="一fastjson入门">一、fastjson入门</h2>
+<blockquote>
+<p>以下内容来源：<a href="https://github.com/alibaba/fastjson/wiki/Quick-Start-CN" class="uri">https://github.com/alibaba/fastjson/wiki/Quick-Start-CN</a></p>
+</blockquote>
+<p>它可以解析<code>JSON</code>格式的字符串，支持将<code>Java Bean</code>序列化为<code>JSON</code>字符串，也可以从<code>JSON</code>字符串反序列化到<code>JavaBean</code></p>
+<p><img src="./images/一篇文章教你轻松使用fastjson1.png" alt="说白了就是JSON和Java对象互相转换" /></p>
+<p><code>fastjson</code>优点：<strong>速度快、使用广泛、使用简单、功能完备</strong>、测试完备（之前爆了很多漏洞，现在我司走发布流程都强制我们升级<code>fastjson</code>版本了），现在使用<code>fastjson</code>至少升级到<code>1.2.60</code>版本</p>
+<p>速度快的原因：</p>
+<blockquote>
+<p>1、自行编写类似StringBuilder的工具类SerializeWriter。</p>
+<p>2、使用ThreadLocal来缓存buf。</p>
+<p>3、使用asm避免反射</p>
+<p>4、集成jdk实现的一些优化算法</p>
+</blockquote>
+<h2 id="二使用fastjson">二、使用fastjson</h2>
+<p>首先我们在<code>pom</code>文件中引入<code>fastjson</code>的依赖就好了：</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+    &lt;artifactId&gt;fastjson&lt;/artifactId&gt;
+    &lt;version&gt;x.x.x&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<p><code>fastjson</code>的使用主要是三个对象：</p>
+<ul>
+<li>JSON</li>
+<li>JSONObject</li>
+<li>JSONArray</li>
+</ul>
+<p><img src="./images/一篇文章教你轻松使用fastjson2.png" alt="三个类" /></p>
+<p>JSONArray和JSONObject继承JSON：</p>
+<p><img src="./images/一篇文章教你轻松使用fastjson3.png" alt="JSONArray和JSONObject继承JSON" /></p>
+<h3 id="json对象">2.1 JSON对象</h3>
+<p>JSON这个类主要用于<strong>转换</strong>：</p>
+<ul>
+<li>将Java对象序列化为JSON字符串</li>
+<li>将JSON字符串反序列化为Java对象</li>
+</ul>
+<p>所以，有三个方法我们用得特别多：</p>
+<ul>
+<li><code>parseObject(String text, Class&lt;T&gt; clazz)</code></li>
+<li><code>parseArray(String text, Class&lt;T&gt; clazz)</code></li>
+<li><code>toJSONString(Object object)</code></li>
+</ul>
+<h3 id="jsonobject">2.2 JSONObject</h3>
+<p>JSON对象(JSONObject)中的数据都是以<code>key-value</code>形式出现，所以它实现了<code>Map</code>接口：</p>
+<p><img src="./images/一篇文章教你轻松使用fastjson4.png" alt="实现了Map接口" /></p>
+<p>使用起来也很简单，跟使用<code>Map</code>就没多大的区别（因为它底层实际上就是操作<code>Map</code>)，常用的方法：</p>
+<ul>
+<li><code>getString(String key)</code></li>
+<li><code>remove(Object key)</code></li>
+</ul>
+<p><img src="./images/一篇文章教你轻松使用fastjson5.png" alt="JSONObject有常用的Map方法" /></p>
+<h3 id="jsonarray">2.3 JSONArray</h3>
+<p>JSONArray则是JSON数组，JSON数组对象中存储的是一个个JSON对象，所以类中的方法主要用于<strong>直接操作JSON对象</strong></p>
+<p><img src="./images/一篇文章教你轻松使用fastjson6.png" alt="实现List接口" /></p>
+<p>最常用的方法：</p>
+<ul>
+<li><code>getJSONObject(int index)</code></li>
+</ul>
+<p>## 三、实战</p>
+<p>从上面的简单介绍我们已经可以知道了：</p>
+<ul>
+<li>JSON用于将字符串反序列化为JavaBean和JavaBean序列化为JSON</li>
+<li>JSONObject代表的是JSON对象，底层通过Map来操作，常用<code>getString</code>等方法来获取对应的值</li>
+<li>JSONArray代表的是JSON对象数组，底层实际上是List，它用作于操作JSON对象</li>
+</ul>
+<p>一般来说，我们从数据库拿到JSON数据以后，然后要对JSON进行修改。比如JSON串如下：</p>
+<pre class="json"><code>{
+    &quot;formId&quot;: &quot;{$formId}&quot;,
+    &quot;link&quot;: &quot;www.java3y.com&quot;,
+    &quot;text&quot;: [{
+        &quot;name&quot;: &quot;java3y&quot;,
+        &quot;label&quot;: &quot;3y&quot;,
+        &quot;value&quot;: {
+            &quot;value&quot;: &quot;{$tureName}&quot;,
+            &quot;color&quot;: &quot;&quot;,
+            &quot;emphasis&quot;: &quot;&quot;
+        }
+    }, {
+        &quot;name&quot;: &quot;java4y&quot;,
+        &quot;label&quot;: &quot;3y&quot;,
+        &quot;value&quot;: {
+            &quot;value&quot;: &quot;{$title}&quot;,
+            &quot;color&quot;: &quot;&quot;,
+            &quot;emphasis&quot;: &quot;&quot;
+        }
+    }, {
+        &quot;name&quot;: &quot;java5y&quot;,
+        &quot;label&quot;: &quot;5y&quot;,
+        &quot;value&quot;: {
+            &quot;value&quot;: &quot;关注我的公众号，更多干货&quot;,
+            &quot;color&quot;: &quot;#ff0040&quot;,
+            &quot;emphasis&quot;: &quot;&quot;
+        }
+    }],
+    &quot;yyyImg&quot;: &quot;&quot;,
+    &quot;yyyAge&quot;: &quot;&quot;,
+    &quot;pagepath&quot;: &quot;&quot;
+}</code></pre>
+<p>我们是不会<strong>直接操作</strong>JSON的，我们会将JSON转成我们自己的JavaBean，再操作JavaBean，最后序列化为JSONString</p>
+<p>从上面的<code>JSON</code>结构上来看还是相对复杂的，思路：</p>
+<ul>
+<li>我们可以根据<code>JSON</code>的结构构建对应的JavaBean</li>
+<li>使用<code>JSON</code>类将JSON字符串反序列化为JavaBean</li>
+<li>修改JavaBean的值</li>
+<li>最后将<code>JavaBean</code>序列化为JSON字符串</li>
+</ul>
+<p>从上面的<code>JSON</code>结构，首先我们针对<code>text</code>这层抽象为一个JavaBean。（实际上最里层的结构是<code>value</code>，但我这边不需要处理<code>value</code>，所以就不抽象了）</p>
+<pre class="java"><code>/**
+ * &quot;name&quot;: &quot;java3y&quot;,
+ *  &quot;label&quot;: &quot;3y&quot;,
+ *  &quot;value&quot;: {
+ *      &quot;value&quot;: &quot;{$tureName}&quot;,
+ *      &quot;color&quot;: &quot;&quot;,
+ *      &quot;emphasis&quot;: &quot;&quot;
+ *    }
+ *
+ *  对Text进行抽象
+ */
+public class TextInfo {
+
+    private String name;
+    private String label;
+
+    // 因为value我这边不需要操作，所以就不抽象了，如果每层都要处理，那就得抽象
+    private Object value;
+
+
+    // set get ... 省略 欢迎关注我的公众号：Javay
+
+}</code></pre>
+<p>然后对外层进行抽象：</p>
+<pre class="java"><code>public class ContentValue {
+    private String formId;
+    private String link;
+    // 这里是一个数组，我们就抽象为List，属性名为text
+    private List&lt;TextInfo&gt; text;
+
+    private String yyyImg;
+    private String yyyAge;
+    private String pagepath;
+    
+    // set get ... 省略 欢迎关注我的公众号：Javay
+
+}
+</code></pre>
+<p>我们反序列化看一下：</p>
+<pre class="java"><code>public static void main(String[] args) {
+
+    // JSON 字符串
+    String s = &quot;{\&quot;formId\&quot;:\&quot;{$formId}\&quot;,\&quot;link\&quot;:\&quot;www.java3y.com\&quot;,\&quot;text\&quot;:[{\&quot;name\&quot;:\&quot;java3y\&quot;,\&quot;label\&quot;:\&quot;3y\&quot;,\&quot;value\&quot;:{\&quot;value\&quot;:\&quot;{$tureName}\&quot;,\&quot;color\&quot;:\&quot;\&quot;,\&quot;emphasis\&quot;:\&quot;\&quot;}},{\&quot;name\&quot;:\&quot;java4y\&quot;,\&quot;label\&quot;:\&quot;3y\&quot;,\&quot;value\&quot;:{\&quot;value\&quot;:\&quot;{$title}\&quot;,\&quot;color\&quot;:\&quot;\&quot;,\&quot;emphasis\&quot;:\&quot;\&quot;}},{\&quot;name\&quot;:\&quot;java5y\&quot;,\&quot;label\&quot;:\&quot;5y\&quot;,\&quot;value\&quot;:{\&quot;value\&quot;:\&quot;关注我的公众号，更多干货\&quot;,\&quot;color\&quot;:\&quot;#ff0040\&quot;,\&quot;emphasis\&quot;:\&quot;\&quot;}}],\&quot;yyyImg\&quot;:\&quot;\&quot;,\&quot;yyyAge\&quot;:\&quot;\&quot;,\&quot;pagepath\&quot;:\&quot;\&quot;}&quot;;
+
+    // 使用JSON对象 将JSON字符串反序列化为JavaBean
+    ContentValue contentValue = JSON.parse(s, ContentValue.class);
+    System.out.println(contentValue);
+
+
+    }</code></pre>
+<p>反序列化结果：</p>
+<p><img src="./images/一篇文章教你轻松使用fastjson7.png" alt="反序列化" /></p>
+<p>我们要改text里边的值，只需要操作<code>JavaBean</code>就好了：</p>
+<pre class="java"><code>public static void main(String[] args) {
+
+    // JSON 字符串
+    String s = &quot;{\&quot;formId\&quot;:\&quot;{$formId}\&quot;,\&quot;link\&quot;:\&quot;www.java3y.com\&quot;,\&quot;text\&quot;:[{\&quot;name\&quot;:\&quot;java3y\&quot;,\&quot;label\&quot;:\&quot;3y\&quot;,\&quot;value\&quot;:{\&quot;value\&quot;:\&quot;{$tureName}\&quot;,\&quot;color\&quot;:\&quot;\&quot;,\&quot;emphasis\&quot;:\&quot;\&quot;}},{\&quot;name\&quot;:\&quot;java4y\&quot;,\&quot;label\&quot;:\&quot;3y\&quot;,\&quot;value\&quot;:{\&quot;value\&quot;:\&quot;{$title}\&quot;,\&quot;color\&quot;:\&quot;\&quot;,\&quot;emphasis\&quot;:\&quot;\&quot;}},{\&quot;name\&quot;:\&quot;java5y\&quot;,\&quot;label\&quot;:\&quot;5y\&quot;,\&quot;value\&quot;:{\&quot;value\&quot;:\&quot;关注我的公众号，更多干货\&quot;,\&quot;color\&quot;:\&quot;#ff0040\&quot;,\&quot;emphasis\&quot;:\&quot;\&quot;}}],\&quot;yyyImg\&quot;:\&quot;\&quot;,\&quot;yyyAge\&quot;:\&quot;\&quot;,\&quot;pagepath\&quot;:\&quot;\&quot;}&quot;;
+
+    // 使用JSON对象 将JSON字符串反序列化为JavaBean
+    ContentValue contentValue = JSON.parse(s, ContentValue.class);
+    List&lt;TextInfo&gt; text = contentValue.getText();
+    for (TextInfo textInfo : text) {
+        textInfo.setName(&quot;Java3y&quot;);
+        textInfo.setLabel(&quot;关注我的公众号呗&quot;);
+    }
+
+
+    // 修改后，反序列化回去
+    String content = JSON.toJSONString(contentValue);
+}</code></pre>
+<p>序列化结果：</p>
+<p><img src="./images/一篇文章教你轻松使用fastjson8.png" alt="序列化" /></p>
+<p>轻松将JSON字符串里边的字段改掉。</p>
+<h2 id="最后">最后</h2>
+<p>总的来说，fastjson还是足够方便好用的，它的速度也很快，只是最近漏洞有点多。</p>
+<blockquote>
+<p><strong>本已收录至我的GitHub精选文章，欢迎Star</strong>：<a href="https://github.com/ZhongFuCheng3y/3y" class="uri">https://github.com/ZhongFuCheng3y/3y</a></p>
+<p>乐于输出<strong>干货</strong>的Java技术公众号：<strong>Java3y</strong>。公众号内<strong>有300多篇原创</strong>技术文章、海量视频资源、精美脑图，<strong>关注即可获取！</strong></p>
+</blockquote>
+<p><img src="./images/一篇文章教你轻松使用fastjson9.png" alt="转发到朋友圈是对我最大的支持！" /></p>
+<p>非常感谢<strong>人才</strong>们能看到这里，如果这个文章写得还不错，觉得「三歪」我<strong>有点东西</strong>的话 <strong>求点赞</strong> <strong>求关注️</strong> <strong>求分享👥</strong> <strong>求留言💬</strong> 对暖男我来说真的 <strong>非常有用</strong>！！！</p>
+<p>创作不易，各位的支持和认可，就是我创作的最大动力，我们下篇文章见！</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

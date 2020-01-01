@@ -1,0 +1,89 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python网络编程——使用UDP、TCP协议收发信息' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python网络编程——使用UDP、TCP协议收发信息</center></div><div class='banquan'>原文出处:本文由博客园博主三国小梦提供。<br/>
+原文连接:https://www.cnblogs.com/lxy0/p/11408240.html</div><br>
+    <h1 id="udp">UDP</h1>
+<p>UDP是面向无连接的通讯协议，UDP数据包括目的端口号和源端口号信息，由于通讯不需要连接，所以可以实现广播发送。 UDP传输数据时有大小限制，每个被传输的数据报必须限定在64KB之内。 UDP是一个不可靠的协议，发送方所发送的数据报并不一定以相同的次序到达接收方。</p>
+<p>udp通信模型中，在通信开始之前，不需要建立相关的链接，只需要发送数据即可，类似于生活中，&quot;写信&quot;。<br />
+<strong>客户端：</strong></p>
+<pre><code><code>from socket import socket,AF_INET,SOCK_DGRAM
+# 创建套接字，SOCK_DGRAM使用udp协议
+udp = socket(AF_INET, SOCK_DGRAM)
+# 目的端口和ip
+ip = &quot;127.0.0.1&quot;
+port = 8080
+# 循环从键盘输入发送消息
+while True:
+    data = input(&quot;请输入发送的数据：&quot;)
+    udp.sendto(data.encode(&quot;utf-8&quot;), (ip, port))</code></pre>
+<p><strong>服务端：</strong></p>
+<pre><code><code>from socket import socket, AF_INET, SOCK_DGRAM
+
+udp = socket(AF_INET, SOCK_DGRAM)
+# 绑定端口，服务端必须要绑定端口
+udp.bind((&quot;&quot;, 8080))
+
+while True:
+    # 接受数据，每次接受1024字节
+    recvData = udp.recvfrom(1024)
+    # 拆包
+    data, info = recvData
+    # 打印
+    print(&quot;[%s]:%s&quot; % (info, data.decode(&quot;utf-8&quot;)))</code></pre>
+<h1 id="tcp">TCP</h1>
+<p>udp通信模型中，在通信开始之前，一定要先建立相关的链接，才能发送数据，类似于生活中，&quot;打电话&quot;。<br />
+<strong>客户端：</strong></p>
+<pre><code><code>from socket import socket,AF_INET,SOCK_STREAM
+# 创建套接字，SOCK_STREAM表示使用tcp协议
+clientSocket = socket(AF_INET,SOCK_STREAM)
+# 连接服务器
+clientSocket.connect((&quot;127.0.0.1&quot;,8080))
+# 发送数据
+while True:
+    s = input(&quot;请输入要发送的数据：&quot;)
+    clientSocket.send(s.encode(&quot;utf-8&quot;))</code></pre>
+<p><strong>服务端：</strong></p>
+<pre><code><code>from socket import socket, AF_INET, SOCK_STREAM
+
+tcp = socket(AF_INET, SOCK_STREAM)
+# 绑定端口
+tcp.bind((&quot;&quot;, 8080))
+# listen的参数代表可建立socket连接的最大个数  windows，mac 此连接参数有效  Linux 此连接参数无效，默认最大
+tcp.listen()
+
+# 有新的客户端连接时，
+# clientSocket表示一个新的套接字
+# clientInfo 表示新客户端的ip及端口号
+while True:
+    clientSocket, clientInfo = tcp.accept()
+    try:
+        while True:
+            recvData = clientSocket.recv(1024)
+            # 如果接受的的数据为空就退出
+            if not recvData:
+                break
+            print(&quot;%s:%s&quot; % (str(clientInfo), recvData.decode(&quot;utf-8&quot;)))
+    finally:
+        clientSocket.close()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

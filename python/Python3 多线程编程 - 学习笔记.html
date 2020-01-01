@@ -1,0 +1,330 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python3 多线程编程 - 学习笔记' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python3 多线程编程 - 学习笔记</center></div><div class='banquan'>原文出处:本文由博客园博主阿盾提供。<br/>
+原文连接:https://www.cnblogs.com/aduner/p/11645102.html</div><br>
+    <ul>
+<li><a href="#%e7%ba%bf%e7%a8%8b">线程</a>
+<ul>
+<li><a href="#%e4%bb%80%e4%b9%88%e6%98%af%e7%ba%bf%e7%a8%8b">什么是线程</a></li>
+<li><a href="#%e7%89%b9%e7%82%b9">特点</a></li>
+<li><a href="#%e7%ba%bf%e7%a8%8b%e4%b8%8e%e8%bf%9b%e7%a8%8b%e7%9a%84%e5%85%b3%e7%b3%bb">线程与进程的关系</a></li>
+</ul></li>
+<li><a href="#python3%e4%b8%ad%e7%9a%84%e5%a4%9a%e7%ba%bf%e7%a8%8b">Python3中的多线程</a>
+<ul>
+<li><a href="#%e5%85%a8%e5%b1%80%e8%a7%a3%e9%87%8a%e5%99%a8%e9%94%81gil">全局解释器锁（GIL）</a>
+<ul>
+<li><a href="#gil%e6%98%af%e5%95%a5">GIL是啥？</a></li>
+<li><a href="#gil%e5%af%b9python%e7%a8%8b%e5%ba%8f%e6%9c%89%e5%95%a5%e5%bd%b1%e5%93%8d">GIL对Python程序有啥影响？</a></li>
+<li><a href="#%e6%94%b9%e5%96%84gil%e4%ba%a7%e7%94%9f%e7%9a%84%e9%97%ae%e9%a2%98">改善GIL产生的问题</a></li>
+</ul></li>
+<li><a href="#python3%e5%85%b3%e4%ba%8e%e5%a4%9a%e7%ba%bf%e7%a8%8b%e7%9a%84%e6%a8%a1%e5%9d%97">Python3关于多线程的模块</a></li>
+<li><a href="#%e5%a4%9a%e7%ba%bf%e7%a8%8b%e4%bd%bf%e7%94%a8">多线程使用</a></li>
+<li><a href="#%e5%85%b1%e4%ba%ab%e5%8f%98%e9%87%8f">共享变量</a></li>
+</ul></li>
+</ul>
+<h1 id="线程">线程</h1>
+<h2 id="什么是线程">什么是线程</h2>
+<ul>
+<li><p><strong>官方定义：</strong></p>
+<p>线程（thread）是操作系统能够进行运算调度的最小单位。它被包含在进程之中，是进程中的实际运作单位。一条线程指的是进程中一个单一顺序的控制流，一个进程中可以并发多个线程，每条线程并行执行不同的任务。</p></li>
+<li><p><strong>说人话：</strong></p>
+<p>假如<strong>进程</strong>是保洁公司，<strong>线程</strong>就是公司的员工。当公司接到任务时，干活的是员工，而进程负责分配员工。可以好几个员工擦一块玻璃，也可以一个员工收拾一个屋子。</p></li>
+</ul>
+<h2 id="特点">特点</h2>
+<ul>
+<li><p><strong>独立调度和分派的基本单位</strong></p>
+<p>一个公司里至少得有一个员工，才能干活。公司分配各项工作给团队，最后团队还是会分配给个人。</p></li>
+<li><p><strong>轻型实体</strong></p>
+<p>每个线程占用的系统资源非常少。</p></li>
+<li><p><strong>可并发执行</strong></p>
+<p>多个线程可以同时工作，就像公司里的员工可以一切干活。</p></li>
+<li><p><strong>共享进程资源</strong></p>
+<p>所有的线程共享该进程所拥有的资源。</p>
+<p><strong>例如：</strong> 所有线程地址空间都相同(进程的地址空间)，就好比一家公司的所有员工的工作地址都为公司的所在地。</p></li>
+</ul>
+<h2 id="线程与进程的关系">线程与进程的关系</h2>
+<p>继续用保洁公司举例子</p>
+<ul>
+<li>公司本身是进程，公司里又很多员工，每个员工都是一个线程，同时公司里还有很多共享的资源，比如：扫把、墩布、毛巾、饮水机等。</li>
+<li>但是与现实模型不同的是，这些人是由多个 cpu 控制的，例如 4 个 cpu 对应 40 个人，cpu 需要切换控制。</li>
+<li>真正执行工作的是公司员工,也就是进程的任务靠线程执行</li>
+<li>这些人可以并行工作，处理事情。也就是多线程可以同时运行。</li>
+<li>当大家访问公共资源的时候会有冲突，例如：都要出去擦玻璃，就剩一条毛巾了，这时就需要排队。在进程中就叫做上锁。</li>
+</ul>
+<hr />
+<h1 id="python3中的多线程">Python3中的多线程</h1>
+<h2 id="全局解释器锁gil">全局解释器锁（GIL）</h2>
+<h3 id="gil是啥">GIL是啥？</h3>
+<ul>
+<li><p>GIL并不是Python语言的特性，它是在现实Python解释器时引用的一个概念。</p></li>
+<li><p>GIL只在CPython解释器上存在。作用是保证同一时间内只有一个线程在执行。</p></li>
+<li><p>解决解释器中多个线程的竞争资源问题</p></li>
+</ul>
+<h3 id="gil对python程序有啥影响">GIL对Python程序有啥影响？</h3>
+<ul>
+<li><p>Python中同一时刻有且只有一个线程会执行。</p>
+因此,Python中的多线程并不算是真正意义上的多线程。</li>
+<li><p>Python中的多个线程由于GIL锁的存在无法利用多核CPU。</p>
+<p>因此,Python中的多线程不适合计算机密集型的程序。</p>
+<ul>
+<li><p>计算密集型程序</p>
+<p>计算密集型又叫CUP密集型，这类程序绝大部分运行时间都消耗在CPU计算上，这个时候，不论你开多少线程，他用的时间都是这么多，甚至比原来时间还长，因为GIL一个时刻只让你执行一个线程，大部分计算密集型任务你分了很多线程但是依然会按照代码顺序线性执行。分很多线程没有什么改善，反而因为代码的冗杂可能更加慢。</p></li>
+<li><p>IO密集型程序</p>
+<p>IO密集型顾名思义就是主要进行I/O操作，90%以上的时间都花费在网络、硬盘、输入输出上了，CPU执行完命令之后其实就没事干了，就可以释放内存来执行下一条命令了，不用让CPU在那干等着，这样就能大大提高程序的运行效率。</p></li>
+</ul></li>
+</ul>
+<h3 id="改善gil产生的问题">改善GIL产生的问题</h3>
+<ul>
+<li>使用更高版本的解释器，优化对Python的解释</li>
+<li>变更解释器，如(JPython)，但可能因为相对小众，支持的模块相对较少，开发效率变低</li>
+<li>用多进程方案替代多线程</li>
+</ul>
+<h2 id="python3关于多线程的模块">Python3关于多线程的模块</h2>
+<p>Python的标准库提供了两个模块：_thread和threading</p>
+<ul>
+<li><p>_thread</p>
+<p>在Python3之前为thread，有于存在缺陷，不建议使用，在Python3中封装成_thread</p></li>
+<li><p>threading</p>
+<p>thread的继承者，绝大多数情况下使用threading就够了。</p></li>
+</ul>
+<h2 id="多线程使用">多线程使用</h2>
+<ul>
+<li><p><strong>直接调用</strong></p>
+<p>把一个函数传入创建Thread实例，然后调用start()开始执行</p>
+<pre><code><code>import threading
+import time
+def loop():
+    #threading.current_thread().name获取当前线程的名字
+    print(f&quot;线程（ {threading.current_thread().name} ）正在执行……&quot;)
+    num = 0
+    while num &lt; 5:
+        num += 1
+        print(f&quot;线程（ {threading.current_thread().name} ）&gt;&gt;&gt; {num}&quot;)
+        time.sleep(1)
+    print(f&quot;线程（ {threading.current_thread().name}） 执行结束&quot;)
+
+if __name__ == &#39;__main__&#39;:
+    print(f&quot;线程（ {threading.current_thread().name} ）正在执行……&quot;)
+    #创建线程实体，target导入的函数，name线程的名字，初始为Tread1，之后类推2，3，4
+    t = threading.Thread(target=loop,name=&#39;LoopThread&#39;)
+    #启动线程
+    t.start()
+    #等待多线程结束
+    t.join()
+  print(f&quot;线程（ {threading.current_thread().name} ）执行结束&quot;)
+</code></pre>
+<p>执行结果如下：</p>
+<pre><code><code>线程（ MainThread ）正在执行……
+线程（ LoopThread ）正在执行……
+线程（ LoopThread ）&gt;&gt;&gt; 1
+线程（ LoopThread ）&gt;&gt;&gt; 2
+线程（ LoopThread ）&gt;&gt;&gt; 3
+线程（ LoopThread ）&gt;&gt;&gt; 4
+线程（ LoopThread ）&gt;&gt;&gt; 5
+线程（ LoopThread） 执行结束
+线程（ MainThread ）执行结束</code></pre></li>
+<li><p><strong>继承自threading.Thread调用</strong></p>
+<ul>
+<li>直接继承Thread</li>
+<li>重写run函数，run函数代表的是真正执行的功能</li>
+<li>类实例可以直接运行</li>
+</ul>
+<pre><code><code>
+import threading
+import time
+# 1. 类需要继承自threading.Thread
+class MyThread(threading.Thread):
+    def __init__(self, arg):
+        super(MyThread, self).__init__()
+        self.arg = arg
+
+    # 2 必须重写run函数，run函数代表的是真正执行的功能
+    def  run(self):
+        time.sleep(2)
+        print(f&quot;Run  &gt;&gt;&gt;  {self.arg}&quot;)
+
+for i in range(1,4):
+    t = MyThread(i)
+    t.start()
+    t.join()
+
+print(&quot;End&quot;)
+</code></pre>
+<p>执行结果如下：</p>
+<pre><code><code>Run  &gt;&gt;&gt;  1
+Run  &gt;&gt;&gt;  2
+Run  &gt;&gt;&gt;  3
+End</code></pre></li>
+<li><p><strong>守护线程</strong></p>
+<ul>
+<li><p>不设置守护线程</p>
+<pre><code><code>import time
+import threading
+
+def fun():
+    print(&quot;启动Fun&quot;)
+    time.sleep(2)
+    print(&quot;结束Fun&quot;)
+
+print(&quot;启动Main&quot;)
+t = threading.Thread(target=fun)
+t.start()
+time.sleep(1)
+print(&quot;结束Main&quot;)</code></pre>
+<p>运行结果</p>
+<pre><code><code>启动Main
+启动Fun
+结束Main
+结束Fun</code></pre></li>
+<li><p>设置守护线程</p>
+<pre><code><code>import time
+import threading
+
+def fun():
+    print(&quot;启动Fun&quot;)
+    time.sleep(2)
+    print(&quot;结束Fun&quot;)
+
+print(&quot;启动Main&quot;)
+t = threading.Thread(target=fun)
+t.setDaemon(True)
+t.start()
+time.sleep(1)
+print(&quot;结束Main&quot;)</code></pre>
+<p>运行结果</p>
+<pre><code><code>启动Main
+启动Fun
+结束Main</code></pre>
+<p>如果你设置一个线程为守护线程，，就表示你认为此线程不重要，在进程退出的时候，不用等待这个线程即可退出。</p>
+<code>thread.setDaemon(True|False)</code>表示此线程是否为守护线程。但此语句必须加在<code>thread.start()</code>之前</li>
+</ul></li>
+<li><p>常用函数</p>
+<ul>
+<li><p><code>threading.enumerate()</code>:</p>
+返回一个包含正在运行的线程的list</li>
+<li><p><code>threading.activeCount()</code>:</p>
+返回正在运行的线程数量，效果跟 len(threading.enumerate)相同</li>
+<li><p><code>thr.setName()</code>: 给线程设置名字</p>
+<p><code>thr.getName()</code>: 得到线程的名字</p>
+<ul>
+<li><p>thr表示线程实例，如<code>t1.getName()</code></p></li>
+<li><p><code>thr.getName()</code>获取指定线程的名字，<code>threading.current_thread().name</code>获取当前线程的名字</p></li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="共享变量">共享变量</h2>
+<p>多线程同时访问同一变量时，会产生共享变量的问题，造成变量冲突产生问题。</p>
+<ul>
+<li><p>实例</p>
+<p>执行多线程，对同一变量进行加减操作，代码如下。</p>
+<pre><code><code>import threading
+
+sum = 0
+loopSum = 1000000
+
+def myAdd():
+    global  sum, loopSum
+    for i in range(1, loopSum):
+        sum += 1
+
+def myMinu():
+    global  sum, loopSum
+    for i in range(1, loopSum):
+        sum -= 1
+
+if __name__ == &#39;__main__&#39;:
+    print(f&quot;Starting ....{sum}&quot;)
+
+    t1 = threading.Thread(target=myAdd, args=())
+    t2 = threading.Thread(target=myMinu, args=())
+
+    t1.start()
+    t2.start()
+
+    t1.join()
+    t2.join()
+
+    print(f&quot;Done .... {sum}&quot;)
+</code></pre>
+<p>两次分别如下执行结果如下：</p>
+<pre><code><code>Starting ....0
+Done .... -278763</code></pre>
+<pre><code><code>Starting ....0
+Done .... 662850</code></pre>
+<p>可以发现，运算结果与我们传统认知不同。原因是Python在内部实现运算时是一个复杂的过程，同时对<code>sum</code>进行修改时产生的相互干扰，故出现未知错误，导致结果出错。</p></li>
+<li><p>解决方法：上锁</p>
+<p><strong>锁(Lock)</strong>：是一个标志，表示一个线程在占用一些共享资源.</p>
+<ul>
+<li><p>那些资源需要上锁？</p>
+<p>需要被共享使用的，可能产生使用冲突的</p></li>
+<li><p>注意：</p>
+<p>避免产生死锁，导致程序陷入死循环</p></li>
+<li>线程安全问题：
+<ul>
+<li>如果一个资源，他对于多线程来讲，不用加锁也不会引起任何问题，则称为线程安全。</li>
+<li>线程不安全变量类型： list, set, dict</li>
+<li>线程安全变量类型： queue</li>
+</ul></li>
+</ul>
+<p><strong>使用案例，代码如下：</strong></p>
+<pre><code><code>import threading
+
+sum = 0
+loopSum = 1000000
+lock = threading.Lock()
+def myAdd():
+    global  sum, loopSum
+    for i in range(1, loopSum):
+        # 上锁，申请锁
+        lock.acquire()
+        sum += 1
+        # 释放锁
+        lock.release()
+
+def myMinu():
+    global  sum, loopSum
+
+    for i in range(1, loopSum):
+        lock.acquire()
+        sum -= 1
+        lock.release()
+
+if __name__ == &#39;__main__&#39;:
+    print(f&quot;Starting ....{sum}&quot;)
+
+    t1 = threading.Thread(target=myAdd, args=())
+    t2 = threading.Thread(target=myMinu, args=())
+
+    t1.start()
+    t2.start()
+
+    t1.join()
+    t2.join()
+
+    print(f&quot;Done .... {sum}&quot;)</code></pre>
+<p>执行结果：</p>
+<pre><code><code>Starting ....0
+Done .... 0</code></pre></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

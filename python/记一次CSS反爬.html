@@ -1,0 +1,393 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修记一次CSS反爬' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>记一次CSS反爬</center></div><div class='banquan'>原文出处:本文由博客园博主梧桐深秋提供。<br/>
+原文连接:https://www.cnblogs.com/-qiufeng/p/11793974.html</div><br>
+    <h4 id="目标网址猫眼电影">目标网址：<a href="https://maoyan.com/">猫眼电影</a></h4>
+<h4 id="主要流程">主要流程</h4>
+<ol>
+<li>爬取每一个电影所对应的url</li>
+<li>爬取具体电影所对应的源码</li>
+<li>解析源码，并下载所对应的字体</li>
+<li>使用 fontTools 绘制所对应的数字</li>
+<li>运用机器学习的方法识别对应的数字</li>
+<li>在源码中用识别的数字替换相应的地方</li>
+</ol>
+<h4 id="遇坑经历">遇坑经历</h4>
+<ul>
+<li>用 pyquery 的 .text() 方法的时候自动对 html 进行了反转义，替换过程失败，直接打出来一堆乱码，不得已改用 lxml</li>
+<li>一开始在网上看到很多通过将 woff 字体文件转为 xml 并通过分析 xml 中的 glyf 来判断所对应的汉字，但是看了几个之后发现即使是相同的数字所对应的 x，y值也并不是完全相同</li>
+<li>对多线程的用法还不是很熟悉</li>
+</ul>
+<h4 id="项目列表如下">项目列表如下</h4>
+<p><img src="./images/记一次CSS反爬0.png" alt="在这里插入图片描述" /></p>
+<p>具体代码如下</p>
+<h5 id="myspider.py">Myspider.py</h5>
+<pre><code><code>import requests
+import fake_useragent
+import re
+import os
+from woffToPng import woff_to_image
+from resizeImage import resize_img
+from lxml import etree
+from html import unescape
+from ThreadClass import SpiderThread
+from SaveMovieData import SaveInfo
+from pyquery import PyQuery as pq
+from pprint import pprint
+import json
+import time
+
+
+# 用协程实现有点苦难，暂时试一试多线程
+
+# 存储urls
+film_urls = []
+
+
+def verify_img(img_dir):
+    api_url = &quot;http://127.0.0.1:6000/b&quot;
+    img_to_num = {}
+    for file in os.listdir(img_dir):
+        file_name = os.path.join(img_dir, file)
+        # 重新构建图片大小
+        resize_img(file_name, file_name)
+        files = {&quot;image_file&quot;: (&quot;image_file&quot;, open(file_name, &quot;rb&quot;), &quot;application&quot;)}
+        r = requests.post(url=api_url, files=files, timeout=None)
+        if r.status_code == 200:
+            # 获得图片的名字，即数字所对应的unicode编码
+            num_id = os.path.splitext(file)[0][3:]
+            img_to_num[str(int(num_id, 16))] = r.json().get(&quot;value&quot;)
+    return img_to_num
+
+
+def find_certain_part(html, xpath_format):
+    try:
+        return html.xpath(xpath_format)[0]
+    except Exception:
+        return &quot;null&quot;
+
+def parse_data_by_lxml(source_code, img_to_num, saver):
+    html = etree.HTML(source_code)
+
+    xpaths = json.loads(open(&quot;somexpaths.json&quot;, &quot;r&quot;).read())
+
+    movie_name = find_certain_part(html, xpaths.get(&quot;movie_name&quot;))
+    movie_ename = find_certain_part(html, xpaths.get(&quot;movie_ename&quot;))
+    movie_classes = find_certain_part(html, xpaths.get(&quot;movie_classes&quot;)).strip()
+    movie_length = find_certain_part(html, xpaths.get(&quot;movie_length&quot;)).strip()
+    movie_showtime = find_certain_part(html, xpaths.get(&quot;movie_showtime&quot;)).strip()
+
+
+    text_pattern = re.compile(&#39;.*?class=&quot;stonefont&quot;&gt;(.*?)&lt;/span&gt;&#39;)
+    data_to_be_replace = []
+
+    movie_score = find_certain_part(html, xpaths.get(&quot;movie_score&quot;))
+    movie_score_num = find_certain_part(html, xpaths.get(&quot;movie_score_num&quot;))
+    if movie_score != &quot;null&quot;:
+        movie_score = text_pattern.search(etree.tostring(movie_score).decode(&quot;utf8&quot;)).group(1)
+    if movie_score_num != &quot;null&quot;:
+        movie_score_num = text_pattern.search(etree.tostring(movie_score_num).decode(&quot;utf8&quot;)).group(1)
+
+    data_to_be_replace.append(movie_score)
+    data_to_be_replace.append(movie_score_num)
+
+    movie_box = find_certain_part(html, xpaths.get(&quot;movie_box&quot;))
+    if movie_box != &quot;null&quot;:
+        movie_box = text_pattern.search(etree.tostring(movie_box).decode(&quot;utf8&quot;)).group(1)
+    movie_box_unit = find_certain_part(html, xpaths.get(&quot;movie_box_unit&quot;))
+
+    data_to_be_replace.append(movie_box)
+
+
+    # 检查是否是字符串
+    for item in data_to_be_replace:
+        assert isinstance(item, str)
+    # 将 unicode 编码的字符串转化为数字
+    for key, value in img_to_num.items():
+        new_key = f&quot;&amp;#{key};&quot;
+        for i in range(len(data_to_be_replace)):
+            if data_to_be_replace[i] == &quot;null&quot;:
+                continue
+            if new_key in data_to_be_replace[i]:
+                data_to_be_replace[i] = data_to_be_replace[i].replace(new_key, value)
+
+    movie_score, movie_score_num, movie_box = [unescape(item) for item in data_to_be_replace]
+    # 没有评分的当作0
+    if movie_score == &quot;null&quot;:
+        movie_score = &quot;0&quot;
+    if movie_box != &quot;null&quot;:
+        movie_box = movie_box + movie_box_unit.strip()
+
+    movie_brief_info = find_certain_part(html, xpaths.get(&quot;movie_brief_info&quot;))
+    assert(isinstance(movie_brief_info, str))
+    # 这里的实现逻辑有一点问题，因为只是默认第一个是导演
+    movie_director, *movie_actors = [item.strip() for item in html.xpath(&quot;//body//div[@id=&#39;app&#39;]//div//div//div//div[@class=&#39;tab-content-container&#39;]//div//div[@class=&#39;mod-content&#39;]//div//div//ul//li//div//a/text()&quot;)]
+    movie_actors = &quot;，&quot;.join(movie_actors)
+
+    movie_comments = {}
+    try:
+        names = html.xpath(&quot;//body//div[@id=&#39;app&#39;]//div//div//div//div//div[@class=&#39;module&#39;]//div[@class=&#39;mod-content&#39;]//div[@class=&#39;comment-list-container&#39;]//ul//li//div//div[@class=&#39;user&#39;]//span[@class=&#39;name&#39;]/text()&quot;)
+        comments = html.xpath(&quot;//body//div[@id=&#39;app&#39;]//div//div//div//div//div[@class=&#39;module&#39;]//div[@class=&#39;mod-content&#39;]//div[@class=&#39;comment-list-container&#39;]//ul//li//div[@class=&#39;main&#39;]//div[@class=&#39;comment-content&#39;]/text()&quot;)
+        assert(len(names) == len(comments))
+        for name, comment in zip(names, comments):
+            movie_comments[name] = comment
+    except Exception:
+        pass
+
+    save_id = saver.insert_dict({
+        &quot;名称&quot;: movie_name,
+        &quot;别名&quot;: movie_ename,
+        &quot;类别&quot;: movie_classes,
+        &quot;时长&quot;: movie_length,
+        &quot;上映时间&quot;: movie_showtime,
+        &quot;评分&quot;: float(movie_score),
+        &quot;评分人数&quot;: movie_score_num,
+        &quot;票房&quot;: movie_box,
+        &quot;简介&quot;: movie_brief_info,
+        &quot;导演&quot;: movie_director,
+        &quot;演员&quot;: movie_actors,
+        &quot;热门评论&quot;: movie_comments
+    })
+    print(f&quot;{save_id} 保存成功&quot;)
+
+# 爬取源码，在获得源码之后处理字体文件，处理完字体文件之后进行替换
+def get_one_film(url, ua, film_id, saver):
+    headers = {
+        &quot;User-Agent&quot;: ua,
+        &quot;Host&quot;: &quot;maoyan.com&quot;
+    }
+    r = requests.get(url=url, headers=headers)
+    if r.status_code == 200:
+        source_code = r.text
+        font_pattern = re.compile(&quot;url\(\&#39;(.*?\.woff)\&#39;\)&quot;)
+        font_url = &quot;http:&quot; + font_pattern.search(r.text).group(1).strip()
+        del headers[&quot;Host&quot;]
+        res = requests.get(url=font_url, headers=headers)
+        # 下载字体并进行识别对应
+        if res.status_code == 200:
+            if os.path.exists(film_id):
+                os.system(f&quot;rmdir /s /q {film_id}&quot;)
+            os.makedirs(film_id)
+            woff_path = os.path.join(film_id, &quot;temp.woff&quot;)
+            img_dir = os.path.join(film_id, &quot;images&quot;)
+            os.makedirs(img_dir)
+            with open(woff_path, &quot;wb&quot;) as f:
+                f.write(res.content)
+            woff_to_image(woff_path, img_dir)
+            # 以后试着用协程实现汉字识别
+            # 先直接识别
+            # 用字典存储，{&quot;img_id&quot;: &quot;img_num&quot;}
+            img_to_num = verify_img(img_dir)
+            # 删除所创建的文件
+            os.system(f&quot;rmdir /s /q {film_id}&quot;)
+            # 对所获得的数据和可以替换的信息进行进一步的处理
+            parse_data_by_lxml(source_code, img_to_num, saver)
+
+def get_urls(url, ua, showType, offset):
+
+    base_url = &quot;https://maoyan.com&quot;
+    headers = {
+        &quot;User-Agent&quot;: ua,
+        &quot;Host&quot;: &quot;maoyan.com&quot;
+    }
+
+    params = {
+        &quot;showType&quot;: showType,
+        &quot;offset&quot;: offset
+    }
+
+    urls = []
+    r = requests.get(url=url, headers=headers, params=params)
+    if r.status_code == 200:
+        doc = pq(r.text)
+        for re_url in doc(&quot;#app div div[class=&#39;movies-list&#39;] dl dd div[class=&#39;movie-item&#39;] a[target=&#39;_blank&#39;]&quot;).items():
+            urls.append(base_url + re_url.attr(&quot;href&quot;))
+    film_urls.extend(urls)
+    print(f&quot;当前捕获url{len(film_urls)}个&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    # 测试
+    ua = fake_useragent.UserAgent()
+    tasks_one = []
+    try:
+        for i in range(68):
+            tasks_one.append(SpiderThread(get_urls, args=(&quot;https://maoyan.com/films&quot;, ua.random, &quot;3&quot;, str(30*i))))
+        for task in tasks_one:
+            task.start()
+        for task in tasks_one:
+            task.join()
+    except Exception as e:
+        print(e.args)
+    saver = SaveInfo()
+    film_ids = [url.split(&quot;/&quot;)[-1] for url in film_urls]
+    print(f&quot;捕获电影url共{len(film_urls)}条&quot;)
+    tasks_two = []
+    count = 0
+    try:
+        for film_url, film_id in zip(film_urls, film_ids):
+            tasks_two.append(SpiderThread(get_one_film, args=(film_url, ua.random, film_id, saver)))
+        for task in tasks_two:
+            task.start()
+            count += 1
+            if count % 4 == 0:
+                time.sleep(5)
+        for task in tasks_two:
+            task.join()
+    except Exception as e:
+        print(e.args)
+    print(&quot;抓取完毕&quot;)
+</code></pre>
+<h5 id="resizeimage.py">resizeimage.py</h5>
+<pre><code><code>from PIL import Image
+import os
+
+def resize_img(img_path, write_path):
+    crop_size = (120, 200)
+    img = Image.open(img_path)
+    new_img = img.resize(crop_size, Image.ANTIALIAS)
+    new_img.save(write_path, quality=100)
+
+if __name__ == &quot;__main__&quot;:
+    for root, dirs, files in os.walk(&quot;verify_images&quot;):
+        for file in files:
+            img_path = os.path.join(root, file)
+            write_path = os.path.join(&quot;resized_images&quot;, file)
+            resize_img(img_path, write_path)</code></pre>
+<h5 id="savemoviedata.py">SaveMovieData.py</h5>
+<pre><code><code>import pymongo
+
+
+class SaveInfo:
+
+    def __init__(self, host=&quot;localhost&quot;, port=27017, db=&quot;MovieSpider&quot;,
+                 collection=&quot;maoyan&quot;):
+        self._client = pymongo.MongoClient(host=host, port=port)
+        self._db = self._client[db]
+        self._collection = self._db[collection]
+
+    def insert_dict(self, data: dict):
+        result = self._collection.insert_one(data)
+        return result.inserted_id</code></pre>
+<h5 id="wofftopng.py">woffToPng.py</h5>
+<pre><code><code>from __future__ import print_function, division, absolute_import
+from fontTools.ttLib import TTFont
+from fontTools.pens.basePen import BasePen
+from reportlab.graphics.shapes import Path
+from reportlab.lib import colors
+from reportlab.graphics import renderPM
+from reportlab.graphics.shapes import Group, Drawing
+
+
+class ReportLabPen(BasePen):
+    &quot;&quot;&quot;A pen for drawing onto a reportlab.graphics.shapes.Path object.&quot;&quot;&quot;
+
+    def __init__(self, glyphSet, path=None):
+        BasePen.__init__(self, glyphSet)
+        if path is None:
+            path = Path()
+        self.path = path
+
+    def _moveTo(self, p):
+        (x, y) = p
+        self.path.moveTo(x, y)
+
+    def _lineTo(self, p):
+        (x, y) = p
+        self.path.lineTo(x, y)
+
+    def _curveToOne(self, p1, p2, p3):
+        (x1, y1) = p1
+        (x2, y2) = p2
+        (x3, y3) = p3
+        self.path.curveTo(x1, y1, x2, y2, x3, y3)
+
+    def _closePath(self):
+        self.path.closePath()
+
+
+def woff_to_image(fontName, imagePath, fmt=&quot;png&quot;):
+    font = TTFont(fontName)
+    gs = font.getGlyphSet()
+    glyphNames = font.getGlyphNames()
+    for i in glyphNames:
+        if i == &#39;x&#39; or i == &quot;glyph00000&quot;:  # 跳过&#39;.notdef&#39;, &#39;.null&#39;
+            continue
+
+        g = gs[i]
+        pen = ReportLabPen(gs, Path(fillColor=colors.black, strokeWidth=5))
+        g.draw(pen)
+        w, h = 600, 1000
+        g = Group(pen.path)
+        g.translate(0, 200)
+
+        d = Drawing(w, h)
+        d.add(g)
+        imageFile = imagePath + &quot;/&quot; + i + &quot;.png&quot;
+        renderPM.drawToFile(d, imageFile, fmt)
+</code></pre>
+<h5 id="section"></h5>
+<pre><code><code>import threading
+
+
+class SpiderThread(threading.Thread):
+
+    def __init__(self, func, args=()):
+        super().__init__()
+        self.func = func
+        self.args = args
+
+    def run(self) -&gt; None:
+        self.result = self.func(*self.args)
+
+    # 相当于没有多线程
+    # def get_result(self):
+    #     threading.Thread.join(self)
+    #     try:
+    #         return self.result
+    #     except Exception as e:
+    #         print(e.args)
+    #         return None
+</code></pre>
+<h5 id="somexpaths.json">somexpaths.json</h5>
+<pre class="json"><code>{
+  &quot;movie_name&quot;: &quot;//body//div[@class=&#39;banner&#39;]//div//div[@class=&#39;movie-brief-container&#39;]//h3/text()&quot;,
+  &quot;movie_ename&quot;: &quot;//body//div[@class=&#39;banner&#39;]//div//div[@class=&#39;movie-brief-container&#39;]//div/text()&quot;,
+  &quot;movie_classes&quot;: &quot;//body//div[@class=&#39;banner&#39;]//div//div[@class=&#39;movie-brief-container&#39;]//ul//li[1]/text()&quot;,
+  &quot;movie_length&quot;: &quot;//body//div[@class=&#39;banner&#39;]//div//div[@class=&#39;movie-brief-container&#39;]//ul//li[2]/text()&quot;,
+  &quot;movie_showtime&quot;: &quot;//body//div[@class=&#39;banner&#39;]//div//div[@class=&#39;movie-brief-container&#39;]//ul//li[3]/text()&quot;,
+  &quot;movie_score&quot;: &quot;//body//div[@class=&#39;banner&#39;]//div//div[@class=&#39;movie-stats-container&#39;]//div//span[@class=&#39;index-left info-num &#39;]//span&quot;,
+  &quot;movie_score_num&quot;: &quot;//body//div[@class=&#39;banner&#39;]//div//div[@class=&#39;movie-stats-container&#39;]//div//span[@class=&#39;score-num&#39;]//span&quot;,
+  &quot;movie_box&quot;: &quot;//body//div[@class=&#39;wrapper clearfix&#39;]//div//div//div//div[@class=&#39;movie-index-content box&#39;]//span[@class=&#39;stonefont&#39;]&quot;,
+  &quot;movie_box_unit&quot;: &quot;//body//div[@class=&#39;wrapper clearfix&#39;]//div//div//div//div[@class=&#39;movie-index-content box&#39;]//span[@class=&#39;unit&#39;]/text()&quot;,
+  &quot;movie_brief_info&quot;: &quot;//body//div[@class=&#39;container&#39;]//div//div//div//div[@class=&#39;tab-content-container&#39;]//div//div//div[@class=&#39;mod-content&#39;]//span[@class=&#39;dra&#39;]/text()&quot;,
+  &quot;movie_director_and_actress&quot;: &quot;//body//div[@id=&#39;app&#39;]//div//div//div//div[@class=&#39;tab-content-container&#39;]//div//div[@class=&#39;mod-content&#39;]//div//div//ul//li//div//a/text()&quot;,
+  &quot;commenter_names&quot;: &quot;//body//div[@id=&#39;app&#39;]//div//div//div//div//div[@class=&#39;module&#39;]//div[@class=&#39;mod-content&#39;]//div[@class=&#39;comment-list-container&#39;]//ul//li//div//div[@class=&#39;user&#39;]//span[@class=&#39;name&#39;]/text()&quot;,
+  &quot;commenter_comment&quot;: &quot;//body//div[@id=&#39;app&#39;]//div//div//div//div//div[@class=&#39;module&#39;]//div[@class=&#39;mod-content&#39;]//div[@class=&#39;comment-list-container&#39;]//ul//li//div[@class=&#39;main&#39;]//div[@class=&#39;comment-content&#39;]/text()&quot;
+}</code></pre>
+<h4 id="参考资料">参考资料</h4>
+<ul>
+<li><a href="https://github.com/fonttools/fonttools/blob/e13fca3449db678c47915f96913f71c5bdb60f73/Lib/fontTools/pens/reportLabPen.py">ReportPen</a></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

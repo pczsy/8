@@ -1,0 +1,113 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修如何编译和调试Python内核源码？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>如何编译和调试Python内核源码？</center></div><div class='banquan'>原文出处:本文由博客园博主shine-lee提供。<br/>
+原文连接:https://www.cnblogs.com/shine-lee/p/11685775.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#写在前面">写在前面</a></li>
+        <li><a href="#获取源代码">获取源代码</a></li>
+        <li><a href="#源代码的组织">源代码的组织</a></li>
+        <li><a href="#windows下编译cpython">windows下编译CPython</a></li>
+        <li><a href="#调试cpython">调试CPython</a></li>
+        <li><a href="#小结">小结</a></li>
+        <li><a href="#参考">参考</a></li>
+        </ul>
+    </div>
+</div>
+<p>博客：<a href="https://blog.shinelee.me/">blog.shinelee.me</a> | <a href="https://www.cnblogs.com/shine-lee/">博客园</a> | <a href="https://blog.csdn.net/blogshinelee">CSDN</a></p>
+<h1 id="写在前面">写在前面</h1>
+<p><strong>如果对Python源码感兴趣，那“窥探”其实现的最佳方式就是调教它，不，调试它。</strong></p>
+<h1 id="获取源代码">获取源代码</h1>
+<p>Python的官方默认实现为CPython，即C语言实现（主要指解释器的实现，其他实现见<a href="https://devguide.python.org/#other-interpreter-implementations">Other Interpreter Implementations</a>）。CPython的源代码可以从官网<a href="https://www.python.org/downloads/">pyhton.org</a>或者<a href="https://github.com/python/cpython">github.com/python/cpython</a>获取，目前最新的稳定版本为3.8.0，于2019.10.14发布。这里，从官网 <a href="https://www.python.org/downloads/release/python-380/" class="uri">https://www.python.org/downloads/release/python-380/</a> 下载源码压缩包，如下图所示，</p>
+<p><img src="./images/如何编译和调试Python内核源码？0.png" alt="python source code" /></p>
+<h1 id="源代码的组织">源代码的组织</h1>
+<p>解压后，<strong>目录结构</strong>如下</p>
+<pre><code><code>{ Python-3.8.0 }  » tree -d -L 1 .
+.
+├── Doc         # rst(reStructuredText)格式官方文档，用其生成https://docs.python.org/
+├── Grammar     # Python的EBNF(Extended Backus–Naur form)语法定义文件
+├── Include     # .h 头文件
+├── Lib         # .py 纯Python实现的标准库
+├── m4          # ？
+├── Mac         # Mac-specific code，支持MacOS
+├── Misc        # Things that do not belong elsewhere.
+├── Modules     # C实现的标准库，内含.c .asm .macros .h
+├── Objects     # 内置数据类型实现
+├── Parser      # Python语法分析器源码
+├── PC          # Windows-specific code，支持Windows
+├── PCbuild     # Windows生成文件，for MSVC
+├── Programs    # main函数文件，用于生成可执行文件，如python.exe的入口文件
+├── Python      # CPython解释器源码
+└── Tools       # 独立工具代码，used to maintain Python</code></pre>
+<p>CPython的源码组织结构如下，摘抄自<a href="https://devguide.python.org/exploring/#cpython-source-code-layout">CPython Source Code Layout</a>，</p>
+<p><img src="./images/如何编译和调试Python内核源码？1.png" alt="CPython Source Code Layout" style="zoom:80%;" /></p>
+<p>源码文件分门别类存放，而且，无论是py实现的标准库、c实现的标准库、内置数据类型还是内置函数，在<code>Lib/test/</code>和<code>Doc/library/</code>目录下都有与之对应的test_x.py测试文件和rst文档文件（对于内置数据类型和函数，其文档集中保存在stdtypes.rst和functions.rst）。比如，内置类型<code>int</code>位于<code>Objects/longobject.c</code>文件中。</p>
+<p>下面正式开始编译CPython。</p>
+<h1 id="windows下编译cpython">windows下编译CPython</h1>
+<p>据<a href="https://devguide.python.org/setup/#windows">Compile and build on Windows</a>，Python3.6及之后的版本可以使用VS2017编译，安装VS2017时，记得勾选 <strong>Python development</strong> 和 <strong>Python native development tools</strong>，有备无患。</p>
+<p>安装好VS2017后，双击<code>PCbuild/pcbuild.sln</code>，打开解决方案。因为我们的关注点仅在Python内核和解释器部分，所以仅编译python和pythoncore，其他模块暂时忽略，具体地，</p>
+<ul>
+<li>切换到debug win32</li>
+<li>右键解决方案→属性→配置属性</li>
+<li>仅勾选项目python和pythoncore</li>
+<li>确定</li>
+</ul>
+<p><img src="./images/如何编译和调试Python内核源码？2.png" alt="vs2017 python build configuration" style="zoom:80%;" /></p>
+<p>此时再“生成解决方案”，生成目录为<code>PCbuild/win32</code>，内容如下，含解释器python_d.exe和内核python38_d.dll，</p>
+<p><img src="./images/如何编译和调试Python内核源码？3.png" alt="PCbuild build dir" /></p>
+<p>接下来，将项目python设为启动项目（默认状态即是启动项目），点击<strong>调试</strong>，运行得到如下控制台，可以像平时使用python一样，与之交互。</p>
+<p><img src="./images/如何编译和调试Python内核源码？4.png" alt="python38_d debug console" /></p>
+<p>如果想生成全部模块，需要运行<code>PCbuild\get_externals.bat</code>下载依赖，再编译，具体可参见<a href="https://cpython-core-tutorial.readthedocs.io/en/latest/build_cpython_windows.html">Build CPython on Windows</a>。</p>
+<h1 id="调试cpython">调试CPython</h1>
+<p><strong>只要程序能运行起来，一切就好办了。凭借“宇宙最强IDE”，我们可以任性地设断点调试甚至修改代码。</strong></p>
+<p><code>F5</code>重新启动调试，弹出控制台。在上面我们知道<code>int</code>类型位于<code>Objects/longobject.c</code>文件，打开文件，简单浏览后在函数<code>PyObject * PyLong_FromLong(long ival)</code>入口处打个断点。然后，在弹出的控制台中输入<code>a = 1</code>来创建<code>int</code>对象，回车，程序停在了断点处，查看变量<code>ival</code>的值为1——恰为我们输入的数值，<strong>这个函数会跟根据输入的C long int创建一个<code>int</code>对象，返回对象指针</strong>。</p>
+<p><img src="./images/如何编译和调试Python内核源码？5.png" alt="debug int" /></p>
+<p>再来看看函数调用堆栈，如下图所示，</p>
+<p><img src="./images/如何编译和调试Python内核源码？6.png" alt="call stack" /></p>
+<p>调用顺序从下至上，从中可以推断出，</p>
+<ul>
+<li>从python_d.exe的入口main运行起来后，进入python38_d.dll</li>
+<li>从标准输入stdin中读取键入的字符串</li>
+<li>解析字符串，建立了<strong>语法树AST</strong>（abstract syntax tree）</li>
+<li>解析语法树中的节点，判断字符为number，将字符串转化为C long int</li>
+<li>由C long int创建Python的<code>int</code>对象</li>
+</ul>
+<p>继续运行，弹出的控制台中光标前出现<code>&lt;&lt;&lt;</code>，等待输入。这时如果我们点击调试中的停止按钮（全部中断），会发现程序停在<code>Parser/myreadline.c</code>文件<code>_PyOS_WindowsConsoleReadline</code>函数中的<code>ReadConsoleW</code>一行，</p>
+<pre class="c"><code>if (!ReadConsoleW(hStdIn, &amp;wbuf[total_read], wbuflen - total_read, &amp;n_read, NULL)) {
+    err = GetLastError();
+    goto exit;
+}</code></pre>
+<p><code>ReadConsoleW</code>为WINAPI，详见<a href="https://docs.microsoft.com/en-us/windows/console/readconsole">ReadConsole function</a>，其等待并读取控制台的输入，读取的字符保存在<code>wbuf</code>中。如果有输入，则进入上面的流程，解析→建立语法树→……</p>
+<h1 id="小结">小结</h1>
+<p>至此，我们揭开了Python面纱的一角——<strong>不过是一个可运行、可调试的程序而已</strong>（微笑）。</p>
+<h1 id="参考">参考</h1>
+<ul>
+<li><a href="https://devguide.python.org/setup/#directory-structure">Directory structure</a></li>
+<li><a href="http://docutils.sourceforge.net/rst.html">reStructuredText</a></li>
+<li><a href="https://wiki2.org/en/EBNF">Extended Backus–Naur form</a></li>
+<li><a href="https://devguide.python.org/exploring/">Exploring CPython’s Internals</a></li>
+<li><a href="https://devguide.python.org/setup/#windows">Compile and build on Windows</a></li>
+</ul>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

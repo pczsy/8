@@ -1,0 +1,59 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修爬虫之ssh证书警告错误' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>爬虫之ssh证书警告错误</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11215055.html</div><br>
+    <h1 id="爬虫之ssh证书警告错误">爬虫之ssh证书警告错误</h1>
+<h2 id="错误信息">1.错误信息</h2>
+<pre><code><code>错误信息:equests.exceptions.SSLError: (&quot;bad handshake: Error([(&#39;SSL routines&#39;, &#39;tls_process_server_certificate&#39;, &#39;certificate verify failed&#39;)],)&quot;,)</code></pre>
+<h2 id="分析">2.分析</h2>
+<p>ssh证书是美国网景公司发放的一个安全认证证书，有了这个证书即可证明网站是安全的，但是认证是需要收费的，</p>
+<p>所以一些网站就会自己仿造证书，这个时候浏览器就会给予警告，而我们爬虫就爬不到想要的信息</p>
+<h2 id="解决办法">3.解决办法</h2>
+<ul>
+<li><p>方法一:<br />
+加上一个参数：verify=证书路径，或verify=False</p>
+<p>如:</p>
+<pre><code><code>import request
+url = &#39;xxxxx&#39;
+req = requests.get(url,verify=False)
+print(req.text)</code></pre></li>
+<li><p>方法二:</p>
+<p><code>ssl._create_default_https_context</code>=`<code>ssl._create_unverified_context</code>#注意用了这个就不能用requests了，得用urllib2.Request`</p>
+<p>python2中</p></li>
+</ul>
+<pre><code><code>  # 方法二（推荐）：
+  import ssl
+import urllib2
+  
+  ssl._create_default_https_context =ssl._create_unverified_context
+  req =urllib2.Request(&#39;xxxx&#39;)
+  data =urllib2.urlopen(req).read()
+  print(data)</code></pre>
+<p>python3中</p>
+<pre><code><code>import ssl
+import urllib.request
+ssl._create_default_https_context =ssl._create_unverified_context
+data =urllib.request.urlopen(&#39;xxxx&#39;).read()
+print(data)</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

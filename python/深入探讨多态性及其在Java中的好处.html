@@ -1,0 +1,355 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修深入探讨多态性及其在Java中的好处' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>深入探讨多态性及其在Java中的好处</center></div><div class='banquan'>原文出处:本文由博客园博主Absolutely-提供。<br/>
+原文连接:https://www.cnblogs.com/youruike-/p/12047884.html</div><br>
+    <p><em>多态是面向对象软件的基本原理之一。该术语通常表示可以具有多种形式的事物。在面向对象的方法中，多态使编写具有后期绑定引用的程序成为可能。尽管在</em><em>Java</em><em>中创建多态引用很容易，但其背后的概念对整体编程产生了更深远的影响。本文结合在优锐课学习到的知识点，探讨了有关多态性及其对面向对象编程的影响的一些复杂细节。</em></p>
+<h2>多态参考：概述</h2>
+<p>多态引用是一个变量，可以在不同的时间点引用不同类型的对象。它通常与它所引用的类兼容。 例如，在以下情况下：</p>
+<div>
+<div class="cnblogs_code">
+<pre><code>Employee employee;</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>'<em>employee</em>'是一个引用变量，可以引用Employee类的实例。参考变量对参考对象的限定取决于其兼容性。这似乎是唯一可靠的条件，但事实并非如此，特别是在实现多态时。规则太严格了，但是通过结合&ldquo;具有多种形式&rdquo;的思想，多态性使得灵活性更高。这意味着多态引用保证了它可以在不同的时间点引用不同类型的对象，而不是为兼容性而完全依赖。因此，如果可以在一个时间点使用引用来调用方法，则可以将其动态更改为指向另一个对象，并在下一次调用其他方法。通过提供引用变量的另一个使用维度，这可以利用灵活性。</p>
+<p>当引用变量绑定到无法在运行时更改的对象时，或者换句话说，方法调用与方法定义的绑定是在编译时完成的，称为静态绑定。如果绑定在运行时是可更改的，例如在多态引用的情况下，绑定的决策仅在执行期间做出，则称为动态绑定或后期绑定。两者在面向对象程序设计中都有其用途，并非一个都胜过另一个。但是，在多态引用的情况下，推迟的绑定承诺在灵活性方面使其比编译时绑定更具优势，但另一方面，这会降低性能开销。但是，这在很大程度上是可以接受的，并且在提高效率方面，开销通常具有很小的吸引力。.</p>
+<h2>创建多态</h2>
+<p>在Java中，可以通过两种方式创建多态引用：使用继承或使用接口。</p>
+<h3>继承多态</h3>
+<p>引用变量引用类的实例。对于继承层次结构，如果引用变量在层次结构树中声明为父类类型，则引用对象可以指向层次结构中任何类的实例。这意味着，在Java中，因为Objectclass是所有类的父类或超类，或者换句话说，Java中的所有类实际上是Object类的子类隐式或显式地是对象类的引用变量。对象类型可以引用Java中的任何类实例。这就是我们的意思。</p>
+<div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #000000;">Employee employee;
+</span><span style="color: #008080;">2</span> <span style="color: #000000;">Object object;
+</span><span style="color: #008080;">3</span> employee = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Employee();
+</span><span style="color: #008080;">4</span> object = employee;   <span style="color: #008000;">//</span><span style="color: #008000;"> This is a valid assignment</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>如果情况相反，则如下所示：</p>
+<div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #000000;">Employee employee;
+</span><span style="color: #008080;">2</span> Object object = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Object();
+</span><span style="color: #008080;">3</span> employee = (Employee)object   <span style="color: #008000;">//</span><span style="color: #008000;"> Valid, but needs explicit cast</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>观察到它需要显式强制转换；只有这样，它才能成为有效的声明。可以看出，这种反向分配对于在许多情况下出现问题的边缘来说没有多大用处。这是因为Object实例的功能与Employee引用变量预期的功能几乎没有关系。关系is-a可以从employee-is-an-object派生派生；在这种情况下，相反的关系（例如，对象是雇员）太牵强。</p>
+<h3>继承多态性：一个例子</h3>
+<p>让我们尝试借助示例来理解它。</p>
+<p><img src="./images/深入探讨多态性及其在Java中的好处0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<strong>图</strong><strong>1</strong><strong>：从驱动程序类，公司派生的类</strong></p>
+<p>称为Company的驱动程序类创建一个雇员列表，并调用<em>paySalary()</em>方法。薪资类维护公司中不同类型员工的列表。请注意，该数组被声明为派生自Employee类（所有雇员子类的父级或超类）的引用变量的数组。结果，可以用从Employee类的任何子类（例如<em>CommissionEmployee</em>,&nbsp;<em>HourlyEmployee</em>, <em>SalariedEmployee</em>）创建的对象引用填充数组。在<em>paySalary()</em>定义中，根据数组中的对象引用调用适当的<em>salary()</em>方法。因此，对<em>salary()</em>方法的调用是多态的，很明显，每个类都有其自己版本的<em>salary()</em>方法。</p>
+<p>Payroll类中的employee数组不代表特定类型的Employee。它用作可以指向任何类型的Employee子类引用的句柄。尽管继承的类共享作为后代继承的一些公共数据，但是它们具有各自的属性集。 </p>
+<h3>通过继承实现多态：Java实现</h3>
+<p>这是该示例在Java中的快速实现。</p>
+<div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">  1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;">  2</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Company
+</span><span style="color: #008080;">  3</span> <span style="color: #000000;">{
+</span><span style="color: #008080;">  4</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main( String[] args )
+</span><span style="color: #008080;">  5</span> <span style="color: #000000;">   {
+</span><span style="color: #008080;">  6</span>       Payroll payroll = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Payroll();
+</span><span style="color: #008080;">  7</span> <span style="color: #000000;">      payroll.paySalary();
+</span><span style="color: #008080;">  8</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">  9</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 10</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;"> 11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #008080;"> 12</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 13</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Payroll {
+</span><span style="color: #008080;"> 14</span>    <span style="color: #0000ff;">private</span> List&lt;Employee&gt; employees =
+<span style="color: #008080;"> 15</span>       <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 16</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Payroll() {
+</span><span style="color: #008080;"> 17</span>       employees.add(<span style="color: #0000ff;">new</span>
+<span style="color: #008080;"> 18</span>             SalariedEmployee("Harry Potter"<span style="color: #000000;">,
+</span><span style="color: #008080;"> 19</span>          "123-234-345",7800<span style="color: #000000;">));
+</span><span style="color: #008080;"> 20</span>       employees.add(<span style="color: #0000ff;">new</span>
+<span style="color: #008080;"> 21</span>             CommissionEmployee("Peter Parker"<span style="color: #000000;">,
+</span><span style="color: #008080;"> 22</span>          "234-345-456",2345.67,0.15<span style="color: #000000;">));
+</span><span style="color: #008080;"> 23</span>       employees.add(<span style="color: #0000ff;">new</span>
+<span style="color: #008080;"> 24</span>             HourlyEmployee("Joker Poker"<span style="color: #000000;">,
+</span><span style="color: #008080;"> 25</span>          "456-567-678",562.36,239.88<span style="color: #000000;">));
+</span><span style="color: #008080;"> 26</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 27</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> paySalary() {
+</span><span style="color: #008080;"> 28</span>       <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Employee e: employees) {
+</span><span style="color: #008080;"> 29</span> <span style="color: #000000;">         System.out.println
+</span><span style="color: #008080;"> 30</span>             ("----------------------------------------------------"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 31</span> <span style="color: #000000;">         System.out.println(e.toString());
+</span><span style="color: #008080;"> 32</span> <span style="color: #000000;">         System.out.printf
+</span><span style="color: #008080;"> 33</span>             ("Gross payment: $%,.2f\n"<span style="color: #000000;">,e.salary());
+</span><span style="color: #008080;"> 34</span> <span style="color: #000000;">         System.out.println
+</span><span style="color: #008080;"> 35</span>             ("----------------------------------------------------"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 36</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;"> 37</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 38</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 39</span>  
+<span style="color: #008080;"> 40</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;"> 41</span>  
+<span style="color: #008080;"> 42</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Employee {
+</span><span style="color: #008080;"> 43</span>    <span style="color: #0000ff;">protected</span><span style="color: #000000;"> String name;
+</span><span style="color: #008080;"> 44</span>    <span style="color: #0000ff;">protected</span><span style="color: #000000;"> String ssn;
+</span><span style="color: #008080;"> 45</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Employee(String name, String ssn) {
+</span><span style="color: #008080;"> 46</span>       <span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+</span><span style="color: #008080;"> 47</span>       <span style="color: #0000ff;">this</span>.ssn =<span style="color: #000000;"> ssn;
+</span><span style="color: #008080;"> 48</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 49</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+</span><span style="color: #008080;"> 50</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+</span><span style="color: #008080;"> 51</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 52</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+</span><span style="color: #008080;"> 53</span>       <span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+</span><span style="color: #008080;"> 54</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 55</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getSsn() {
+</span><span style="color: #008080;"> 56</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> ssn;
+</span><span style="color: #008080;"> 57</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 58</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setSsn(String ssn) {
+</span><span style="color: #008080;"> 59</span>       <span style="color: #0000ff;">this</span>.ssn =<span style="color: #000000;"> ssn;
+</span><span style="color: #008080;"> 60</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 61</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;"> 62</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;"> 63</span>       <span style="color: #0000ff;">return</span> String.format("%s\nSSN: %s"<span style="color: #000000;">,
+</span><span style="color: #008080;"> 64</span> <span style="color: #000000;">         getName(),getSsn());
+</span><span style="color: #008080;"> 65</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 66</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> salary();
+</span><span style="color: #008080;"> 67</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 68</span>  
+<span style="color: #008080;"> 69</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;"> 70</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> SalariedEmployee <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Employee {
+</span><span style="color: #008080;"> 71</span>    <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> basicSalary;
+</span><span style="color: #008080;"> 72</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> SalariedEmployee(String name, String ssn,
+</span><span style="color: #008080;"> 73</span>          <span style="color: #0000ff;">double</span><span style="color: #000000;"> basicSalary) {
+</span><span style="color: #008080;"> 74</span>       <span style="color: #0000ff;">super</span><span style="color: #000000;">(name, ssn);
+</span><span style="color: #008080;"> 75</span> <span style="color: #000000;">      setBasicSalary(basicSalary);
+</span><span style="color: #008080;"> 76</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 77</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getBasicSalary() {
+</span><span style="color: #008080;"> 78</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> basicSalary;
+</span><span style="color: #008080;"> 79</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 80</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setBasicSalary(<span style="color: #0000ff;">double</span><span style="color: #000000;"> basicSalary) {
+</span><span style="color: #008080;"> 81</span>       <span style="color: #0000ff;">if</span>(basicSalary&gt;= 0.0<span style="color: #000000;">)
+</span><span style="color: #008080;"> 82</span>          <span style="color: #0000ff;">this</span>.basicSalary =<span style="color: #000000;"> basicSalary;
+</span><span style="color: #008080;"> 83</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;"> 84</span>          <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("basic " +
+<span style="color: #008080;"> 85</span>             "salary must be greater than 0.0"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 86</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 87</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;"> 88</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> salary() {
+</span><span style="color: #008080;"> 89</span> <span style="color: #000000;">      eturn getBasicSalary();
+</span><span style="color: #008080;"> 90</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 91</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;"> 92</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;"> 93</span>       <span style="color: #0000ff;">return</span> String.format("%s\nBasic Salary: $%,.2f"<span style="color: #000000;">,
+</span><span style="color: #008080;"> 94</span>          <span style="color: #0000ff;">super</span><span style="color: #000000;">.toString(),getBasicSalary());
+</span><span style="color: #008080;"> 95</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;"> 96</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 97</span>  
+<span style="color: #008080;"> 98</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;"> 99</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> HourlyEmployee <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Employee {
+</span><span style="color: #008080;">100</span>    <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> wage;
+</span><span style="color: #008080;">101</span>    <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> hours;
+</span><span style="color: #008080;">102</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> HourlyEmployee(String name, String ssn,
+</span><span style="color: #008080;">103</span>    <span style="color: #0000ff;">double</span> wage, <span style="color: #0000ff;">double</span><span style="color: #000000;"> hours) {
+</span><span style="color: #008080;">104</span>       <span style="color: #0000ff;">super</span><span style="color: #000000;"> (name, ssn);
+</span><span style="color: #008080;">105</span> <span style="color: #000000;">      setWage(wage);
+</span><span style="color: #008080;">106</span> <span style="color: #000000;">      setHours(hours);
+</span><span style="color: #008080;">107</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">108</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getWage() {
+</span><span style="color: #008080;">109</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> wage;
+</span><span style="color: #008080;">110</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">111</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setWage(<span style="color: #0000ff;">double</span><span style="color: #000000;"> wage) {
+</span><span style="color: #008080;">112</span>       <span style="color: #0000ff;">if</span>(wage &gt;= 0.0<span style="color: #000000;">)
+</span><span style="color: #008080;">113</span>          <span style="color: #0000ff;">this</span>.wage =<span style="color: #000000;"> wage;
+</span><span style="color: #008080;">114</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">115</span>          <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("wage " +
+<span style="color: #008080;">116</span>             "must be &gt; 0.0"<span style="color: #000000;">);
+</span><span style="color: #008080;">117</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">118</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getHours() {
+</span><span style="color: #008080;">119</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> hours;
+</span><span style="color: #008080;">120</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">121</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setHours(<span style="color: #0000ff;">double</span><span style="color: #000000;"> hours) {
+</span><span style="color: #008080;">122</span>       <span style="color: #0000ff;">if</span>(hours &gt;= 0.0<span style="color: #000000;">)
+</span><span style="color: #008080;">123</span>          <span style="color: #0000ff;">this</span>.hours =<span style="color: #000000;"> hours;
+</span><span style="color: #008080;">124</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">125</span>          <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("hours "  +
+<span style="color: #008080;">126</span>             "must be &gt; 0.0"<span style="color: #000000;">);
+</span><span style="color: #008080;">127</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">128</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">129</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> salary() {
+</span><span style="color: #008080;">130</span>       <span style="color: #0000ff;">return</span> getHours() *<span style="color: #000000;"> getWage();
+</span><span style="color: #008080;">131</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">132</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">133</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;">134</span>       <span style="color: #0000ff;">return</span> String.format("%s\nWage: $%,
+<span style="color: #008080;">135</span>          .2f\nHours worked: %,.2f",
+<span style="color: #008080;">136</span>          <span style="color: #0000ff;">super</span><span style="color: #000000;">.toString(),getWage(),getHours());
+</span><span style="color: #008080;">137</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">138</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">139</span>  
+<span style="color: #008080;">140</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;">141</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> CommissionEmployee <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Employee {
+</span><span style="color: #008080;">142</span>    <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> sales;
+</span><span style="color: #008080;">143</span>    <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> commission;
+</span><span style="color: #008080;">144</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> CommissionEmployee(String name, String ssn,
+</span><span style="color: #008080;">145</span>          <span style="color: #0000ff;">double</span> sales, <span style="color: #0000ff;">double</span><span style="color: #000000;"> commission) {
+</span><span style="color: #008080;">146</span>       <span style="color: #0000ff;">super</span><span style="color: #000000;">(name, ssn);
+</span><span style="color: #008080;">147</span> <span style="color: #000000;">      setSales(sales);
+</span><span style="color: #008080;">148</span> <span style="color: #000000;">      setCommission(commission);
+</span><span style="color: #008080;">149</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">150</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getSales() {
+</span><span style="color: #008080;">151</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> sales;
+</span><span style="color: #008080;">152</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">153</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setSales(<span style="color: #0000ff;">double</span><span style="color: #000000;"> sales) {
+</span><span style="color: #008080;">154</span>       <span style="color: #0000ff;">if</span>(sales &gt;=0.0<span style="color: #000000;">)
+</span><span style="color: #008080;">155</span>          <span style="color: #0000ff;">this</span>.sales =<span style="color: #000000;"> sales;
+</span><span style="color: #008080;">156</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">157</span>          <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("Sales " +
+<span style="color: #008080;">158</span>             "must be &gt;= 0.0"<span style="color: #000000;">);
+</span><span style="color: #008080;">159</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">160</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getCommission() {
+</span><span style="color: #008080;">161</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> commission;
+</span><span style="color: #008080;">162</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">163</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setCommission(<span style="color: #0000ff;">double</span><span style="color: #000000;"> commission) {
+</span><span style="color: #008080;">164</span>       <span style="color: #0000ff;">if</span>(commission &gt; 0.0 &amp;&amp; commission &lt; 1.0<span style="color: #000000;">)
+</span><span style="color: #008080;">165</span>          <span style="color: #0000ff;">this</span>.commission =<span style="color: #000000;"> commission;
+</span><span style="color: #008080;">166</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">167</span>          <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("Commission " +
+<span style="color: #008080;">168</span>             "must be between 0.0 and 1.0"<span style="color: #000000;">);
+</span><span style="color: #008080;">169</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">170</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">171</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> salary() {
+</span><span style="color: #008080;">172</span>       <span style="color: #0000ff;">return</span> getCommission() *<span style="color: #000000;"> getSales();
+</span><span style="color: #008080;">173</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">174</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">175</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;">176</span>       <span style="color: #0000ff;">return</span> String.format("%s\nSales: %,
+<span style="color: #008080;">177</span>          .2f\nCommission: %,.2f",
+<span style="color: #008080;">178</span>          <span style="color: #0000ff;">super</span><span style="color: #000000;">.toString(),getSales(),getCommission());
+</span><span style="color: #008080;">179</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">180</span> }</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<h3>接口多态</h3>
+<p>接口的多态性与前面的示例非常相似，不同之处在于，这里的多态性规则是根据Java接口指定的规范进行的。接口名称可以用作引用变量，就像我们对上面的类名称所做的那样。它引用实现该接口的任何类的任何对象。这是一个例子。</p>
+<div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> Player {
+</span><span style="color: #008080;"> 3</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">enum</span><span style="color: #000000;"> STATUS{PLAY,PAUSE,STOP};
+</span><span style="color: #008080;"> 4</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> play();
+</span><span style="color: #008080;"> 5</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> stop();
+</span><span style="color: #008080;"> 6</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> pause();
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 8</span>  
+<span style="color: #008080;"> 9</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> VideoPlayer <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Player {
+</span><span style="color: #008080;">11</span>    <span style="color: #0000ff;">private</span> STATUS currentStatus =<span style="color: #000000;"> STATUS.STOP;
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">13</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> play() {
+</span><span style="color: #008080;">14</span>       <span style="color: #0000ff;">if</span>(currentStatus == STATUS.STOP ||
+<span style="color: #008080;">15</span>             currentStatus ==<span style="color: #000000;"> STATUS.PAUSE) {
+</span><span style="color: #008080;">16</span>          currentStatus =<span style="color: #000000;"> STATUS.PLAY;
+</span><span style="color: #008080;">17</span>          System.out.println("Playing Video..."<span style="color: #000000;">);
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">19</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">20</span>          System.out.println("I am ON playing man!"<span style="color: #000000;">);
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">23</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> voidstop() {
+</span><span style="color: #008080;">24</span>       <span style="color: #0000ff;">if</span>(currentStatus == STATUS.PLAY ||
+<span style="color: #008080;">25</span>             currentStatus ==<span style="color: #000000;"> STATUS.PAUSE) {
+</span><span style="color: #008080;">26</span>          currentStatus =<span style="color: #000000;"> STATUS.STOP;
+</span><span style="color: #008080;">27</span>          System.out.println("Video play stopped."<span style="color: #000000;">);
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">29</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">30</span>          System.out.println("Do you want me to go fishing?"<span style="color: #000000;">);
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">33</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> pause() {
+</span><span style="color: #008080;">34</span>       <span style="color: #0000ff;">if</span>(currentStatus ==<span style="color: #000000;"> STATUS.PLAY) {
+</span><span style="color: #008080;">35</span>          currentStatus =<span style="color: #000000;"> STATUS.PAUSE;
+</span><span style="color: #008080;">36</span>          System.out.println("Video play paused."<span style="color: #000000;">);
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">38</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">39</span>          System.out.println("I'm a statue. You froze me
+<span style="color: #008080;">40</span>             already!");
+<span style="color: #008080;">41</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">43</span>  
+<span style="color: #008080;">44</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;">45</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> AudioPlayer <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Player {
+</span><span style="color: #008080;">46</span>    <span style="color: #0000ff;">private</span> STATUS currentStatus =<span style="color: #000000;"> STATUS.STOP;
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">48</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> play() {
+</span><span style="color: #008080;">49</span>       <span style="color: #0000ff;">if</span>(currentStatus == STATUS.STOP ||
+<span style="color: #008080;">50</span>             currentStatus ==<span style="color: #000000;"> STATUS.PAUSE) {
+</span><span style="color: #008080;">51</span>          currentStatus =<span style="color: #000000;"> STATUS.PLAY;
+</span><span style="color: #008080;">52</span>          System.out.println("Playing Audio..."<span style="color: #000000;">);
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">54</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">55</span>          System.out.println("I am ON playing man!"<span style="color: #000000;">);
+</span><span style="color: #008080;">56</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">57</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">58</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> stop() {
+</span><span style="color: #008080;">59</span>       <span style="color: #0000ff;">if</span>(currentStatus == STATUS.PLAY ||
+<span style="color: #008080;">60</span>             currentStatus ==<span style="color: #000000;"> STATUS.PAUSE) {
+</span><span style="color: #008080;">61</span>          currentStatus =<span style="color: #000000;"> STATUS.STOP;
+</span><span style="color: #008080;">62</span>          System.out.println("Audio play stopped."<span style="color: #000000;">);
+</span><span style="color: #008080;">63</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">64</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">65</span>          System.out.println("Do you want me to go fishing?"<span style="color: #000000;">);
+</span><span style="color: #008080;">66</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">67</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">68</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> pause() {
+</span><span style="color: #008080;">69</span>       <span style="color: #0000ff;">if</span>(currentStatus ==<span style="color: #000000;"> STATUS.PLAY) {
+</span><span style="color: #008080;">70</span>          currentStatus =<span style="color: #000000;"> STATUS.PAUSE;
+</span><span style="color: #008080;">71</span>          System.out.println("Audio play paused."<span style="color: #000000;">);
+</span><span style="color: #008080;">72</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">73</span>       <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">74</span>          System.out.println("I'm a statue. You froze me
+<span style="color: #008080;">75</span>             already!");
+<span style="color: #008080;">76</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">77</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">78</span>  
+<span style="color: #008080;">79</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.example;
+</span><span style="color: #008080;">80</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PlayerApp {
+</span><span style="color: #008080;">81</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">82</span>       Player player= <span style="color: #0000ff;">new</span><span style="color: #000000;"> VideoPlayer();
+</span><span style="color: #008080;">83</span> <span style="color: #000000;">      player.play();
+</span><span style="color: #008080;">84</span> <span style="color: #000000;">      player.pause();
+</span><span style="color: #008080;">85</span> <span style="color: #000000;">      player.stop();
+</span><span style="color: #008080;">86</span>       player= <span style="color: #0000ff;">new</span><span style="color: #000000;"> AudioPlayer();
+</span><span style="color: #008080;">87</span> <span style="color: #000000;">      player.play();
+</span><span style="color: #008080;">88</span> <span style="color: #000000;">      player.pause();
+</span><span style="color: #008080;">89</span> <span style="color: #000000;">      player.stop();
+</span><span style="color: #008080;">90</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">91</span> }</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>请注意，在PlayerApp中，我们已经使用接口Player来声明对象引用变量。引用变量player可以引用实现Player接口的任何类的任何对象。为了证明这一点，我们在这里使用了同一播放器变量来引用VideoPlayer对象和AudioPlayer对象。运行时调用的方法是特定于其引用的类对象的方法。实现接口的类与接口本身之间的关系是父子关系，正如我们在带有继承的多态示例中所看到的。它也是一个is-arelationship，并构成了多态性的基础。</p>
+<h2>总结</h2>
+<p>通过类继承或通过接口实现多态性之间的差异是一个选择问题。实际上，区别在于理解类和接口的属性和特性。除了了解其性质外，没有严格的规则来定义何时使用。这超出了本文的范围。但是，在多态中，这个想法既适合并且也有能力完成我们想对它们进行的操作。就这样。<span style="font-size: 12px;">抽丝剥茧，细说架构那些事&mdash;&mdash;【优锐课】</span></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

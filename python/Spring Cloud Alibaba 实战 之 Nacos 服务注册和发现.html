@@ -1,0 +1,229 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Cloud Alibaba 实战 之 Nacos 服务注册和发现' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Cloud Alibaba 实战 之 Nacos 服务注册和发现</center></div><div class='banquan'>原文出处:本文由博客园博主邴越提供。<br/>
+原文连接:https://www.cnblogs.com/binyue/p/12095310.html</div><br>
+    <div class="content-detail unsafe markdown-body">
+<p data-spm-anchor-id="a2c4e.11153940.0.i1.79c43c3d0XLkFg">服务注册与发现，服务发现主要用于实现各个微服务实例的自动化注册与发现，是微服务治理的核心，学习 Spring Cloud Alibaba，首先要了解框架中的服务注册和发现组件&mdash;&mdash;Nacos。</p>
+<h2 id="1">一、Spring Cloud 服务注册和发现组件</h2>
+<h3>1.Spring Cloud Eureka 闭源风波</h3>
+<p>在Spring Cloud的子项目中，Spring Cloud Netflix提供了Eureka来实现服务的发现功能，Eureka的服务发现包含两大组件：</p>
+<p>服务端发现组件（EurekaServer）和客户端发现组件（Eureka Client）。</p>
+<p>Eureka的服务发现机制如图所示。<br /><img title="" src="./images/Spring Cloud Alibaba 实战 之 Nacos 服务注册和发现0.png" alt="" /></p>
+<p>当客户端服务通过注解等方式嵌入到程序的代码中运行时，客户端发现组件就会向注册中心注册自身提供的服务，并周期性地发送心跳来更新服务，</p>
+<p>如果连续三次心跳都不能够发现服务，那么Eureka就会将这个服务节点从服务注册表中移除。</p>
+<p>各个服务之间会通过注册中心的注册信息以Rest方式来实现调用，并且可以直接通过服务名进行调用。</p>
+<p>2012年，Netflix 将 Euerka 开源，Euerka 在 Spring Cloud 中广泛应用，但是2018年6月， Netflix 宣布 Euerka 2.0 闭源，目前社区中集成的都是1.0版本。</p>
+<p>闭源之后，服务发现选择哪个组件，答案就是 Nacos。</p>
+<p>&nbsp;</p>
+<h3>2.阿里巴巴开源 Nacos</h3>
+<p>阿里巴巴官方给Nacos的定位是「一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台」。</p>
+<p>Nacos支持的功能包括服务发现，集成配置中心，和服务数据管理。</p>
+<h3>&nbsp;</h3>
+<h2 id="2">二、Nacos本地安装和启动</h2>
+<p>可以通过源码和发行包两种方式来获取 Nacos，下面我们下载源码并且构建。</p>
+<h4 id="3">从 Github 上下载源码并编译</h4>
+<div class="cnblogs_Highlighter">
+<pre><code>git clone https://github.com/alibaba/nacos.git
+cd nacos/
+mvn -Prelease-nacos clean install -U  
+ls -al distribution/target/
+
+// change the $version to your actual path
+cd distribution/target/nacos-server-$version/nacos/bin
+</pre>
+</div>
+<p>　　</p>
+<h2 id="4">启动Nacos服务</h2>
+<p>Linux/Unix/Mac系统<br />启动命令(standalone代表着单机模式运行，非集群模式):</p>
+<div class="cnblogs_Highlighter">
+<pre><code>sh startup.sh -m standalone
+</pre>
+</div>
+<p>　　</p>
+<p>Windows系统</p>
+<p>启动命令：</p>
+<div class="cnblogs_Highlighter">
+<pre><code>`
+cmd startup.cmd
+`
+</pre>
+</div>
+<p>　　</p>
+<p><br />或者双击startup.cmd运行文件</p>
+<p>应用启动之后，访问&nbsp;<a href="https://yq.aliyun.com/go/articleRenderRedirect?url=http%3A%2F%2F127.0.0.1%3A8848%2Fnacos%2F" data-url="http://127.0.0.1:8848/nacos/">http://127.0.0.1:8848/nacos/</a>，Nacos0.8 版本已经支持简单登录功能，默认用户名/密码为： nacos/nacos。</p>
+<p><img title="" src="./images/Spring Cloud Alibaba 实战 之 Nacos 服务注册和发现1.png" alt="" /></p>
+<h2>&nbsp;</h2>
+<h2 id="5">三、集成 Spring Cloud 服务发现</h2>
+<p>如果你还不是很熟悉 Spring Cloud 项目的创建，可以先看一下前面这篇博文，。</p>
+<p>最新的版本关系查看&nbsp;<a href="https://yq.aliyun.com/go/articleRenderRedirect?url=https%3A%2F%2Fgithub.com%2Falibaba%2Fspring-cloud-alibaba%2Fwiki%2F%25E7%2589%2588%25E6%259C%25AC%25E8%25AF%25B4%25E6%2598%258E" data-url="https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E">版本说明Wiki</a></p>
+<h3 id="6">创建服务提供者</h3>
+<p>1.新建 Spring Boot 工程，命名为 nacos-spring-cloud，在中添加 Nocos 的依赖，注意：版本 0.2.x.RELEASE 对应的是 Spring Boot 2.x 版本，版本 0.1.x.RELEASE 对应的是 Spring Boot 1.x 版本。</p>
+<pre><code><code>    <span class="hljs-tag">&lt;<span class="hljs-name">dependencyManagement&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependencies&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;spring-cloud-starter-alibaba-nacos-discovery<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">version&gt;0.2.2.RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">version&gt;
+            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">version&gt;1.1.0<span class="hljs-tag">&lt;/<span class="hljs-name">version&gt;
+            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependencies&gt;
+    <span class="hljs-tag">&lt;/<span class="hljs-name">dependencyManagement&gt;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>2.添加一个模块，nacos-spring-cloud-provider，作为 服务提供者，Pom文件配置如下</p>
+<pre><code><code>    <span class="hljs-tag">&lt;<span class="hljs-name">dependencies&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;spring-boot-starter-web<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;spring-cloud-starter-alibaba-nacos-discovery<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">exclusions&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">exclusion&gt;
+                    <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+                    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+                <span class="hljs-tag">&lt;/<span class="hljs-name">exclusion&gt;
+            <span class="hljs-tag">&lt;/<span class="hljs-name">exclusions&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.hibernate<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;hibernate-validator<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">version&gt;5.1.0.Final<span class="hljs-tag">&lt;/<span class="hljs-name">version&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+    <span class="hljs-tag">&lt;/<span class="hljs-name">dependencies&gt;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>3.创建启动类，在启动类中添加一个Restful类型的方法，作为服务实现。</p>
+<pre><code><code class="hljs java"><span class="hljs-meta">@SpringBootApplication
+<span class="hljs-meta">@EnableDiscoveryClient
+<span class="hljs-meta">@RestController
+<span class="hljs-keyword">public <span class="hljs-class"><span class="hljs-keyword">class <span class="hljs-title">NacosProviderApplication {
+
+    <span class="hljs-function"><span class="hljs-keyword">public <span class="hljs-keyword">static <span class="hljs-keyword">void <span class="hljs-title">main<span class="hljs-params">(String[] args) {
+        SpringApplication.run(NacosProviderApplication.class, args);
+    }
+
+    <span class="hljs-meta">@RequestMapping(value = <span class="hljs-string">"/hello/{string}", method = RequestMethod.GET)
+    <span class="hljs-function"><span class="hljs-keyword">public String <span class="hljs-title">echo<span class="hljs-params">(@PathVariable String string) {
+        <span class="hljs-keyword">return <span class="hljs-string">"Hello " + string;
+    }
+}
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>4.修改配置文件，注册到 Nacos 控制台。</p>
+<pre><code><code class="hljs">server.port=8070
+spring.application.name=service-provider
+spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848</code></pre>
+<p>5.启动工程，查看 Nacos 控制台。<br /><img title="" src="./images/Spring Cloud Alibaba 实战 之 Nacos 服务注册和发现2.png" alt="" /></p>
+<h3>&nbsp;</h3>
+<h3 id="7">创建服务消费者</h3>
+<p>1.添加一个新 module，nacos-spring-cloud-consumer，作为服务消费者。</p>
+<p>2.在启动类中添加一个Restful类型的方法，Pom文件依赖如下：</p>
+<pre><code><code><span class="hljs-tag">&lt;<span class="hljs-name">properties&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">spring-cloud-openfeign.version&gt;2.0.0.RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">spring-cloud-openfeign.version&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">spring-cloud-netflix.version&gt;2.0.0.RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">spring-cloud-netflix.version&gt;
+    <span class="hljs-tag">&lt;/<span class="hljs-name">properties&gt;
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">dependencies&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;spring-boot-starter-web<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;spring-cloud-starter-netflix-ribbon<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">version&gt;${spring-cloud-netflix.version}<span class="hljs-tag">&lt;/<span class="hljs-name">version&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;spring-cloud-starter-openfeign<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">version&gt;${spring-cloud-openfeign.version}<span class="hljs-tag">&lt;/<span class="hljs-name">version&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;spring-cloud-starter-alibaba-nacos-discovery<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">exclusions&gt;
+                <span class="hljs-tag">&lt;<span class="hljs-name">exclusion&gt;
+                    <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+                    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+                <span class="hljs-tag">&lt;/<span class="hljs-name">exclusion&gt;
+            <span class="hljs-tag">&lt;/<span class="hljs-name">exclusions&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-name">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">groupId&gt;com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId&gt;nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency&gt;
+    <span class="hljs-tag">&lt;/<span class="hljs-name">dependencies&gt;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>3.创建启动类和测试方法，来调用提供者的服务。</p>
+<pre><code><code class="hljs java"><span class="hljs-meta">@SpringBootApplication
+<span class="hljs-meta">@EnableDiscoveryClient
+<span class="hljs-keyword">public <span class="hljs-class"><span class="hljs-keyword">class <span class="hljs-title">NacosConsumerApplication {
+
+    <span class="hljs-function"><span class="hljs-keyword">public <span class="hljs-keyword">static <span class="hljs-keyword">void <span class="hljs-title">main<span class="hljs-params">(String[] args) {
+        SpringApplication.run(NacosConsumerApplication.class, args);
+    }
+
+    <span class="hljs-meta">@LoadBalanced
+    <span class="hljs-meta">@Bean
+    <span class="hljs-function"><span class="hljs-keyword">public RestTemplate <span class="hljs-title">restTemplate<span class="hljs-params">() {
+        <span class="hljs-keyword">return <span class="hljs-keyword">new RestTemplate();
+    }
+
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>通过RestTemplate调用服务：</p>
+<pre><code><code class="hljs java"><span class="hljs-meta">@RestController
+<span class="hljs-keyword">public <span class="hljs-class"><span class="hljs-keyword">class <span class="hljs-title">TestController {
+
+    <span class="hljs-meta">@Autowired
+    <span class="hljs-keyword">private RestTemplate restTemplate;
+
+    <span class="hljs-meta">@RequestMapping(value = <span class="hljs-string">"/hello/{str}", method = RequestMethod.GET)
+    <span class="hljs-function"><span class="hljs-keyword">public String <span class="hljs-title">echo<span class="hljs-params">(@PathVariable String str) {
+        <span class="hljs-keyword">return restTemplate.getForObject(<span class="hljs-string">"http://service-provider/hello/" + str, String.class);
+    }
+}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>4.修改配置文件，订阅服务</p>
+<pre><code><code class="hljs">server.port=8080
+spring.application.name=service-consumer
+spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848</code></pre>
+<p>5.启动工程，查看 Nacos 控制台。<br /><img title="" src="./images/Spring Cloud Alibaba 实战 之 Nacos 服务注册和发现3.png" alt="" /></p>
+<p>6.测试服务调用，正常返回。<br /><img title="" src="./images/Spring Cloud Alibaba 实战 之 Nacos 服务注册和发现4.png" alt="" /></p>
+<h2 id="8">四、总结</h2>
+<p data-spm-anchor-id="a2c4e.11153940.0.i3.79c43c3d0XLkFg">这个小教程用一个简单的示例，搭建了基于Nacos的 Spring Cloud 服务发现，可以看到 Nacos 的控制台还有配置管理的功能，下一节会学习 Nacos 的配置管理。</p>
+
+
+
+
+
+
+</div>
+<div class="copyright-outer-line">&nbsp;</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

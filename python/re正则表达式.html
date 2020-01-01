@@ -1,0 +1,217 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修re正则表达式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>re正则表达式</center></div><div class='banquan'>原文出处:本文由博客园博主Agsol提供。<br/>
+原文连接:https://www.cnblogs.com/agsol/p/11605162.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#正则表达式">正则表达式</a><ul>
+        <li><a href="#元字符">元字符</a></li>
+        </ul></li>
+        <li><a href="#re模块">re模块</a><ul>
+        <li><a href="#方法">方法</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="正则表达式">正则表达式</h1>
+<p>Regular Expression ,缩写regex,regexp,RE等</p>
+<p>正则表达式式文本处理的重要技术,用它可对字符串按照某种规则进行检索</p>
+<h3 id="元字符">元字符</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">代码</th>
+<th style="text-align: center;">说明</th>
+<th style="text-align: center;">举例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">[abc]</td>
+<td style="text-align: center;">表示一个字符位置,匹配字符集合中的任意一个字符</td>
+<td style="text-align: center;">[abc]匹配apple中的'a'</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">[^abc]</td>
+<td style="text-align: center;">表示一个字符位置,匹配除去集合内字符的任意一个字符</td>
+<td style="text-align: center;">[^abc]匹配apple中的'p''p''l''e'</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">[a-z]</td>
+<td style="text-align: center;">表示一个字符位置,表示匹配范围内的字符(闭区间)</td>
+<td style="text-align: center;">[a-z][0-9]</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">[^a-z]</td>
+<td style="text-align: center;">表示一个字符位置,表示除去范围内的字符(闭区间)</td>
+<td style="text-align: center;">[^a-z][^0-9]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">\d</td>
+<td style="text-align: center;">表示一个字符位置,[0-9]中一个数字</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">\D</td>
+<td style="text-align: center;">表示一个字符位置,表示[^0-9]中非数字</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">\s</td>
+<td style="text-align: center;">表示一个字符位置,匹配一个空白字符包括换行,制表符,空格[\f\r\n\t\v]</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">\S</td>
+<td style="text-align: center;">表示一个字符位置,匹配一个非空白字符</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">\w</td>
+<td style="text-align: center;">表示一个字符位置,匹配[a-zA-Z0-9]包括中文</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">\W</td>
+<td style="text-align: center;">表示一个字符位置,匹配\w之外的字符</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">.</td>
+<td style="text-align: center;">表示一个字符位置,匹配除换行符外任意一个字符</td>
+<td style="text-align: center;">abc. .abc</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">*</td>
+<td style="text-align: center;">*前一个字符可以重复0到无数次</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">+</td>
+<td style="text-align: center;">+前一个字符重复至少一次</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">?</td>
+<td style="text-align: center;">?前一个字符重复0次或者一次</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">^</td>
+<td style="text-align: center;">表示以xxx开头</td>
+<td style="text-align: center;">^ab 表示以ab开头的</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">$</td>
+<td style="text-align: center;">以xxx结尾</td>
+<td style="text-align: center;">ab$ 表示以ab结尾的</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">{n}</td>
+<td style="text-align: center;">重复固定n次</td>
+<td style="text-align: center;">e\w{1}单词中e后面只能有一个非空白字符</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">{n,}</td>
+<td style="text-align: center;">重复至少n次</td>
+<td style="text-align: center;">e\w{1,}等价于e\w+</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">\b</td>
+<td style="text-align: center;">匹配的单词的边界</td>
+<td style="text-align: center;">\bb找到文本中b开头的单词</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">x|y</td>
+<td style="text-align: center;">匹配x或者y</td>
+</tr>
+</tbody>
+</table>
+<p>没写一个字符位置的就是一个或多个字符位置</p>
+<ul>
+<li>单行模式:.可以匹配所有字符,包括换行符,^表示整个字符串的开头,$表示整个字符串的结尾 使用re.S进入单行模式</li>
+<li><p>多行模式:.可以匹配存了换行符之外的字符 ,^表示行首,$表示行尾.开始指的是\n后紧接着下一个字符,结束指的是\n前的字符 默认多行模式</p>
+<h4 id="捕获分组">捕获(分组)</h4></li>
+</ul>
+<pre><code><code>s = &#39;abc abcd abcfdd&#39;
+print(re.findall(&#39;a(.)c(d)&#39;, s))
+&gt;&gt;&gt;[(&#39;b&#39;, &#39;d&#39;)]</code></pre>
+<p>只返回a后面有东西，c后面有d 匹配后返回二元组列表</p>
+<h4 id="贪婪模式">贪婪模式</h4>
+<pre><code><code>s = &#39;abcdefgbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbg&#39;
+print(re.findall(&#39;a.*g&#39;, s))
+&gt;&gt;&gt;[&#39;abcdefgbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbg&#39;]</code></pre>
+<h4 id="非贪婪模式">非贪婪模式</h4>
+<pre><code><code>s = &#39;abcdefgbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbg&#39;
+print(re.findall(&#39;a.*?g&#39;, s))
+&gt;&gt;&gt;[&#39;abcdefg&#39;]</code></pre>
+<h1 id="re模块">re模块</h1>
+<h4 id="常量">常量</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">常量</th>
+<th style="text-align: center;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">re.M</td>
+<td style="text-align: center;">多行模式</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">re.S</td>
+<td style="text-align: center;">单行模式</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">re.I</td>
+<td style="text-align: center;">忽略大小写</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">re.X</td>
+<td style="text-align: center;">忽略表达式中空白字符</td>
+</tr>
+</tbody>
+</table>
+<p>使用| 位或运算开启多种选项</p>
+<h3 id="方法">方法</h3>
+<h4 id="编译">编译</h4>
+<p>re.complile(pattern,flags=0)</p>
+<p>设定flags，编译模式，返回正则表达式对象regex。</p>
+<p>pattern就是正则表达式字符串，flags是选项。正则表达式需要被编译。</p>
+<h5 id="单次匹配">单次匹配</h5>
+<p>re.match(pattern,string,flag=0)</p>
+<p>从字符串开头开始匹配，返回match对象</p>
+<p>re.search(pattern,string,flag=0)</p>
+<p>从头搜索第一个匹配，返回match对象</p>
+<h5 id="全文搜索">全文搜索</h5>
+<p>re.findall(pattern,string,flag=0)</p>
+<p>对整个字符串，从左至右匹配，返回所有匹配项列表</p>
+<h5 id="匹配替换">匹配替换</h5>
+<p>re.sub(pattern,replacement,string，flag=0)</p>
+<p>将匹配字符转用replacement代替，返回新字符串</p>
+<p>re.subn(pattern,replacement,string，count = 0flag=0)</p>
+<p>返回一个元组，count显示替换了多少次</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

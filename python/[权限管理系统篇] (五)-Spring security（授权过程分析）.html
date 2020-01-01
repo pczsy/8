@@ -1,0 +1,489 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[权限管理系统篇] (五)-Spring security（授权过程分析）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[权限管理系统篇] (五)-Spring security（授权过程分析）</center></div><div class='banquan'>原文出处:本文由博客园博主Ccww笔记提供。<br/>
+原文连接:https://www.cnblogs.com/Ccwwlx/p/12066939.html</div><br>
+    <h1 class="md-end-block md-heading">&nbsp;</h1>
+<blockquote>
+<p><span class="md-plain">欢迎关注公众号【<strong>Ccww笔记</strong><span class="md-plain">】，原创技术文章第一时间推出</span></span></p>
+</blockquote>
+<h1 class="md-end-block md-heading"><span class="md-plain">前言</span></h1>
+<p class="md-end-block md-p"><span class="md-plain">权限管理系统的组件分析以及认证过程的往期文章：</span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class=" md-link"><a href="https://www.cnblogs.com/Ccwwlx/p/11970392.html"><span class="md-plain">Spring security （一）架构框架-Component、Service、Filter分析</span></a></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class=" md-link"><a href="https://www.cnblogs.com/Ccwwlx/p/11978429.html"><span class="md-plain">Spring Security（二）--WebSecurityConfigurer配置以及filter顺序</span></a></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class=" md-link"><a href="https://www.cnblogs.com/Ccwwlx/p/12033546.html"><span class="md-plain">【权限管理系统】Spring security（三）---认证过程（原理解析，demo）</span></a></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">[<span class="md-link"><a href="https://www.cnblogs.com/Ccwwlx/p/12054169.html"><span class="md-plain">权限管理系统(四)<span>]<span class="md-plain">-spring boot +spring security短信认证+redis整合</span></span></span></a></span></span></p>
+</li>
+</ul>
+<h2 class="md-end-block md-heading"><span class="md-plain">1. 权限管理相关概念</span></h2>
+<p class="md-end-block md-p md-focus"><span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-plain">权限管理是一个几乎所有后台系统的都会涉及的一个重要组成部分，主要目的是对整个后台管理系统进行权限的控制。常见的基于角色的访问控制，其授权模型为&ldquo;<span><strong>用户-角色-权限</strong><span class="md-plain md-expand">&rdquo;，简明的说，一个用户拥有多个角色，一个角色拥有多个权限。其中，</span></span></span></span></span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>用户：</strong><span class="md-plain"> 不用多讲，大家也知道了； </span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>角色：</strong><span class="md-plain"> 一个集合的概念，角色管理是确定角色具备哪些权限的一个过程 ；</span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>权限：</strong><span class="md-softbreak"> <span class="md-plain">1）.页面权限，控制你可以看到哪个页面，看不到哪个页面；<span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-plain"> 2）. 操作权限，控制你可以在页面上进行哪些操作（查询、删除、编辑等）；<span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-plain"> 3）.数据权限，是控制你可以看到哪些数据。</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+</li>
+</ul>
+<p class="md-end-block md-p"><span><strong>实质是：</strong><span class="md-plain"><span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-entity" data-content="&emsp;">&emsp;</span></span></span></span></span></p>
+<p class="md-end-block md-p"><span><span class="md-plain"><span class="md-linebreak"><span class="md-linebreak-mark"><span class="md-entity" data-content="&emsp;"><span class="md-plain">　　权限（Permission） = 资源（Resource） + 操作（Privilege）<span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-entity" data-content="&emsp;">&emsp;</span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span><span class="md-plain"><span class="md-linebreak"><span class="md-linebreak-mark"><span class="md-entity" data-content="&emsp;"><span class="md-plain"><span class="md-linebreak"><span class="md-linebreak-mark"><span class="md-entity" data-content="&emsp;"><span class="md-plain">　　角色（Role） = 权限的集合（a set of low-level permissions）<span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-entity" data-content="&emsp;">&emsp;</span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span><span class="md-plain"><span class="md-linebreak"><span class="md-linebreak-mark"><span class="md-entity" data-content="&emsp;"><span class="md-plain"><span class="md-linebreak"><span class="md-linebreak-mark"><span class="md-entity" data-content="&emsp;"><span class="md-plain"><span class="md-linebreak"><span class="md-linebreak-mark"><span class="md-entity" data-content="&emsp;">　　<span class="md-plain">用户（User） = 角色的集合（high-level roles）</span></span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span><strong>权限管理过程：</strong></span></p>
+<ol class="ol-list" start="">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">鉴权管理，即权限判断逻辑，如菜单管理（普通业务人员登录系统后，是看不到【用户管理】菜单的）、功能权限管理（URL访问的管理）、行级权限管理等</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">授权管理，即权限分配过程，如直接对用户授权，直接分配到用户的权限具有最优先级别、对用户所属岗位授权，用户所属岗位信息可以看作是一个分组，和角色的作用一样，但是每个用户只能关联一个岗位信息等。 </span></p>
+</li>
+</ol>
+<p class="md-end-block md-p"><span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-plain">在实际项目中用户数量多，逐一的为每个系统用户授权，这是极其繁琐的事，所以可以学习linux文件管理系统一样，设置group模式，一组有多个用户，可以为用户组授权相同的权限，简便多了。这样模式下：<span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span><strong>每个用户的所有权限=用户个人的权限+用户组所用的权限</strong><span class="md-plain"><span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-plain">用户组、用户、与角色三者关系如下：</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-image md-img-loaded" data-src="./images/[权限管理系统篇] (五)-Spring security（授权过程分析）0.png"><img src="./images/[权限管理系统篇] (五)-Spring security（授权过程分析）0.png" alt="" /></span></p>
+<p class="md-end-block md-p"><span class="md-plain">再结合权限管理的页面权限、操作权限，如菜单的访问、功能模块的操作、按钮的操作等等，可把功能操作与资源统一管理，即让它们直接与权限关联起来，关系图如下：<span class="md-softbreak"> <span class="md-image md-img-loaded" data-src="./images/[权限管理系统篇] (五)-Spring security（授权过程分析）1.png"><img src="./images/[权限管理系统篇] (五)-Spring security（授权过程分析）1.png" alt="" /></span></span></span></p>
+<h2 class="md-end-block md-heading"><span class="md-plain">2. 授权过程分析</span></h2>
+<p class="md-end-block md-p">&nbsp;</p>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.1 授权访问权限工作流程：</span>&nbsp; &nbsp;&nbsp;</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">  FilterSecurityInterceptor
+                             doFilter()</span>-&gt;<span style="color: #000000;">invoke()
+                               </span>-&gt;<span style="color: #000000;">AbstractSecurityInterceptor
+                                   beforeInvocation()
+                           </span>-&gt;<span style="color: #000000;">SecurityMetadataSource 获取ConfigAttribute属性信息（从数据库或者其他数据源地方）
+                                       getAttributes()
+                                   </span>-&gt;<span style="color: #000000;">AccessDecisionManager()  基于AccessDecisionVoter实现授权访问
+                                           Decide()
+                                       </span>-&gt;<span style="color: #000000;">AccessDecisionVoter  受AccessDecisionManager委托实现授权访问
+                                               vote()</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain"> 默认授权过程会使用这样的工作流程，接下来来分析各个组件的功能与源码。</span></p>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.2 AbstractSecurityInterceptor分析</span></h3>
+<p class="md-end-block md-p"><span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span><strong>FilterSecurityInterceptor</strong><span class="md-plain">为授权拦截器， 在<span><strong>FilterSecurityInterceptor</strong><span class="md-plain">中有一个封装了<span><strong>过滤链</strong><span class="md-plain">、<span><strong>request</strong><span class="md-plain">以及<span><strong>response</strong><span class="md-plain">的<span><strong>FilterInvocation</strong><span class="md-plain">对象进行操作，在<span><strong>FilterSecurityInterceptor</strong><span class="md-plain">，主要由<span><strong>invoke()</strong><span class="md-plain">调用其父类<span><strong>AbstractSecurityInterceptor</strong><span class="md-plain">的方法。 </span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">invoke()分析：</span></p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> invoke(FilterInvocation fi) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, ServletException {
+                 .....
+                 </span><span style="color: #008000;">//</span><span style="color: #008000;"> 获取accessDecisionManager权限决策后结果状态、以及权限属性</span>
+        InterceptorStatusToken token = <span style="color: #0000ff;">super</span><span style="color: #000000;">.beforeInvocation(fi);
+​
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            fi.getChain().doFilter(fi.getRequest(), fi.getResponse());
+        }
+        </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.finallyInvocation(token);
+        }
+​
+        </span><span style="color: #0000ff;">super</span>.afterInvocation(token, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+    }
+}</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain"> <span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span><strong>AbstractSecurityInterceptor</strong><span class="md-plain"> 的授权过滤器主要方法<span><strong>beforeInvocation()</strong><span class="md-plain">,<span><strong>afterInvocation()</strong><span class="md-plain">以及<span><strong>authenticateIfRequired()</strong><span class="md-plain">,其最主要的方法<span><strong>beforeInvocation()</strong><span class="md-plain"> 分析如下：</span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span><span style="color: #000000;"> InterceptorStatusToken beforeInvocation(Object object) {
+       ....
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">从SecurityMetadataSource的权限属性</span>
+    Collection&lt;ConfigAttribute&gt; attributes = <span style="color: #0000ff;">this</span><span style="color: #000000;">.obtainSecurityMetadataSource()
+            .getAttributes(object);
+    </span><span style="color: #0000ff;">if</span> (attributes == <span style="color: #0000ff;">null</span> ||<span style="color: #000000;"> attributes.isEmpty()) {
+             .....
+        publishEvent(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> PublicInvocationEvent(object));
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span>; <span style="color: #008000;">//</span><span style="color: #008000;"> no further work post-invocation</span>
+<span style="color: #000000;">    }
+​
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">调用认证环节获取authenticated（包含用户的详细信息）</span>
+    Authentication authenticated =<span style="color: #000000;"> authenticateIfRequired();
+​
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Attempt authorization</span>
+    <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">进行关键的一步：授权的最终决策  </span>
+        <span style="color: #0000ff;">this</span><span style="color: #000000;">.accessDecisionManager.decide(authenticated, object, attributes);
+    }
+    </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (AccessDeniedException accessDeniedException) {
+        publishEvent(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> AuthorizationFailureEvent(object, attributes, authenticated,
+                accessDeniedException));
+​
+        </span><span style="color: #0000ff;">throw</span><span style="color: #000000;"> accessDeniedException;
+    }
+ 
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Attempt to run as a different user</span>
+    Authentication runAs = <span style="color: #0000ff;">this</span><span style="color: #000000;">.runAsManager.buildRunAs(authenticated, object,
+            attributes);
+​
+    </span><span style="color: #0000ff;">if</span> (runAs == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (debug) {
+            logger.debug(</span>"RunAsManager did not change Authentication object"<span style="color: #000000;">);
+        }
+​
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> no further work post-invocation</span>
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> InterceptorStatusToken(SecurityContextHolder.getContext(), <span style="color: #0000ff;">false</span><span style="color: #000000;">,
+                attributes, object);
+    }
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (debug) {
+            logger.debug(</span>"Switching to RunAs Authentication: " +<span style="color: #000000;"> runAs);
+        }
+​
+        SecurityContext origCtx </span>=<span style="color: #000000;"> SecurityContextHolder.getContext();
+        SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext());
+        SecurityContextHolder.getContext().setAuthentication(runAs);
+​
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> need to revert to token.Authenticated post-invocation </span>
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> InterceptorStatusToken(origCtx, <span style="color: #0000ff;">true</span><span style="color: #000000;">, attributes, object);
+    }
+}</span></pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.3 SecurityMetadataSource</span></h3>
+<p class="md-end-block md-p"><span class="md-plain"> <span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span><strong>SecurityMetadataSource</strong><span class="md-plain">是从数据库或者其他数据源中加载<span><strong>ConfigAttribute</strong><span class="md-plain">，为了在<span><strong>AccessDecisionManager.decide()</strong><span class="md-plain"> 最终决策中进行match。其有三个方法：</span></span></span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code>Collection&lt;ConfigAttribute&gt; getAttributes(Object var1) <span style="color: #0000ff;">throws</span> IllegalArgumentException;<span style="color: #008000;">//</span><span style="color: #008000;">加载权限资源</span>
+<span style="color: #000000;">​
+Collection</span>&lt;ConfigAttribute&gt; getAllConfigAttributes();<span style="color: #008000;">//</span><span style="color: #008000;">加载所有权限资源</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">boolean</span> supports(Class&lt;?&gt; var1);</pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.4 AccessDecisionManager</span></h3>
+<p class="md-end-block md-p"><span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span><strong>AccessDecisionManager</strong><span class="md-plain">被<span><strong>AbstractSecurityInterceptor</strong><span class="md-plain"> 拦截器调用进行最终访问控制决策。<span class="md-softbreak"> <span class="md-plain"> 而且由<span><strong>AuthenticationManager</strong><span class="md-plain">创建的Authentication object中的GrantedAuthority，首先被授权模块中的 <span><strong>AccessDecisionManager</strong><span class="md-plain">读取使用，当复杂的GrantedAuthority，getAuthority（）为null，因此需要<span><strong>AccessDecisionManager</strong><span class="md-plain">专门支持<span><strong>GrantedAuthority</strong><span class="md-plain">实现以便了解其内容。</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain"> <span><strong>AccessDecisionManager</strong><span class="md-plain">接口方法：</span></span></span>&nbsp;&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #0000ff;">void</span> decide(Authentication authentication, Object secureObject,    Collection&lt;ConfigAttribute&gt; attrs) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AccessDeniedException;
+​
+   </span><span style="color: #0000ff;">boolean</span><span style="color: #000000;"> supports(ConfigAttribute attribute);
+​
+   </span><span style="color: #0000ff;">boolean</span> supports(Class clazz);</pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">2.5 AccessDecisionVoter</span></h3>
+<p class="md-end-block md-p"><span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-plain">AccessDecisionManager.decide()将使用<span><strong>AccessDecisionVoter</strong><span class="md-plain">进行投票决策。<span><strong>AccessDecisionVoter</strong><span class="md-plain">进行投票访问控制决策，访问不通过就抛出<span><strong>AccessDeniedException</strong><span class="md-plain">。</span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">&nbsp;AccessDecisionVoter接口方法：</span></p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #0000ff;">int</span> vote(Authentication authentication, Object object, Collection&lt;ConfigAttribute&gt;<span style="color: #000000;"> attrs);
+​
+   </span><span style="color: #0000ff;">boolean</span><span style="color: #000000;"> supports(ConfigAttribute attribute);
+​
+   </span><span style="color: #0000ff;">boolean</span> supports(Class clazz);</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain"> <span><strong>AccessDecisionVoter</strong><span class="md-plain">的<span><strong>核心方法vote()</strong><span class="md-plain"> 通常是获取<span><strong>Authentication的GrantedAuthority</strong><span class="md-plain">与<span><strong>已定义好的ConfigAttributes</strong><span class="md-plain">进行<span><strong>match</strong><span class="md-plain">，如果成功为投同意票，匹配不成功为拒绝票，当ConfigAttributes中无属性时，才投弃票。</span></span></span></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p">&nbsp;</p>
+<p class="md-end-block md-p"><span class="md-plain"> Spring Security提供了三种投票方式去实现<span><strong>AccessDecisionManager</strong><span class="md-plain">接口进行投票访问控制决策：</span></span></span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>ConsensusBased：</strong><span class="md-plain"> 大多数voter同意访问就授权访问</span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>AffirmativeBased：</strong><span class="md-plain"> 只要一个以上voter同意访问就授权访问，全部</span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>UnanimousBased ：</strong><span class="md-plain"> 只有全体同意了才授权访问</span></span></p>
+</li>
+</ul>
+<p class="md-end-block md-p"><span class="md-plain"> 且<span><strong>AccessDecisionVoter</strong><span class="md-plain">用三个静态变量表示voter投票情况：</span></span></span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>ACCESS_ABSTAIN：</strong><span class="md-plain"> 弃权</span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>ACCESS_DENIED：</strong><span class="md-plain"> 拒绝访问</span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>ACCESS_GRANTED：</strong><span class="md-plain"> 允许访问</span></span></p>
+</li>
+</ul>
+<p class="md-end-block md-p"><span class="md-plain"> <span><strong>Note：</strong><span class="md-plain"> <span><strong>当所有voter都弃权时使用变量allowIfEqualGrantedDeniedDecisions来判断，true为通过，false抛出AccessDeniedException。</strong></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain"> 此外可自定义<span><strong>AccessDecisionManager</strong><span class="md-plain">实现接口，因为可能某些AccessDecisionVoter具有权重比高投票权或者某些AccessDecisionVoter具有一票否定权。AccessDecisionVoter的Spring security实现类<span><strong>RoleVoter</strong><span class="md-plain">和<span><strong>AuthenticatedVoter</strong><span class="md-plain">。<span><strong>RoleVoter为最为常见的AccessDecisionVoter，其为简单的权限表示，并以前缀为ROLE_，vote匹配规则也跟上面一样。</strong></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain"> 源码分析：</span></p>
+<div class="cnblogs_code">
+<pre><code>Public <span style="color: #0000ff;">int</span> vote(Authentication authentication,Object object,Collection&lt;ConfigAttribute&gt;<span style="color: #000000;">attributes){
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">用户传递的authentication为null，拒绝访问</span>
+   <span style="color: #0000ff;">if</span>(authentication==<span style="color: #0000ff;">null</span><span style="color: #000000;">){
+​
+       </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ACCESS_DENIED;
+​
+   }
+​
+   </span><span style="color: #0000ff;">int</span> result=<span style="color: #000000;">ACCESS_ABSTAIN;
+​
+   Collection</span>&lt;?extendsGrantedAuthority&gt;authorities=<span style="color: #000000;">extractAuthorities(authentication);
+ 
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">依次进行投票</span>
+   <span style="color: #0000ff;">for</span><span style="color: #000000;">(ConfigAttributeattribute:attributes){
+ 
+
+       </span><span style="color: #0000ff;">if</span>(<span style="color: #0000ff;">this</span><span style="color: #000000;">.supports(attribute)){
+​
+           result</span>=<span style="color: #000000;">ACCESS_DENIED;
+​
+           </span><span style="color: #008000;">//</span><span style="color: #008000;">Attempt to find a matching granted authority</span>
+<span style="color: #000000;">​
+           </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(GrantedAuthorityauthority:authorities){
+​
+           </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(attribute.getAttribute().equals(authority.getAuthority())){
+​
+           returnACCESS_GRANTED;
+           }
+      }
+   }
+ }</span></pre>
+</div>
+<h2 class="md-end-block md-heading"><span class="md-plain">3. 案例-自定义组件</span></h2>
+<p class="md-end-block md-p"><span class="md-plain"> <span><strong>自定义组件：</strong></span></span></p>
+<ol class="ol-list" start="">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>自定义FilterSecurityInterceptor</strong><span class="md-plain">，可仿写<span><strong>FilterSecurityInterceptor</strong><span class="md-plain">，实现抽象类<span><strong>AbstractSecurityInterceptor</strong><span class="md-plain">以及<span><strong>Filter</strong><span class="md-plain">接口，其主要的是把<span><strong>自定义的SecurityMetadataSource</strong><span class="md-plain">与<span><strong>自定义accessDecisionManager</strong><span class="md-plain">配置到自定义FilterSecurityInterceptor的拦截器中</span></span></span></span></span></span></span></span></span></span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>自定义SecurityMetadataSource</strong><span class="md-plain">，实现接口FilterInvocationSecurityMetadataSource，实现从数据库或者其他数据源中加载ConfigAttribute（即是从数据库或者其他数据源中加载资源权限）</span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>自定义accessDecisionManager</strong><span class="md-plain">，可使用基于AccessDecisionVoter实现权限认证的官方UnanimousBased</span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span><strong>自定义AccessDecisionVoter</strong></span></p>
+</li>
+</ol>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.1 自定义MyFilterSecurityInterceptor</span></h3>
+<p class="md-end-block md-p"><span><strong>自定义MyFilterSecurityInterceptor</strong><span class="md-plain">主要工作为：</span></span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">加载自定义的SecurityMetadataSource到自定义的FilterSecurityInterceptor中；</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">加载自定义的AccessDecisionManager到自定义的FilterSecurityInterceptor中；</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">重写invoke方法</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MyFilterSecurityInterceptor <span style="color: #0000ff;">extends</span> AbstractSecurityInterceptor <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Filter {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> FilterInvocationSecurityMetadataSource securityMetadataSource;
+ 
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> init(FilterConfig filterConfig) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException {
+​
+    }
+​
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> doFilter(ServletRequest request, ServletResponse response, FilterChain chain) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, ServletException {
+        FilterInvocation fi </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> FilterInvocation(request, response, chain);
+        invoke(fi);
+    }
+​
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> invoke(FilterInvocation fi) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, ServletException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">fi里面有一个被拦截的url
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">里面调用MyInvocationSecurityMetadataSource的getAttributes(Object object)这个方法获取fi对应的所有权限
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">再调用MyAccessDecisionManager的decide方法来校验用户的权限是否足够</span>
+        InterceptorStatusToken token = <span style="color: #0000ff;">super</span><span style="color: #000000;">.beforeInvocation(fi);
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行下一个拦截器</span>
+<span style="color: #000000;">            fi.getChain().doFilter(fi.getRequest(), fi.getResponse());
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">super</span>.afterInvocation(token, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        }
+    }
+​
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> destroy() {
+​
+    }
+​
+    @Override
+    </span><span style="color: #0000ff;">public</span> Class&lt;?&gt;<span style="color: #000000;"> getSecureObjectClass() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+​
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> SecurityMetadataSource obtainSecurityMetadataSource() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">.securityMetadataSource;
+    }
+​
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> FilterInvocationSecurityMetadataSource getSecurityMetadataSource() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">.securityMetadataSource;
+    }
+​
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">设置自定义的FilterInvocationSecurityMetadataSource</span>
+<span style="color: #000000;">    @Autowired
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setSecurityMetadataSource(MyFilterInvocationSecurityMetadataSource messageSource) {
+        </span><span style="color: #0000ff;">this</span>.securityMetadataSource =<span style="color: #000000;"> messageSource;
+    }
+​
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">设置自定义的AccessDecisionManager</span>
+<span style="color: #000000;">    @Override
+    @Autowired
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAccessDecisionManager(AccessDecisionManager accessDecisionManager) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.setAccessDecisionManager(accessDecisionManager);
+    }
+ }</span></pre>
+</div>
+</li>
+</ul>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.2 自定义MyFilterInvocationSecurityMetadataSource </span></h3>
+<p class="md-end-block md-p"><span><strong>自定义MyFilterInvocationSecurityMetadataSource</strong><span class="md-plain">主要工作为：</span></span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">从数据源中加载ConfigAttribute到SecurityMetadataSource资源器中</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">重写getAttributes()加载ConfigAttribute为AccessDecisionManager.decide()授权决策做准备。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MyFilterInvocationSecurityMetadataSource <span style="color: #0000ff;">implements</span> FilterInvocationSecurityMetadataSource { <span style="color: #0000ff;">private</span> Map&lt;String, Collection&lt;ConfigAttribute&gt;&gt; configAttubuteMap = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+
+   </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> loadResourceDefine() {
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">todo 加载数据库的所有权限</span>
+        Collection&lt;ConfigAttribute&gt;<span style="color: #000000;"> attributes;
+   }
+   
+   @Override
+   </span><span style="color: #0000ff;">public</span> Collection&lt;ConfigAttribute&gt; getAttributes(Object object) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IllegalArgumentException {
+       AntPathRequestMatcher matcher;
+       String resUrl;
+       HttpServletRequest request </span>=<span style="color: #000000;"> ((FilterInvocation) object).getRequest();
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">1.加载权限资源数据</span>
+       <span style="color: #0000ff;">if</span> (configAttubuteMap == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+           loadResourceDefine();
+       }
+       Iterator</span>&lt;String&gt; iterator =<span style="color: #000000;"> configAttubuteMap.keySet().iterator();
+       </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> (iterator.hasNext()) {
+           resUrl </span>=<span style="color: #000000;"> iterator.next();
+           matcher </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> AntPathRequestMatcher(resUrl);
+           </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (matcher.matches(request)) {
+               </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> configAttubuteMap.get(resUrl);
+           }
+       }
+       </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+       }
+   
+       @Override
+       </span><span style="color: #0000ff;">public</span> Collection&lt;ConfigAttribute&gt;<span style="color: #000000;"> getAllConfigAttributes() {
+           </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+       }
+   
+       @Override
+       </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> supports(Class&lt;?&gt;<span style="color: #000000;"> clazz) {
+           </span><span style="color: #0000ff;">return</span> FilterInvocation.<span style="color: #0000ff;">class</span><span style="color: #000000;">.isAssignableFrom(clazz);
+       }
+}</span></pre>
+</div>
+</li>
+</ul>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.3 自定义MyAccessDecisionManager </span></h3>
+<p class="md-end-block md-p"><span><strong>自定义MyAccessDecisionManager</strong><span class="md-plain">主要工作为：</span></span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">重写最终授权决策decide()，自定义授权访问策略</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MyAccessDecisionManager <span style="color: #0000ff;">implements</span><span style="color: #000000;"> AccessDecisionManager {
+   @Override
+   </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> decide(Authentication authentication, Object object, Collection&lt;ConfigAttribute&gt; configAttributes) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AccessDeniedException, InsufficientAuthenticationException {
+       ConfigAttribute c;
+       String needRole;
+       </span><span style="color: #0000ff;">if</span>(<span style="color: #0000ff;">null</span>== configAttributes || configAttributes.size() &lt;=0<span style="color: #000000;">) {
+           </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+       }
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获取已定义的好资源权限配置</span>
+       Iterator&lt;ConfigAttribute&gt; iterable=<span style="color: #000000;">configAttributes.iterator();
+       </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> (iterable.hasNext()){
+           c</span>=<span style="color: #000000;">iterable.next();
+           needRole</span>=<span style="color: #000000;">c.getAttribute();
+           </span><span style="color: #008000;">//</span><span style="color: #008000;">2.依次比对用户角色对应的资源权限</span>
+           <span style="color: #0000ff;">for</span><span style="color: #000000;"> (GrantedAuthority grantedAuthority:authentication.getAuthorities()){
+               </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(needRole.trim().equals(grantedAuthority.getAuthority())){
+                   </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+               }
+           }
+       }
+   
+   }
+   
+   @Override
+   </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> supports(ConfigAttribute attribute) {
+       </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+   }
+   
+   @Override
+   </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> supports(Class&lt;?&gt;<span style="color: #000000;"> clazz) {
+       </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+   }
+}</span></pre>
+</div>
+</li>
+</ul>
+<h3 class="md-end-block md-heading"><span class="md-plain">3.4 配置SecurityConfig</span></h3>
+<p class="md-end-block md-p"><span><strong>配置SecurityConfig</strong><span class="md-plain">主要工作为：</span></span></p>
+<ul class="ul-list" data-mark="+">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">将FilterSecurityInterceptor拦截器加载WebSecurityConfig中</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> configure(HttpSecurity http) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+   http.headers().frameOptions().disable().and()
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">表单登录</span>
+<span style="color: #000000;">       .formLogin()
+       .loginPage(SecurityConstants.APP_FORM_LOGIN_PAGE)
+       .loginProcessingUrl(SecurityConstants.APP_FORM_LOGIN_URL)
+       .successHandler(authenticationSuccessHandler())
+       .failureHandler(authenticationFailureHandler())
+       .and()
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">应用sms认证配置</span>
+<span style="color: #000000;">       .apply(smsAuthenticationSecurityConfig)
+       .and()
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">允许通过</span>
+<span style="color: #000000;">       .authorizeRequests()
+       .antMatchers(SecurityConstants.APP_MOBILE_VERIFY_CODE_URL,
+                    SecurityConstants.APP_USER_REGISTER_URL,
+                   SecurityConstants.APP_FORM_LOGIN_INDEX_URL)
+       .permitAll()</span><span style="color: #008000;">//</span><span style="color: #008000;">以上的请求都不需要认证</span>
+<span style="color: #000000;">       .and()
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">&ldquo;记住我&rdquo;配置</span>
+<span style="color: #000000;">       .rememberMe()
+       .tokenRepository(jdbcTokenRepository())</span><span style="color: #008000;">//</span><span style="color: #008000;">token入库处理类</span>
+       .tokenValiditySeconds(SecurityConstants.REMEMBER_ME_VERIFY_TIME)<span style="color: #008000;">//</span><span style="color: #008000;">remember-me有效时间设置</span>
+       .rememberMeParameter(SecurityConstants.REMEMBER_ME_PARAM_NAME)<span style="color: #008000;">//</span><span style="color: #008000;">请求参数名设置</span>
+<span style="color: #000000;">       .and()
+       .csrf().disable();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">增加自定义权限授权拦截器</span>
+    http.addFilterBefore(myFilterSecurityInterceptor,FilterSecurityInterceptor.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+}</span></pre>
+</div>
+<h2 class="md-end-block md-heading"><span class="md-plain">总结</span></h2>
+<p class="md-end-block md-p"><span class="md-entity" data-content="&emsp;">&emsp;<span class="md-entity" data-content="&emsp;">&emsp;<span class="md-plain">Spring Security授权过程中，可以会涉主要涉及了上面上面所述的组件，其中主要的还是跟着源码多跑几遍，了解其中的原理，才能更加流畅的码代码。到此为止写完Spring Security的认证和授权分析流程，接下来会结合前面小节，写一个Spring security完美的权限管理系统。</span></span></span></p>
+<blockquote>
+<p class="md-end-block md-p"><span class="md-plain">各位看官还可以吗？喜欢的话，动动手指点个赞💗，点个关注呗！！谢谢支持！</span></p>
+<p class="md-end-block md-p"><span class="md-plain">也欢迎关注公众号【<strong>Ccww笔记</strong><span class="md-plain">】，原创技术文章第一时间推出</span></span></p>
+</blockquote>
+</li>
+</ul>
+<p><span class="md-plain"><span class="md-plain"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/[权限管理系统篇] (五)-Spring security（授权过程分析）2.png" alt="" /></span></span></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

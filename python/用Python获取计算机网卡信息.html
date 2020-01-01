@@ -1,0 +1,342 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修用Python获取计算机网卡信息' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>用Python获取计算机网卡信息</center></div><div class='banquan'>原文出处:本文由博客园博主Singvis提供。<br/>
+原文连接:https://www.cnblogs.com/singvis/p/11604967.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#前言">0. 前言</a></li>
+        <li><a href="#测试环境及关键代码解释">1. 测试环境及关键代码解释</a><ul>
+        <li><a href="#测试环境">1.1 测试环境</a><ul>
+        <li><a href="#系统">1.1.1 系统：</a></li>
+        <li><a href="#开发工具">1.1.2 开发工具：</a></li>
+        </ul></li>
+        </ul></li>
+        <li><a href="#模块介绍及演示">2. 模块介绍及演示</a><ul>
+        <li><a href="#platform模块使用示例">2.1 platform模块使用示例</a></li>
+        <li><a href="#netifaces模块使用示例">2.2 netifaces模块使用示例</a><ul>
+        <li><a href="#linux环境下如何获取网卡口的信息">2.2.1 Linux环境下如何获取网卡口的信息</a></li>
+        <li><a href="#windows环境下如何获取网卡口的信息">2.2.2 Windows环境下如何获取网卡口的信息</a></li>
+        </ul></li>
+        </ul></li>
+        <li><a href="#完整代码">3. 完整代码</a></li>
+        <li><a href="#碎碎语">4. 碎碎语</a><ul>
+        <li><a href="#官方参考链接">4.1 官方参考链接：</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="前言">0. 前言</h1>
+<p>正常情况下，如果想要查看电脑的网卡IP地址或是MAC地址，直接通过界面找到网卡进行查看就有了，亦或是通过命令如linux的ifconfig得到IP等信息，那么本节教大家如何通过python的方式获取网卡的IP/MAC信息。</p>
+<h1 id="测试环境及关键代码解释">1. 测试环境及关键代码解释</h1>
+<h2 id="测试环境">1.1 测试环境</h2>
+<h3 id="系统">1.1.1 系统：</h3>
+<pre><code><code>Ubuntu 16.04.6 LTS
+Windows 10 x64</code></pre>
+<h3 id="开发工具">1.1.2 开发工具：</h3>
+<pre><code><code>pycharm 专业版
+
+备注：专业版支持本地远程linux调试。</code></pre>
+<h1 id="模块介绍及演示">2. 模块介绍及演示</h1>
+<p>本次只需要用到3个模块就搞定，但也是挺费劲的咯。</p>
+<ol>
+<li>netifaces //需要安装，主要用于获取网卡接口IP/MAC等信息；</li>
+<li>winreg //内置模块，主要用于Windows系统通过注册表获取网卡接口键值；</li>
+<li>platform //内置模块，主要用于判断系统类型：如Widows、Linux、MacOS等；</li>
+</ol>
+<h2 id="platform模块使用示例">2.1 platform模块使用示例</h2>
+<p>Linux系统:</p>
+<pre><code><code>import platform
+platform.system()
+&#39;Linux&#39;     #返回结果</code></pre>
+<p>Windows系统：</p>
+<pre><code><code>import platform
+platform.system()
+&#39;Windows&#39;     #返回结果</code></pre>
+<h2 id="netifaces模块使用示例">2.2 netifaces模块使用示例</h2>
+<p>外置模块，安装方式请参考网上，此处忽略（很简单）。<br />
+用处：用于收集网络接口等信息(IP/地址/网关)。<br />
+netiface模块定了3个函数：</p>
+<pre><code><code>def gateways(*args, **kwargs):      #获取网关
+    代码块
+def ifaddresses(*args, **kwargs):   #获取IP信息
+    代码块
+def interfaces(*args, **kwargs):    #获取接口ID
+    代码块</code></pre>
+<p>先看下地址族：</p>
+<pre><code><code>#!/usr/bin/env python3
+#-*- coding:UTF-8 -*-
+#欢迎关注微信公众号：点滴技术
+
+#以下在Linux环境下演示
+
+from netifaces
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)     #这里使用pprint输出会更直观
+
+pp.pprint(netifaces.address_families)
+#返回结果：
+{   0: &#39;AF_UNSPEC&#39;,
+    1: &#39;AF_FILE&#39;,
+    2: &#39;AF_INET&#39;,   #ipv4地址
+    3: &#39;AF_AX25&#39;,
+    4: &#39;AF_IPX&#39;,
+    5: &#39;AF_APPLETALK&#39;,
+    6: &#39;AF_NETROM&#39;,
+    7: &#39;AF_BRIDGE&#39;,
+    8: &#39;AF_ATMPVC&#39;,
+    9: &#39;AF_X25&#39;,
+    10: &#39;AF_INET6&#39;, #ipv6地址
+    11: &#39;AF_ROSE&#39;,
+    12: &#39;AF_DECnet&#39;,
+    13: &#39;AF_NETBEUI&#39;,
+    14: &#39;AF_SECURITY&#39;,
+    15: &#39;AF_KEY&#39;,
+    16: &#39;AF_NETLINK&#39;,   
+    17: &#39;AF_PACKET&#39;,    #ipv4的MAC地址
+    18: &#39;AF_ASH&#39;,
+    19: &#39;AF_ECONET&#39;,
+    20: &#39;AF_ATMSVC&#39;,
+    22: &#39;AF_SNA&#39;,
+    23: &#39;AF_IRDA&#39;,
+    24: &#39;AF_PPPOX&#39;,
+    25: &#39;AF_WANPIPE&#39;,
+    31: &#39;AF_BLUETOOTH&#39;}
+    
+#这里大家重点关注下：AF_NET、AF_NET6
+#其他的大家自己去研究下</code></pre>
+<h3 id="linux环境下如何获取网卡口的信息">2.2.1 Linux环境下如何获取网卡口的信息</h3>
+<pre><code><code>#!/usr/bin/env python3
+#-*- coding:UTF-8 -*-
+#欢迎关注微信公众号：点滴技术
+
+import netifaces
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
+netifaces.interfaces()
+  [&#39;lo&#39;, &#39;ens32&#39;]         #返回结果，ubuntu系统网卡ID
+
+pp.pprint(netifaces.ifaddresses(&#39;ens32&#39;))
+#返回结果，是一个字典，字典中又嵌套列表，所以切片的时候要注意
+{   2: [   {   &#39;addr&#39;: &#39;192.168.0.253&#39;,
+               &#39;broadcast&#39;: &#39;192.168.0.255&#39;,
+               &#39;netmask&#39;: &#39;255.255.255.0&#39;}],
+    10: [   {   &#39;addr&#39;: &#39;fe80::20c:29ff:fe5d:2f55%ens32&#39;,
+                &#39;netmask&#39;: &#39;ffff:ffff:ffff:ffff::/64&#39;}],
+    17: [{&#39;addr&#39;: &#39;00:0c:29:5d:2f:55&#39;, &#39;broadcast&#39;: &#39;ff:ff:ff:ff:ff:ff&#39;}]}
+
+netifaces.ifaddresses(&#39;ens32&#39;)[netifaces.AF_INET][0][&#39;addr&#39;]
+&#39;192.168.0.253&#39;     #返回结果，获取到IPv4地址
+
+netifaces.ifaddresses(&#39;ens32&#39;)[netifaces.AF_PACKET][0][&#39;addr&#39;]
+&#39;00:0c:29:5d:2f:55&#39;     #返回结果，获取到IPv4的MAC地址
+
+netifaces.ifaddresses(&#39;ens32&#39;)[netifaces.AF_INET6][0][&#39;addr&#39;]
+&#39;fe80::20c:29ff:fe5d:2f55%ens32&#39;        #返回结果，获取到IPv6地址</code></pre>
+<h3 id="windows环境下如何获取网卡口的信息">2.2.2 Windows环境下如何获取网卡口的信息</h3>
+<p><strong>说明</strong>：windows取值相比Linux复杂多了，不能直接根据接口获取ip信息，需要先找到一串唯一的键值，然后才能依据它获取到接口IP信息，这里我先给出示例，免得大家看了一头雾水：</p>
+<p><img src="./images/用Python获取计算机网卡信息0.png"/></p>
+<p><strong>我的无线网卡信息：</strong></p>
+<ul>
+<li>无线网卡名称：WLAN</li>
+<li>注册表上对应的键值：{CD94297B-D746-4494-91F7-3E40C091A0FC} //python需要知道这个</li>
+</ul>
+<p>注册表需要用到了【<strong>winreg</strong>】模块，咱们还是先简单聊下Windows的注册表结构吧。</p>
+<pre><code><code>        &gt;-----HKEY_CLASSES_ROOT
+        &gt;-----HKEY_CURRENT_USER
+注册表   &gt;-----HKEY_LOCAL_MACHINE
+        &gt;-----HKEY_USERS
+        &gt;-----HKEY_CURRENT_CONFIG
+大体分为：主键--子键--键值
+
+本次用到的函数：
+winreg.ConnectRegistry(computer_name, key)：
+    连接注册表，computer_name=None表示本地计算机，否则用r&quot;\\computername&quot;表示远程计算机，key为键的链接。
+    
+winreg.OpenKey(key, sub_key, reserved=0, access=KEY_READ)：
+    打开指定的键，key已经打开的键，sub_key要打开的键。
+    
+winreg.QueryValueEx（key，value_name ）：
+    检索注册表项关联的指定值名称的类型和数据。</code></pre>
+<p><strong>在Windows环境如何获取接口信息：</strong></p>
+<pre><code><code>#以下在Windows环境下
+
+import netifaces
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
+pp.pprint(netifaces.interfaces())
+#返回结果：是个列表，都是一串子键... 这一 一对应网卡来的
+[   &#39;{90788744-5655-4A9E-ADB6-A97CAE0F3B3F}&#39;,
+    &#39;{02685473-BCE5-4E19-AC64-0388FA81C13F}&#39;,
+    &#39;{5BBD6405-7C2E-4A78-8A09-31E03FAA3B75}&#39;,
+    &#39;{95FDA148-CA04-4926-87CD-FC0DC38FF89C}&#39;,
+    &#39;{D87FBBE0-11C0-49D1-A8CE-52DFC195B1B4}&#39;,
+    &#39;{E31B9D7C-6E73-4773-B564-1038BDB0EDAD}&#39;,
+    &#39;{A7584008-7824-4760-B2E0-1D0F483FD64E}&#39;,
+    &#39;{CD94297B-D746-4494-91F7-3E40C091A0FC}&#39;,   #剧透，这个就是无线网卡WLAN的唯一子键
+    &#39;{652C7833-4B8D-400F-A72F-F7C89C30FD03}&#39;,
+    &#39;{991AF727-67ED-11E9-B14B-806E6F6E6963}&#39;]
+    
+#请先记住我的无线网卡WLAN的键是： {CD94297B-D746-4494-91F7-3E40C091A0FC} 
+#后面会介绍怎么获取；
+
+#先看下获取ipv4相关的信息：
+pp.pprint(netifaces.ifaddresses(&#39;{CD94297B-D746-4494-91F7-3E40C091A0FC}&#39;)[netifaces.AF_INET]
+#返回结果
+[   {   &#39;addr&#39;: &#39;172.20.18.37&#39;,
+        &#39;broadcast&#39;: &#39;172.20.18.255&#39;,
+        &#39;netmask&#39;: &#39;255.255.255.0&#39;}]
+        
+#获取ipv4地址       
+pp.pprint(netifaces.ifaddresses(&#39;{CD94297B-D746-4494-91F7-3E40C091A0FC}&#39;)[netifaces.AF_INET][0][&#39;addr&#39;])
+&#39;172.20.18.37&#39;  #返回结果</code></pre>
+<h1 id="完整代码">3. 完整代码</h1>
+<p><strong>文件1：win_get_key.py</strong><br />
+说明：windows系统上运行使用</p>
+<pre><code><code>#!/usr/bin/env python3
+#-*- coding:UTF-8 -*-
+#欢迎关注微信公众号：点滴技术
+
+from netifaces import interfaces
+import winreg as wr
+
+#定义获取Windows系统网卡接口的在注册表的键值的函数
+def get_key(ifname):
+    #获取所有网络接口卡的键值
+    id = interfaces()
+    #存放网卡键值与键值名称的字典
+    key_name = {}
+    try:
+        #建立链接注册表，&quot;HKEY_LOCAL_MACHINE&quot;，None表示本地计算机
+        reg = wr.ConnectRegistry(None,wr.HKEY_LOCAL_MACHINE)
+        # 打开r&#39;SYSTEM\CurrentControlSet\Control\Network\{4d36e972-e325-11ce-bfc1-08002be10318}&#39;，固定的
+        reg_key = wr.OpenKey(reg , r&#39;SYSTEM\CurrentControlSet\Control\Network\{4d36e972-e325-11ce-bfc1-08002be10318}&#39;)
+    except :
+        return (&#39;路径出错或者其他问题，请仔细检查&#39;)
+
+    for i in id:
+        try:
+            #尝试读取每一个网卡键值下对应的Name
+            reg_subkey = wr.OpenKey(reg_key , i + r&#39;\Connection&#39;)
+            #如果存在Name，写入key_name字典
+            key_name[wr.QueryValueEx(reg_subkey , &#39;Name&#39;)[0]] = i
+            # print(wr.QueryValueEx(reg_subkey , &#39;Name&#39;)[0])
+        except FileNotFoundError:
+            pass
+    # print(&#39;所有接口信息字典列表： &#39; + str(key_name) + &#39;\n&#39;)
+    return key_name[ifname]
+
+if __name__ == &#39;__main__&#39;:
+    print(get_key(&#39;WLAN&#39;))</code></pre>
+<p><strong>文件2：python_netifaces.py</strong><br />
+说明：在Window和Linux系统上运行使用</p>
+<pre><code><code>#!/usr/bin/env python3
+#-*- coding:UTF-8 -*-
+#欢迎关注微信公众号：点滴技术
+
+from netifaces import  ifaddresses ,AF_INET , AF_INET6
+import platform
+
+#定义获取ipv4信息的函数
+def get_ip_address(ifname):
+    #判断系统是否为Linux
+    if platform.system() == &quot;Linux&quot;:
+        try:
+            #返回ipv4地址信息
+            return ifaddresses(ifname)[AF_INET][0][&#39;addr&#39;]
+        except ValueError:
+            return None
+    #判断是否为Windows系统
+    elif platform.system() == &quot;Windows&quot;:
+        #调用函数get_key，获取到了网卡的键值
+        from Tools.win_get_key import get_key
+        key = get_key(ifname)
+        if not key:
+            return
+        else:
+            #返回ipv4地址信息
+            return ifaddresses(key)[AF_INET][0][&#39;addr&#39;]
+    # 判断是否为Windows系统
+    elif platform.system() == &#39;MacOS&#39;:
+        pass
+    else:
+        print(&#39;您的系统本程序暂时不支持，目前只支持Linux、Windows、MacOS&#39;)
+
+#定义获取ipv6信息的函数，与上面函数大体一致，不备注
+def get_ipv6_address(ifname):
+    if platform.system() == &quot;Linux&quot;:
+        try:
+         return ifaddresses(ifname)[AF_INET6][0][&#39;addr&#39;]
+        except ValueError:
+            return None
+    elif platform.system() == &quot;Windows&quot;:
+        from Tools.win_get_key import get_key
+        key = get_key(ifname)
+        if not key:
+            return
+        else:
+           return ifaddresses(key)[AF_INET6][0][&#39;addr&#39;]
+    elif platform.system() == &#39;MacOS&#39;:
+        pass
+    else:
+        print(&#39;您的系统本程序暂时不支持，目前只支持Linux、Windows、MacOS&#39;)
+
+if __name__ == &#39;__main__&#39;:
+    print(&#39;你的ipv4地址是：&#39; + get_ip_address(&#39;WLAN&#39;))
+    print(&#39;你的ipv6地址是：&#39; + get_ipv6_address(&#39;WLAN&#39;))
+    
+#Windows系统下返回的结果：
+    你的ipv4地址是：192.168.100.203
+    你的ipv6地址是：240e:64:5222:2000:5d68:304d:6133:ab45</code></pre>
+<p><strong>Linux系统下返回结果：</strong></p>
+<pre><code><code>...省略...
+...代码省略(同上)...
+
+if __name__ == &#39;__main__&#39;:
+    #切换到远程Linux环境下,修改如下：
+    print(&#39;你的ipv4地址是：&#39; + get_ip_address(&#39;ens32&#39;))
+    print(&#39;你的ipv6地址是：&#39; + get_ipv6_address(&#39;ens32&#39;))
+    
+ #Linux系统下返回的结果   
+    你的ipv4地址是：192.168.0.253
+    你的ipv6地址是：fe80::20c:29ff:fe5d:2f55%ens32</code></pre>
+<h1 id="碎碎语">4. 碎碎语</h1>
+<p>本次篇幅有点多，我是采用分解方式进行讲解，希望对大家有用，而不是一把把脚本贴上来。<br />
+我写的每一篇文章，希望对于网络攻城狮来说，能够如何运用python更好的提高工作效率和运维，而不仅仅局限在传统的局域网、广域网等，技术再迭代更新，个人的技能思维更需要贴合时代，共同进步。</p>
+<h2 id="官方参考链接">4.1 官方参考链接：</h2>
+<pre class="xml"><code>netifaces模块:
+https://pypi.org/project/netifaces/
+
+winreg模块:
+https://docs.python.org/3/library/winreg.html#exception-changed</code></pre>
+<hr />
+<p>如果喜欢的我的文章，欢迎关注我的公众号：点滴技术，扫码关注，不定期分享</p>
+<p><img src="./images/用Python获取计算机网卡信息1.png" /></p>
+<hr />
+<p>如果喜欢的我的文章，欢迎关注我的公众号：点滴技术，扫码关注，不定期分享</p>
+<p><img src="./images/用Python获取计算机网卡信息2.png" alt="点滴技术" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

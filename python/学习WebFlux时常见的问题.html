@@ -1,0 +1,206 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修学习WebFlux时常见的问题' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>学习WebFlux时常见的问题</center></div><div class='banquan'>原文出处:本文由博客园博主Java3y提供。<br/>
+原文连接:https://www.cnblogs.com/Java3y/p/12004801.html</div><br>
+    <h2 id="前言">前言</h2>
+<blockquote>
+<p>只有光头才能变强。</p>
+</blockquote>
+<blockquote>
+<p><strong>文本已收录至我的GitHub精选文章，欢迎Star</strong>：<a href="https://github.com/ZhongFuCheng3y/3y" class="uri">https://github.com/ZhongFuCheng3y/3y</a></p>
+</blockquote>
+<p>回顾一下上篇我对WebFlux的入门，如果没读过的同学建议读一下再来看本篇文章，上一篇文章花了我很多的心血~~</p>
+<ul>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzI4Njg5MDA5NA==&amp;mid=2247486015&amp;idx=1&amp;sn=c80cd5de903510567b86697d03c892ea&amp;chksm=ebd74b3edca0c228fb477587c5746b7867ff465f2a2e012cf6170300f70a2050f77bc6df4256&amp;token=1874664226&amp;lang=zh_CN#rd">外行人都能看懂的WebFlux，错过了血亏</a></li>
+</ul>
+<p>开局再来一张图，内容全靠编：</p>
+<p><img src="./images/学习WebFlux时常见的问题0.png" /></p>
+<p>这篇主要写写我初学时对WebFlux的一些疑问，不知道大家在看上一篇文章的时候有没有相应的问题呢？</p>
+<p>这次学WebFlux主要的动力是公司组内分享，写了一个PPT，有需要的同学在我的公众号（<strong>Java3y</strong>)下回复“PPT”即可获取。</p>
+<h2 id="一本来就能实现异步非阻塞为啥要用webflux">一、本来就能实现异步非阻塞，为啥要用WebFlux?</h2>
+<p>相信有过相关了解的同学都知道，<code>Servlet 3.1</code>就已经支持异步非阻塞了。</p>
+<p>我们可以以<strong>自维护线程池的方式实现异步</strong></p>
+<ul>
+<li>说白了就是Tomcat的线程处理请求，然后把这个请求分发到自维护的线程处理，Tomcat的请求线程返回</li>
+</ul>
+<pre><code><code>@WebServlet(value = &quot;/nonBlockingThreadPoolAsync&quot;, asyncSupported = true)
+public class NonBlockingAsyncHelloServlet extends HttpServlet {
+
+    private static ThreadPoolExecutor executor = new ThreadPoolExecutor(100, 200, 50000L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue&lt;&gt;(100));
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        AsyncContext asyncContext = request.startAsync();
+
+        ServletInputStream inputStream = request.getInputStream();
+
+        inputStream.setReadListener(new ReadListener() {
+            @Override
+            public void onDataAvailable() throws IOException {
+
+            }
+            @Override
+            public void onAllDataRead() throws IOException {
+                executor.execute(() -&gt; {
+                    new LongRunningProcess().run();
+
+                    try {
+                        asyncContext.getResponse().getWriter().write(&quot;Hello World!&quot;);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    asyncContext.complete();
+
+                });
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                asyncContext.complete();
+            }
+        });
+
+
+    }
+
+}</code></pre>
+<p>流程图如下：</p>
+<p><img src="./images/学习WebFlux时常见的问题1.png" alt="异步非阻塞的图" /></p>
+<p>上面的例子来源：</p>
+<ul>
+<li><a href="https://www.cnblogs.com/davenkin/p/async-servlet.html" class="uri">https://www.cnblogs.com/davenkin/p/async-servlet.html</a></li>
+</ul>
+<p>简单的方式，我们还可以使用JDK 8 提供的<code>CompletableFuture</code>类，这个类可以方便的处理异步调用。</p>
+<pre><code><code>protected void doGet(HttpServletRequest request,
+                     HttpServletResponse response) throws ServletException, IOException {
+    long t1 = System.currentTimeMillis();
+
+    // 开启异步
+    AsyncContext asyncContext = request.startAsync();
+
+    // 执行业务代码(doSomething 指的是处理耗费时间长的方法)
+    CompletableFuture.runAsync(() -&gt; doSomeThing(asyncContext,
+                                                 asyncContext.getRequest(), asyncContext.getResponse()));
+
+    System.out.println(&quot;async use:&quot; + (System.currentTimeMillis() - t1));
+}
+</code></pre>
+<p>要处理复杂的逻辑时，无论是回调或 CompletableFuture在<strong>代码编写上都会比较复杂</strong>（代码量大，不易于看懂)，而WebFlux使用的是Reactor响应式流，里边<strong>提供了一系列的API供我们去处理逻辑</strong>，就很方便了。</p>
+<p><img src="./images/学习WebFlux时常见的问题2.png" alt="回调地狱" /></p>
+<p>更重要的是：</p>
+<ul>
+<li><strong>WebFlux使用起来可以像使用SpringMVC一样，能够大大减小学习成本</strong></li>
+<li>WebFlux也可以使用<a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#webflux-fn">Functional Endpoints</a>方式编程，总的来说还是要比<code>回调/CompletableFuture</code>要简洁和易编写。</li>
+</ul>
+<p><img src="./images/学习WebFlux时常见的问题3.png" alt="无缝与SpringMVC的技术使用" /></p>
+<p>值得一提的是：</p>
+<blockquote>
+<p>如果Web容器使用的是Tomcat，那么就是使用Reactor<strong>桥接</strong>的servlet async api<br />
+如果Web容器是Netty，那么就是使用的Netty，天生支持Reactive</p>
+<p>官方的推荐是使用Netty跑WebFlux</p>
+</blockquote>
+<h2 id="二webflux性能的问题">二、WebFlux性能的问题</h2>
+<p>我们从上篇文章中就发现，浏览器去调用处理慢的接口，无论是该接口是同步的，还是说是异步的，<strong>返回到浏览器的时间都是一致的</strong>。</p>
+<ul>
+<li>同步：服务器接收到请求，一个线程会处理请求，直到该请求处理完成，返回给浏览器</li>
+<li>异步：服务器接收到请求，一个线程会处理请求，然后<strong>指派别的线程</strong>处理请求，请求的线程直接空闲出来。</li>
+</ul>
+<p>官网也说了：</p>
+<blockquote>
+<p>Reactive and non-blocking generally do not make applications run faster</p>
+</blockquote>
+<p>使用异步非阻塞的好处就是：</p>
+<blockquote>
+<p>The key expected benefit of reactive and non-blocking is the ability to scale with a small, fixed number of threads and less memory.That makes applications more resilient under load, because they scale in a more predictable way</p>
+</blockquote>
+<p>好处：<strong>只需要在程序内启动少量线程扩展，而不是水平通过集群扩展</strong>。异步能够<strong>规避文件IO/网络IO阻塞所带来的线程堆积</strong>。</p>
+<p>下面来看一下针对相同的请求量，同步阻塞和异步非阻塞的吞吐量和响应时长对比：</p>
+<p><img src="./images/学习WebFlux时常见的问题4.png" alt="吞吐量和RT对比" /></p>
+<p>注：</p>
+<ul>
+<li>请求量不大时(3000左右)，同步阻塞多线程处理请求，吞吐量和响应时长都没落后。（按道理WebFlux可能还要落后一些，毕竟多做了一步处理<code>--&gt;</code>将请求委派给另一个线程去做处理</li>
+<li>请求量大时，线程数不够用，同步阻塞(MVC)只能等待，所以吞吐量要下降，响应时长要提高(排队)。</li>
+</ul>
+<blockquote>
+<p><strong>Spring WebFlux在应对高并发的请求时，借助于异步IO，能够以少量而稳定的线程处理更高吞吐量的请求</strong>，尤其是当请求处理过程如果因为业务复杂或IO阻塞等导致处理时长较长时，对比更加显著。</p>
+</blockquote>
+<h2 id="三webflux实际应用">三、WebFlux实际应用</h2>
+<p><strong>WebFlux需要非阻塞的业务代码</strong>，如果阻塞，需要自己开线程池去运行。WebFlux什么场景下可以替换SpringMVC呢？</p>
+<ul>
+<li><strong>想要内存和线程数较少的场景</strong></li>
+<li><strong>网络较慢或者IO会经常出现问题的场景</strong></li>
+</ul>
+<blockquote>
+<p>SpringMVC和WebFlux更多的是互补关系，而不是替换。阻塞的场景该SpringMVC还是SpringMVC，并不是WebFlux出来就把SpringMVC取代了。</p>
+</blockquote>
+<p><img src="./images/学习WebFlux时常见的问题5.png" alt="SpringMVC和WebFlux" /></p>
+<p>如果想要<strong>发挥出WebFlux的性能</strong>，需要从Dao到Service，全部都要是Mono和Flux，目前官方的数据层Reactive框架只支持Redis，Mongo等几个，<strong>没有JDBC</strong>。</p>
+<p>目前对于<strong>关系型数据库</strong>，<a href="https://pivotal.io/">Pivotal</a>团队开源出<a href="http://r2dbc.io/">R2DBC</a>（Reactive Relational Database Connectivity），其GitHub地址为：</p>
+<ul>
+<li><a href="https://github.com/r2dbc" class="uri">https://github.com/r2dbc</a></li>
+</ul>
+<p>目前R2DBC支持三种数据源：</p>
+<ul>
+<li><a href="https://github.com/r2dbc/r2dbc-postgresql">PostgreSQL</a></li>
+<li><a href="https://github.com/r2dbc/r2dbc-h2">H2</a></li>
+<li><a href="https://github.com/r2dbc/r2dbc-mssql">Microsoft SQL Server</a></li>
+</ul>
+<p>总的来说，因为WebFlux是响应式的，要想发挥出WebFlux的性能就得将代码全改成响应式的，而JDBC目前是没支持的(至少MySQL还没支持)，而响应式的程序不好调试和编写（相对于同步的程序），所以现在WebFlux的应用场景还是相对较少的。</p>
+<p>所以，我认为在<strong>网关层</strong>用WebFlux比较合适（本来就是网络IO较多的场景）</p>
+<p>现在再回来看Spring官网的图，是不是就更亲切了？</p>
+<p><img src="./images/学习WebFlux时常见的问题6.png" alt="Spring官网介绍图" /></p>
+<p>参考资料：</p>
+<ul>
+<li><a href="https://blog.lovezhy.cc/2018/12/29/webflux%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98/">[https://blog.lovezhy.cc/2018/12/29/webflux%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98/](https://blog.lovezhy.cc/2018/12/29/webflux性能问题/)</a></li>
+</ul>
+<h2 id="四有必要学functional-endpoints-编程模式吗">四、有必要学Functional Endpoints 编程模式吗？</h2>
+<p>前面也提到了，WebFlux提供了两种模式供我们使用，一种是SpringMVC 注解的，一种是叫<code>Functional Endpoints</code>的</p>
+<blockquote>
+<p>Lambda-based, lightweight, and functional programming model</p>
+</blockquote>
+<p>总的来看，就是配合Lambda和流式编程去使用WebFlux。如果你问我：有必要学吗？其实我觉得可以先放着。<strong>我认为</strong>现在WebFlux的应用场景还是比较少，等真正用到的时候再学也不是什么难事，反正就是学些API嘛~</p>
+<p><strong>有Lambda表达式和Stream流的基础，等真正用到的时候再学也不是啥问题</strong>~</p>
+<p>以下是通过注解的方式来使用WebFlux的示例：</p>
+<p><img src="./images/学习WebFlux时常见的问题7.png" alt="通过注解的方式来使用WebFlux" /></p>
+<p>以下是通过<code>Functional Endpoints</code>的方式来使用WebFlux的示例：</p>
+<p>路由分发器，相当于注解的GetMapping...</p>
+<p><img src="./images/学习WebFlux时常见的问题8.png" alt="路由分发器" /></p>
+<p>UserHandler，相当于UserController：</p>
+<p><img src="./images/学习WebFlux时常见的问题9.png" alt="UserHanler" /></p>
+<h2 id="五webflux的实际使用场景">五、WebFlux的实际使用场景</h2>
+<p>总的来说，因为WebFlux是响应式的，要想发挥出WebFlux的性能就得将代码全改成响应式的，而JDBC目前是没支持的(至少MySQL还没支持)，而响应式的程序不好调试和编写（相对于同步的程序），老项目也不太可能把依赖直接升上Spring5.0，所以现在WebFlux的应用场景还是相对较少的(个人觉得)。</p>
+<p>网关层用WebFlux比较合适（本来就是网络IO较多的场景）</p>
+<ul>
+<li>SpringCloud Gateway是基于WebFlux实现的</li>
+</ul>
+<h3 id="最后">最后</h3>
+<p>这次学WebFlux主要的动力是公司组内分享，写了一个PPT，有需要的同学在我的公众号（<strong>Java3y</strong>)下回复“PPT”即可获取。</p>
+<blockquote>
+<p><strong>本已收录至我的GitHub精选文章，欢迎Star</strong>：<a href="https://github.com/ZhongFuCheng3y/3y" class="uri">https://github.com/ZhongFuCheng3y/3y</a></p>
+<p>乐于输出<strong>干货</strong>的Java技术公众号：<strong>Java3y</strong>。公众号内<strong>有300多篇原创</strong>技术文章、海量视频资源、精美脑图，<strong>关注即可获取！</strong></p>
+</blockquote>
+<p><img src="./images/学习WebFlux时常见的问题10.png" alt="转发到朋友圈是对我最大的支持！" /></p>
+<p>非常感谢<strong>人才</strong>们能看到这里，如果这个文章写得还不错，觉得「三歪」我<strong>有点东西</strong>的话 <strong>求点赞</strong> <strong>求关注️</strong> <strong>求分享👥</strong> <strong>求留言💬</strong> 对暖男我来说真的 <strong>非常有用</strong>！！！</p>
+<p>创作不易，各位的支持和认可，就是我创作的最大动力，我们下篇文章见！</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

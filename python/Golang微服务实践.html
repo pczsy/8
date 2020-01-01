@@ -1,0 +1,254 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Golang微服务实践' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Golang微服务实践</center></div><div class='banquan'>原文出处:本文由博客园博主我是码客提供。<br/>
+原文连接:https://www.cnblogs.com/makelu/p/12080900.html</div><br>
+    <style><!--
+p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px '.PingFang SC'}
+p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #dca10d}
+p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; min-height: 14.0px}
+p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'}
+span.s1 {font: 12.0px '.PingFang SC'; text-decoration: underline ; color: #000000}
+span.s2 {font: 12.0px 'Helvetica Neue'; text-decoration: underline}
+span.s3 {text-decoration: underline ; color: #000000}
+span.s4 {font: 12.0px '.PingFang SC'; color: #000000}
+span.s5 {text-decoration: underline}
+span.s6 {font: 12.0px '.PingFang SC'}
+--></style>
+<h2>背景</h2>
+<p>在之前的文章<a title="漫谈微服务" href="https://www.cnblogs.com/makelu/p/11005736.html" target="_blank">《漫谈微服务》</a>我已经简单的介绍过微服务，微服务特性是轻量级跨平台和跨语言的服务，也列举了比较了集中微服务通信的手段的利弊，本文将通过RPC通信的方式实现一个增删查Redis的轻量级微服务示例，大部分内容翻译自文章<a title="Microservice in golang, using Redis and gRPC" href="https://medium.com/@felipe.infantino.moreno/microservice-in-golang-using-redis-and-grpc-865587aa260c" target="_blank">《Microservice in golang, using Redis and gRPC》</a>，中间加上自己的实践和理解。</p>
+<p>&nbsp;</p>
+<h2>实验环境</h2>
+<p>Mac OS</p>
+<p>go version go1.12.4 darwin/amd64</p>
+<p>Docker version 18.09.2, build 6247962</p>
+<p>&nbsp;</p>
+<h2>代码仓库</h2>
+<p><a title="https://github.com/felipeinfantino/microservice-golang" href="https://github.com/felipeinfantino/microservice-golang" target="_blank">https://github.com/felipeinfantino/microservice-golang</a></p>
+<p>&nbsp;</p>
+<h2>微服务实践</h2>
+<h3>gRPC代码生成</h3>
+<p>选用gRPC的原因是因为gRPC本身是一款开源且高性能的RPC框架，支持跨平台，支持golang，java，c，C++ 等10多种编程语言。因为我们要实现一个通过gRPC通信的基于Redis 数据库的增删改微服务，所以我们首先需要定义一个gRPC的通信描述文件server.proto：</p>
+<div class="cnblogs_Highlighter">
+<pre><code>syntax = "proto3";
+
+package proto;
+
+// Server Requests
+message SetRequest{
+    string key = 1;
+    string value = 2;
+}
+
+message GetRequest{
+    string key = 1;
+}
+
+message DeleteRequest{
+    string key = 1;
+}
+
+// Server Response
+message ServerResponse{
+    bool success = 1;
+    string value = 2;
+    string error = 3;
+}
+
+// Define service
+service BasicService{
+    rpc Set(SetRequest) returns (ServerResponse);
+    rpc Get(GetRequest) returns (ServerResponse);
+    rpc Delete(DeleteRequest) returns (ServerResponse);
+}　　</pre>
+</div>
+<p class="p1">&nbsp;</p>
+<p class="p1"><span style="font-size: 14px;">想要将上面的server.proto文件转换为golang代码需要安装protocol buffer的编译器：</span></p>
+<p class="p1"><span style="font-size: 14px;">1.下载<a href="https://github.com/protocolbuffers/protobuf/releases/tag/v3.11.0">https://github.com/protocolbuffers/protobuf/releases/tag/v3.11.0</a>中的<span class="pl-2 flex-auto min-width-0 text-bold"><a class="d-flex flex-items-center min-width-0" href="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.0/protoc-3.11.0-osx-x86_64.zip" rel="nofollow">protoc-3.11.0-osx-x86_64.zip</a>包。</span></span></p>
+<p class="p1"><span class="pl-2 flex-auto min-width-0 text-bold" style="font-size: 14px;">2.解压拷贝里面的二进制protoc及google子目录到该示例工程目录下。</span></p>
+<p class="p1"><span style="font-size: 14px;"><span class="pl-2 flex-auto min-width-0 text-bold">3.通过上面定义的server.proto 生成golang代码,可以看到proto目录下生成了</span><span class="s1" style="font-size: 15px;">service.pb.go文件。</span></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>./protoc --proto_path=proto --proto_path=google --go_out=plugins=grpc:proto service.proto</pre>
+</div>
+<p class="p1"><span style="font-size: 14px;">如果还不行可以参考protocol buffer官方安装详细步骤&nbsp;<a href="https://github.com/protocolbuffers/protobuf">https://github.com/protocolbuffers/protobuf</a></span></p>
+<p class="p1"><span style="font-size: 14px;">工程代码目录结构如下：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;">.
+├── Dockerfile
+├── README.md
+├── database
+│&nbsp;&nbsp; ├── database.model.go
+│&nbsp;&nbsp; ├── errors.go
+│&nbsp;&nbsp; └── redis.go
+├── docker-compose.yml
+├── go.mod
+├── go.sum
+├── google
+│&nbsp;&nbsp; └── protobuf
+│&nbsp;&nbsp;     ├── any.proto
+│&nbsp;&nbsp;     ├── api.proto
+│&nbsp;&nbsp;     ├── compiler
+│&nbsp;&nbsp;     │&nbsp;&nbsp; └── plugin.proto
+│&nbsp;&nbsp;     ├── descriptor.proto
+│&nbsp;&nbsp;     ├── duration.proto
+│&nbsp;&nbsp;     ├── empty.proto
+│&nbsp;&nbsp;     ├── field_mask.proto
+│&nbsp;&nbsp;     ├── source_context.proto
+│&nbsp;&nbsp;     ├── struct.proto
+│&nbsp;&nbsp;     ├── timestamp.proto
+│&nbsp;&nbsp;     ├── type.proto
+│&nbsp;&nbsp;     └── wrappers.proto
+├── main
+├── main.go
+├── proto
+│&nbsp;&nbsp; ├── service.pb.go
+│&nbsp;&nbsp; └── service.proto
+└── protoc
+</pre>
+</div>
+<h3>Redis服务</h3>
+<div class="cnblogs_Highlighter">
+<pre><code>package database
+
+// Database abstraction
+type Database interface {
+	Set(key string, value string) (string, error)
+	Get(key string) (string, error)
+	Delete(key string) (string, error)
+}
+
+// Factory looks up acording to the databaseName the database implementation
+func Factory(databaseName string) (Database, error) {
+	switch databaseName {
+	case "redis":
+		return createRedisDatabase()
+	default:
+		return nil, &amp;NotImplementedDatabaseError{databaseName}
+	}
+}　　</pre>
+</div>
+<p>定义了一个Database的接口，里面含有增删查三种方法，只要实现了这三种方法的数据库都可以作为该微服务的数据库，所以提供一个工厂函数供用户后续扩展，目前只实现了Redis一种存储。Redis的实现直接引用了开源第三方Redis操作用github/go-redis/redis 然后封装了上面增删查三种方法。这里就不展开讲redis实现了。</p>
+<h2>主程序</h2>
+<p>然后就是我们的golang主程序，程序逻辑为开启gRPC服务端，提供增删查三个接口及响应。代码如下：</p>
+<div class="cnblogs_Highlighter">
+<pre><code>func main() {
+	listener, err := net.Listen("tcp", ":4040")
+	if err != nil {
+		panic(err) // The port may be on use
+	}
+	srv := grpc.NewServer()
+	databaseImplementation := os.Args[1]
+	db, err = database.Factory(databaseImplementation)
+	if err != nil {
+		panic(err)
+	}
+	proto.RegisterBasicServiceServer(srv, &amp;server{})
+	fmt.Println("Prepare to serve")
+	if e := srv.Serve(listener); e != nil {
+		panic(err)
+	}
+}
+func (s *server) Set(ctx context.Context, in *proto.SetRequest) (*proto.ServerResponse, error) {
+	value, err := db.Set(in.GetKey(), in.GetValue())
+	return generateResponse(value, err)
+}
+func (s *server) Get(ctx context.Context, in *proto.GetRequest) (*proto.ServerResponse, error) {
+	value, err := db.Get(in.GetKey())
+	return generateResponse(value, err)
+}
+func (s *server) Delete(ctx context.Context, in *proto.DeleteRequest) (*proto.ServerResponse, error) {
+	value, err := db.Delete(in.GetKey())
+	return generateResponse(value, err)
+}
+func generateResponse(value string, err error) (*proto.ServerResponse, error) {
+	if err != nil {
+		return &amp;proto.ServerResponse{Success: false, Value: value, Error: err.Error()}, nil
+	}
+	return &amp;proto.ServerResponse{Success: true, Value: value, Error: ""}, nil
+}
+</pre>
+</div>
+<p>&nbsp;</p>
+<h2>启动服务</h2>
+<p>为了测试方便用docker-compose定义了我们的微服务，对docker-compose不太熟悉的朋友可以简单的看下我之前写的《<a title="利用Docker Compose快速搭建本地测试环境" href="https://www.cnblogs.com/makelu/p/11052908.html" target="_blank">利用Docker Compose快速搭建本地测试环境</a>》这篇文章。该服务的docker-compose.yaml内容如下：</p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:html;gutter:true;">version: "3.7"
+
+services: 
+
+  server:
+    build: .
+    ports:
+      - "4040:4040"
+    depends_on: 
+      - redis
+  
+  redis:
+    container_name: redis_container
+    image: redis　　</pre>
+</div>
+<p>可以看出我们通过暴露4040端口提供我们的服务，服务依赖于redis，所以redis服务会在我们服务之前以容器的方式被拉起来。微服务的启动命令可以从Dockerfile中获取：</p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:html;gutter:true;">FROM golang:latest 
+RUN mkdir /app 
+ADD . /app/ 
+WORKDIR /app 
+EXPOSE 4040
+CMD ["go", "run", "main.go", "redis"]</pre>
+</div>
+<p>拉起服务：　　</p>
+<div class="cnblogs_Highlighter">
+<pre><code>docker-compose up
+Starting redis_container ... done
+Starting microservice-golang_server_1 ... done
+Attaching to redis_container, microservice-golang_server_1
+redis_container | 1:C 22 Dec 2019 13:11:10.761 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+redis_container | 1:C 22 Dec 2019 13:11:10.761 # Redis version=5.0.7, bits=64, commit=00000000, modified=0, pid=1, just started
+redis_container | 1:C 22 Dec 2019 13:11:10.761 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+redis_container | 1:M 22 Dec 2019 13:11:10.763 * Running mode=standalone, port=6379.
+redis_container | 1:M 22 Dec 2019 13:11:10.763 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.
+redis_container | 1:M 22 Dec 2019 13:11:10.763 # Server initialized
+redis_container | 1:M 22 Dec 2019 13:11:10.763 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.
+redis_container | 1:M 22 Dec 2019 13:11:10.764 * DB loaded from disk: 0.000 seconds
+redis_container | 1:M 22 Dec 2019 13:11:10.764 * Ready to accept connections
+server_1  | Prepare to serve
+</pre>
+</div>
+<p>通过docker ps看到启动了两个容器，一个是redis，一个是我们的主程序：</p>
+<p><img src="./images/Golang微服务实践0.png" alt="" /></p>
+<h2>测试</h2>
+<p>测试的客户端用的gRPC的图形化工具BloomRPC，安装方法比较简单：brew cask install bloomrpc</p>
+<p>然后导入我们的gRPC定义文件server.proto就能点击测试：</p>
+<p><img src="./images/Golang微服务实践1.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>总结</h2>
+<p>本文从工程实践的角度带读者实现了一个通过gRPC通信的增删查Redis的微服务，希望对读者有所启发。</p>
+<p>　　</p>
+<style><!--
+p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 11.0px Menlo; color: #000000}
+span.s1 {font-variant-ligatures: no-common-ligatures}
+--></style>
+<style><!--
+p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 11.0px Menlo; color: #000000}
+span.s1 {font-variant-ligatures: no-common-ligatures}
+--></style>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

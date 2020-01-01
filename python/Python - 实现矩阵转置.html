@@ -1,0 +1,128 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python - 实现矩阵转置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python - 实现矩阵转置</center></div><div class='banquan'>原文出处:本文由博客园博主骑着螞蟻流浪提供。<br/>
+原文连接:https://www.cnblogs.com/mayi0312/p/11421894.html</div><br>
+    <p>有个朋友提出了一个问题：手头上现在有一个二维列表，比如[[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]，现在要把该二维列表变成为[[1, 4, 7, 10], [2, 5, 8, 11], [3, 6, 9, 12]]。</p>
+<p>其实不动脑筋的话，用二重循环很容易写出来：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">! /usr/bin/env python3</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -*- coding:utf-8 -*-</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> Author   : mayi</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Blog     : http://www.cnblogs.com/mayi0312/</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Date     : 2019/4/26</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Name     : test01</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Software : PyCharm</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Note     : 用于实现实现矩阵（二重列表）转置</span>
+
+
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> trans(l):
+    a </span>= [[] <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> l[0]]
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> l:
+        </span><span style="color: #0000ff;">for</span> j <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(len(i)):
+            a[j].append(i[j])
+
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> a
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 主函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> main():
+    l1 </span>= [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12<span style="color: #000000;">]]
+
+    l2 </span>=<span style="color: #000000;"> trans(l1)
+    </span><span style="color: #0000ff;">print</span>(l1) <span style="color: #008000;">#</span><span style="color: #008000;"> [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]</span>
+    <span style="color: #0000ff;">print</span>(l2) <span style="color: #008000;">#</span><span style="color: #008000;"> [[1, 4, 7, 10], [2, 5, 8, 11], [3, 6, 9, 12]]</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 入口函数</span>
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    main()</span></pre>
+</div>
+<p>然而不管怎么看这种代码都很丑。</p>
+<p><img src="./images/Python - 实现矩阵转置0.png" alt="" /></p>
+<p>如上图：这种转置矩阵的即时感是怎么回事？</p>
+<p>没错，这个问题的本质就是求解转置矩阵。于是就简单了，还是用个不动脑筋的办法：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">! /usr/bin/env python3</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -*- coding:utf-8 -*-</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> Author   : mayi</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Blog     : http://www.cnblogs.com/mayi0312/</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Date     : 2019/4/26</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Name     : test01</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Software : PyCharm</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Note     : 用于实现实现矩阵（二重列表）转置</span>
+
+
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> trans(l):
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(len(l)):
+        </span><span style="color: #0000ff;">for</span> j <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(i):
+            l[i][j], l[j][i] </span>=<span style="color: #000000;"> l[j][i], l[i][j]
+
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> l
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 主函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> main():
+    l1 </span>= [[1, 2, 3], [4, 5, 6], [7, 8, 9<span style="color: #000000;">]]
+
+    l2 </span>=<span style="color: #000000;"> trans(l1)
+    </span><span style="color: #0000ff;">print</span>(l1) <span style="color: #008000;">#</span><span style="color: #008000;"> [[1, 2, 3], [4, 5, 6], [7, 8, 9]]</span>
+    <span style="color: #0000ff;">print</span>(l2) <span style="color: #008000;">#</span><span style="color: #008000;"> [[1, 4, 7], [2, 5, 8], [3, 6, 9]]</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 入口函数</span>
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    main()</span></pre>
+</div>
+<p>其实上面代码还是有点bug，看起来是好用的，然而用这种方法矩阵要求行列长度相同才行。</p>
+<p>最后，我们想起了zip。zip的本质就是这样的，取出列表中的对应位置的元素，组成新列表，正是这个题目要做的。</p>
+<p>所以最终，这个题目（转置矩阵）的Python解法就相当奇妙了：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">! /usr/bin/env python3</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -*- coding:utf-8 -*-</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> Author   : mayi</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Blog     : http://www.cnblogs.com/mayi0312/</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Date     : 2019/4/26</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Name     : test01</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Software : PyCharm</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Note     : 用于实现实现矩阵（二重列表）转置</span>
+
+
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> trans(l):
+    l </span>= zip(*<span style="color: #000000;">l)
+    l </span>= [list(i) <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> l]
+
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> l
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 主函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> main():
+    l1 </span>= [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12<span style="color: #000000;">]]
+
+    l2 </span>=<span style="color: #000000;"> trans(l1)
+    </span><span style="color: #0000ff;">print</span>(l1) <span style="color: #008000;">#</span><span style="color: #008000;"> [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]</span>
+    <span style="color: #0000ff;">print</span>(list(l2)) <span style="color: #008000;">#</span><span style="color: #008000;"> [[1, 4, 7, 10], [2, 5, 8, 11], [3, 6, 9, 12]]</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 入口函数</span>
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    main()</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

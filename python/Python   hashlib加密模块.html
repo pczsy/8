@@ -1,0 +1,108 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python   hashlib加密模块' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python   hashlib加密模块</center></div><div class='banquan'>原文出处:本文由博客园博主Hyyyy提供。<br/>
+原文连接:https://www.cnblogs.com/Hybb/p/11493206.html</div><br>
+    <h1 id="hashlib模块">hashlib模块</h1>
+<h2 id="简介">简介：</h2>
+<p><code>hashlib</code>模块是一个提供了字符串加密功能的模块，包含MD5和SHA的加密算法。具体的加密支持有：<br />
+<code>MD5</code>,<code>sha1</code>,<code>sha224</code>,<code>sha256</code>, <code>sha384</code>, <code>sha512</code>, <code>blake2b</code>，<code>blake2s</code>，<code>sha3_224</code>, <code>sha3_256</code>, <code>sha3_384</code>, <code>sha3_512</code>, <code>shake_128</code>, <code>shake_256</code><br />
+该模块在用户登录认证方面应用广泛，对文本加密也很常见。文件和文件之间的校验。该模块调用简单，接下来来看看。</p>
+<h2 id="基本调用">基本调用</h2>
+<ul>
+<li>基本步骤，加密算法使用方法都一样的。以MD5加密为例：
+<ol>
+<li>创建一个MD5加密对象</li>
+<li>对字符串进行转换为byte后，进行算法加密</li>
+<li>进行16进制的显示</li>
+</ol></li>
+<li>代码：</li>
+</ul>
+<pre><code><code># 导入hashlib模块
+import hashlib
+
+# 实例化一个MD5的加密对象
+md5 = hashlib.md5()
+# 调用MD5对象的update方法，进行字符串加密（这里要传入的是编码后字节）
+md5.update(&#39;hello&#39;.encode(&#39;utf8&#39;))
+# 返回一个双倍长度，仅包含16进制数字的字符串
+ret = md5.hexdigest()
+# 打印加密返回后的字符串
+print(ret)</code></pre>
+<p><strong>可以创建的加密算法有：md5,sha1, sha224, sha256, sha384, sha512</strong></p>
+<pre><code><code># 实例化一个MD5加密对象
+md5 = hashlib.md5()
+# 实例化一个sha1加密对象
+sha1 = hashlib.sha1()
+# 实例化一个sha224加密对象
+sha224 = hashlib.sha224()
+# 实例化一个sha256加密对象
+sha256 = hashlib.sha256()</code></pre>
+<p><strong>如果数据量较大，可以分块多次调用update()，最后的计算结果都是一样的</strong></p>
+<pre><code><code>md5 = hashlib.md5()
+md5.update(&#39;how to use md5 in &#39;.encode(&#39;utf8&#39;))
+md5.update(&#39;python hashlib?&#39;.encode(&#39;utf8&#39;))
+print(md5.hexdigest())
+
+new_md5 = hashlib.md5()
+new_md5.update(&#39;how to use md5 in python hashlib?&#39;.encode(&#39;utf8&#39;))
+print(new_md5.hexdigest())
+
+# 结果
+d26a53750bc40b38b65a520292f69306
+d26a53750bc40b38b65a520292f69306</code></pre>
+<p>​</p>
+<h2 id="加盐">加盐</h2>
+<blockquote>
+<p>注：但是通常这样的密码就相当于一个固定的加密字符串，如果有的人专门写一个这样的字典，里面存储了各种字符串组合及对应的MD5加密字符串，然后去暴力测试，这样也就有可能计算出我们真正的密码，所以，要确保存储的用户口令不是那些已经被计算出来的常用口令的MD5，这一方法通过对原始口令加一个复杂字符串来实现，俗称“加盐”：</p>
+</blockquote>
+<p>代码：</p>
+<pre><code><code># 没有加盐的字符串加密
+new_md5 = hashlib.md5()
+new_md5.update(&#39;how to use md5 in python hashlib?&#39;.encode(&#39;utf8&#39;))
+print(new_md5.hexdigest())
+
+# 加盐以后的字符串加密
+new_md5 = hashlib.md5(&#39;我的梦想是冲出地球！&#39;.encode(&#39;utf8&#39;))  # 加盐
+new_md5.update(&#39;how to use md5 in python hashlib?&#39;.encode(&#39;utf8&#39;))
+print(new_md5.hexdigest())
+
+# 结果
+d26a53750bc40b38b65a520292f69306
+52841008c37295e291f426bbabe56f15</code></pre>
+<h3 id="动态加盐">动态加盐</h3>
+<pre><code><code># 意义就是在加盐的地方使用一个变量比如，用户名
+user = input(&#39;user&gt;&gt;: &#39;)
+pwd = input(&#39;pwd&gt;&gt;: &#39;)
+
+md5 = hashlib.md5(&#39;{0}的梦想是去全世界各种地方逛逛&#39;.format(user).encode(&#39;utf8&#39;))
+md5.update(pwd.encode(&#39;utf8&#39;)) # 更新密码
+print(md5.hexdigest())</code></pre>
+<h2 id="校验文件时由于文件过大计算md5值的方法">校验文件时，由于文件过大，计算MD5值的方法：</h2>
+<pre><code><code>def file_get_md5(file):
+    md5 = hashlib.md5()
+    with open(file, mode=&#39;rb&#39;) as fp:  # 打开文件
+        for line in fp:  # 循环
+            md5.update(line)  # 每次更新
+    return md5.hexdigest()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

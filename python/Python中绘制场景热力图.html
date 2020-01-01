@@ -1,0 +1,67 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python中绘制场景热力图' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python中绘制场景热力图</center></div><div class='banquan'>原文出处:本文由博客园博主陶婷提供。<br/>
+原文连接:https://www.cnblogs.com/taotingz/p/11309333.html</div><br>
+    <p>我们在做诸如人群密集度等可视化的时候，可能会考虑使用热力图，在Python中能很方便地绘制热力图。</p>
+<p>下面以识别图片中的行人，并绘制热力图为例进行讲解。</p>
+<p><span style="color: #ff0000;">步骤1：首先识别图像中的人，得到bounding box的中心坐标。识别方法多样化，坐标也可以自己定义。</span></p>
+<p><span style="color: #ff0000;">步骤2：将所有中心坐标放入一个list类型的变量data中，即data = [[x1,y1] [x2,y2] &hellip;]</span></p>
+<p><span style="color: #ff0000;">步骤3：绘制热力图，并将热力图加权叠加到原图上。</span></p>
+<p>&nbsp;</p>
+<p>需要import的包：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> cv2
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> numpy as np
+</span><span style="color: #0000ff;">from</span> PIL <span style="color: #0000ff;">import</span><span style="color: #000000;"> Image
+</span><span style="color: #0000ff;">from</span> pyheatmap.heatmap <span style="color: #0000ff;">import</span><span style="color: #000000;"> HeatMap
+</span><span style="color: #0000ff;">import</span> matplotlib.pyplot as plt</pre>
+</div>
+<p>根据识别的结果得到data的值，传入以下apply_heatmap(image,data)绘制热力图;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> apply_heatmap(image,data):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">image是原图，data是坐标</span><span style="color: #800000;">'''</span>
+    <span style="color: #800000;">'''</span><span style="color: #800000;">创建一个新的与原图大小一致的图像，color为0背景为黑色。这里这样做是因为在绘制热力图的时候如果不选择背景图，画出来的图与原图大小不一致（根据点的坐标来的），导致无法对热力图和原图进行加权叠加，因此，这里我新建了一张背景图。</span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    background </span>= Image.new(<span style="color: #800000;">"</span><span style="color: #800000;">RGB</span><span style="color: #800000;">"</span>, (image.shape[1], image.shape[0]), color=<span style="color: #000000;">0)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 开始绘制热度图</span>
+    hm =<span style="color: #000000;"> HeatMap(data)
+    hit_img </span>= hm.heatmap(base=background, r = 100) <span style="color: #008000;">#</span><span style="color: #008000;"> background为背景图片，r是半径，默认为10</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> ~ plt.figure()</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> ~ plt.imshow(hit_img)</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> ~ plt.show()</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">hit_img.save('out_' + image_name + '.jpeg')</span>
+    hit_img = cv2.cvtColor(np.asarray(hit_img),cv2.COLOR_RGB2BGR)<span style="color: #008000;">#</span><span style="color: #008000;">Image格式转换成cv2格式</span>
+    overlay =<span style="color: #000000;"> image.copy()
+    alpha </span>= 0.5 <span style="color: #008000;">#</span><span style="color: #008000;"> 设置覆盖图片的透明度</span>
+    cv2.rectangle(overlay, (0, 0), (image.shape[1], image.shape[0]), (255, 0, 0), -1) <span style="color: #008000;">#</span><span style="color: #008000;"> 设置蓝色为热度图基本色蓝色</span>
+    image = cv2.addWeighted(overlay, alpha, image, 1-alpha, 0) <span style="color: #008000;">#</span><span style="color: #008000;"> 将背景热度图覆盖到原图</span>
+    image = cv2.addWeighted(hit_img, alpha, image, 1-alpha, 0) <span style="color: #008000;">#</span><span style="color: #008000;"> 将热度图覆盖到原图</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>网站上随意找一张图片进行实验：</p>
+<p>原图如下：</p>
+<p><img src="./images/Python中绘制场景热力图0.png" alt="" /></p>
+<p>结果如下：</p>
+<p><img src="./images/Python中绘制场景热力图1.png" alt="" /></p>
+<p>可视化效果可以调节，如：通过调节hm.heatmap(base=background, r = 100)中的r即可调节热力点的半径大小。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

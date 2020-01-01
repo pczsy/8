@@ -1,0 +1,925 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修基于springboot的web项目最佳实践' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>基于springboot的web项目最佳实践</center></div><div class='banquan'>原文出处:本文由博客园博主赵孤鸿提供。<br/>
+原文连接:https://www.cnblogs.com/zhaoguhong/p/12008499.html</div><br>
+    <p><code>springboot</code> 可以说是现在做<code>javaweb</code>开发最火的技术，我在基于<code>springboot</code>搭建项目的过程中，踩过不少坑，发现整合框架时并非仅仅引入<code>starter</code> 那么简单。</p>
+<p>要做到简单，易用，扩展性更好，还需做不少二次封装，于是便写了个基于<code>springboot</code>的web项目脚手架，对一些常用的框架进行整合，并进行了简单的二次封装。</p>
+<p>项目名<code>baymax</code>取自动画片超能陆战队里面的大白，大白是一个医护充气机器人，希望这个项目你能像大白一样贴心，可以减少你的工作量。</p>
+<p><strong>github</strong> https://github.com/zhaoguhong/baymax</p>
+<h2 id="web"><span id="web">web</span></h2>
+<p>web模块是开发web项目必不可少的一个模块</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>对于前后端分离项目，推荐直接使用<code>@RestController</code>注解<br />
+需要注意的是，<strong>不建议直接用RequstMapping注解并且不指定方法类型的写法</strong>，推荐使用<code>GetMaping</code>或者<code>PostMaping</code>之类的注解</p>
+<pre class="java"><code>@SpringBootApplication
+@RestController
+public class BaymaxApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(BaymaxApplication.class, args);
+  }
+
+  @GetMapping(&quot;/test&quot;)
+  public String test() {
+    return &quot;hello baymax&quot;;
+  }
+}</code></pre>
+<h2 id="单元测试"><span id="test">单元测试</span></h2>
+<p>spring 对单元测试也提供了很好的支持</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>添加 <code>@RunWith(SpringRunner.class)</code> 和 <code>@SpringBootTest</code> 即可进行测试</p>
+<pre class="java"><code>@RunWith(SpringRunner.class)
+@SpringBootTest
+public class WebTest {
+}</code></pre>
+<p>对于<code>Controller</code>层的接口，可以直接用<code>MockMvc</code>进行测试</p>
+<pre class="java"><code>@RunWith(SpringRunner.class)
+@SpringBootTest
+public class WebTest {
+
+  @Autowired
+  private WebApplicationContext context;
+  private MockMvc mvc;
+
+  @Before
+  public void setUp() throws Exception {
+    mvc = MockMvcBuilders.webAppContextSetup(context).build();
+  }
+
+  @Test
+  public void testValidation() throws Exception {
+    mvc.perform(MockMvcRequestBuilders.get(&quot;/test&quot;))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.content().string(&quot;hello baymax&quot;));
+  }
+
+}</code></pre>
+<h2 id="actuator应用监控"><span id="actuator">actuator应用监控</span></h2>
+<p>actuator 是 spring 提供的应用监控功能，常用的配置项如下</p>
+<pre><code><code># actuator端口 默认应用端口
+management.server.port=8082
+# 加载所有的端点 默认只加载 info,health
+management.endpoints.web.exposure.include=*
+# actuator路径前缀，默认 /actuator
+management.endpoints.web.base-path=/actuator</code></pre>
+<h2 id="lombok"><span id="lombok">lombok</span></h2>
+<p>lombok可以在编译期生成对应的java代码，使代码看起来更简洁，同时减少开发工作量</p>
+<p>用lombok后的实体类</p>
+<pre class="java"><code>@Data
+public class Demo {
+  private Long id;
+  private String userName;
+  private Integer age;
+}</code></pre>
+<p>需要注意，<code>@Data</code> 包含 <code>@ToString、@Getter、@Setter、@EqualsAndHashCode、@RequiredArgsConstructor</code>，<strong>RequiredArgsConstructor 并不是无参构造</strong>，无参构造的注解是<code>NoArgsConstructor</code></p>
+<p><code>RequiredArgsConstructor</code> 会生成 会生成一个包含常量（final），和标识了@NotNull的变量 的构造方法</p>
+<h2 id="baseentity"><span id="baseEntity">baseEntity</span></h2>
+<p>把表中的基础字段抽离出来一个BaseEntity,所有的实体类都继承该类</p>
+<pre class="java"><code>/**
+ * 实体类基础类
+ */
+@Data
+public abstract class BaseEntity implements Serializable {
+  /**
+   * 主键id
+   */
+  private Long id;
+  /**
+   * 创建人
+   */
+  private Long createdBy;
+  /**
+   * 创建时间
+   */
+  private Date createdTime;
+  /**
+   * 更新人
+   */
+  private Long updatedBy;
+  /**
+   * 更新时间
+   */
+  private Date updatedTime;
+  /**
+   * 是否删除
+   */
+  private Integer isDeleted;
+
+}</code></pre>
+<h2 id="统一响应返回值"><span id="result">统一响应返回值</span></h2>
+<p>前后端分离项目基本上都是ajax调用，所以封装一个统一的返回对象有利于前端统一处理</p>
+<pre class="java"><code>/**
+ * 用于 ajax 请求的响应工具类
+ */
+@Data
+public class ResponseResult&lt;T&gt; {
+  // 未登录
+  public static final String UN_LOGIN_CODE = &quot;401&quot;;
+  // 操作失败
+  public static final String ERROR_CODE = &quot;400&quot;;
+  // 服务器内部执行错误
+  public static final String UNKNOWN_ERROR_CODE = &quot;500&quot;;
+  // 操作成功
+  public static final String SUCCESS_CODE = &quot;200&quot;;
+  // 响应信息
+  private String msg;
+  // 响应code
+  private String code;
+  // 操作成功，响应数据
+  private T data;
+
+  public ResponseResult(String code, String msg, T data) {
+    this.msg = msg;
+    this.code = code;
+    this.data = data;
+  }
+}</code></pre>
+<p>返回给前端的值用<code>ResponseResult</code>包装一下</p>
+<pre class="java"><code>  /**
+   * 测试成功的 ResponseResult
+   */
+  @GetMapping(&quot;/successResult&quot;)
+  public ResponseResult&lt;List&lt;Demo&gt;&gt; test() {
+    List&lt;Demo&gt; demos = demoMapper.getDemos();
+    return ResponseResult.success(demos);
+  }
+
+  /**
+   * 测试失败的 ResponseResult
+   */
+  @GetMapping(&quot;/errorResult&quot;)
+  public ResponseResult&lt;List&lt;Demo&gt;&gt; demo() {
+    return ResponseResult.error(&quot;操作失败&quot;);
+  }
+</code></pre>
+<h3 id="responseentity">ResponseEntity</h3>
+<p>spring其实封装了ResponseEntity 处理响应，ResponseEntity 包含 状态码，头部信息，响应体 三部分</p>
+<pre class="java"><code>  /**
+   * 测试请求成功
+   * @return
+   */
+  @GetMapping(&quot;/responseEntity&quot;)
+  public ResponseEntity&lt;String&gt; responseEntity() {
+    return ResponseEntity.ok(&quot;请求成功&quot;);
+  }
+
+  /**
+   * 测试服务器内部错误
+   * @return
+   */
+  @GetMapping(&quot;/InternalServerError&quot;)
+  public ResponseEntity&lt;String&gt; responseEntityerror() {
+    return new ResponseEntity&lt;&gt;(&quot;出错了&quot;, HttpStatus.INTERNAL_SERVER_ERROR);
+  }</code></pre>
+<h2 id="异常"><span id="exception">异常</span></h2>
+<h3 id="自定义异常体系">自定义异常体系</h3>
+<p>为了方便异常处理，定义一套异常体系，BaymaxException 做为所有自定义异常的父类</p>
+<pre class="java"><code>// 项目所有自定义异常的父类
+public class BaymaxException extends RuntimeException
+// 业务异常 该异常的信息会返回给用户
+public class BusinessException  extends BaymaxException
+// 用户未登录异常
+public class NoneLoginException  extends BaymaxException</code></pre>
+<h3 id="全局异常处理">全局异常处理</h3>
+<p>对所有的异常处理后再返回给前端</p>
+<pre class="java"><code>@RestControllerAdvice
+public class GlobalControllerExceptionHandler {
+
+  /**
+   * 业务异常
+   */
+  @ExceptionHandler(value = {BusinessException.class})
+  public ResponseResult&lt;?&gt; handleBusinessException(BusinessException ex) {
+    String msg = ex.getMessage();
+    if (StringUtils.isBlank(msg)) {
+      msg = &quot;操作失败&quot;;
+    }
+    return ResponseResult.error(msg);
+  }
+
+  /**
+   * 处理未登录异常
+   */
+  @ExceptionHandler(value = {NoneLoginException.class})
+  public ResponseResult&lt;?&gt; handleNoneLoginException(NoneLoginException ex) {
+    return ResponseResult.unLogin();
+  }</code></pre>
+<h3 id="异常持久化">异常持久化</h3>
+<p>对于未知的异常，保存到数据库，方便后续排错</p>
+<p>需要说明是的，如果项目访问量比较大，推荐用 ELK 这种成熟的日志分析系统，不推荐日志保存到关系型数据库</p>
+<pre class="java"><code>  @Autowired
+  private ExceptionLogMapper exceptionLogMapper;
+  /**
+   * 处理未知的错误
+   */
+  @ExceptionHandler(value = {Exception.class})
+  public ResponseResult&lt;Long&gt; handleunknownException(Exception ex) {
+    ExceptionLog log = new ExceptionLog(new Date(), ExceptionUtils.getStackTrace(ex));
+    exceptionLogMapper.insert(log);
+    ResponseResult&lt;Long&gt; result = ResponseResult.unknownError(&quot;服务器异常:&quot; + log.getId());
+    result.setData(log.getId());
+    return result;
+  }</code></pre>
+<h3 id="异常日志接口">异常日志接口</h3>
+<p>对外开一个异常日志查询接口<code>/anon/exception/{异常日志id}</code>，方便查询</p>
+<pre class="java"><code>@RestController
+@RequestMapping(&quot;/anon/exception&quot;)
+public class ExceptionController {
+
+  @Autowired
+  private ExceptionLogMapper exceptionLogMapper;
+
+  @GetMapping(value = &quot;/{id}&quot;)
+  public String getDemo(@PathVariable(value = &quot;id&quot;) Long id) {
+    return exceptionLogMapper.selectByPrimaryKey(id).getException();
+  }
+
+} </code></pre>
+<h2 id="数据校验"><span id="validation">数据校验</span></h2>
+<p><a href="https://www.ibm.com/developerworks/cn/java/j-lo-jsr303/">JSR 303</a>定义了一系列的 Bean Validation 规范，Hibernate Validator 是 Bean Validation 的实现，并进行了扩展</p>
+<p>spring boot 使用 也非常方便</p>
+<pre class="java"><code>public class Demo extends BaseEntity{
+  @NotBlank(message = &quot;用户名不允许为空&quot;)
+  private String userName;
+  @NotBlank
+  private String title;
+  @NotNull
+  private Integer age;
+}</code></pre>
+<p>参数前面添加@Valid注解即可</p>
+<pre class="java"><code>  @PostMapping(&quot;/add&quot;)
+  public ResponseResult&lt;String&gt; add(@RequestBody @Valid Demo demo) {
+    demoMapper.insert(demo);
+    return ResponseResult.success();
+  }</code></pre>
+<p>对于校验结果可以每个方法单独处理，如果不处理，会抛出有异常，可以对校验的异常做全局处理</p>
+<p>在 <code>GlobalControllerExceptionHandler</code> 添加</p>
+<pre class="java"><code>  /**
+   * 处理校验异常
+   */
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseResult&lt;?&gt; handleValidationException(MethodArgumentNotValidException ex) {
+    BindingResult result = ex.getBindingResult();
+    if (result.hasErrors()) {
+      StringJoiner joiner = new StringJoiner(&quot;，&quot;);
+      List&lt;ObjectError&gt; errors = result.getAllErrors();
+      errors.forEach(error -&gt; {
+        FieldError fieldError = (FieldError) error;
+        joiner.add(fieldError.getField() + &quot; &quot; + error.getDefaultMessage());
+      });
+      return ResponseResult.error(joiner.toString());
+    } else {
+      return ResponseResult.error(&quot;操作失败&quot;);
+    }
+  }</code></pre>
+<h2 id="log"><span id="log">log</span></h2>
+<p>spring boot 的默认使用的日志是<code>logback</code>,web模块依赖的有日志 <code>starter</code>，所以这里不用再引入依赖，<a href="https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-logging">详细配置</a></p>
+<h3 id="修改日志级别">修改日志级别</h3>
+<p>Actuator 组件提供了日志相关接口，可以查询日志级别或者动态修改日志级别</p>
+<pre class="java"><code>// 查看所有包/类的日志级别
+/actuator/loggers
+// 查看指定包/类日志级别 get 请求
+/actuator/loggers/com.zhaoguhong.baymax.demo.controller.DemoController
+//修改日志级别 post 请求 参数 {&quot;configuredLevel&quot;:&quot;debug&quot;}
+/actuator/loggers/com.zhaoguhong.baymax.demo.controller.DemoController</code></pre>
+<h3 id="日志切面">日志切面</h3>
+<p>添加一个日志切面，方便记录方法执行的入参和出参</p>
+<pre class="java"><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface LogAspect {
+
+  /**
+   * 日志描述
+   */
+  String value() default &quot;&quot;;
+
+  /**
+   * 日志级别
+   */
+  String level() default &quot;INFO&quot;;
+
+}</code></pre>
+<p>使用时直接添加到方法上即可</p>
+<h2 id="swagger"><span id="swagger">swagger</span></h2>
+<p>swagger 是一个很好用的文档生成工具</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+      &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
+      &lt;version&gt;2.7.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+      &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
+      &lt;version&gt;2.7.0&lt;/version&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>相关配置</p>
+<pre class="java"><code>@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+  @Value(&quot;${swagger.enable:false}&quot;)
+  private boolean swaggerEnable;
+
+  //文档访问前缀
+  public static final String ACCESS_PREFIX = &quot;/swagger-resources/**,/swagger-ui.html**,/webjars/**,/v2/**&quot;;
+
+  @Bean
+  public Docket docket() {
+    return new Docket(DocumentationType.SWAGGER_2)
+        .apiInfo(apiInfo())
+        // 设置是否开启swagger,生产环境关闭
+        .enable(swaggerEnable)
+        .select()
+        // 当前包路径
+        .apis(RequestHandlerSelectors.basePackage(&quot;com.zhaoguhong.baymax&quot;))
+        .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
+        .paths(PathSelectors.any())
+        .build();
+  }
+
+  // 构建api文档的详细信息
+  private ApiInfo apiInfo() {
+    return new ApiInfoBuilder()
+        // 页面标题
+        .title(&quot;接口文档&quot;)
+        // 创建人
+        .contact(new Contact(&quot;孤鸿&quot;, &quot;https://github.com/zhaoguhong/baymax&quot;, &quot;&quot;))
+        // 版本号
+        .version(&quot;1.0&quot;)
+        // 描述
+        .description(&quot;大白的接口文档&quot;)
+        .build();
+  }
+}</code></pre>
+<p>为文档加一个开关</p>
+<pre><code><code>#是否开启swagger文档，生产环境关闭
+swagger.enable=true</code></pre>
+<p>然后就可以愉快的在写代码的同时写文档了</p>
+<pre class="java"><code>  @PostMapping(&quot;/add&quot;)
+  @ApiOperation(value = &quot;新增 demo&quot;)
+  public ResponseResult&lt;String&gt; add(@RequestBody @Valid Demo demo) {
+    demoMapper.insert(demo);
+    return ResponseResult.success();
+  }</code></pre>
+<pre class="java"><code>@ApiModel(&quot;示例&quot;)
+public class Demo extends BaseEntity{
+  @ApiModelProperty(&quot;用户名&quot;)
+  private String userName;
+  @ApiModelProperty(&quot;标题&quot;)
+  private String title;
+  @ApiModelProperty(&quot;年龄&quot;)
+  private Integer age;
+}</code></pre>
+<p>访问 <code>localhost:8080/swagger-ui.html</code> 就可以看到效果了</p>
+<h2 id="数据库连接池"><span id="datasource">数据库连接池</span></h2>
+<p>springboot1.X的数据库连接池是tomcat连接池，springboot2默认的数据库连接池由Tomcat换成 <a href="https://github.com/brettwooldridge/HikariCP">HikariCP</a>，<code>HikariCP</code>是一个高性能的JDBC连接池，号称最快的连接池</p>
+<p><a href="https://github.com/alibaba/druid">Druid</a> 是阿里巴巴数据库事业部出品，为监控而生的数据库连接池，这里选取<code>Druid</code>作为项目的数据库连接池</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+      &lt;artifactId&gt;druid-spring-boot-starter&lt;/artifactId&gt;
+      &lt;version&gt;1.1.10&lt;/version&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>设置用户名密码</p>
+<pre><code><code>spring.datasource.druid.stat-view-servlet.login-username=admin
+spring.datasource.druid.stat-view-servlet.login-password=123456</code></pre>
+<p>然后就可以访问 <code>localhost:8080/druid</code>看监控信息了</p>
+<h2 id="spring-jdbc"><span id="jdbc">spring jdbc</span></h2>
+<p>maven 依赖</p>
+<pre><code><code>     &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>spring对jdbc做了封装和抽象，最常用的是 <code>jdbcTemplate</code> 和 <code>NamedParameterJdbcTemplate</code>两个类，前者使用占位符，后者使用命名参数，我在<code>jdbcDao</code>做了一层简单的封装，提供统一的对外接口</p>
+<p><code>jdbcDao</code>主要方法如下：</p>
+<pre class="java"><code>// 占位符
+find(String sql, Object... args)
+// 占位符，手动指定映射mapper
+find(String sql, Object[] args, RowMapper&lt;T&gt; rowMapper)
+// 命名参数
+find(String sql, Map&lt;String, ?&gt; paramMap)
+// 命名参数，手动指定映射mapper
+find(String sql, Map&lt;String, ?&gt; paramMap, RowMapper&lt;T&gt; rowMapper)
+//springjdbc 原queryForMap方法,如果没查询到会抛异常，此处如果没有查询到，返回null
+queryForMap(String sql, Object... args)
+queryForMap(String sql, Map&lt;String, ?&gt; paramMap)
+// 分页查询
+find(Page&lt;T&gt; page, String sql, Map&lt;String, ?&gt; parameters, RowMapper&lt;?&gt; mapper)
+// 分页查询
+find(Page&lt;T&gt; page, String sql, RowMapper&lt;T&gt; mapper, Object... args)</code></pre>
+<h2 id="jpa"><span id="jpa">jpa</span></h2>
+<p><code>jpa</code> 是 <code>java</code> 持久化的标准，<code>spring data jpa</code> 使操作数据库变得更方便，需要说明的 <code>spring data jpa</code> 本身并不是jpa的实现，它默认使用的 <code>provider</code> 是 <code>hibernate</code></p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>我把通用的方法抽取了出来了，封装了一个BaseRepository，使用时，直接继承该接口即可</p>
+<pre class="java"><code>public interface DemoRepository extends BaseRepository&lt;Demo&gt; {
+
+}</code></pre>
+<p><code>BaseRepository</code> 主要方法如下</p>
+<pre class="java"><code>// 新增，会对创建时间，创建人自动赋值
+void saveEntity(T entity)
+// 更新，会对更新时间，更新人自动赋值
+void updateEntity(T entity)
+// 逻辑删除
+void deleteEntity(T entity)
+// 批量保存
+void saveEntites(Collection&lt;T&gt; entitys)
+// 批量更新
+void updateEntites(Collection&lt;T&gt; entitys)
+// 批量逻辑删除
+void deleteEntites(Collection&lt;T&gt; entitys)
+// 根据id获取实体，会过滤掉逻辑删除的
+T getById(Long id)</code></pre>
+<p>如果想使用传统的sql形式，可以直接使用JpaDao,为了方便使用，我尽量使JpaDao和JdbcDao的接口保持统一</p>
+<p><code>JpaDao</code>主要方法如下</p>
+<pre class="java"><code>// 占位符 例如：from Demo where id =?
+find(String sql, Object... args)
+// 命名参数
+find(String sql, Map&lt;String, ?&gt; paramMap)
+// 分页
+find(Page&lt;T&gt; page, String hql, Map&lt;String, ?&gt; parameters)
+// 分页
+find(Page&lt;T&gt; page, String hql, Object... parameters)</code></pre>
+<h2 id="redis"><span id="redis">redis</span></h2>
+<p>Redis 是性能极佳key-value数据库，常用来做缓存，<br />
+java 中常用的客户端有 <code>Jedis</code> 和 <code>Lettuce</code>, <code>spring data redis</code> 是基于 <code>Lettuce</code> 做的二次封装</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>为了在redis读起来更方便，更改序列化方式</p>
+<pre class="java"><code>@Configuration
+public class RedisConfig {
+
+  /**
+   * 设置序列化方式
+   */
+  @Bean
+  public RedisTemplate&lt;Object, Object&gt; redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate&lt;Object, Object&gt; redisTemplate = new RedisTemplate&lt;&gt;();
+    redisTemplate.setConnectionFactory(redisConnectionFactory);
+    redisTemplate.setKeySerializer(RedisSerializer.string());
+    redisTemplate.setValueSerializer(jackson2JsonRedisSerializer());
+    redisTemplate.setHashKeySerializer(RedisSerializer.string());
+    redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer());
+    return redisTemplate;
+  }
+
+  @Bean
+  public Jackson2JsonRedisSerializer&lt;Object&gt; jackson2JsonRedisSerializer() {
+    ObjectMapper om = new ObjectMapper();
+    om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+    // 将类名称序列化到json串中
+    om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+    Jackson2JsonRedisSerializer&lt;Object&gt; jackson2JsonRedisSerializer =
+        new Jackson2JsonRedisSerializer&lt;Object&gt;(Object.class);
+    jackson2JsonRedisSerializer.setObjectMapper(om);
+    return jackson2JsonRedisSerializer;
+  }
+}</code></pre>
+<h2 id="spring-cache"><span id="springcache">spring cache</span></h2>
+<p>spring cache 抽象出了一组缓存接口，通过注解的方式使用，可以很方便的配置其具体实现，<a href="https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-caching">详细配置</a></p>
+<p>这里使用redis做为缓存 provider, 默认的value序列化方式是JDK，为方便查看，可以修改为用json序列化</p>
+<p>有时会有设置<code>redis key</code>前缀的需求，默认是这样的</p>
+<pre class="java"><code>    static CacheKeyPrefix simple() {
+        // 在 cacheName 后面添加 &quot;::&quot;
+        return name -&gt; name + &quot;::&quot;;
+    }</code></pre>
+<p>spring boot 提供的有配置前缀的属性</p>
+<pre><code><code>spring.cache.redis.key-prefix= # Key prefix.</code></pre>
+<p>但这是一个坑，这样写的效果实际这样的，会把<code>cacheName</code>干掉，显然不是我们想要的</p>
+<pre class="java"><code>CacheKeyPrefix cacheKeyPrefix = (cacheName) -&gt; prefix;</code></pre>
+<p>我们想要的是把前缀加在最前面，保留<code>cacheName</code></p>
+<pre class="java"><code>CacheKeyPrefix cacheKeyPrefix = (cacheName) -&gt; keyPrefix + &quot;::&quot; + cacheName + &quot;::&quot;;</code></pre>
+<p>参考<code>org.springframework.boot.autoconfigure.cache.RedisCacheConfiguration</code>，声明 <code>RedisCacheManager</code></p>
+<pre class="java"><code>@Configuration
+@EnableConfigurationProperties(CacheProperties.class)
+@EnableCaching
+public class SpringCacheConfig {
+
+  @Autowired
+  private CacheProperties cacheProperties;
+
+  @Bean
+  public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+    RedisCacheManagerBuilder builder = RedisCacheManager
+        .builder(redisConnectionFactory)
+        .cacheDefaults(determineConfiguration());
+    List&lt;String&gt; cacheNames = this.cacheProperties.getCacheNames();
+    if (!cacheNames.isEmpty()) {
+      builder.initialCacheNames(new LinkedHashSet&lt;&gt;(cacheNames));
+    }
+    return builder.build();
+  }
+
+  private org.springframework.data.redis.cache.RedisCacheConfiguration determineConfiguration() {
+    Redis redisProperties = this.cacheProperties.getRedis();
+    org.springframework.data.redis.cache.RedisCacheConfiguration config = org.springframework.data.redis.cache.RedisCacheConfiguration
+        .defaultCacheConfig();
+    // 修改序列化为json
+    config = config.serializeValuesWith(RedisSerializationContext.SerializationPair
+        .fromSerializer(jackson2JsonRedisSerializer()));
+    if (redisProperties.getTimeToLive() != null) {
+      config = config.entryTtl(redisProperties.getTimeToLive());
+    }
+    if (redisProperties.getKeyPrefix() != null) {
+      // 重写前缀拼接方式
+      config = config.computePrefixWith((cacheName) -&gt; redisProperties.getKeyPrefix() + &quot;::&quot; + cacheName + &quot;::&quot;);
+    }
+    if (!redisProperties.isCacheNullValues()) {
+      config = config.disableCachingNullValues();
+    }
+    if (!redisProperties.isUseKeyPrefix()) {
+      config = config.disableKeyPrefix();
+    }
+    return config;
+  }
+    // 省略 jackson2JsonRedisSerializer() 
+
+}</code></pre>
+<h2 id="mogodb"><span id="mogodb">mogodb</span></h2>
+<p>MongoDB 是文档型数据库，使用 <code>spring data mogodb</code> 可以很方便对mogodb进行操作</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-data-mongodb&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p><code>sprign data mogodb</code> 提供了 <code>MongoTemplate</code> 对mogodb进行操作，我在该类的基础上又扩展了一下，可以自定义自己的方法</p>
+<pre class="java"><code>@Configuration
+public class MongoDbConfig {
+
+  /**
+   * 扩展自己的mogoTemplate
+   */
+  @Bean
+  public MyMongoTemplate mongoTemplate(MongoDbFactory mongoDbFactory,
+      MongoConverter converter) {
+    return new MyMongoTemplate(mongoDbFactory, converter);
+  }
+
+}</code></pre>
+<p>我扩展了一个分页的方法，可以根据自己的情况扩展其它方法</p>
+<pre class="java"><code>// mogodb 分页
+public &lt;T&gt; Page&lt;T&gt; find(Page&lt;T&gt; page, Query query, Class&lt;T&gt; entityClass)</code></pre>
+<h2 id="mybatis"><span id="mybatis">mybatis</span></h2>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+      &lt;version&gt;1.3.2&lt;/version&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>常用配置如下</p>
+<pre><code><code># 配置文件位置 classpath后面要加*，不然后面通配符不管用
+mybatis.mapperLocations=classpath*:com/zhaoguhong/baymax/*/mapper/*Mapper.xml
+# 开启驼峰命名自动映射
+mybatis.configuration.map-underscore-to-camel-case=true</code></pre>
+<p>dao层直接用接口，简洁，方便</p>
+<pre class="java"><code>@Mapper
+public interface DemoMapper {
+  /**
+   * 注解方式
+   */
+  @Select(&quot;SELECT * FROM demo WHERE user_name = #{userName}&quot;)
+  List&lt;Demo&gt; findByUserName(@Param(&quot;userName&quot;) String userName);
+  /**
+   * xml方式
+   */
+  List&lt;Demo&gt; getDemos();
+}</code></pre>
+<p>需要注意，xml的namespace必须是mapper类的全限定名，这样才可以建立dao接口与xml的关系</p>
+<pre><code><code>&lt;mapper namespace=&quot;com.zhaoguhong.baymax.demo.dao.DemoMapper&quot;&gt;
+  &lt;select id=&quot;getDemos&quot; resultType=&quot;com.zhaoguhong.baymax.demo.entity.Demo&quot;&gt;
+        select * from demo
+    &lt;/select&gt;
+&lt;/mapper&gt;</code></pre>
+<h3 id="通用mapper">通用mapper</h3>
+<p>mybatis 的单表增删改查写起来很啰嗦，<a href="https://github.com/abel533/Mapper">通用mapper</a>很好的解决了这个问题</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;tk.mybatis&lt;/groupId&gt;
+      &lt;artifactId&gt;mapper-spring-boot-starter&lt;/artifactId&gt;
+      &lt;version&gt;1.2.4&lt;/version&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>常用配置如下</p>
+<pre><code><code># 通用mapper 多个接口时用逗号隔开
+mapper.mappers=com.zhaoguhong.baymax.mybatis.MyMapper
+mapper.not-empty=false
+mapper.identity=MYSQL</code></pre>
+<p>定义自己的 <code>MyMapper</code> 方便扩展，<code>MyMapper</code> 接口 中封装了通用的方法，和<code>jpa</code>的<code>BaseRepository</code>类似，这里不再赘述</p>
+<p>声明<code>mapper</code>需要加<code>Mapper</code>注解，还稍显麻烦，可以用扫描的方式</p>
+<pre class="java"><code>@Configuration
+@tk.mybatis.spring.annotation.MapperScan(basePackages = &quot;com.zhaoguhong.baymax.**.dao&quot;)
+public class MybatisConfig {
+}</code></pre>
+<p>使用时直接继承MyMapper接口即可</p>
+<pre class="java"><code>public interface DemoMapper extends MyMapper&lt;Demo&gt;{
+}</code></pre>
+<h3 id="分页">分页</h3>
+<p><a href="https://github.com/pagehelper">pagehelper</a>是一个很好用的mybatis的分页插件</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;com.github.pagehelper&lt;/groupId&gt;
+      &lt;artifactId&gt;pagehelper-spring-boot-starter&lt;/artifactId&gt;
+      &lt;version&gt;1.2.3&lt;/version&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>常用配置如下</p>
+<pre><code><code>#pagehelper
+#指定数据库类型
+pagehelper.helperDialect=mysql
+#分页合理化参数
+pagehelper.reasonable=true</code></pre>
+<p>使用分页</p>
+<pre class="java"><code>    PageHelper.startPage(1, 5);
+    List&lt;Demo&gt; demos = demoMapper.selectAll();</code></pre>
+<p>pagehelper 还有好多玩法，可以参考<a href="https://github.com/pagehelper/Mybatis-PageHelper/blob/master/wikis/zh/HowToUse.md">这里</a></p>
+<h3 id="自定义分页">自定义分页</h3>
+<p>pagehelper 虽然好用，但项目中有自己的分页对象，所以单独写一个拦截器，把他们整合到一起<br />
+这个地方要特别注意插件的顺序不要搞错</p>
+<pre class="java"><code>@Configuration
+// 设置mapper扫描的包
+@tk.mybatis.spring.annotation.MapperScan(basePackages = &quot;com.zhaoguhong.baymax.**.dao&quot;)
+@Slf4j
+public class MybatisConfig {
+
+  @Autowired
+  private List&lt;SqlSessionFactory&gt; sqlSessionFactoryList;
+
+  /**
+   * 添加自定义的分页插件，pageHelper 的分页插件PageInterceptor是用@PostConstruct添加的，自定义的应该在其后面添加
+   * 真正执行时顺序是反过来，先执行MyPageInterceptor，再执行 PageInterceptor
+   *
+   * 所以要保证 PageHelperAutoConfiguration 先执行
+   */
+  @Autowired
+  public void addPageInterceptor(PageHelperAutoConfiguration pageHelperAutoConfiguration) {
+    MyPageInterceptor interceptor = new MyPageInterceptor();
+    for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryList) {
+      sqlSessionFactory.getConfiguration().addInterceptor(interceptor);
+      log.info(&quot;注册自定义分页插件成功&quot;);
+    }
+  }
+
+}</code></pre>
+<p>在使用时只需要传入自定义的分页对象即可</p>
+<pre class="java"><code>    Page&lt;Demo&gt; page = new Page&lt;&gt;(1, 10);
+    demos = demoMapper.getDemos(page);</code></pre>
+<h2 id="spring-security"><span id="security">spring security</span></h2>
+<p>安全模块是项目中必不可少的一环，常用的安全框架有<code>shiro</code>和<code>spring security</code>，shiro相对轻量级，使用非常灵活，<code>spring security</code>相对功能更完善，而且可以和spring 无缝衔接。这里选取<code>spring security</code>做为安全框架</p>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>继承WebSecurityConfigurerAdapter类就可以进行配置了</p>
+<pre class="java"><code>public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+  @Autowired
+  private SecurityProperties securityProperties;
+
+  @Autowired
+  private UserDetailsService userDetailsService;
+
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+
+    http
+        .authorizeRequests()
+        // 设置可以匿名访问的url
+        .antMatchers(securityProperties.getAnonymousArray()).permitAll()
+        // 其它所有请求都要认证
+        .anyRequest().authenticated()
+        .and()
+        .formLogin()
+        // 自定义登录页
+        .loginPage(securityProperties.getLoginPage())
+        // 自定义登录请求路径
+        .loginProcessingUrl(securityProperties.getLoginProcessingUrl())
+        .permitAll()
+        .and()
+        .logout()
+        .permitAll();
+
+    // 禁用CSRF
+    http.csrf().disable();
+  }
+
+
+  @Override
+  public void configure(WebSecurity web) throws Exception {
+    String[] ignoringArray = securityProperties.getIgnoringArray();
+    // 忽略的资源，直接跳过spring security权限校验
+    if (ArrayUtils.isNotEmpty(ignoringArray)) {
+      web.ignoring().antMatchers(ignoringArray);
+    }
+  }
+
+  /**
+   *
+   * 声明密码加密方式
+   */
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth)
+      throws Exception {
+    auth.userDetailsService(userDetailsService)
+        // 配置密码加密方式，也可以不指定，默认就是BCryptPasswordEncoder
+        .passwordEncoder(passwordEncoder());
+  }
+
+
+}</code></pre>
+<p>实现<code>UserDetailsService</code>接口，定义自己的<code>UserDetailsService</code></p>
+<pre class="java"><code>@Service
+public class UserDetailsServiceImpl implements UserDetailsService {
+
+  @Autowired
+  private UserRepository userRepository;
+
+  @Override
+  @Transactional
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    User user = userRepository.findByUsernameAndIsDeleted(username, SystemConstants.UN_DELETED);
+
+    if (user == null) {
+      throw new UsernameNotFoundException(&quot;username Not Found&quot;);
+    }
+    return user;
+  }
+
+}</code></pre>
+<p>配置项</p>
+<pre><code><code>#匿名访问的url,多个用逗号分隔
+security.anonymous=/test
+#忽略的资源,直接跳过spring security权限校验,一般是用做静态资源，多个用逗号分隔
+security.ignoring=/static/**,/images/**
+#自定义登录页面
+security.loginPage=/login.html
+#自定义登录请求路径
+security.loginProcessingUrl=/login</code></pre>
+<h2 id="项目上下文"><span id="ContextHolder">项目上下文</span></h2>
+<p>为了方面使用，封装一个上下文对象 <code>ContextHolder</code></p>
+<pre class="java"><code>// 获取当前线程HttpServletRequest
+getRequest()
+// 获取当前线程HttpServletResponse
+getResponse()
+// 获取当前HttpSession
+getHttpSession()
+setSessionAttribute(String key, Serializable entity)
+getSessionAttribute(String key)
+setRequestAttribute(String key, Object entity)
+getRequestAttribute(String key)
+// 获取 ApplicationContext
+getApplicationContext()
+//根据beanId获取spring bean
+getBean(String beanId)
+// 获取当前登录用户
+getLoginUser()
+// 获取当前登录用户 id
+getLoginUserId()
+// 获取当前登录用户 为空则抛出异常
+getRequiredLoginUser()
+// 获取当前登录用户id， 为空则抛出异常
+getRequiredLoginUserId()</code></pre>
+<h2 id="单点登录"><span id="sso">单点登录</span></h2>
+<p>单点登录系统（SSO，single sign-on）指的的，多个系统，共用一套用户体系，只要登录其中一个系统，访问其他系统不需要重新登录</p>
+<h3 id="cas">CAS</h3>
+<p>CAS(Central Authentication Service)是耶鲁大学的一个开源项目，是比较流行的单独登录解决方案。在CAS中，只负责登录的系统被称为服务端，其它所有系统被称为客户端</p>
+<h4 id="登录流程">登录流程</h4>
+<ol>
+<li>用户访问客户端，客户端判断是否登录，如果没有登录，重定向到服务端去登录</li>
+<li>服务端登录成功，带着ticket重定向到客户端</li>
+<li>客户端拿着ticket发送请求到服务端换取用户信息，获取到后就表示登录成功</li>
+</ol>
+<h4 id="登出流程">登出流程</h4>
+<p>跳转到sso认证中心进行统一登出，cas 会通知所有客户端进行登出</p>
+<h3 id="spring-security-整合-cas">spring security 整合 cas</h3>
+<p>maven 依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.security&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-security-cas&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>spring security 对 cas 做了很好的封装,在使用的过程中，只需要定义好对应的登录fifter和登出fifter即可，整合cas的代码我写在了<code>WebSecurityConfig</code>类中</p>
+<p>相关属性配置</p>
+<pre><code><code>#是否开启单点登录
+cas.enable = true
+#服务端地址
+cas.serverUrl=
+#客户端地址
+cas.clientUrl=
+#登录地址
+cas.loginUrl=${cas.serverUrl}/login
+#服务端登出地址
+cas.serverLogoutUrl=${cas.serverUrl}/logout
+#单点登录成功回调地址
+cas.clientCasUrl=${cas.clientUrl}/login/cas</code></pre>
+<h2 id="邮件"><span id="mail">邮件</span></h2>
+<p>因为要使用freeMarker解析模板，所以也要引入freeMarker依赖</p>
+<pre><code><code>    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-mail&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.freemarker&lt;/groupId&gt;
+      &lt;artifactId&gt;freemarker&lt;/artifactId&gt;
+    &lt;/dependency&gt;</code></pre>
+<p>相关配置</p>
+<pre><code><code>#邮件
+#设置邮箱主机,163邮箱为smtp.163.com，qq为smtp.qq.com
+spring.mail.host = smtp.163.com
+spring.mail.username =
+#授权码
+spring.mail.password =
+#默认的邮件发送人
+mail.sender =</code></pre>
+<p>封装一个 <code>MailService</code></p>
+<pre class="java"><code>   // 根据相关配置发送邮件
+  void sendMail(MailModel mailModel);
+   // 发送简单的邮件
+  void sendSimleMail(String to, String subject, String content);
+   // 发送html格式的邮件
+  void sendHtmlMail(String to, String subject, String content);
+   // 发送带附件的邮件
+  void sendAttachmentMail(String to, String subject, String content, String path);
+   // 发送带附件的html格式邮件
+  void sendAttachmentHtmlMail(String to, String subject, String content, String path);
+   // 根据模版发送简单邮件
+  void sendMailByTemplate(String to, String subject, String templateName,
+      Map&lt;String, Object&gt; params);
+  
+}
+</code></pre>
+<h2 id="maven"><span id="mail">maven</span></h2>
+<h3 id="镜像">镜像</h3>
+<p>设置阿里云镜像，加快下载速度<br />
+修改 setting.xml，在 mirrors 节点上，添加</p>
+<pre><code><code>&lt;mirror&gt; 
+    &lt;id&gt;alimaven&lt;/id&gt; 
+    &lt;name&gt;aliyun maven&lt;/name&gt; 
+    &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt; 
+    &lt;mirrorOf&gt;central&lt;/mirrorOf&gt; 
+&lt;/mirror&gt; </code></pre>
+<p>也可以在项目 pom.xml 文件添加 ，仅当前项目有效</p>
+<pre><code><code>  &lt;repositories&gt;
+    &lt;repository&gt;
+      &lt;id&gt;alimaven&lt;/id&gt;
+      &lt;name&gt;aliyun maven&lt;/name&gt;
+      &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;
+      &lt;releases&gt;
+        &lt;enabled&gt;true&lt;/enabled&gt;
+        &lt;updatePolicy&gt;daily&lt;/updatePolicy&gt;
+      &lt;/releases&gt;
+      &lt;snapshots&gt;
+        &lt;enabled&gt;false&lt;/enabled&gt;
+        &lt;checksumPolicy&gt;warn&lt;/checksumPolicy&gt;
+      &lt;/snapshots&gt;
+      &lt;layout&gt;default&lt;/layout&gt;
+    &lt;/repository&gt;
+  &lt;/repositories&gt;</code></pre>
+<h2 id="总结"><span id="总结">总结</span></h2>
+<ol>
+<li>spring boot 遵循开箱即用的原则，并不需要做过多配置，网上的教程质量参差不齐，并且1.X和2.X使用时还有诸多不同，因此在使用时尽量参考<a href="https://spring.io/projects/spring-boot#learn">官方文档</a></li>
+<li>有时候默认的配置并不能满足我们的需求，需要做一些自定义配置，推荐先看一下<code>springboot</code>自动配置的源码，再做定制化处理</li>
+<li>技术没有银弹，在做技术选型时不要过于迷信一种技术，适合自己的业务的技术才是最好的</li>
+</ol>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

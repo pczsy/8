@@ -1,0 +1,376 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修MyBatis开发Dao的原始Dao开发和Mapper动态代理开发' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>MyBatis开发Dao的原始Dao开发和Mapper动态代理开发</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11990961.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#咳咳...初学者看文字mapper接口开发四个规范属实有点费劲博主我就废了点劲做了如下图方便理解">咳咳...初学者看文字（Mapper接口开发四个规范）属实有点费劲，博主我就废了点劲做了如下图，方便理解：</a></li>
+        <li><a href="#原始dao开发方式">原始Dao开发方式</a><ul>
+        <li><a href="#编写映射文件">1. 编写映射文件</a></li>
+        <li><a href="#编写dao实现类">3.编写Dao实现类</a></li>
+        <li><a href="#编写dao测试">4.编写Dao测试</a></li>
+        </ul></li>
+        <li><a href="#mapper动态代理方式">Mapper动态代理方式</a><ul>
+        <li><a href="#定义mapper.xml映射文件">1.定义Mapper.xml(映射文件)</a></li>
+        <li><a href="#编写usermapper.xml配置文件内容">2、编写UserMapper.xml配置文件内容：</a></li>
+        <li><a href="#编写usermapper接口文件">3.编写UserMapper(接口文件)</a></li>
+        <li><a href="#加载usermapper.xml文件">4.加载UserMapper.xml文件</a></li>
+        <li><a href="#编写测试">5.编写测试</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<p>@<br />
+使用MyBatis开发Dao，通常有两个方法，即原始Dao开发方法和Mapper动态代理开发方法。原始Dao开发中存在以下问题：<br />
+Dao方法体存在重复代码：通过SqlSessionFactory创建SqlSession，调用SqlSession的数据库操作方法</p>
+<p>调用sqlSession的数据库操作方法需要指定statement的id，这里存在硬编码，不得于开发维护。</p>
+<p>而动态代理开发中Mapper接口开发方法只需要程序员编写Mapper接口（相当于Dao接口），由</p>
+<p>Mybatis框架根据接口定义创建接口的动态代理对象，代理对象的方法体同上边Dao接口实现类方法。</p>
+<p><font color=red>使用mapper代理的方法来开发dao时，程序员<strong>只需要干两件事</strong>即可：</font></p>
+<p>1、<font color=red>编写mapper.xml映射文件</font><br />
+2、<font color=red>编写mapper接口（相当于dao接口）</font></p>
+<p>Mapper接口开发需要遵循以下<font color=red><strong>四个规范</strong>(建议初学者结合下图理解)</font>：<br />
+1、Mapper.xml文件中的namespace与mapper接口的类路径相同。<br />
+2、Mapper接口方法名和Mapper.xml中定义的每个statement的id相同<br />
+3、Mapper接口方法的输入参数类型和mapper.xml中定义的每个sql 的parameterType的类型相同<br />
+4、Mapper接口方法的输出参数类型和mapper.xml中定义的每个sql的resultType的类型相同</p>
+<h3 id="咳咳...初学者看文字mapper接口开发四个规范属实有点费劲博主我就废了点劲做了如下图方便理解">咳咳...初学者看文字（Mapper接口开发四个规范）属实有点费劲，博主我就废了点劲做了如下图，方便理解：</h3>
+<p><img src="./images/MyBatis开发Dao的原始Dao开发和Mapper动态代理开发0.png" alt="在这里插入图片描述" /></p>
+<h2 id="原始dao开发方式">原始Dao开发方式</h2>
+<p>原始Dao开发方法需要程序员编写Dao接口和Dao实现类。</p>
+<h3 id="编写映射文件">1. 编写映射文件</h3>
+<p>编写映射文件如下：（也可以使用入门程序完成的映射文件）</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;!DOCTYPE mapper
+PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;
+&quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;
+&lt;!-- namespace：命名空间，用于隔离sql，还有一个很重要的作用，后面会讲 --&gt;
+&lt;mapper namespace=&quot;test&quot;&gt;
+
+    &lt;!-- 根据id查询用户 --&gt;
+    &lt;select id=&quot;queryUserById&quot; parameterType=&quot;int&quot;
+        resultType=&quot;com.gx.mybatis.pojo.User&quot;&gt;
+        select * from user where id = #{id}
+    &lt;/select&gt;
+
+    &lt;!-- 根据username模糊查询用户 --&gt;
+    &lt;select id=&quot;queryUserByUsername&quot; parameterType=&quot;string&quot;
+        resultType=&quot;com.gx.mybatis.pojo.User&quot;&gt;
+        select * from user where username like &#39;%${value}%&#39;
+    &lt;/select&gt;
+
+    &lt;!-- 保存用户 --&gt;
+    &lt;insert id=&quot;saveUser&quot; parameterType=&quot;com.gx.mybatis.pojo.User&quot;&gt;
+        &lt;selectKey keyProperty=&quot;id&quot; keyColumn=&quot;id&quot; order=&quot;AFTER&quot;
+            resultType=&quot;int&quot;&gt;
+            SELECT LAST_INSERT_ID()
+        &lt;/selectKey&gt;
+        insert into user(username,birthday,sex,address)
+        values(#{username},#{birthday},#{sex},#{address})
+    &lt;/insert&gt;
+
+&lt;/mapper&gt;
+</code></pre>
+<p>### 2. 编写Dao接口</p>
+<p>先进行DAO的接口开发，编码如下：</p>
+<pre><code><code>public interface UserDao {
+    /**
+     * 根据id查询用户
+     * 
+     * @param id
+     * @return
+     */
+    User queryUserById(int id);
+
+    /**
+     * 根据用户名模糊查询用户
+     * 
+     * @param username
+     * @return
+     */
+    List&lt;User&gt; queryUserByUsername(String username);
+
+    /**
+     * 保存用户
+     * 
+     * @param user
+     */
+    void saveUser(User user);
+}
+</code></pre>
+<h3 id="编写dao实现类">3.编写Dao实现类</h3>
+<p>编写的Dao实现类如下</p>
+<pre><code><code>public class UserDaoImpl implements UserDao {
+    private SqlSessionFactory sqlSessionFactory;
+
+    public UserDaoImpl(SqlSessionFactory sqlSessionFactory) {
+        super();
+        this.sqlSessionFactory = sqlSessionFactory;
+    }
+
+    @Override
+    public User queryUserById(int id) {
+        // 创建SqlSession
+        SqlSession sqlSession = this.sqlSessionFactory.openSession();
+        // 执行查询逻辑
+        User user = sqlSession.selectOne(&quot;queryUserById&quot;, id);
+        // 释放资源
+        sqlSession.close();
+
+        return user;
+    }
+
+    @Override
+    public List&lt;User&gt; queryUserByUsername(String username) {
+        // 创建SqlSession
+        SqlSession sqlSession = this.sqlSessionFactory.openSession();
+
+        // 执行查询逻辑
+        List&lt;User&gt; list = sqlSession.selectList(&quot;queryUserByUsername&quot;, username);
+        // 释放资源
+        sqlSession.close();
+        return list;
+    }
+
+    @Override
+    public void saveUser(User user) {
+        // 创建SqlSession
+        SqlSession sqlSession = this.sqlSessionFactory.openSession();
+
+        // 执行保存逻辑
+        sqlSession.insert(&quot;saveUser&quot;, user);
+        // 提交事务
+        sqlSession.commit();
+        // 释放资源
+        sqlSession.close();
+    }
+}</code></pre>
+<h3 id="编写dao测试">4.编写Dao测试</h3>
+<p>创建一个JUnit的测试类，对UserDao进行测试（充当main方法），测试代码如下：</p>
+<pre><code><code>public class UserDaoTest {
+    private SqlSessionFactory sqlSessionFactory;
+
+    @Before
+    public void init() throws Exception {
+        // 创建SqlSessionFactoryBuilder
+        SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+        // 加载SqlMapConfig.xml配置文件
+        InputStream inputStream = Resources.getResourceAsStream(&quot;SqlMapConfig.xml&quot;);
+        // 创建SqlsessionFactory
+        this.sqlSessionFactory = sqlSessionFactoryBuilder.build(inputStream);
+    }
+
+    @Test
+    public void testQueryUserById() {
+        // 创建DAO
+        UserDao userDao = new UserDaoImpl(this.sqlSessionFactory);
+        // 执行查询
+        User user = userDao.queryUserById(1);
+        System.out.println(user);
+    }
+
+    @Test
+    public void testQueryUserByUsername() {
+        // 创建DAO
+
+        UserDao userDao = new UserDaoImpl(this.sqlSessionFactory);
+        // 执行查询
+        List&lt;User&gt; list = userDao.queryUserByUsername(&quot;五&quot;);
+        for (User user : list) {
+            System.out.println(user);
+        }
+    }
+
+    @Test
+    public void testSaveUser() {
+        // 创建DAO
+        UserDao userDao = new UserDaoImpl(this.sqlSessionFactory);
+
+        // 创建保存对象
+        User user = new User();
+        user.setUsername(&quot;孙尚香肠&quot;);
+        user.setBirthday(new Date());
+        user.setSex(&quot;1&quot;);
+        user.setAddress(&quot;蜀国&quot;);
+        // 执行保存
+        userDao.saveUser(user);
+
+        System.out.println(user);
+    }
+}
+</code></pre>
+<h2 id="mapper动态代理方式">Mapper动态代理方式</h2>
+<h3 id="定义mapper.xml映射文件">1.定义Mapper.xml(映射文件)</h3>
+<p>定义mapper映射文件UserMapper.xml<br />
+将UserMapper.xml放在config下mapper目录下，效果如下：<br />
+<img src="./images/MyBatis开发Dao的原始Dao开发和Mapper动态代理开发1.png" alt="在这里插入图片描述" /></p>
+<h3 id="编写usermapper.xml配置文件内容">2、编写UserMapper.xml配置文件内容：</h3>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;!DOCTYPE mapper
+PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;
+&quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;
+&lt;!-- namespace：命名空间，用于隔离sql --&gt;
+&lt;!-- 还有一个很重要的作用，使用动态代理开发DAO，1. namespace必须和Mapper接口类路径一致 --&gt;
+&lt;mapper namespace=&quot;com.gx.mybatis.mapper.UserMapper&quot;&gt;
+    &lt;!-- 根据用户id查询用户 --&gt;
+    &lt;!-- 2. id必须和Mapper接口方法名一致 --&gt;
+    &lt;!-- 3. parameterType必须和接口方法参数类型一致 --&gt;
+    &lt;!-- 4. resultType必须和接口方法返回值类型一致 --&gt;
+    &lt;select id=&quot;queryUserById&quot; parameterType=&quot;int&quot;
+        resultType=&quot;com.gx.mybatis.pojo.User&quot;&gt;
+        select * from user where id = #{id}
+    &lt;/select&gt;
+
+    &lt;!-- 根据用户名查询用户 --&gt;
+    &lt;select id=&quot;queryUserByUsername&quot; parameterType=&quot;string&quot;
+        resultType=&quot;com.gx.mybatis.pojo.User&quot;&gt;
+        select * from user where username like &#39;%${value}%&#39;
+    &lt;/select&gt;
+
+    &lt;!-- 保存用户 --&gt;
+    &lt;insert id=&quot;saveUser&quot; parameterType=&quot;com.gx.mybatis.pojo.User&quot;&gt;
+        &lt;selectKey keyProperty=&quot;id&quot; keyColumn=&quot;id&quot; order=&quot;AFTER&quot;
+            resultType=&quot;int&quot;&gt;
+            select last_insert_id()
+        &lt;/selectKey&gt;
+        insert into user(username,birthday,sex,address) values
+        (#{username},#{birthday},#{sex},#{address});
+    &lt;/insert&gt;
+
+&lt;/mapper&gt;</code></pre>
+<h3 id="编写usermapper接口文件">3.编写UserMapper(接口文件)</h3>
+<p>创建UserMapper接口代码如下：</p>
+<pre><code><code>public interface UserMapper {
+    /**
+     * 根据id查询
+     * 
+     * @param id
+     * @return
+     */
+    User queryUserById(int id);
+
+    /**
+     * 根据用户名查询用户
+     * 
+     * @param username
+     * @return
+     */
+    List&lt;User&gt; queryUserByUsername(String username);
+
+    /**
+     * 保存用户
+     * 
+     * @param user
+     */
+    void saveUser(User user);
+}
+</code></pre>
+<h3 id="加载usermapper.xml文件">4.加载UserMapper.xml文件</h3>
+<p>修改SqlMapConfig.xml文件，添加以下所示的内容：</p>
+<pre><code><code>    &lt;!-- 加载映射文件 --&gt;
+    &lt;mappers&gt;
+        &lt;mapper resource=&quot;sqlmap/User.xml&quot; /&gt;
+        &lt;mapper resource=&quot;mapper/UserMapper.xml&quot; /&gt;
+    &lt;/mappers&gt;
+</code></pre>
+<h3 id="编写测试">5.编写测试</h3>
+<p>编写的测试方法如下：</p>
+<pre><code><code>public class UserMapperTest {
+    private SqlSessionFactory sqlSessionFactory;
+
+    @Before
+    public void init() throws Exception {
+        // 创建SqlSessionFactoryBuilder
+        SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+        // 加载SqlMapConfig.xml配置文件
+        InputStream inputStream = Resources.getResourceAsStream(&quot;SqlMapConfig.xml&quot;);
+        // 创建SqlsessionFactory
+        this.sqlSessionFactory = sqlSessionFactoryBuilder.build(inputStream);
+    }
+
+    @Test
+    public void testQueryUserById() {
+        // 获取sqlSession，和spring整合后由spring管理
+        SqlSession sqlSession = this.sqlSessionFactory.openSession();
+
+        // 从sqlSession中获取Mapper接口的代理对象
+        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+        // 执行查询方法
+        User user = userMapper.queryUserById(1);
+        System.out.println(user);
+
+        // 和spring整合后由spring管理
+        sqlSession.close();
+    }
+
+    @Test
+    public void testQueryUserByUsername() {
+        // 获取sqlSession，和spring整合后由spring管理
+        SqlSession sqlSession = this.sqlSessionFactory.openSession();
+
+        // 从sqlSession中获取Mapper接口的代理对象
+        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+        // 执行查询方法
+        List&lt;User&gt; list = userMapper.queryUserByUsername(&quot;五&quot;);
+        for (User user : list) {
+            System.out.println(user);
+        }
+
+        // 和spring整合后由spring管理
+        sqlSession.close();
+    }
+
+    @Test
+    public void testSaveUser() {
+        // 获取sqlSession，和spring整合后由spring管理
+        SqlSession sqlSession = this.sqlSessionFactory.openSession();
+
+        // 从sqlSession中获取Mapper接口的代理对象
+        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+        // 创建保存对象
+        User user = new User();
+        user.setUsername(&quot;刘备胎&quot;);
+        user.setBirthday(new Date());
+        user.setSex(&quot;2&quot;);
+        user.setAddress(&quot;鼠国&quot;);
+        // 执行查询方法
+        userMapper.saveUser(user);
+        System.out.println(user);
+
+
+        // 和spring整合后由spring管理
+        sqlSession.commit();
+        sqlSession.close();
+    }
+}
+
+</code></pre>
+<p><strong>如果本文对你有一点点帮助，那么请点个赞呗，谢谢~</strong></p>
+<blockquote>
+<p><strong>最后，若有不足或者不正之处，欢迎指正批评，感激不尽！如果有疑问欢迎留言，绝对第一时间回复！</strong></p>
+</blockquote>
+<p>欢迎各位关注我的公众号，一起探讨技术，向往技术，追求技术，说好了来了就是盆友喔...</p>
+<p><img src="./images/MyBatis开发Dao的原始Dao开发和Mapper动态代理开发2.png" alt="在这里插入图片描述" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

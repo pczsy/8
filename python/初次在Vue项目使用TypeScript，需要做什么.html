@@ -1,0 +1,512 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修初次在Vue项目使用TypeScript，需要做什么' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>初次在Vue项目使用TypeScript，需要做什么</center></div><div class='banquan'>原文出处:本文由博客园博主WahFung提供。<br/>
+原文连接:https://www.cnblogs.com/chanwahfung/p/11968205.html</div><br>
+    <h1 id="前言">前言</h1>
+<p>总所周知，Vue新版本3.0 使用 TypeScript 开发，让本来就很火的 TypeScript 受到更多人的关注。虽然 TypeScript 在近几年才火，但其实它诞生于2012年10月，正式版本发布于2013年6月，是由微软编写的自由和开源的编程语言。TypeScript 是 JavaScript 的一个超集，扩展了 JavaScript 的语法，添加了可选的静态类型和基于类的面向对象编程。</p>
+<p>JavaScript开发中经常遇到的错误就是变量或属性不存在，然而这些都是低级错误，而静态类型检查恰好可以弥补这个缺点。什么是静态类型？举个栗子：</p>
+<pre><code><code>//javascript 
+let str = &#39;hello&#39;
+str = 100 //ok
+
+//typescript
+let str:string = &#39;hello&#39;
+str = 100 //error: Type &#39;100&#39; is not assignable to type &#39;string&#39;.</code></pre>
+<p>可以看到 TypeScript 在声明变量时需要为变量添加类型，如果变量值和类型不一致则会抛出错误。静态类型只在编译时进行检查，而且最终编译出来的代码依然是 JavaScript。即使我们为 string 类型的变量赋值为其他类型，代码也是可以正常运行的。</p>
+<p>其次，TypeScript 增加了代码的可读性和可维护性，类型定义实际上就是一个很好的文档，比如在调用函数时，通过查看参数和返回值的类型定义，就大概知道这个函数如何使用。</p>
+<h1 id="目录">目录</h1>
+<ul>
+<li><h3 id="准备工作"><a href="#1">准备工作</a></h3></li>
+<li><h3 id="eslint配置"><a href="#2">ESLint配置</a></h3></li>
+<li><h3 id="文件改造"><a href="#3">文件改造</a></h3></li>
+<li><h3 id="全局声明"><a href="#4">全局声明</a></h3></li>
+<li><h3 id="语法转换工具"><a href="#5">语法转换工具</a></h3></li>
+<li><h3 id="三方库使用"><a href="#6">三方库使用</a></h3></li>
+<li><h3 id="建议及注意事项"><a href="#7">建议及注意事项</a></h3></li>
+<li><h3 id="写在最后"><a href="#8">写在最后</a></h3></li>
+<li><h3 id="参考资料"><a href="#9">参考资料</a></h3></li>
+</ul>
+<h1 id="准备工作-1"><span id=1>准备工作</h1>
+<h2 id="npm">npm</h2>
+<p>安装 typescript</p>
+<pre class="bash"><code>npm install typescript @vue/cli-plugin-typescript -D</code></pre>
+<h2 id="新增文件">新增文件</h2>
+<p>在项目的根目录下创建 shims-vue.d.ts、shims-tsx.d.ts、tsconfig.json</p>
+<ul>
+<li>shims-vue.d.ts</li>
+</ul>
+<pre class="typescript"><code>import Vue from &#39;vue&#39;;
+
+declare module &#39;*.vue&#39; {
+  export default Vue;
+}</code></pre>
+<ul>
+<li>shims-tsx.d.ts</li>
+</ul>
+<pre class="typescript"><code>import Vue, { VNode } from &#39;vue&#39;;
+
+declare global {
+  namespace JSX {
+    type Element = VNode
+    type ElementClass = Vue
+    interface IntrinsicElements {
+      [elem: string]: any;
+    }
+  }
+}</code></pre>
+<ul>
+<li>tsconfig.json</li>
+</ul>
+<pre class="json"><code>{
+  &quot;compilerOptions&quot;: {
+    &quot;target&quot;: &quot;es5&quot;,
+    &quot;module&quot;: &quot;esnext&quot;,
+    &quot;strict&quot;: true,
+    &quot;jsx&quot;: &quot;preserve&quot;,
+    &quot;importHelpers&quot;: true,
+    &quot;moduleResolution&quot;: &quot;node&quot;,
+    &quot;esModuleInterop&quot;: true,
+    &quot;allowSyntheticDefaultImports&quot;: true,
+    &quot;experimentalDecorators&quot;:true,
+    &quot;sourceMap&quot;: true,
+    &quot;noImplicitThis&quot;: false,
+    &quot;baseUrl&quot;: &quot;.&quot;,
+    &quot;types&quot;: [
+      &quot;webpack-env&quot;
+    ],
+    &quot;paths&quot;: {
+      &quot;@/*&quot;: [
+        &quot;src/*&quot;
+      ]
+    },
+    &quot;lib&quot;: [
+      &quot;esnext&quot;,
+      &quot;dom&quot;,
+      &quot;dom.iterable&quot;,
+      &quot;scripthost&quot;
+    ]
+  },
+  &quot;include&quot;: [
+    &quot;src/**/*.ts&quot;,
+    &quot;src/**/*.tsx&quot;,
+    &quot;src/**/*.vue&quot;,
+    &quot;tests/**/*.ts&quot;,
+    &quot;tests/**/*.tsx&quot;
+  ],
+  &quot;exclude&quot;: [
+    &quot;node_modules&quot;
+  ]
+}</code></pre>
+<h1 id="eslint配置-1"><span id=2>ESLint配置</h1>
+<h2 id="为什么使用-eslint-而不是-tslint">为什么使用 ESLint 而不是 TSLint？</h2>
+<p>今年1月份，TypeScript官方发布博客推荐使用ESLint来代替TSLint。而 ESLint 团队将不再维护 <code>typescript-eslint-parser</code>，也不会在 Npm 上发布，任何使用 <code>tyescript-eslint-parser</code> 的用户应该改用 <code>@tyescript-eslint/parser</code>。</p>
+<p>官方的解释：</p>
+<blockquote>
+<p>我们注意到TSLint规则的操作方式存在一些影响性能的体系结构问题,ESLint已经拥有了我们希望从linter中得到的更高性能的体系结构。此外，不同的用户社区通常有针对ESLint而不是TSLint构建的lint规则(例如React hook或Vue的规则)。鉴于此，我们的编辑团队将专注于利用ESLint，而不是复制工作。对于ESLint目前没有覆盖的场景(例如语义linting或程序范围的linting)，我们将致力于将ESLint的TypeScript支持与TSLint等同起来。</p>
+</blockquote>
+<p><a href="https://eslint.org/blog/2019/01/future-typescript-eslint">原文</a></p>
+<h2 id="如何使用">如何使用</h2>
+<p>AlloyTeam 提供了一套全面的EsLint配置规范，适用于 React/Vue/Typescript 项目，并且可以在此基础上自定义规则。<br />
+<a href="https://github.com/AlloyTeam/eslint-config-alloy">GitHub</a></p>
+<h3 id="安装">安装</h3>
+<pre class="bash"><code>npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-config-alloy</code></pre>
+<p>配置项的说明查看<a href="https://github.com/AlloyTeam/eslint-config-alloy/blob/master/typescript.js">AlloyTeam ESLint 规则</a></p>
+<h3 id="配置">配置</h3>
+<p>在项目的根目录中创建.eslintrc.js，然后将以下内容复制到其中:</p>
+<pre><code><code>module.exports = {
+  extends: [
+    &#39;alloy&#39;,
+    &#39;alloy/typescript&#39;,
+  ],
+  env: {
+    browser: true,
+    node: true,
+  },
+  rules: {
+    // 自定义规则
+    &#39;spaced-comment&#39;: &#39;off&#39;,
+    &#39;@typescript-eslint/explicit-member-accessibility&#39;: &#39;off&#39;,
+    &#39;grouped-accessor-pairs&#39;: &#39;off&#39;,
+    &#39;no-constructor-return&#39;: &#39;off&#39;,
+    &#39;no-dupe-else-if&#39;: &#39;off&#39;,
+    &#39;no-import-assign&#39;: &#39;off&#39;,
+    &#39;no-setter-return&#39;: &#39;off&#39;,
+    &#39;prefer-regex-literals&#39;: &#39;off&#39;
+  }
+};</code></pre>
+<h3 id="补充">补充</h3>
+<p>如果想知道配置项更多使用，可以到<a href="https://eslint.bootcss.com/docs/rules/">ESLint官网</a>搜索配置项。</p>
+<p>如果使用的是VScode，推荐使用ESLint插件辅助开发。</p>
+<h1 id="文件改造-1"><span id=3>文件改造</h1>
+<h2 id="入口文件">入口文件</h2>
+<ol>
+<li>main.js 改为 main.ts</li>
+<li>vue.config.js 修改入口文件</li>
+</ol>
+<pre><code><code>const path = require(&#39;path&#39;)
+module.exports = {
+  ...
+  pages: {
+    index: {
+      entry: path.resolve(__dirname+&#39;/src/main.ts&#39;)
+    },
+  },
+  ...
+}</code></pre>
+<h2 id="vue组件文件">vue组件文件</h2>
+<p>随着TypeScript和ES6里引入了类，在一些场景下我们需要额外的特性来支持标注或修改类及其成员。 装饰器（Decorators）为我们在类的声明及成员上通过元编程语法添加标注提供了一种方式。</p>
+<p>Vue 也为我们提供了类风格组件的 TypeScript 装饰器，使用装饰器前需要在 tsconfig.json 将 experimentalDecorators 设置为 true。</p>
+<h3 id="安装vue装饰器">安装vue装饰器</h3>
+<p><code>vue-property-decorator</code>库完全依赖<code>vue-class-component</code>，在安装时要一起装上</p>
+<pre class="bash"><code>npm install vue-class-component vue-property-decorator -D</code></pre>
+<h3 id="改造.vue">改造.vue</h3>
+<p>只需要修改srcipt内的东西即可，其他不需要改动</p>
+<pre class="typescript"><code>&lt;script lang=&quot;ts&quot;&gt;
+import { Component, Vue } from &quot;vue-property-decorator&quot;;
+import draggable from &#39;vuedraggable&#39;
+
+@Component({
+  created(){
+    
+  },
+  components:{
+    draggable
+  }
+})
+export default class MyComponent extends Vue {
+  /* data */
+  private ButtonGrounp:Array&lt;any&gt; = [&#39;edit&#39;, &#39;del&#39;]
+  public dialogFormVisible:boolean = false
+  
+  /*method*/
+  setDialogFormVisible(){
+    this.dialogFormVisible = false
+  }
+  addButton(btn:string){
+    this.ButtonGrounp.push(btn)
+  }
+
+  /*compute*/
+  get routeType(){
+    return this.$route.params.type
+  }
+}
+&lt;/script&gt;</code></pre>
+<p>类成员修饰符，不添加修饰符则默认为public</p>
+<ul>
+<li>public：公有，可以自由访问类的成员</li>
+<li>protected：保护，类及其继承的子类可访问</li>
+<li>private：私有，只有类可以访问</li>
+</ul>
+<h3 id="prop">Prop</h3>
+<blockquote>
+<p>!: 为属性使用明确的赋值断言修饰符，了解更多看<a href="http://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-7.html#strict-class-initialization">文档</a></p>
+</blockquote>
+<pre class="typescript"><code>import { Component, Vue, Prop } from &quot;vue-property-decorator&quot;;
+export default class MyComponent extends Vue {
+  ...
+  @Prop({type: Number,default: 0}) readonly id!: number
+  ...
+}</code></pre>
+<p>等同于</p>
+<pre><code><code>export default {
+  ...
+  props:{
+    id:{
+      type: Number,
+      default: 0
+    }
+  }
+  ...
+}</code></pre>
+<h3 id="watch">Watch</h3>
+<pre class="typescript"><code>import { Component, Vue, Watch } from &quot;vue-property-decorator&quot;;
+export default class MyComponent extends Vue {
+  ...
+  @Watch(&#39;dialogFormVisible&#39;)
+  dialogFormVisibleChange(newVal:boolean){
+    // 一些操作
+  }
+  ...
+}</code></pre>
+<p>等同于</p>
+<pre><code><code>export default {
+  ...
+  watch:{
+    dialogFormVisible(newVal){
+      // 一些操作
+    }
+  }
+  ...
+}</code></pre>
+<h3 id="provideinject">Provide/Inject</h3>
+<pre class="typescript"><code>// App.vue
+import {Component, Vue, Provide} from &#39;vue-property-decorator&#39;
+@Component
+export default class App extends Vue {
+  @Provide() app = this
+}
+
+// MyComponent.vue
+import {Component, Vue, Inject} from &#39;vue-property-decorator&#39;
+@Component
+export default class MyComponent extends Vue {
+  @Inject() readonly app!: Vue
+}</code></pre>
+<p>等同于</p>
+<pre><code><code>// App.vue
+export default {
+  provide() {
+    return {
+      &#39;app&#39;: this
+    }
+  }
+}
+
+// MyComponent.vue
+export default {
+  inject: [&#39;app&#39;]
+}</code></pre>
+<p>更多装饰器使用，参考<a href="https://github.com/kaorun343/vue-property-decorator/blob/master/README.md">vue-property-decorator文档</a></p>
+<h1 id="全局声明-1"><span id=4>全局声明</h1>
+<h2 id="d.ts-文件">*.d.ts 文件</h2>
+<p>目前主流的库文件都是 JavaScript 编写，TypeScript 身为 JavaScript 的超集，为支持这些库的类型定义，提供了类型定义文件（*.d.ts），开发者编写类型定义文件发布到npm上，当使用者需要在 TypeScript 项目中使用该库时，可以另外下载这个包，让JS库能够在 TypeScript 项目中运行。</p>
+<p>比如：<code>md5</code> 相信很多人都使用过，这个库可以将字符串转为一串哈希值，这种转化不可逆，常用于敏感信息进行哈希再发送到后端进行验证，保证数据安全性。如果我们想要在 TypeScript 项目中使用，还需要另外下载 <code>@tyeps/md5</code>，在该文件夹的index.d.ts中可以看到为 <code>md5</code> 定义的类型。</p>
+<pre class="typescript"><code>/// &lt;reference types=&quot;node&quot; /&gt;
+
+declare function md5(message: string | Buffer | Array&lt;number&gt;): string;
+
+declare namespace md5 {}
+
+export = md5;</code></pre>
+<h2 id="typescript-是如何识别-.d.ts">TypeScript 是如何识别 *.d.ts</h2>
+<p>TypeScript 在项目编译时会全局自动识别 <em>.d.ts文件，我们需要做的就是编写 </em>.d.ts，然后 TypeScript 会将这些编写的类型定义注入到全局提供使用。</p>
+<h2 id="为vue实例添加属性方法">为vue实例添加属性/方法</h2>
+<p>当我们在使用<code>this.$route</code>或一些原型上的方法时，typescript无法进行推断，在编译时会报属性<code>$route</code>不存在的错误，需要为这些全局的属性或方法添加全局声明</p>
+<p>对shims-vue.d.ts做修改，当然你也可以选择自定义*.d.ts来添加声明</p>
+<pre class="typescript"><code>import Vue from &#39;vue&#39;;
+import VueRouter, { Route } from &#39;vue-router&#39;
+
+declare module &#39;*.vue&#39; {
+  export default Vue;
+}
+
+declare module &#39;vue/types/vue&#39; {
+  interface Vue {
+    $api: any;
+    $bus: any;
+    $router: VueRouter;
+    $route: Route;
+  }
+}</code></pre>
+<h2 id="自定义类型定义文件">自定义类型定义文件</h2>
+<p>当一些类型或接口等需要频繁使用时，我们可以为项目编写全局类型定义，<br />
+根路径下创建@types文件夹，里面存放*.d.ts文件，专门用于管理项目中的类型定义文件。</p>
+<p>这里我定义个global.d.ts文件：</p>
+<pre class="typescript"><code>//declare 可以创建 *.d.ts 文件中的变量，declare 只能作用域最外层
+//变量
+declare var num: number;
+
+//类型
+type StrOrNum = string | number
+
+//函数
+declare function handler(str: string): void;
+
+// 类
+declare class User { 
+  
+}
+
+//接口
+interface OBJ {
+  [propName: string]: any;
+  [propName: number]: any;
+}
+
+interface RES extends OBJ {
+  resultCode: number;
+  data: any;
+  msg?: string;
+}</code></pre>
+<h1 id="解放双手transvue2ts转换工具"><span id=5>解放双手，transvue2ts转换工具</h1>
+<p>改造过程最麻烦的就是语法转换，内容都是一些固定的写法，这些重复且枯燥的工作可以交给机器去做。这里我们可以借助 transvue2ts 工具提高效率，transvue2ts 会帮我们把data、prop、watch等语法转换为装饰器语法。</p>
+<h2 id="安装-1">安装</h2>
+<pre class="bash"><code>npm i transvue2ts -g</code></pre>
+<h2 id="使用">使用</h2>
+<p>安装完之后，transvue2ts 库的路径会写到系统的 path中，直接打开命令行工具即可使用，命令的第二个参数是文件的完整路径。<br />
+执行命令后会在同级目录生成转换好的新文件，例如处理view文件夹下的index.vue，转换后会生成indexTS.vue。</p>
+<p><strong>处理单文件组件</strong></p>
+<pre class="bash"><code>transvue2ts D:\typescript-vue-admin-demo\src\pages\index.vue
+=&gt;
+输出路径：D:\typescript-vue-admin-demo\src\pages\indexTS.vue</code></pre>
+<p><strong>处理文件夹下的所有vue组件文件</strong></p>
+<pre class="bash"><code>transvue2ts D:\typescript-vue-admin-demo\src\pages
+=&gt;
+输出路径：D:\typescript-vue-admin-demo\src\pagesTS</code></pre>
+<h2 id="补充-1">补充</h2>
+<p>不要以为有工具真就完全解放双手，工具只是帮我们转换部分语法。工具未能处理的语法和参数的类型定义，还是需要我们去修改的。要注意的是转换后注释会被过滤掉。</p>
+<p>该工具作者在<a href="https://juejin.im/post/5d804255f265da03e2761faa">掘金</a>对工具的介绍和实现思路</p>
+<h1 id="关于第三方库使用"><span id=6>关于第三方库使用</h1>
+<p>一些三方库会在安装时，包含有类型定义文件，使用时无需自己去定义，可以直接使用官方提供的类型定义。</p>
+<p>node_modules中找到对应的包文件夹，类型文件一般都会存放在types文件夹内，其实类型定义文件就像文档一样，这些内容能够清晰的看到所需参数和参数类型。</p>
+<p>这里列出一些在 Vue 中使用三方库的例子：</p>
+<h2 id="element-ui-组件参数">element-ui 组件参数</h2>
+<p>使用类型定义</p>
+<pre class="typescript"><code>import { Component, Vue } from &quot;vue-property-decorator&quot;;
+import { ElLoadingComponent, LoadingServiceOptions } from &#39;element-ui/types/loading&#39;
+
+let loadingMark:ElLoadingComponent; 
+let loadingConfig:LoadingServiceOptions = {
+  lock: true,
+  text: &quot;加载中&quot;,
+  spinner: &quot;el-icon-loading&quot;,
+  background: &quot;rgba(255, 255, 255, 0.7)&quot;
+};
+
+@Component
+export default class MyComponent extends Vue {
+  ...
+  getList() {
+    loadingMark = this.$loading(loadingConfig);
+    this.$api.getList()
+      .then((res:RES) =&gt; {
+        loadingMark.close();
+      });
+  }
+  ...
+}</code></pre>
+<p>element-ui/types/loading，原文件里还有很多注释，对每个属性都做出描述</p>
+<pre class="typescript"><code>export interface LoadingServiceOptions {
+  target?: HTMLElement | string
+  body?: boolean
+  fullscreen?: boolean
+  lock?: boolean
+  text?: string
+  spinner?: string
+  background?: string
+  customClass?: string
+}
+export declare class ElLoadingComponent extends Vue {
+  close (): void
+}
+declare module &#39;vue/types/vue&#39; {
+  interface Vue {
+    $loading (options: LoadingServiceOptions): ElLoadingComponent
+  }
+}</code></pre>
+<h2 id="vue-router-钩子函数">vue-router 钩子函数</h2>
+<p>使用类型定义</p>
+<pre class="typescript"><code>import { Component, Vue } from &quot;vue-property-decorator&quot;;
+import { NavigationGuard } from &quot;vue-router&quot;;
+
+@Component
+export default class MyComponent extends Vue {
+  beforeRouteUpdate:NavigationGuard = function(to, from, next) {
+    next();
+  }
+}</code></pre>
+<p>在vue-router/types/router.d.ts中，开头就可以看到钩子函数的类型定义。</p>
+<pre class="typescript"><code>export type NavigationGuard&lt;V extends Vue = Vue&gt; = (
+  to: Route,
+  from: Route,
+  next: (to?: RawLocation | false | ((vm: V) =&gt; any) | void) =&gt; void
+) =&gt; any</code></pre>
+<p>还有前面所使用到的<code>Router</code>、<code>Route</code>，所有的方法、属性、参数等都在这里被描述得清清楚楚</p>
+<pre class="typescript"><code>export declare class VueRouter {
+  constructor (options?: RouterOptions);
+
+  app: Vue;
+  mode: RouterMode;
+  currentRoute: Route;
+
+  beforeEach (guard: NavigationGuard): Function;
+  beforeResolve (guard: NavigationGuard): Function;
+  afterEach (hook: (to: Route, from: Route) =&gt; any): Function;
+  push (location: RawLocation, onComplete?: Function, onAbort?: ErrorHandler): void;
+  replace (location: RawLocation, onComplete?: Function, onAbort?: ErrorHandler): void;
+  go (n: number): void;
+  back (): void;
+  forward (): void;
+  getMatchedComponents (to?: RawLocation | Route): Component[];
+  onReady (cb: Function, errorCb?: ErrorHandler): void;
+  onError (cb: ErrorHandler): void;
+  addRoutes (routes: RouteConfig[]): void;
+  resolve (to: RawLocation, current?: Route, append?: boolean): {
+    location: Location;
+    route: Route;
+    href: string;
+    normalizedTo: Location;
+    resolved: Route;
+  };
+
+  static install: PluginFunction&lt;never&gt;;
+}
+export interface Route {
+  path: string;
+  name?: string;
+  hash: string;
+  query: Dictionary&lt;string | (string | null)[]&gt;;
+  params: Dictionary&lt;string&gt;;
+  fullPath: string;
+  matched: RouteRecord[];
+  redirectedFrom?: string;
+  meta?: any;
+}</code></pre>
+<h2 id="自定义三方库声明">自定义三方库声明</h2>
+<p>当使用的三方库未带有 *.d.ts 声明文件时，在项目编译时会报这样的错误：</p>
+<pre class="text"><code> Could not find a declaration file for module &#39;vuedraggable&#39;. &#39;D:/typescript-vue-admin-demo/node_modules/vuedraggable/dist/vuedraggable.umd.min.js&#39; implicitly has an &#39;any&#39; type.
+  Try `npm install @types/vuedraggable` if it exists or add a new declaration (.d.ts) file containing `declare module &#39;vuedraggable&#39;;`</code></pre>
+<p>大致意思为 vuedraggable 找不到声明文件，可以尝试安装 @types/vuedraggable(如果存在)，或者自定义新的声明文件。</p>
+<h3 id="安装-typesvuedraggable">安装 @types/vuedraggable</h3>
+<p>按照提示先选择第一种方式，安装 <code>@types/vuedraggable</code>，然后发现错误 404 not found，说明这个包不存在。感觉这个组件还挺多人用的（周下载量18w），没想到社区居然没有声明文件。</p>
+<h3 id="自定义声明文件">自定义声明文件</h3>
+<p>无奈只能选择第二种方式，说实话自己也摸索了有点时间（主要对这方面没做多了解，不太熟悉）</p>
+<p>首先在 node_modules/@types 下创建 vuedraggable 文件夹，如果没有 @types 文件夹可自行创建。vuedraggable 文件夹下创建 index.d.ts。编写以下内容：</p>
+<pre class="typescript"><code>import Vue from &#39;vue&#39;
+declare class Vuedraggable extends Vue{}
+export = Vuedraggable</code></pre>
+<p>重新编译后没有报错，解决问题。</p>
+<h1 id="建议及注意事项-1"><span id=7>建议及注意事项</h1>
+<h2 id="改造过程">改造过程</h2>
+<ul>
+<li>在接入 TypeScript 时，不必一次性将所有文件都改为ts语法，原有的语法也是可以正常运行的，最好就是单个修改</li>
+<li>初次改造时出现一大串的错误是正常的，基本上都是类型错误，按照错误提示去翻译进行修改对应错误</li>
+<li>在导入ts文件时，不需要加 <code>.ts</code> 后缀</li>
+<li>为项目定义全局变量后无法正常使用，重新跑一遍服务器（我就碰到过...）</li>
+</ul>
+<h2 id="遇到问题">遇到问题</h2>
+<ul>
+<li>面向搜索引擎，前提是知道问题出在哪里</li>
+<li>多看仔细文档，大多数一些错误都是比较基础的，文档可以解决问题</li>
+<li>Github 找 TypeScript 相关项目，看看别人是如何写的</li>
+</ul>
+<h1 id="写在最后-1"><span id=8>写在最后</h1>
+<p>抽着空闲时间入门一波 TypeScript，尝试把一个后台管理系统接入 TypeScript，毕竟只有实战才能知道有哪些不足，以上记录都是在 Vue 中如何使用 TypeScript，以及遇到的问题。目前工作中还未正式使用到 TypeScript，学习新技术需要成本和时间，大多数是一些中大型的公司在推崇。总而言之，多学点总是好事，学习都要多看多练，知道得越多思维就会更开阔，解决问题的思路也就越多。</p>
+<h1 id="参考资料-1"><span id=9>参考资料</h1>
+<ul>
+<li><a href="https://ts.xcatliu.com/">TypeScript入门教程</a></li>
+<li><a href="https://www.jspang.com/detailed?id=38">技术胖-TypeScript免费视频教程</a></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

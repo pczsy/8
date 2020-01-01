@@ -1,0 +1,310 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。</center></div><div class='banquan'>原文出处:本文由博客园博主why技术提供。<br/>
+原文连接:https://www.cnblogs.com/thisiswhy/p/12067093.html</div><br>
+    <h1 class="pgc-h-arrow-right" data-pm-slice="0 0 []">本文目录</h1>
+<p>一.题是什么题?</p>
+<p>二.阿里Java开发规范。</p>
+<p>&nbsp; &nbsp; 2.1 正例代码。</p>
+<p>&nbsp; &nbsp; 2.2 反例代码。</p>
+<p>三.层层揭秘，为什么发生异常了呢?</p>
+<p>&nbsp; &nbsp; 3.1 第一层:异常信息解读。</p>
+<p>&nbsp; &nbsp; 3.2 第二层:抛出异常的条件解读。</p>
+<p>&nbsp; &nbsp; 3.3 第三层:什么是modCount?它是干啥的?什么时候发生变化?</p>
+<p>&nbsp; &nbsp; 3.4 第四层:什么是expectedModCount?它是干啥的?什么时候发生变化?</p>
+<p>&nbsp; &nbsp; 3.5 第五层:组装线索,直达真相。</p>
+<p>四.这题的坑在哪?</p>
+<p>&nbsp; &nbsp; 4.1 回头再看。</p>
+<p>&nbsp; &nbsp; 4.2 还有一个骚操作。</p>
+<p>五.线程安全版的ArrayList。</p>
+<p>六.总结一下。</p>
+<p>七.回答另外一个面试题。</p>
+<p>八.扩展阅读。</p>
+<p>&nbsp; &nbsp; &nbsp;7.1 fail-fast机制和safe-fast机制。</p>
+<p>&nbsp; &nbsp; &nbsp;7.2 Java语法糖。</p>
+<p>&nbsp; &nbsp; &nbsp;7.3 阿里Java开发手册。</p>
+<h1 class="pgc-h-arrow-right">一.题是什么题？</h1>
+<p>我第一次遇到这个题的时候，是在一个微信群里，阿里著名的"Java劝退师"小马哥抛出了这样的一个问题：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。0.png" alt="" data-ic="false" data-width="236" data-height="203" data-ic-uri="" /></div>
+<p>然后大家纷纷给出了自己的见解(注：删除了部分聊天记录)：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。1.png" alt="" data-ic="false" data-width="372" data-height="574" data-ic-uri="" /></div>
+<p>后面在另外的群里聊天的时候(注：删除了部分聊天记录)，我也抛出了这样的问题：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。2.png" alt="" data-ic="false" data-width="635" data-height="477" data-ic-uri="" /></div>
+<p>总结一下图片中的各种回答:</p>
+<blockquote class="js_blockquote_wrap">
+<p>1.什么也不会发生,remove之后，list中的数据会被清空。</p>
+<p>2.remove的方法调用错误，入参应该是index(数组下标)。</p>
+<p>3.并发操作的时候会出现异常。</p>
+<p>4.会发生ConcurrentModifyException。</p>
+</blockquote>
+<p>你的答案又是什么呢？</p>
+<p>在这里，我先不说正确的答案是什么，也先不评价这些回答是对是错，我们一起去探索真相，寻找答案。</p>
+<h1 class="pgc-h-arrow-right">二.阿里Java开发规范</h1>
+<p>有人看到题的第一眼（没有认真读题），就想起了阿里java开发手册（先入为主），里面是这样说的:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。3.png" alt="" data-ic="false" data-width="1080" data-height="692" data-ic-uri="" /></div>
+<p>正是因为大多数人都知道并且读过这个规范(毕竟是业界权威)。所以呼声最高的答案是【会发生ConcurrentModifyException】。因为他们知道阿里java开发手册里面是强制要求：</p>
+<blockquote class="js_blockquote_wrap">
+<p>不要在foreach循环里面进行元素的remove/add操作。remove元素请使用Iterator方式，如果并发操作，需要对Iterator对象加锁。</p>
+</blockquote>
+<p>但是不能因为他是权威，我们就全盘接受吧？</p>
+<p><strong>2.1 正例代码</strong></p>
+<p>所以我们眼见为实，先把手册里面提到的【正例代码】跑一下，如下:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。4.png" alt="" data-ic="false" data-width="721" data-height="514" data-ic-uri="" /></div>
+<p>细心的读者可能发现了：咦，这个代码的22行为啥颜色不一样呢？</p>
+<p>我帮你看看。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。5.png" alt="" data-ic="false" data-width="567" data-height="219" data-ic-uri="" /></div>
+<p>替换之后的代码是这样的：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。6.png" alt="" data-ic="false" data-width="940" data-height="417" data-ic-uri="" /></div>
+<p>从上面我们可以得到一个结论.......</p>
+<p>等等，到这一步你就想得到结论了？你不对【一行代码为什么就替换了七行代码】好奇吗？</p>
+<p>看到真相的时候，有时候再往前一步就是本质了。</p>
+<p>源码之下无秘密，我再送你一张图，JDK1.8中Collection.removeIf的源码：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。7.png" alt="" data-ic="false" data-width="828" data-height="378" data-ic-uri="" /></div>
+<p>好了，已经到源码级别了，从这里我们验证了，阿里java开发手册里面的正例是对的，而且我还想给他加上一句:</p>
+<blockquote class="js_blockquote_wrap">
+<p>如果你的JDK版本是1.8以上，没有并发访问的情况下，可以使用Collection.removeIf(Predicate&lt;? super E&gt; filter)方法。使代码更加优雅。</p>
+</blockquote>
+<p><strong>2.2 反例代码</strong></p>
+<p>接下来我们看看【反例代码】的运行结果:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。8.png" alt="" data-ic="false" data-width="627" data-height="460" data-ic-uri="" /></div>
+<p>从执行结果来看，和我们预期的结果是一致。看着没有问题呀？</p>
+<p>但是你别忘了，下面还有一句话啊：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。9.png" alt="" data-ic="false" data-width="598" data-height="216" data-ic-uri="" /></div>
+<p>我们执行试一试:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。10.png" alt="" data-ic="false" data-width="674" data-height="534" data-ic-uri="" /></div>
+<p>什么情况?真的是"出乎意料"啊！</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。11.png" alt="" data-ic="false" data-width="500" data-height="500" data-ic-uri="" /></div>
+<p>把删除元素的条件从【公众号】修改为【why技术】就发生了异常：</p>
+<blockquote class="js_blockquote_wrap">
+<p>java.util.ConcurrentModificationException</p>
+</blockquote>
+<h1 class="pgc-h-arrow-right">三.层层揭秘,为什么发生了异常呢？</h1>
+<p>我们现在明白为什么阿里强制要求不要在foreach循环里面进行元素的remove/add操作，因为会发生异常了。</p>
+<p>但是开发手册里面并没有告诉你，为什么会发生异常。需要我们自己层层深入，积极探索。</p>
+<p><strong>3.1 第一层：异常信息解读</strong></p>
+<p>所以这一小节我们就一起探索，为什么会发生异常。我们再解析一下程序的运行结果,如下:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。12.png" alt="" data-ic="false" data-width="951" data-height="541" data-ic-uri="" /></div>
+<p>正如上图里面异常信息的体现，异常是在代码的第21行触发的。而代码的第21行，是一个foreach循环。foreach循环是Java的语法糖，我们可以从编译后的class文件中看出，如下图所示：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。13.png" alt="" data-ic="false" data-width="816" data-height="579" data-ic-uri="" /></div>
+<p>请注意图中的第26行代码：</p>
+<blockquote class="js_blockquote_wrap">
+<p>list.remove(item) &nbsp;<strong>（这句话很关键！！！）</strong></p>
+</blockquote>
+<p>很关键，很重要，后面会讲到。</p>
+<p>这也解释了，异常信息里面的这一个问题：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。14.png" alt="" data-ic="false" data-width="593" data-height="230" data-ic-uri="" /></div>
+<p>好了，到这一步，我们把异常信息都解读完毕了。</p>
+<p><strong>3.2 第二层：抛出异常的条件解读</strong></p>
+<p>我再看看真实抛出异常的那一个方法：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。15.png" alt="" data-ic="false" data-width="427" data-height="104" data-ic-uri="" /></div>
+<p>很简单，很清晰的四行代码。抛出异常的条件是:</p>
+<blockquote class="js_blockquote_wrap">
+<p>modCount&nbsp;!=expectedModCount</p>
+</blockquote>
+<p>所以，我们需要解开的下两层面纱就是下面两大点：</p>
+<blockquote class="js_blockquote_wrap">
+<p>第一：什么是modCount？它是干啥的？什么时候发生变化？</p>
+<p>第二：什么是expectedModCount？它是干啥的？什么时候发生变化？</p>
+</blockquote>
+<p><strong>3.3 第三层：什么是modCount?它是干啥的？什么时候发生变化？</strong></p>
+<p>先来第一个：什么是modCount?</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。16.png" alt="" data-ic="false" data-width="635" data-height="348" data-ic-uri="" /></div>
+<p>modCount上的注释很长，我只截取了最后一段。在这一段中，提到了两个关键点。</p>
+<blockquote class="js_blockquote_wrap">
+<p>1.modCount这个字段位于java.util.AbstractList抽象类中。</p>
+<p>2.modCount的注释中提到了"fail-fast"机制。</p>
+<p>3.如果子类希望提供"fail-fast"机制，需要在add(int,E)方法和remove(int)方法中对这个字段进行处理。</p>
+<p>4.从第三点我们知道了，在提供了"fail-fast"机制的容器中（比如ArrayList），除了文中示例的remove(Obj)方法会导致ConcurrentModificationException异常，add及其相关方法也会导致异常。</p>
+</blockquote>
+<p>知道了什么是modCount。那modCount是干啥的呢？</p>
+<blockquote class="js_blockquote_wrap">
+<p>在提供了"fail-fast"机制的集合中，modCount的作用是记录了该集合在使用过程中被修改的次数。</p>
+</blockquote>
+<p>证据就在源码里面，如下：</p>
+<p>这是java.util.ArrayList#add(int, E)方法的源码截图：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。17.png" alt="" data-ic="false" data-width="666" data-height="265" data-ic-uri="" /></div>
+<p>这是java.util.ArrayList#remove(int)方法的源码截图：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。18.png" alt="" data-ic="false" data-width="677" data-height="535" data-ic-uri="" /></div>
+<p>注：这里不讨论手动设置为null是否对GC有帮助，我个人认为，在这里有这一行代码并没有坏处。在实际开发过程中，一般不需要考虑到这点。</p>
+<p>同时，上面的源码截图也回答了这一层的最后一个问题：它什么时候被修改？</p>
+<blockquote class="js_blockquote_wrap">
+<p>拿ArrayList来说，当调用add相关和remove相关方法时，会触发modCount++操作，从而被修改。</p>
+</blockquote>
+<p>好了，通过上面的分析，我们知道了什么是modCount和modCount是干啥的。准备进入第四层。</p>
+<p><strong>3.4 第四层：什么是expectedModCount？它是干啥的？什么时候发生变化？</strong></p>
+<p>接下来：什么是expectedModCount？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。19.png" alt="" data-ic="false" data-width="637" data-height="261" data-ic-uri="" /></div>
+<blockquote class="js_blockquote_wrap">
+<p>expectedModCount是ArrayList中一个名叫Itr内部类的成员变量。</p>
+</blockquote>
+<p>第二问:expectedModCount它是干啥的：</p>
+<blockquote class="js_blockquote_wrap">
+<p>它代表的含义是在这个迭代器中，预期的修改次数</p>
+</blockquote>
+<p>第三问:expectedModCount什么时候发生变化？</p>
+<blockquote class="js_blockquote_wrap">
+<p>情况一:从上图中也可以看出当Itr初始化的时候，会对expectedModCount字段赋初始值，其值等于modCount。</p>
+<p>情况二:如下图所示，调用Itr的remove方法后会再次把modCount的值赋给expectedModCount。</p>
+<p>换句话说就是：调用迭代器的remove会维护expectedModCount=modCount。<strong>（这句话很关键！！！）</strong></p>
+</blockquote>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。20.png" alt="" data-ic="false" data-width="536" data-height="428" data-ic-uri="" /></div>
+<p>好了分析到了这里，我们知道了下面这个六连击：</p>
+<blockquote class="js_blockquote_wrap">
+<p>1.什么是modCount？</p>
+<p>2.modCount是干啥的?</p>
+<p>3.modCount什么时候发生变化？</p>
+<p>4.什么是expectedModCount？</p>
+<p>5.expectedModCount是干啥的？</p>
+<p>6.expectedModCount什么时候发生变化？</p>
+</blockquote>
+<p><strong>3.5 第五层:组装线索，直达真相</strong></p>
+<p>为什么发生了异常呢？</p>
+<p>如果说前四层是线索的话，真相其实已经隐藏在线索里面了。我带你梳理一下：</p>
+<p>【第一层:异常信息解读】中说到：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。21.png" alt="" data-ic="false" data-width="576" data-height="122" data-ic-uri="" /></div>
+<p>【第二层：抛出异常的条件解读】中说到：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。22.png" alt="" data-ic="false" data-width="580" data-height="84" data-ic-uri="" /></div>
+<p>【第三层：什么是modCount?它是干啥的？什么时候发生变化？】中说到:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。23.png" alt="" data-ic="false" data-width="587" data-height="157" data-ic-uri="" /></div>
+<p>【第四层：什么是expectedModCount？它是干啥的？什么时候发生变化？】中说到:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。24.png" alt="" data-ic="false" data-width="578" data-height="57" data-ic-uri="" /></div>
+<p>为什么发生了异常呢？我想你大概已经有了一个答案了，我再去Debug一下，为了方便演示，我们去掉语法糖，程序修改如下：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。25.png" alt="" data-ic="false" data-width="675" data-height="403" data-ic-uri="" /></div>
+<p>并确认一下这个循环体会执行三次，如下：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。26.png" alt="" data-ic="false" data-width="559" data-height="572" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。27.png" alt="" data-ic="false" data-width="767" data-height="485" data-ic-uri="" /></div>
+<p>第一次循环取出的【公众号】，不满足条件if("why技术".equals(item))，不会触发list.remove(Obj)方法。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。28.png" alt="" data-ic="false" data-width="515" data-height="463" data-ic-uri="" /><span class="pgc-img-caption">第二次循环</span></div>
+<p>如图所示，第二次循环取到了&ldquo;why技术&rdquo;。满足条件if("why技术".equals(item))，会触发list.remove(Obj)方法，如下所示：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。29.png" alt="" data-ic="false" data-width="759" data-height="500" data-ic-uri="" /></div>
+<p>第三次循环</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。30.png" alt="" data-ic="false" data-width="521" data-height="465" data-ic-uri="" /></div>
+<p>总结一下在foreach循环里面进行元素的remove/add操作抛出异常的真相：</p>
+<blockquote class="js_blockquote_wrap">
+<p>因为foreach循环是Java的语法糖，经过编译后还原成了迭代器。</p>
+<p>但是从经过编译后的代码的第26行可以看出，remove方法的调方是list，而不是迭代器。</p>
+<p>经过前面的源码分析我们知道，由于ArrayList的"fail-fast"机制，调用remove方法会触发【modCount++】操作，对expectedModCount没有任何操作。只有调用迭代器的remove方法，才会维护expectedModCount=modCount。</p>
+<p>所以调用了list的remove方法后，再调用Itr的next方法时，导致了expectedModCount！=modCount，抛出异常。</p>
+</blockquote>
+<h1 class="pgc-h-arrow-right">四.这题的坑在哪里？</h1>
+<p>前面讲了阿里开发手册。讲了在foreach循环里面进行元素的remove/add为什么会发生异常。有了这些铺垫之后。</p>
+<p>4.1 回头再看</p>
+<p>我们再回过头来看小马哥出的这个题：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。0.png" alt="" data-ic="false" data-width="236" data-height="203" data-ic-uri="" /></div>
+<p>我靠，这乍一看，foreach循环里面调用list.remove(obj)。我们刚刚分析过，会抛出ConcurrentModificationException异常。</p>
+<p>你要这样答，你就进了小马哥的坑了。</p>
+<p>这个题的坑在这三个点里面。小马哥并没有说这个list是ArrayList吧？如果你没有认真审题，先入为主的默认了这个list就是ArrayList。第一步就错了。</p>
+<p>这是真正的高手，借力打力。借阿里开发手册的力，让你第一步就走错。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。32.png" alt="" data-ic="false" data-width="499" data-height="283" data-ic-uri="" /></div>
+<p>请看下面这张图：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。33.png" alt="" data-ic="false" data-width="504" data-height="422" data-ic-uri="" /></div>
+<p>当使用CopyOnWriteArrayList的时候，程序正常执行。</p>
+<p><strong>4.2 还有一个骚操作</strong></p>
+<p>既然我们知道为什么会抛出异常，也知道怎么不抛出异常，List本来就是一个接口，那我们是不是可以实现这个接口，弄一个自定义的List呢？</p>
+<p>比如下面的这个WhyTechnologyList，就是我自己的List，狸猫换太子，这操作，够"骚"啊。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。34.png" alt="" data-ic="false" data-width="685" data-height="486" data-ic-uri="" /></div>
+<p>只有掌握了原理，我们想怎么玩就怎么玩。</p>
+<h1 class="pgc-h-arrow-right">五.线程安全版的ArrayList</h1>
+<p>CopyOnWriteArrayList是什么？我们看一下源码注释上面是怎么说的：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。35.png" alt="" data-ic="false" data-width="829" data-height="482" data-ic-uri="" /></div>
+<p>相对于ArrayList而言，CopyOnWriteArrayList集合是线程安全的容器。在遍历的时候，由于它操作是数组的"快照"，"快照"不会发生变化。所以它不需要额外加锁，也不会抛出ConcurrentModificationException异常。</p>
+<p>我们主要看一下，示例程序中用到的三个方法，add(E e)、next()、remove(Obj)</p>
+<p>先看add(E e)方法:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。36.png" alt="" data-ic="false" data-width="670" data-height="388" data-ic-uri="" /></div>
+<p>我们看一下它的next()方法：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。37.png" alt="" data-ic="false" data-width="435" data-height="170" data-ic-uri="" /></div>
+<p>再看一下它的remove(Obj)方法:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。38.png" alt="" data-ic="false" data-width="617" data-height="179" data-ic-uri="" /></div>
+<p>next、remove都是操作的快照，并没有看到ArrayList里面的modCount和expectedModCount。所以它没有抛出ConcurrentModificationException</p>
+<p>之前看小马哥说的这句话的时候还不太明白集合和一致性之间的关系（老问题，还是先入为主，一说到一致性首先想到的是缓存和数据库之间的一致性）。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。39.png" alt="" data-ic="false" data-width="1080" data-height="403" data-ic-uri="" /></div>
+<p>但是当我阅读源码，从add方法可以看出CopyOnWriteArrayList并不保证数据的实时一致性。只能保证最终一致性。</p>
+<p>同时我们从源码中可以看出CopyOnWriteArrayList增删改数据的时候需要搞一个"快照"，这一点是比较耗内存的，使用过程中需要注意。</p>
+<h1 class="pgc-h-arrow-right">六.总结一下</h1>
+<p>我们再回到最开始的地方，看看大家的回答：</p>
+<p>1.什么也不会发生,remove之后，list中的数据会被清空。</p>
+<p>2.remove的方法调用错误，入参应该是index(数组下标)。</p>
+<p>3.并发操作的时候会出现异常。</p>
+<p>4.会发生ConcurrentModifyException。</p>
+<p>现在，你知道这些回答的问题在哪里了吧？这一部分的总结也很简单，上一个对比图就好了，如果看不清楚，你可以点开看大图：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。40.png" alt="" data-ic="false" data-width="597" data-height="582" data-ic-uri="" /><span class="pgc-img-caption">ArrayList</span></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。41.png" alt="" data-ic="false" data-width="489" data-height="484" data-ic-uri="" /><span class="pgc-img-caption">CopyOnWriteArrayList</span></div>
+<h1 class="pgc-h-arrow-right">七.回答另外一个面试题</h1>
+<p>现在面试官经常问的一个问题，你读过源码吗？</p>
+<p>咦，巧了。你看了这篇文章，就相当于了读了ArrayList和CopyOnWriteArrayList的部分源码。</p>
+<p>那你就可以这样回答啦：我之前看阿里Java开发手册的时候看到一条规则是</p>
+<blockquote class="js_blockquote_wrap">
+<p>不要在foreach循环里面进行元素的remove/add操作。remove元素请使用Iterator方式，如果并发操作，需要对Iterator对象加锁。</p>
+</blockquote>
+<p>我对这条规则很感兴趣，所以我对其进行了深入的研究，阅读了</p>
+<p>ArrayList和CopyOnWriteArrayList的部分源码。</p>
+<p>如果碰巧面试官也读过这块源码，这个问题，你们可以相谈甚欢。</p>
+<p>如果面试官没有读过这块源码，你可以给他讲的明明白白。</p>
+<p>当然，还有一个前提是：我希望你读完这篇文章后，如果是第一次知道这个知识点，那你可以自己实际操作一下。</p>
+<p>看懂了是一回事，自己再实际操作一下，是另外一回事。</p>
+<h1 class="pgc-h-arrow-right">八.扩展阅读</h1>
+<p><strong>8.1 fail-fast和safe-fast机制<br /></strong></p>
+<p>文中多次提到了"fail-fast"机制(快速失败)，与其对应的还有"safe-fast"机制(失败安全)。</p>
+<p>这种机制是一种思想，它不仅仅是体现在Java的集合中。在我们常用的rpc框架Dubbo中，在集群容错时也有相关的实现。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。42.png" alt="" data-ic="false" data-width="614" data-height="309" data-ic-uri="" /></div>
+<p>Dubbo 主要提供了这样几种容错方式：</p>
+<blockquote class="js_blockquote_wrap">
+<p>Failover&nbsp;Cluster&nbsp;-&nbsp;失败自动切换&nbsp;</p>
+<p>Failfast&nbsp;Cluster&nbsp;-&nbsp;快速失败&nbsp;</p>
+<p>Failsafe&nbsp;Cluster&nbsp;-&nbsp;失败安全&nbsp;</p>
+<p>Failback&nbsp;Cluster&nbsp;-&nbsp;失败自动恢复&nbsp;</p>
+<p>Forking&nbsp;Cluster&nbsp;-&nbsp;并行调用多个服务提供者</p>
+
+</blockquote>
+<p>如果对这两种机制感兴趣的朋友可以查阅相关资料，进行了解。如果想要了解Dubbo的集群容错机制，可以看官方文档，地址如下：</p>
+<blockquote class="js_blockquote_wrap">
+<p>http://dubbo.apache.org/zh-cn/docs/source_code_guide/cluster.html</p>
+
+</blockquote>
+<p><strong>8.2 Java语法糖</strong></p>
+<p>文中说到foreach循环的时候提到了Java的语法糖。如果对这一块有兴趣的读者，可以在网上查阅相关资料，也可以看看《深入理解Java虚拟机》的第10.3节，有专门的介绍。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。43.png" alt="" data-ic="false" data-width="532" data-height="171" data-ic-uri="" /></div>
+<p>书中说到:</p>
+<blockquote class="js_blockquote_wrap">
+<p>总而言之，语法糖可以看做是编译器实现的一些&ldquo;小把戏&rdquo;，这些&ldquo;小把戏&rdquo;可能会使得效率&ldquo;大提升&rdquo;，但我们也应该去了解这些&ldquo;小把戏&rdquo;背后的真实世界，那样才能利用好它们，而不是被它们所迷惑。</p>
+
+</blockquote>
+<p><strong>8.3 阿里Java开发手册</strong></p>
+<p>阿里的孤尽大佬作为主要作者写的这本《阿里Java开发手册》，可以说是呕心沥血推出的业界权威，非常值得阅读。读完此书，你不仅能够获得很多干货，甚至你还能读出一点技术情怀在里面。</p>
+<p>对于技术情怀，孤尽大佬是这样的说的：</p>
+<blockquote class="js_blockquote_wrap">
+<p>热爱、思考、卓越。热爱是一种源动力，而思考是一个过程，而卓越是一个结果。如果给这三个词加一个定语，使技术情怀更加立体、清晰地被解读，那就是奉献式的热爱，主动式的思考，极致式的卓越。</p>
+
+</blockquote>
+<p data-pm-slice="1 1 []">关注公众号并回复关键字【Java】。即可获得此书的电子版。</p>
+<h1 class="pgc-h-arrow-right">九.最后说一点</h1>
+<p>这篇文章写之前我一直在纠结，因为感觉这个知识点其实我已经掌握了，那我还有写的必要吗？我在写的这个过程中还能收获一些东西吗？</p>
+<p>但是在写的过程中，我翻阅了大量的源码，虽然之前已经看过，但是没有这样一行一行仔细的去分析。之前只是一个大概的模糊的影像，现在具象化清晰了起来，在这个过程中，我还是学到了很多很多。</p>
+<p>其实想到写什么内容并不难，难的是你对内容的把控。关于技术性的语言，我是反复推敲，查阅大量文章来进行证伪，总之<strong>慎言慎言再慎言，</strong>毕竟做技术，我认为是一件非常严谨的事情，我常常想象自己就是在故宫修文物的工匠，在工匠精神的认知上，目前我可能和他们还差的有点远，但是我时常以工匠精神要求自己。就像我之前表达的：对于技术文章（因为我偶尔也会荒腔走板的聊一聊生活，写一写书评，影评），我尽量保证周推，全力保证质量。</p>
+<p>才疏学浅，难免会有纰漏，如果你发现了错误的地方，还请你留言给我指出来，我对其加以修改。</p>
+<p>如果你觉得文章还不错，你的点赞、留言、转发、分享、赞赏就是对我最大的鼓励</p>
+<p>以上。</p>
+<p>谢谢您的阅读，感谢您的关注。公众号会是文章首发平台，关注可以第一时间看到原创文章哦。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我求求你，认真思考后再回答。44.png" alt="" data-ic="false" data-width="258" data-height="258" data-ic-uri="" /></div>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

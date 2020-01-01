@@ -1,0 +1,356 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一个Java对象到底占用多大内存？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一个Java对象到底占用多大内存？</center></div><div class='banquan'>原文出处:本文由博客园博主Nauyus提供。<br/>
+原文连接:https://www.cnblogs.com/lkxsnow/p/12052555.html</div><br>
+    <section id="nice" style="padding: 10px; word-spacing: 0px; word-wrap: break-word; text-align: left; font-family: Optima-Regular, Optima, PingFangSC-light, PingFangTC-light, 'PingFang SC', Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; line-height: 1.6; letter-spacing: .034em; color: rgb(63, 63, 63); font-size: 16px; word-break: all; background-image: linear-gradient(90deg, rgba(50, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0) 3%), linear-gradient(360deg, rgba(50, 0, 0, 0.05) 3%, rgba(0, 0, 0, 0) 3%); background-size: 20px 20px; background-position: center center;"><p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">在进行 JVM 调优时，我们经常关注 JVM 各个区域大小以及相关参数，从而进行特定的优化，在一次排查内存溢出问题时我不禁想到一个问题，一个 Java 对象到底占用多大内存？下面我们就来分析验证下。</p>
+<h2 style="font-weight: bold; color: black; font-size: 24px; display: block; text-align: center; background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_2_20191028221337.png); background-position: center center; background-repeat: no-repeat; background-attachment: initial; background-origin: initial; background-clip: initial; background-size: 63px; margin-top: 38px; margin-bottom: 10px;"><span style="text-align: center; display: inline-block; height: 38px; line-height: 42px; color: rgb(60, 112, 198); background-position: left center; background-repeat: no-repeat; background-attachment: initial; background-origin: initial; background-clip: initial; background-size: 63px; margin-top: 38px; font-size: 18px; margin-bottom: 10px;">Java 对象内存结构</span></h2>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">在 JVM 中，Java 对象都是在堆内存上分配的，想要分析出 Java 对象内存占用，首先要了解 Java 对象内存结构，一个 Java 对象内存占用由三部分组成：<code>对象头（Header）</code>,<code>实例数据（Instance Data）</code>和<code>对齐填充（Padding）</code>。</p>
+<h3 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 20px;"><span style="background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_1_20191028221337.png); background-size: 15px 15px; display: inline-block; width: 15px; height: 15px; line-height: 15px; margin-bottom: -1px;"></span><span style="font-size: 16px; font-weight: bold; display: inline-block; margin-left: 8px; color: rgb(60,112,198);">对象头（Header）</span></h3>
+<h4 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 18px;"><span>对象头的组成</span></h4>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">虚拟机的对象头包括两部分信息，第一部分用于存储<code>对象自身的运行时数据</code>，如 <code>hashCode</code> 、<code>GC分代年龄</code>、<code>锁状态标志</code>、<code>线程持有的锁</code>、<code>偏向线程ID</code>、<code>偏向时间戳</code>等。这部分数据的长度在 32 位和 64 位的虚拟机（未开启指针压缩）中分别为 4B 和 8B ，官方称之为 <code>”Mark Word”</code>。</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">对象的另一部分是<code>类型指针（kclass）</code>，即对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是那个类的实例。另外如果对象是一个 Java 数组，那在对象头中还必须有一块用于记录数组长度的数据，因为虚拟机可以通过普通 Java 对象的元数据信息确定 Java 对象的大小，但是从数组的元数据中却无法确定数组的大小。同样，这部分数据的长度在 32 位和 64 的虚拟机（未开启指针压缩）中分别为 4B 和 8B。</p>
+<h4 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 18px;"><span>指针压缩</span></h4>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">从 JDK 1.6 update14 开始，64 bit JVM 正式支持了  <code>-XX:+UseCompressedOops</code> 这个可以压缩指针，起到节约内存占用的新参数。</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">如果 <code>UseCompressedOops</code> 是打开的，则以下对象的指针会被压缩：</p>
+<pre><code><code style="font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">所有对象的 klass 属性
+所有对象指针实例的属性
+所有对象指针数组的元素（objArray）
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">由此我们可以计算出对象头大小：</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">32位虚拟机对象头大小= Mark Word（4B）+ kclass(4B) = 8B   
+64位虚拟机对象头大小= Mark Word（8B）+ kclass(4B) = 12B
+</code></pre>
+<h3 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 20px;"><span style="background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_1_20191028221337.png); background-size: 15px 15px; display: inline-block; width: 15px; height: 15px; line-height: 15px; margin-bottom: -1px;"></span><span style="font-size: 16px; font-weight: bold; display: inline-block; margin-left: 8px; color: rgb(60,112,198);">实例数据</span></h3>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">一个 Java 对象中的实例数据可能包括两种，一是 8 种基本类型，二是实例数据也是一个对象，说到这里很多人可能有个误区：</p>
+<blockquote style="font-size: 0.9em; overflow: auto; overflow-scrolling: touch; background: rgba(0, 0, 0, 0.05); color: #6a737d; padding-top: 10px; padding-bottom: 10px; padding-left: 20px; padding-right: 10px; margin-bottom: 20px; margin-top: 20px; padding: 15px 20px; line-height: 27px; background-color: rgb(239, 239, 239); border-left: none; display: block;">
+<p style="padding-bottom: 8px; padding-top: 23px; margin: 0px; line-height: 26px; padding: 0px; font-size: 15px; color: rgb(89,89,89);">基本类型？基本类型不是在栈上分配内存的吗？怎么要计算到分配在堆内存上对象的大小里面去？</p>
+</blockquote>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">基本类型在栈上分配内存？其实并不是，所谓“栈内存保存基本类型以及对象的引用(reference)，堆内存保存对象” 只是一句不严谨的话，实际仔细研究起来，栈内存（更专业的术语叫做堆栈）作为虚拟机作为方法调用和方法执行的数据结构，可能保存五种信息：</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">局部变量表
+操作数栈
+动态链接
+方法返回地址
+附加信息
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">其中局部变量表中存储了方法中的局部变量，可能为 8 种基本类型或者 reference</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">也就是说，栈内存中保存的基本类型，都是方法中的局部变量，而如果基本类型作为对象的实例变量，是在堆上分配空间的，此外，如果实例变量被final修饰，则既不在栈也不在堆上分配空间，而是分配到常量池里面。</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">8 种基本类型和 reference 大小在虚拟机上都是固定的,见下表</p>
+<table style="display: table; text-align: left;">
+<thead>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: white;">
+<th style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-weight: bold; background-color: #f0f0f0; font-size: 14px;">Primitive Type</th>
+<th style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-weight: bold; background-color: #f0f0f0; font-size: 14px;">Memory Required(bytes)</th>
+</tr>
+</thead>
+<tbody style="border: 0;">
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: white;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">boolean</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">1</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: #F8F8F8;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">byte</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">1</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: white;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">short</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">2</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: #F8F8F8;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">char</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">2</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: white;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">int</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">4</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: #F8F8F8;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">float</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">4</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: white;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">long</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">8</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: #F8F8F8;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">double</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">8</td>
+</tr>
+<tr style="border: 0; border-top: 1px solid #ccc; background-color: white;">
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">Reference</td>
+<td style="border: 1px solid #ccc; padding: 5px 10px; text-align: left; font-size: 14px;">4</td>
+</tr>
+</tbody>
+</table>
+<h3 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 20px;"><span style="background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_1_20191028221337.png); background-size: 15px 15px; display: inline-block; width: 15px; height: 15px; line-height: 15px; margin-bottom: -1px;"></span><span style="font-size: 16px; font-weight: bold; display: inline-block; margin-left: 8px; color: rgb(60,112,198);">对齐填充（Padding）</span></h3>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">由于虚拟机内存管理体系要求 Java 对象内存起始地址必须为 8 的整数倍，换句话说，Java 对象大小必须为 8 的整数倍，当对象头+实例数据大小不为 8 的整数倍时，将会使用Padding机制进行填充，譬如， 64 位虚拟机上 new Object() 实际大小为:</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">Mark Word（8B）+ kclass(4B)[开启指针压缩] = 12B</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">但由于Padding机制，实际占用空间为：
+Mark Word（8B）+ kclass(4B)[开启指针压缩]+Padding(4B) = 16B</p>
+<h3 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 20px;"><span style="background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_1_20191028221337.png); background-size: 15px 15px; display: inline-block; width: 15px; height: 15px; line-height: 15px; margin-bottom: -1px;"></span><span style="font-size: 16px; font-weight: bold; display: inline-block; margin-left: 8px; color: rgb(60,112,198);">数组的大小</span></h3>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">Java 中数组也是一种对象，数组的大小与普通 Java 对象相比多了数组长度的信息（4B），即一个数组对象大小为
+Mark Word（8B）+ kclass(4B)[开启指针压缩] + 数组长度(4B) = 16B</p>
+<h2 style="font-weight: bold; color: black; font-size: 24px; display: block; text-align: center; background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_2_20191028221337.png); background-position: center center; background-repeat: no-repeat; background-attachment: initial; background-origin: initial; background-clip: initial; background-size: 63px; margin-top: 38px; margin-bottom: 10px;"><span style="text-align: center; display: inline-block; height: 38px; line-height: 42px; color: rgb(60, 112, 198); background-position: left center; background-repeat: no-repeat; background-attachment: initial; background-origin: initial; background-clip: initial; background-size: 63px; margin-top: 38px; font-size: 18px; margin-bottom: 10px;">使用Instrumentation计算 Java 对象大小</span></h2>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">现在我们已经知道了一个 Java 对象的大小 = 对象头 + 实例数据 + Padding ,现在，我们验证一下计算结果，google 到一个 <code>Instrumentation</code> 刚好可以计算对象大小</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;"><code>Instrumentation</code> 是 Java SE 5 引入的特性，使用 <code>Instrumentation</code>，开发者可以构建一个独立于应用程序的代理程序（Agent），用来监测和协助运行在 JVM 上的程序，甚至能够实现字节码修改技术。简单的说，<code>Instrumentation</code> 实现了一个虚拟机层面的 AOP 。</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">本文不涉及 <code>Instrumentation</code> 的复杂应用，我们只使用 <code>Instrumentation</code> 其中一个 <code>getObjectSize()</code> 方法获取对象大小。</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">使用 <code>Instrumentation</code> 需要使用 javaagent 技术，
+简单说就是运行一个带 main 函数的类时可以通过 –javaagent 参数指定一个特定的 jar 文件（包含 <code>Instrumentation</code> 代理）来启动 <code>Instrumentation</code> 的代理程序。具体分为三步:</p>
+<h3 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 20px;"><span style="background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_1_20191028221337.png); background-size: 15px 15px; display: inline-block; width: 15px; height: 15px; line-height: 15px; margin-bottom: -1px;"></span><span style="font-size: 16px; font-weight: bold; display: inline-block; margin-left: 8px; color: rgb(60,112,198);">一 编写一个Instrumentation类作为代理</span></h3>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">其中 premain 注入 Instrumentation ，sizeOf 用来计算对象占用空间</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">ObjectShallowSize.java:</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">package sizeof;
+ 
+import java.lang.instrument.Instrumentation;
+ 
+public class ObjectShallowSize {
+	private static Instrumentation inst;
+	
+	public static void premain(String agentArgs, Instrumentation instP){
+		inst = instP;
+	}
+	
+	public static long sizeOf(Object obj){
+		return inst.getObjectSize(obj);
+	}
+}
+</code></pre>
+<h3 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 20px;"><span style="background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_1_20191028221337.png); background-size: 15px 15px; display: inline-block; width: 15px; height: 15px; line-height: 15px; margin-bottom: -1px;"></span><span style="font-size: 16px; font-weight: bold; display: inline-block; margin-left: 8px; color: rgb(60,112,198);">二 打包</span></h3>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">在 ObjectShallowSize.java 路径下新建 /META-INF/MANIFEST.MF   指定 Premain-Class
+内容为：</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">Manifest-Version: 1.0
+Premain-Class: sizeof.ObjectShallowSize
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">然后编译，打包</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">javac -d . ObjectShallowSize.java
+jar cvfm java-agent-sizeof.jar META-INF/MANIFEST.MF  .
+</code></pre>
+<h3 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 20px;"><span style="background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_1_20191028221337.png); background-size: 15px 15px; display: inline-block; width: 15px; height: 15px; line-height: 15px; margin-bottom: -1px;"></span><span style="font-size: 16px; font-weight: bold; display: inline-block; margin-left: 8px; color: rgb(60,112,198);">三 运行</span></h3>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">编写一个测试模版类 ObjectSizeTest.java ，使用</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">java -javaagent:java-agent-sizeof.jar ObjectSizeTest
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">来运行程序</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">ObjectSizeTest.java 代码如下:</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">package sizeof;
+public class ObjectSizeTest {
+
+    public static void main(String[] args) {
+        System.out.println(ObjectShallowSize.sizeOf(new ObjectSizeTest));
+    }
+}
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">ObjectSizeTest 没有实例变量，理论计算</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">ObjectSizeTest大小 = Mark Word（8B）+ kclass(4B) [开启指针压缩]+Padding(4B) = 16B</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">为了方便，我们在 IDEA 中验证一下，导入刚才的 ObjectSizeTest 类，指定 JVM 参数如图</p>
+<figure style="margin: 0; margin-top: 10px; margin-bottom: 10px;"><img src="./images/一个Java对象到底占用多大内存？0.png" alt style="display: block; margin: 0 auto; width: 100%; border-radius: 4px; margin-bottom: 25px;"></figure>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">运行结果为 16B，和我们猜想一致</p>
+<figure style="margin: 0; margin-top: 10px; margin-bottom: 10px;"><img src="./images/一个Java对象到底占用多大内存？1.png" alt style="display: block; margin: 0 auto; width: 100%; border-radius: 4px; margin-bottom: 25px;"></figure>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">接下来我们在模版类中添加几个实例变量验证下</p>
+<h4 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 18px;"><span>一</span></h4>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">package sizeof;
+
+public class ObjectSizeTest {
+
+    private int i;
+
+    public static void main(String[] args) {
+        System.out.println(ObjectShallowSize.sizeOf(new ObjectSizeTest()));
+    }
+}
+
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">理论值：Mark Word（8B）+ kclass(4B) + i(4B) = <code>16B</code></p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">实际值:<code>16B</code></p>
+<h4 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 18px;"><span>二</span></h4>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">package sizeof;
+
+public class ObjectSizeTest {
+
+    private int i;
+    private int j;
+
+    public static void main(String[] args) {
+        System.out.println(ObjectShallowSize.sizeOf(new ObjectSizeTest()));
+    }
+}
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">理论值：Mark Word（8B）+ kclass(4B) + i(4B) + j(4B)+Padding(4B) = <code>24B</code></p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">实际值:<code>24B</code></p>
+<h4 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 18px;"><span>三</span></h4>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">package sizeof;
+
+public class ObjectSizeTest {
+
+    private int i;
+    private int j;
+    private String s;
+    private boolean aBoolean;
+    private char c;
+    
+
+    public static void main(String[] args) {
+        System.out.println(ObjectShallowSize.sizeOf(new ObjectSizeTest()));
+    }
+}
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">理论值：Mark Word（8B）+ kclass(4B) + i(4B) + j(4B) + s(4B) + aBoolean(1B) + c(2B) + Paddding(5B) = <code>32B</code></p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">实际值:<code>32B</code></p>
+<h4 style="margin-top: 40px; margin-bottom: 20px; font-weight: bold; color: black; font-size: 18px;"><span>四</span></h4>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">package sizeof;
+
+public class ObjectSizeTest {
+
+    private String s; // 4
+    private int i1; // 4
+    private byte b1; // 1
+    private byte b2; // 1
+    private int i2;// 4
+    private Object obj; //4
+    private byte b3;  // 1
+
+
+    public static void main(String[] args) {
+        System.out.println(ObjectShallowSize.sizeOf(new ObjectSizeTest()));
+    }
+}
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">理论值：Mark Word（8B）+ kclass(4B) + s(4B) + i1(4B) + b1(1B) + b2(1B) +  2(padding) + i2(4B) + obj(4B)+ b3(1B) + Paddding(7B) = <code>40B</code></p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">实际值:<code>32B</code></p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">纳尼？这里为什么理论值和实际值不一致？</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">事实上，HotSpot创建的对象的字段会先按照给定顺序排列一下,默认的顺序如下，从长到短排列，引用排最后:  long/double --&gt; int/float --&gt;  short/char --&gt; byte/boolean --&gt; Reference</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">这个顺序可以使用JVM参数:  <code>-XX:FieldsAllocationSylte = 0</code> (默认是1)来改变。</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">按照这种方法我们来重新计算下对象大小</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">Mark Word（8B）+ kclass(4B) + i1(4B) + i2(4B) + b1(1B) + b2(1B) + b3(1B) + Paddding(1B) + s(4B) + obj(4B) = 32B</p>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">与预期值一致。</p>
+<h2 style="font-weight: bold; color: black; font-size: 24px; display: block; text-align: center; background-image: url(https://my-wechat.mdnice.com/mdnice/mountain_2_20191028221337.png); background-position: center center; background-repeat: no-repeat; background-attachment: initial; background-origin: initial; background-clip: initial; background-size: 63px; margin-top: 38px; margin-bottom: 10px;"><span style="text-align: center; display: inline-block; height: 38px; line-height: 42px; color: rgb(60, 112, 198); background-position: left center; background-repeat: no-repeat; background-attachment: initial; background-origin: initial; background-clip: initial; background-size: 63px; margin-top: 38px; font-size: 18px; margin-bottom: 10px;">Java对象实际大小</span></h2>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">前面我们计算 Java 对象大小时，对于实例变量为对象的，只计算了其reference的大小，实际应该也将实例变量本身计算在内，我们可以通过反射机制取出 Java 对象中实例变量，递归计算累加出实际大小。
+http://yueyemaitian.iteye.com/blog/2033046 已经提供了现成的程序如下，使用fullSizeOf()方法即可计算出 Java 对象实际大小。</p>
+<pre class="custom"><code class="hljs" style="overflow-x: auto; padding: 16px; color: #abb2bf; background: #282c34; font-family: Operator Mono, Consolas, Monaco, Menlo, monospace; border-radius: 0px; font-size: 12px; -webkit-overflow-scrolling: touch; display: -webkit-box !important;">import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * 对象占用字节大小工具类
+ * &lt;p&gt;
+ *
+ * @author tianmai.fh
+ * @date 2014-03-18 11:29
+ */
+public class SizeOfObject {
+    static Instrumentation inst;
+
+    public static void premain(String args, Instrumentation instP) {
+        inst = instP;
+    }
+
+    /**
+     * 直接计算当前对象占用空间大小，包括当前类及超类的基本类型实例字段大小、&lt;br&gt;&lt;/br&gt;
+     * 引用类型实例字段引用大小、实例基本类型数组总占用空间、实例引用类型数组引用本身占用空间大小;&lt;br&gt;&lt;/br&gt;
+     * 但是不包括超类继承下来的和当前类声明的实例引用字段的对象本身的大小、实例引用数组引用的对象本身的大小 &lt;br&gt;&lt;/br&gt;
+     *
+     * @param obj
+     * @return
+     */
+    public static long sizeOf(Object obj) {
+        return inst.getObjectSize(obj);
+    }
+
+    /**
+     * 递归计算当前对象占用空间总大小，包括当前类和超类的实例字段大小以及实例字段引用对象大小
+     *
+     * @param objP
+     * @return
+     * @throws IllegalAccessException
+     */
+    public static long fullSizeOf(Object objP) throws IllegalAccessException {
+        Set&lt;Object&gt; visited = new HashSet&lt;Object&gt;();
+        Deque&lt;Object&gt; toBeQueue = new ArrayDeque&lt;Object&gt;();
+        toBeQueue.add(objP);
+        long size = 0L;
+        while (toBeQueue.size() &gt; 0) {
+            Object obj = toBeQueue.poll();
+            //sizeOf的时候已经计基本类型和引用的长度，包括数组  
+            size += skipObject(visited, obj) ? 0L : sizeOf(obj);
+            Class&lt;?&gt; tmpObjClass = obj.getClass();
+            if (tmpObjClass.isArray()) {
+                //[I , [F 基本类型名字长度是2  
+                if (tmpObjClass.getName().length() &gt; 2) {
+                    for (int i = 0, len = Array.getLength(obj); i &lt; len; i++) {
+                        Object tmp = Array.get(obj, i);
+                        if (tmp != null) {
+                            //非基本类型需要深度遍历其对象  
+                            toBeQueue.add(Array.get(obj, i));
+                        }
+                    }
+                }
+            } else {
+                while (tmpObjClass != null) {
+                    Field[] fields = tmpObjClass.getDeclaredFields();
+                    for (Field field : fields) {
+                        if (Modifier.isStatic(field.getModifiers())   //静态不计  
+                                || field.getType().isPrimitive()) {    //基本类型不重复计  
+                            continue;
+                        }
+
+                        field.setAccessible(true);
+                        Object fieldValue = field.get(obj);
+                        if (fieldValue == null) {
+                            continue;
+                        }
+                        toBeQueue.add(fieldValue);
+                    }
+                    tmpObjClass = tmpObjClass.getSuperclass();
+                }
+            }
+        }
+        return size;
+    }
+
+    /**
+     * String.intern的对象不计；计算过的不计，也避免死循环
+     *
+     * @param visited
+     * @param obj
+     * @return
+     */
+    static boolean skipObject(Set&lt;Object&gt; visited, Object obj) {
+        if (obj instanceof String &amp;&amp; obj == ((String) obj).intern()) {
+            return true;
+        }
+        return visited.contains(obj);
+    }
+}
+</code></pre>
+<p style="font-size: 16px; padding-bottom: 8px; margin: 0; padding-top: 23px; color: rgb(74,74,74); line-height: 1.75em;">参考资料：</p>
+<ul style="margin-top: 8px; margin-bottom: 8px; padding-left: 25px; color: black; list-style-type: disc;">
+<li><section style="margin-top: 5px; margin-bottom: 5px; line-height: 26px; text-align: left; color: rgb(1,1,1); font-weight: 500;">《深入理解Java虚拟机》</section></li></ul>
+<blockquote style="font-size: 0.9em; overflow: auto; overflow-scrolling: touch; background: rgba(0, 0, 0, 0.05); color: #6a737d; padding-top: 10px; padding-bottom: 10px; padding-left: 20px; padding-right: 10px; margin-bottom: 20px; margin-top: 20px; padding: 15px 20px; line-height: 27px; background-color: rgb(239, 239, 239); border-left: none; display: block;">
+<p style="padding-bottom: 8px; padding-top: 23px; margin: 0px; line-height: 26px; padding: 0px; font-size: 15px; color: rgb(89,89,89);">感谢阅读，原创不易，如有启发，点个赞吧！这将是我写作的最强动力！本文不同步发布于不止于技术的技术公众号 <code>Nauyus</code> ,主要分享一些编程语言，架构设计，思维认知类文章， 2019年12月起开启周更模式，欢迎关注，共同学习成长！</p>
+</blockquote>
+<figure style="margin: 0; margin-top: 10px; margin-bottom: 10px;"><img src="./images/一个Java对象到底占用多大内存？2.png" alt style="display: block; margin: 0 auto; width: 100%; border-radius: 4px; margin-bottom: 25px;"></figure>
+</section>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

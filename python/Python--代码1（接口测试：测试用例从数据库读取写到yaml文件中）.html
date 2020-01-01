@@ -1,0 +1,88 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python--代码1（接口测试：测试用例从数据库读取写到yaml文件中）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python--代码1（接口测试：测试用例从数据库读取写到yaml文件中）</center></div><div class='banquan'>原文出处:本文由博客园博主米小乐1122提供。<br/>
+原文连接:https://www.cnblogs.com/wangyanyan/p/11193784.html</div><br>
+    <p><span style="color: #ff0000;">一. 从数据库中读取全部接口，并写入yaml文件</span></p>
+<p><span style="color: #000000;">数据库中的数据存储格式如下图：</span></p>
+<p><span style="color: #ff0000;"><img src="./images/Python--代码1（接口测试：测试用例从数据库读取写到yaml文件中）0.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> pymysql
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> from ruamel import yaml</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> yaml
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">第一步：从数据库中取出所有接口记录存成一个字典</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> query(sql):
+    con</span>=pymysql.connect(host=<span style="color: #800000;">'</span><span style="color: #800000;">192.168.249.152</span><span style="color: #800000;">'</span>,user=<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=<span style="color: #800000;">'</span><span style="color: #800000;">test_api</span><span style="color: #800000;">'</span>,charset=<span style="color: #800000;">'</span><span style="color: #800000;">utf8</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">连接数据库</span>
+    cur=con.cursor()<span style="color: #008000;">#</span><span style="color: #008000;">获取游标</span>
+    cur.execute(sql)<span style="color: #008000;">#</span><span style="color: #008000;">执行sql</span>
+    list =<span style="color: #000000;"> []
+    </span><span style="color: #0000ff;">for</span> id,pathGroup,path,param,method <span style="color: #0000ff;">in</span> cur.fetchall():<span style="color: #008000;">#</span><span style="color: #008000;">查询记录，<span style="background-color: #ffcc00;">fetchall用法参见注释1</span></span>
+        ever =<span style="color: #000000;"> {
+                </span><span style="color: #800000;">'</span><span style="color: #800000;">pathgroup</span><span style="color: #800000;">'</span><span style="color: #000000;">: pathGroup,
+                </span><span style="color: #800000;">'</span><span style="color: #800000;">path</span><span style="color: #800000;">'</span><span style="color: #000000;">: path,
+                </span><span style="color: #800000;">'</span><span style="color: #800000;">param</span><span style="color: #800000;">'</span>: param <span style="color: #0000ff;">if</span> param == <span style="color: #800000;">''</span> <span style="color: #0000ff;">else</span><span style="color: #000000;"> json.loads(param),
+                </span><span style="color: #800000;">'</span><span style="color: #800000;">method</span><span style="color: #800000;">'</span><span style="color: #000000;">: method
+                } </span><span style="color: #008000;">#</span><span style="color: #008000;">将每一个接口形成一个字典格式，param如果写成'param':param的话会有坑（<span style="background-color: #ffcc00;">坑1</span>）</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">print(ever)</span>
+<span style="color: #000000;">
+        list.append(ever)</span><span style="color: #008000;">#</span><span style="color: #008000;">将每一个接口字典变成列表元素 <span style="background-color: #ffcc00;">坑2</span></span>
+    result={<span style="color: #800000;">'</span><span style="color: #800000;">content</span><span style="color: #800000;">'</span>:list} <span style="color: #008000;">#</span><span style="color: #008000;">再变成一个大字典存起来，为了后面写入yaml文件的是一个字典</span>
+<span style="color: #000000;">    cur.close()
+    con.close()
+    </span><span style="color: #0000ff;">return</span> result <span style="color: #008000;">#</span><span style="color: #008000;">返回大字典</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">第二步：写入yaml文件</span>
+<span style="color: #000000;">
+result_yaml</span>=query(<span style="color: #800000;">'</span><span style="color: #800000;">select * from t_api</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">调用接口将返回的所有数据存起来（参数为查询数据库所有数据）</span>
+<span style="color: #0000ff;">print</span>(result_yaml)<span style="color: #008000;">#</span><span style="color: #008000;">打印出来看看</span>
+<span style="color: #000000;">
+a</span>=os.path.dirname(os.path.realpath(<span style="color: #800080;">__file__</span>))<span style="color: #008000;">#</span><span style="color: #008000;">os.path.dirname返回目录，os.path.realpath返回绝对路径</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">a===</span><span style="color: #800000;">'</span><span style="color: #000000;">,a)
+yamlpath</span>=os.path.join(a,<span style="color: #800000;">'</span><span style="color: #800000;">testcase.yaml</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">os.path.join拼接出yaml文件的路径</span>
+<span style="color: #000000;">
+with open(yamlpath,</span><span style="color: #800000;">'</span><span style="color: #800000;">w</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>) as f:<span style="color: #008000;">#</span><span style="color: #008000;">w是写入文件，先删除原文件，再重新创建并写入</span>
+    yaml.dump(result_yaml,f)<span style="color: #008000;">#</span><span style="color: #008000;">yaml.dump把生成的yaml文档写到文件里，yaml.dump接收的第二个参数一定要是一个文本文件或二进制文件</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> if __name__=='__main__':</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     query('select * from t_api')</span></pre>
+</div>
+<p><span style="color: #ff0000;">注释1：</span></p>
+<p>fetchall()相关解释：原文地址：<a href="https://www.wukong.com/answer/6591280609824342286/?iid=40708017633&amp;app=news_article&amp;share_ansid=6591280609824342286&amp;app_id=13&amp;tt_from=mobile_qq&amp;utm_source=mobile_qq&amp;utm_medium=toutiao_ios&amp;utm_campaign=client_share">https://www.wukong.com/answer/6591280609824342286/?iid=40708017633&amp;app=news_article&amp;share_ansid=6591280609824342286&amp;app_id=13&amp;tt_from=mobile_qq&amp;utm_source=mobile_qq&amp;utm_medium=toutiao_ios&amp;utm_campaign=client_share</a></p>
+<p>为了方便演示，我这里新建了一个test数据表，有id,university,name这3个字段，主要内容如下：</p>
+<p><img src="./images/Python--代码1（接口测试：测试用例从数据库读取写到yaml文件中）1.png" alt="" width="476" height="258" /></p>
+<p>查询数据，这里主要用到fetchall、fetchone、fetchamany这3个函数，其中fetchall是查询满足条件的所有记录，fetchone是查询满足条件的第一条记录，fetchamany是自定义查询满足条件的记录，测试代码如下：</p>
+<p><img src="./images/Python--代码1（接口测试：测试用例从数据库读取写到yaml文件中）2.png" alt="" /></p>
+<p>程序运行截图如下，已经成功查询出4条记录：</p>
+<p><img src="./images/Python--代码1（接口测试：测试用例从数据库读取写到yaml文件中）3.png" alt="" width="371" height="155" /></p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;">坑1：</span></p>
+<p>这里的param需要写成：'param': param if param == '' else json.loads(param)，param如果写成'param':param的话输出的结果就是</p>
+<p>{'pathgroup': 'arrange', 'path': 'arrange/kanban/getDeptList', <span style="color: #ff0000;">'param': '{'date': '2019-07-12'}'</span>, 'method': 'post'}&nbsp; ，param的value变成了字符串，这样的话写入到yaml文件也是个字符串，在后续解析yaml文件的时候不能解析，这里的value必须是个字典格式，</p>
+<p>所以写成了json.loads(param),意思是将字符串转换成字典格式</p>
+<p><span style="color: #ff0000;">坑2：</span></p>
+<p>这里最开始写成了：a=list.append(ever),这样写是错误的，list.append()直接写就行不需要前面加个变量</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

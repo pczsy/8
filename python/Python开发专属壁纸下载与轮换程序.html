@@ -1,0 +1,150 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python开发专属壁纸下载与轮换程序' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python开发专属壁纸下载与轮换程序</center></div><div class='banquan'>原文出处:本文由博客园博主华丽的码农提供。<br/>
+原文连接:https://www.cnblogs.com/codernice/p/11685333.html</div><br>
+    <p>本人对于壁纸一直偏佛系，不爱特意去找一堆壁纸。因此用Python简单地搞了一个自动下载壁纸，定时随机轮换的功能来自娱自乐，顺便分享给大家。<br />
+原文链接：<a href="https://www.codernice.top/articles/9f79c65e.html" class="uri">https://www.codernice.top/articles/9f79c65e.html</a></p>
+<h1 id="准备">准备</h1>
+<h2 id="下载安装python3">下载安装Python3</h2>
+<p>官网下载即可，选择合适的版本：<a href="https://www.python.org/downloads/" class="uri">https://www.python.org/downloads/</a><br />
+安装一直下一步即可，记得勾选添加到环境变量。</p>
+<h2 id="安装pypiwin32">安装pypiwin32</h2>
+<p>执行设置壁纸操作需要调用Windows系统的API，需要安装pypiwin32，控制台执行如下命令：</p>
+<pre><code><code>pip install pypiwin32</code></pre>
+<h1 id="工作原理">工作原理</h1>
+<p>两个线程，一个用来下载壁纸，一个用来轮换壁纸。每个线程内部均做定时处理，通过在配置文件中配置的等待时间来实现定时执行的功能。</p>
+<h2 id="壁纸下载线程">壁纸下载线程</h2>
+<p>简易的爬虫工具，查询目标壁纸网站，过滤出有效连接，逐个遍历下载壁纸。</p>
+<h2 id="壁纸轮换线程">壁纸轮换线程</h2>
+<p>遍历存储壁纸的目录，随机选择一张壁纸路径，并使用pypiwin32库设置壁纸。</p>
+<h1 id="部分代码">部分代码</h1>
+<h2 id="线程创建与配置文件读取">线程创建与配置文件读取</h2>
+<pre><code><code>def main():
+    # 加载现有配置文件
+    conf = configparser.ConfigParser()
+    # 读取配置文件
+    conf.read(&quot;conf.ini&quot;)
+    # 读取配置项目
+    search = conf.get(&#39;config&#39;, &#39;search&#39;)
+    max_page = conf.getint(&#39;config&#39;,&#39;max_page&#39;)
+    loop = conf.getint(&#39;config&#39;,&#39;loop&#39;)
+    download = conf.getint(&#39;config&#39;,&#39;download&#39;)
+    
+    # 壁纸轮换线程
+    t1 = Thread(target=loop_wallpaper,args=(loop,))
+    t1.start()
+
+    # 壁纸下载线程
+    t2 = Thread(target=download_wallpaper,args=(max_page,search,download))
+    t2.start()</code></pre>
+<h2 id="遍历图片随机设置壁纸">遍历图片随机设置壁纸</h2>
+<pre><code><code>def searchImage():
+    # 获取壁纸路径
+    imagePath = os.path.abspath(os.curdir) + &#39;\images&#39;
+    if not os.path.exists(imagePath):
+        os.makedirs(imagePath)
+    # 获取路径下文件
+    files = os.listdir(imagePath)
+    # 随机生成壁纸索引
+    if len(files) == 0:
+        return
+    index = random.randint(0,len(files)-1)
+    for i in range(0,len(files)):
+        path = os.path.join(imagePath,files[i])
+        # if os.path.isfile(path):
+        if i == index:
+            if path.endswith(&quot;.jpg&quot;) or path.endswith(&quot;.bmp&quot;):
+                setWallPaper(path)
+            else:
+                print(&quot;不支持该类型文件&quot;)</code></pre>
+<h2 id="设置壁纸">设置壁纸</h2>
+<pre><code><code>def setWallPaper(pic):
+    # open register
+    regKey = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER,&quot;Control Panel\\Desktop&quot;,0,win32con.KEY_SET_VALUE)
+    win32api.RegSetValueEx(regKey,&quot;WallpaperStyle&quot;, 0, win32con.REG_SZ, &quot;2&quot;)
+    win32api.RegSetValueEx(regKey, &quot;TileWallpaper&quot;, 0, win32con.REG_SZ, &quot;0&quot;)
+    # refresh screen
+    win32gui.SystemParametersInfo(win32con.SPI_SETDESKWALLPAPER,pic, win32con.SPIF_SENDWININICHANGE)</code></pre>
+<h2 id="壁纸查询链接过滤">壁纸查询链接过滤</h2>
+<pre><code><code>def crawl(page,search):
+    # 1\. 进入壁纸查询页面
+    hub_url = &#39;https://wallhaven.cc/search?q=&#39; + search + &#39;&amp;sorting=random&amp;page=&#39; + str(page)
+    res = requests.get(hub_url)
+    html = res.text
+
+    # 2\. 获取链接
+    ## 2.1 匹配 &#39;href&#39;
+    links = re.findall(r&#39;href=[\&#39;&quot;]?(.*?)[\&#39;&quot;\s]&#39;, html)
+    print(&#39;find links:&#39;, len(links))
+    news_links = []
+    ## 2.2 过滤需要的链接
+    for link in links:
+        if not link.startswith(&#39;https://wallhaven.cc/w/&#39;):
+            continue
+        news_links.append(link)
+    print(&#39;find news links:&#39;, len(news_links))
+    # 3\. 遍历有效链接进入详情
+    for link in news_links:
+        html = requests.get(link).text
+        fing_pic_url(link, html)
+    print(&#39;下载成功，当前页码:&#39;+str(page));</code></pre>
+<h2 id="图片下载">图片下载</h2>
+<pre><code><code>def urllib_download(url):
+    #设置目录下载图片
+    robot = &#39;./images/&#39;
+    file_name = url.split(&#39;/&#39;)[-1]
+    path = robot + file_name
+    if os.path.exists(path):
+        print(&#39;文件已经存在&#39;)
+    else:
+        url=url.replace(&#39;\\&#39;,&#39;&#39;)
+        print(url)
+        r=requests.get(url,timeout=60)
+        r.raise_for_status()
+        r.encoding=r.apparent_encoding
+        print(&#39;准备下载&#39;)
+        if not os.path.exists(robot):
+            os.makedirs(robot)
+        with open(path,&#39;wb&#39;) as f:
+            f.write(r.content)
+            f.close()
+            print(path+&#39; 文件保存成功&#39;)</code></pre>
+<h2 id="import部分">import部分</h2>
+<pre><code><code>import re
+import time
+import requests
+import os
+import configparser
+import random
+import tldextract #pip install tldextract
+import win32api, win32gui, win32con
+from threading import Thread</code></pre>
+<p>完整代码请查看GitHub：<a href="https://github.com/codernice/wallpaper" class="uri">https://github.com/codernice/wallpaper</a></p>
+<h1 id="知识点">知识点</h1>
+<p>threading：多线程，这里用来创建壁纸下载和壁纸轮换两个线程。<br />
+requests：这里用get获取页面，并获取最终的壁纸链接<br />
+pypiwin32：访问windows系统API的库，这里用来设置壁纸。<br />
+configparser：配置文件操作，用来读取线程等待时间和一些下载配置。<br />
+os：文件操作，这里用来存储文件，遍历文件，获取路径等。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

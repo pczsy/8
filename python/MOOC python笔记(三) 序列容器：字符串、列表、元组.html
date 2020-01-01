@@ -1,0 +1,391 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修MOOC python笔记(三) 序列容器：字符串、列表、元组' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>MOOC python笔记(三) 序列容器：字符串、列表、元组</center></div><div class='banquan'>原文出处:本文由博客园博主smile_zyk提供。<br/>
+原文连接:https://www.cnblogs.com/z-y-k/p/11733890.html</div><br>
+    <h1 id="容器概念">容器概念</h1>
+<p>容器是Python中的重要概念，分为有序与无序。<br />
+有序容器也称为序列类型容器，如：字符串、列表。</p>
+<h2 id="通用序列容器操作">通用序列容器操作</h2>
+<h3 id="容器连接">容器连接+</h3>
+<p>加号可以把两个序列连接成一个更大的容器，相加后两个序列的值并不改变</p>
+<pre><code><code>&gt;&gt;&gt; s1=&#39;abc&#39;
+&gt;&gt;&gt; s2=&#39;def&#39;
+&gt;&gt;&gt; s3=s1+s2
+&gt;&gt;&gt; s3
+&#39;abcdef&#39;
+&gt;&gt;&gt; s1
+&#39;abc&#39;
+&gt;&gt;&gt; s2
+&#39;def&#39;
+&gt;&gt;&gt; l1=[1,2,3]
+&gt;&gt;&gt; l2=[4,5,6]
+&gt;&gt;&gt; l3=l1+l2
+&gt;&gt;&gt; l3
+[1, 2, 3, 4, 5, 6]
+&gt;&gt;&gt; l1
+[1, 2, 3]
+&gt;&gt;&gt; l2
+[4, 5, 6]</code></pre>
+<h3 id="数乘">数乘</h3>
+<p>一个序列容器乘以一个整数，把序列重复整数遍。相乘后原序列依然不发生变化。</p>
+<pre><code><code>&gt;&gt;&gt; s1=&#39;ab&#39;
+&gt;&gt;&gt; s2=s1*3
+&gt;&gt;&gt; s2
+&#39;ababab&#39;
+&gt;&gt;&gt; l1=[1,2]
+&gt;&gt;&gt; l2=l1*3
+&gt;&gt;&gt; l2
+[1, 2, 1, 2, 1, 2]</code></pre>
+<h3 id="in与not-in">in与not in</h3>
+<p>in判断一个元素是否在序列容器中，not in判断是否不再序列容器中，返回值为布尔类型。</p>
+<pre><code><code>&gt;&gt;&gt; s1=&#39;abc&#39;
+&gt;&gt;&gt; &#39;a&#39;in s1
+True
+&gt;&gt;&gt; &#39;ab&#39;in s1
+True
+&gt;&gt;&gt; &#39;d&#39; in s1
+False
+&gt;&gt;&gt; l1=[1,2,3]
+&gt;&gt;&gt; 1 in l1
+True
+&gt;&gt;&gt; [1,2] in l1#错误因为[1,2]不在[1,2]中
+False`
+&gt;&gt;&gt; [1,2] in [[1,2],3]#正确
+True</code></pre>
+<h3 id="索引">索引[]</h3>
+<p>取单个元素，从0开始计数。<br />
+我们一个称第一个元素为第一个，第零号。<br />
+最大下标为长度减一，超过此范围会报错。<br />
+我们也可以倒着数，最后一个元素为-1，第一个元素为长度的负数。<br />
+列表的索引支持重新赋值，字符串不支持</p>
+<pre><code><code>&gt;&gt;&gt; l=[1,2,3]
+&gt;&gt;&gt; l[1]=3
+&gt;&gt;&gt; l
+[1, 3, 3]
+&gt;&gt;&gt; s=&quot;abc&quot;
+&gt;&gt;&gt; s[1]=&quot;c&quot;
+Traceback (most recent call last):
+  File &quot;&lt;pyshell#4&gt;&quot;, line 1, in &lt;module&gt;
+    s[1]=&quot;c&quot;
+TypeError: &#39;str&#39; object does not support item assignment</code></pre>
+<h3 id="切片">切片[]</h3>
+<p>在一个序列容器l中，有l[a:b]其中a&lt;b，（若a&gt;b，l[a:b]为空串）<br />
+l[a:b]=l[a]+l[a+1]+......+l[b-1]。（若a=0，a可以省略）<br />
+在切片中依然可以只用负数索引，并且有时可以做到一些直接索引不好做的操作。<br />
+如，我们要把一个数字+一个字符的串中的最后一个字符去掉，直接使用切片似乎不太好处理，因为我们无法确定数字的长度。<br />
+这时我们可以使用[0:-1]，我们切刀的第一个元素到倒数第二个元素。巧妙地解决了这个问题。</p>
+<pre><code><code>&gt;&gt;&gt; s=&quot;25c&quot;
+&gt;&gt;&gt; s[:-1]
+&#39;25&#39;</code></pre>
+<p>(注意，如果序列容器中，我们可以在切片中使用长度（这似乎看上去并不合理），这是为了解决无法切片得到最后一个元素的问题，但我们通常不推荐这么做，我们通常使用省略最后一个切片范围的方法来使得切片取到最后一个字符)</p>
+<h2 id="通用序列容器函数">通用序列容器函数</h2>
+<h3 id="len函数">len函数</h3>
+<p>获得序列容器的长度。</p>
+<h3 id="min函数">min函数</h3>
+<p>获得序列容器中最小的元素。</p>
+<h3 id="max函数">max函数</h3>
+<p>获得序列容器中的最大元素。</p>
+<h3 id="sort函数">sort函数</h3>
+<p>排序函数，按照ASC码顺序排序。</p>
+<h1 id="字符串特性">字符串特性</h1>
+<h2 id="字符串中的引号与转义">字符串中的引号与转义</h2>
+<p>如果需要在字符串中使用单引号，我们可以使用双引号包裹。<br />
+如果需要在字符串中使用双引号，我们可以使用单引号包裹。</p>
+<pre><code><code>&gt;&gt;&gt; a=&quot;&#39;a&#39;+&#39;b&#39;&quot;
+&gt;&gt;&gt; a
+&quot;&#39;a&#39;+&#39;b&#39;&quot;
+&gt;&gt;&gt; a=&#39;&quot;a&quot;+&quot;b&quot;&#39;
+&gt;&gt;&gt; a
+&#39;&quot;a&quot;+&quot;b&quot;&#39;</code></pre>
+<p>也可以使用反斜杠（左上到右下）做转义。</p>
+<pre><code><code>&gt;&gt;&gt; a=&quot;\&#39;a\&#39;+\&#39;b\&#39;&quot;
+&gt;&gt;&gt; a
+&quot;&#39;a&#39;+&#39;b&#39;&quot;</code></pre>
+<p>三个单引号或者三个双引号，可以使字符串保留回车。</p>
+<pre><code><code>&gt;&gt;&gt; &quot;&quot;&quot;
+a
+cacad
+casdw
+,
+&quot;&quot;&quot;
+&#39;\na\ncacad\ncasdw\n,\n&#39;</code></pre>
+<p>如果想在输出时在多行书写，但同时最后的结果不会换行，可以在行末加反斜杠。</p>
+<pre><code><code>&gt;&gt;&gt; s=&quot;adad\
+vasd\
+avasddaw\
+,\
+&quot;
+&gt;&gt;&gt; print(s)
+adadvasdavasddaw,</code></pre>
+<p>如果想使输入时的字符，不被识别成转义字符，我们可以在引号前面加一个r。</p>
+<pre><code><code>&gt;&gt;&gt; s=r&#39;a\ndjwaid\tdad&#39;
+&gt;&gt;&gt; s
+&#39;a\\ndjwaid\\tdad&#39;
+&gt;&gt;&gt; print(s)
+a\ndjwaid\tdad</code></pre>
+<h2 id="字符串特有函数方法">字符串特有函数（方法）</h2>
+<h3 id="lower和upper">lower和upper</h3>
+<p>把大写变成小写，不会改变原来字符串</p>
+<pre><code><code>&gt;&gt;&gt; s=&quot;ADADWDADS&quot;
+&gt;&gt;&gt; s.lower()
+&#39;adadwdads&#39;
+&gt;&gt;&gt; s
+&#39;ADADWDADS&#39;</code></pre>
+<p>upper是把小写变成大写，使用方法与lower一致。</p>
+<h3 id="find">find</h3>
+<p>find(&quot;s&quot;,a,b)从左往右数第一次在字符串的[a,b-1]范围中出现的位置。<br />
+如果找不到则返回-1</p>
+<pre><code><code>&gt;&gt;&gt; s.find(&quot;p&quot;,0,2)
+-1
+&gt;&gt;&gt; s.find(&quot;p&quot;,0,3)
+2</code></pre>
+<h3 id="count">count</h3>
+<p>count('s')计算s在字符串中出现的次数。</p>
+<pre><code><code>&gt;&gt;&gt; s=&quot;hello,world&quot;
+&gt;&gt;&gt; s.count(&#39;l&#39;)
+3</code></pre>
+<h3 id="striplstriprstrip">strip、lstrip、rstrip</h3>
+<p>strip去掉左右两边空格，lstrip去掉左边空格，rstrip去掉右边空格。</p>
+<pre><code><code>&gt;&gt;&gt; s=&#39; hello world    &#39;
+&gt;&gt;&gt; s.strip()
+&#39;hello world&#39;
+&gt;&gt;&gt; s.lstrip()
+&#39;hello world    &#39;
+&gt;&gt;&gt; s.rstrip()
+&#39; hello world&#39;</code></pre>
+<h3 id="replace">replace</h3>
+<p>replace('s1','s2')把字符串中的's1'替换成's2'</p>
+<pre><code><code>&gt;&gt;&gt; s=&#39; hello world &#39;
+&gt;&gt;&gt; s.replace(&#39; &#39;,&#39;-&#39;)
+&#39;-hello-world-&#39;</code></pre>
+<h3 id="section">%</h3>
+<p>字符串的格式化，类似于C/C++中，不同的是后面也要用%，如<code>print(&quot;%d+%f&quot;%(1,1.2))</code>，这里略。</p>
+<h1 id="列表特性">列表特性</h1>
+<h2 id="列表的字面是可以是表达式">列表的字面是可以是表达式</h2>
+<pre><code><code>&gt;&gt;&gt; a=6
+&gt;&gt;&gt; b=8
+&gt;&gt;&gt; [a,b]
+[6, 8]
+&gt;&gt;&gt; [a+2,b-a]
+[8, 2]</code></pre>
+<h2 id="list函数可以将其他类型转换成列表">list函数可以将其他类型转换成列表</h2>
+<pre><code><code>&gt;&gt;&gt; s=&quot;this is a string&quot;
+&gt;&gt;&gt; list(s)
+[&#39;t&#39;, &#39;h&#39;, &#39;i&#39;, &#39;s&#39;, &#39; &#39;, &#39;i&#39;, &#39;s&#39;, &#39; &#39;, &#39;a&#39;, &#39; &#39;, &#39;s&#39;, &#39;t&#39;, &#39;r&#39;, &#39;i&#39;, &#39;n&#39;, &#39;g&#39;]</code></pre>
+<h2 id="如果列表的元素还是一个列表就形成了广义表">如果列表的元素还是一个列表，就形成了广义表</h2>
+<pre><code><code>&gt;&gt;&gt; t=[[1,2,3],[4,5,6],[7,8,9]]
+&gt;&gt;&gt; len(t)
+3
+&gt;&gt;&gt; t[0]
+[1, 2, 3]
+&gt;&gt;&gt; t[0][0]
+1</code></pre>
+<h2 id="列表的赋值并不重分配空间">列表的赋值并不重分配空间</h2>
+<p>列表的赋值并不重分配空间，只是把新变量的指针也指向原来的变量指向的地址。这导致了，改变被赋值的变量会导致原变量被修改，这与其他变量的赋值不同。</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3]
+&gt;&gt;&gt; t[0]
+1
+&gt;&gt;&gt; l=t
+&gt;&gt;&gt; l[0]
+1
+&gt;&gt;&gt; l[0]=2
+&gt;&gt;&gt; l
+[2, 2, 3]
+&gt;&gt;&gt; t
+[2, 2, 3]</code></pre>
+<p>如图：<br />
+<img src="./images/MOOC python笔记(三) 序列容器：字符串、列表、元组0.png" alt="TIM截图20191024145718.png" /></p>
+<h2 id="列表切片的其他应用">列表切片的其他应用</h2>
+<p>为了解决上面的问题，我们可以使用切片<br />
+如果想要重新分配一个空间来让新变量拥有可以使用切片的方法。</p>
+<pre><code><code>&gt;&gt;&gt; t1=[1,2,3]
+&gt;&gt;&gt; t2=t1[:]#省略开头结尾，表示从0开始一直到结束
+&gt;&gt;&gt; t2[0]=0
+&gt;&gt;&gt; t1
+[1, 2, 3]
+&gt;&gt;&gt; t2
+[0, 2, 3]</code></pre>
+<p>如图：<br />
+<img src="./images/MOOC python笔记(三) 序列容器：字符串、列表、元组1.png" alt="TIM截图20191024150113.png" /><br />
+使用切片时，如果切片在赋值号右边，那么它会给左边的变量分配新的空间，<br />
+如果在左边，那么它指向的是原来的空间，所以可以通过改变切片的值来改变原来的空间。</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3,4,5,6,7,8,9,10]
+&gt;&gt;&gt; ts=t[2:4]
+&gt;&gt;&gt; t[2:4]=[10,20]
+&gt;&gt;&gt; ts
+[3, 4]
+&gt;&gt;&gt; t
+[1, 2, 10, 20, 5, 6, 7, 8, 9, 10]</code></pre>
+<p>如图：<br />
+<img src="./images/MOOC python笔记(三) 序列容器：字符串、列表、元组2.png" alt="TIM截图20191024151451.png" /><br />
+甚至可以赋与切片中元素个数不同的列表。</p>
+<pre><code><code>&gt;&gt;&gt; t[2:4]=[10,20,30]
+&gt;&gt;&gt; t
+[1, 2, 10, 20, 30, 5, 6, 7, 8, 9, 10]</code></pre>
+<p>我们也可以利用这一特性来删除元素<br />
+<code>python &gt;&gt;&gt; t[2:4]=[]#删除第二个第三个元素。   &gt;&gt;&gt; t [1, 2, 30, 5, 6, 7, 8, 9, 10]</code>python</p>
+<h2 id="del运算符">del运算符</h2>
+<p>在del后面加上要删除的元素，即可在列表中删除这一元素。<br />
+如果要删除整个列表，可以直接del+列表名即可。</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3,4,5,6]
+&gt;&gt;&gt; del t[2]
+&gt;&gt;&gt; t
+[1, 2, 4, 5, 6]
+&gt;&gt;&gt; del t
+&gt;&gt;&gt; t
+Traceback (most recent call last):
+  File &quot;&lt;pyshell#16&gt;&quot;, line 1, in &lt;module&gt;
+    t
+NameError: name &#39;t&#39; is not defined</code></pre>
+<h2 id="列表的函数">列表的函数</h2>
+<h3 id="append">append</h3>
+<p>相当于C++中STL的push_back，把一个新的元素添加的列表的最后。</p>
+<h3 id="extend">extend</h3>
+<p>相当容器连接运算符+，把两个列表连接起来。<br />
+（注意：append与extend看似内容相似，实际上功能上还是有着很大的差异，append是添加元素，它的参数应该为一个字面量或者表达式，而extend的作用是扩展列表，连接两个列表，后面的参数必须也是一个列表）</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3,4,5,6,7,8]
+&gt;&gt;&gt; t.append(10)
+&gt;&gt;&gt; t
+[1, 2, 3, 4, 5, 6, 7, 8, 10]
+&gt;&gt;&gt; t.extend([1,2,3])
+&gt;&gt;&gt; t
+[1, 2, 3, 4, 5, 6, 7, 8, 10, 1, 2, 3]
+&gt;&gt;&gt; t.append([1,2,3])#这是正确的因为列表也是一个字面量
+&gt;&gt;&gt; t
+[1, 2, 3, 4, 5, 6, 7, 8, 10, 1, 2, 3, [1, 2, 3]]
+&gt;&gt;&gt; t.extend(1)#下面报错，因为参数不为列表
+Traceback (most recent call last):
+  File &quot;&lt;pyshell#25&gt;&quot;, line 1, in &lt;module&gt;
+    t.extend(1)
+TypeError: &#39;int&#39; object is not iterable</code></pre>
+<h3 id="insert函数">insert函数</h3>
+<p>insert函数有两个参数，第一个参数指定在哪个元素前面插入(0~INF)，第二个元素指定要插入的元素（字面量或者表达式）</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3,4,5,6,7]
+&gt;&gt;&gt; t.insert(0,0)
+&gt;&gt;&gt; t
+[0, 1, 2, 3, 4, 5, 6, 7]
+&gt;&gt;&gt; t.insert(0,[1,2])
+&gt;&gt;&gt; t
+[[1, 2], 0, 1, 2, 3, 4, 5, 6, 7]</code></pre>
+<p>当insert的第一个参数超过了列表的最大下标时，我们会把元素添加到列表尾部。</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3,4,5,6]
+&gt;&gt;&gt; t.insert(100,1)
+&gt;&gt;&gt; t
+[1, 2, 3, 4, 5, 6, 1]</code></pre>
+<h3 id="remove函数">remove函数</h3>
+<p>删除元素，与del运算符不同的是，del是删除指定位置的元素，remove是删除指定值(第一个)的元素。<br />
+如果有很多指定值，那么删除第一个。</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3,4,5,6,2]
+&gt;&gt;&gt; t.remove(2)
+&gt;&gt;&gt; t
+[1, 3, 4, 5, 6, 2]</code></pre>
+<h3 id="pop函数">pop函数</h3>
+<p>与数据结构中堆栈的pop一致，即弹出最后一个元素，函数的返回值为该元素的值。<br />
+如果该函数带有参数，那么弹出的值为该位置元素的值。</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3,4,5,6,7,8]
+&gt;&gt;&gt; t.pop()
+8
+&gt;&gt;&gt; t.pop(2)
+3
+&gt;&gt;&gt; t
+[1, 2, 4, 5, 6, 7]</code></pre>
+<h3 id="reverse函数">reverse函数</h3>
+<p>翻转列表，没有什么好说的。</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,2,3]
+&gt;&gt;&gt; t.reverse()
+&gt;&gt;&gt; t
+[3, 2, 1]</code></pre>
+<h3 id="index函数">index函数</h3>
+<p>与字符串的find函数一致，返回指定元素在列表中的位置，如果有多个就返回第一个。<br />
+与find函数基本一致</p>
+<pre><code><code>&gt;&gt;&gt; t=[1,3,4,5,7,3,4,24]
+&gt;&gt;&gt; t.index(4,3,9)
+6
+&gt;&gt;&gt; t.index(4)
+2
+&gt;&gt;&gt; t.index(4,3)
+6</code></pre>
+<h2 id="列表推导式">列表推导式</h2>
+<p>列表推导式（又称列表解析式）提供了一种简明扼要的方法来创建列表。<br />
+它可以将循环和条件判断结合，从而避免语法冗长的代码，同时提高程序性能。<br />
+基本格式：<br />
+[expression for item in iterable]<br />
+如，我们要产生2,4,6,8,10的列表可以使用<code>n1=[2*n for n in [1,2,3,4,5]]</code></p>
+<h3 id="待条件的列表解析">待条件的列表解析</h3>
+<p>[expression for item in iterable if condition] or<br />
+[expression if condition else expression for item in iterable]</p>
+<pre><code><code>&gt;&gt;&gt; l=[n for n in range(1,8) if n%2==1]
+&gt;&gt;&gt; l
+[1, 3, 5, 7]</code></pre>
+<p>例如：求1-1/2+...-1/20之和</p>
+<pre><code><code>&gt;&gt;&gt; a=sum([1/i if i%2==1 else -1/i for i in range(1,21)])
+&gt;&gt;&gt; a
+0.6687714031754279</code></pre>
+<h1 id="列表与字符串的转换">列表与字符串的转换</h1>
+<h2 id="split函数">split函数</h2>
+<p>默认无参时把字符串按空格分隔成列表。</p>
+<pre><code><code>&gt;&gt;&gt; s=&quot;this is a string&quot;
+&gt;&gt;&gt; s.split()
+[&#39;this&#39;, &#39;is&#39;, &#39;a&#39;, &#39;string&#39;]</code></pre>
+<p>带参数时按照参数分隔。</p>
+<pre><code><code>&gt;&gt;&gt; s=&quot;12:35&quot;
+&gt;&gt;&gt; s.split(&quot;:&quot;)
+[&#39;12&#39;, &#39;35&#39;]</code></pre>
+<h2 id="join函数">join函数</h2>
+<p>把一个列表按照某个字符串来作为连接，格式为s.join(l)，其中s为连接的字符串，l为列表。</p>
+<pre><code><code>&gt;&gt;&gt; l=[&quot;hello&quot;,&quot;world&quot;]
+&gt;&gt;&gt; &quot;-&quot;.join(l)
+&#39;hello-world&#39;</code></pre>
+<h1 id="元组">元组</h1>
+<p>与列表基本一样，但是元组是用圆括号'('包裹的。并且元组中的元素不能被改变（可以看出C/C++中的const string）！<br />
+元组与字符串一致都不支持元素的重新赋值。<br />
+元组可以使用除了修改元素的所有的列表的函数。<br />
+一般不加括号的容器默认为元组。</p>
+<pre><code><code>&gt;&gt;&gt; a,b=3,4
+&gt;&gt;&gt; a
+3
+&gt;&gt;&gt; b
+4
+&gt;&gt;&gt; p=3,4
+&gt;&gt;&gt; p
+(3, 4)</code></pre>
+<h2 id="tuple函数">tuple函数</h2>
+<p>可以用tuple函数把其他容器转化为元组。</p>
+<h1 id="随机库random">随机库random</h1>
+<p>使用随机函数前需要<code>import random</code>。</p>
+<h2 id="shuffle函数">shuffle函数</h2>
+<p><code>random.shuffle(t)</code><br />
+把容器t随机打乱。</p>
+<pre><code><code>&gt;&gt;&gt; import random
+&gt;&gt;&gt; t=[&quot;zyk&quot;,&quot;zjc&quot;,&quot;ysy&quot;,&quot;xhm&quot;]
+&gt;&gt;&gt; random.shuffle(t)
+&gt;&gt;&gt; t
+[&#39;ysy&#39;, &#39;xhm&#39;, &#39;zyk&#39;, &#39;zjc&#39;]
+&gt;&gt;&gt; random.shuffle(t)
+&gt;&gt;&gt; t
+[&#39;xhm&#39;, &#39;zjc&#39;, &#39;zyk&#39;, &#39;ysy&#39;]</code></pre>
+<p>其他函数详见:<a href="https://www.cnblogs.com/LoongitArt/p/9885595.html#commentform">python--随机函数（random,uniform,randint,randrange,shuffle,sample）</a></p>
+<h2 id="随机数种子">随机数种子</h2>
+<p>seed(int a)，每个种子获得的随机数是相同的，可以借此来完成一些特殊的任务。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

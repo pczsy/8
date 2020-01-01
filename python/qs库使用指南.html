@@ -1,0 +1,79 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修qs库使用指南' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>qs库使用指南</center></div><div class='banquan'>原文出处:本文由博客园博主nobody-junior提供。<br/>
+原文连接:https://www.cnblogs.com/imgss/p/12020058.html</div><br>
+    <p><a href="https://github.com/ljharb/qs">qs</a>是一个流行的查询参数序列化和解析库。可以将一个普通的object序列化成一个查询字符串，或者反过来将一个查询字符串解析成一个object，而且支持复杂的嵌套。它上手很容易：</p>
+<pre><code><code>Qs.parse(&#39;x[]=1&#39;) // {x: [&#39;1&#39;]}
+Qs.stringify({x: [1]}) // x%5B0%5D=1</code></pre>
+<p>qs的两个方法都接受一个可选的第二参数，可以让我们对结果进行配置，个人觉得比较有用的有以下几个：</p>
+<h4 id="ignorequeryprefix和addqueryprefix">ignoreQueryPrefix和addQueryPrefix</h4>
+<p>ignoreQueryPrefix这个参数可以自动帮我们过滤掉location.search前面的❓，然后再解析，<code>addQueryPrefix</code>设为true可以在序列化的时候给我们加上<code>?</code></p>
+<pre><code><code>// 解析
+Qs.parse(&#39;?x=1&#39;) // {?x: &quot;1&quot;}
+Qs.parse(&#39;?x=1&#39;, {ignoreQueryPrefix: true}) //  {x: &quot;1&quot;}
+
+// 序列化
+Qs.stringify({x: &quot;1&quot;}) //  x=1
+Qs.parse({x: &quot;1&quot;}, {addQueryPrefix: true}) //  ?x=1</code></pre>
+<h4 id="数组解析和序列化">数组解析和序列化</h4>
+<p>数组序列化有几种方式：<code>indices</code>, <code>brackets</code>, <code>repeat</code>, <code>comma</code>，用来控制字符串的生成格式。来看下面的例子：</p>
+<pre class="js"><code>qs.stringify({ a: [&#39;b&#39;, &#39;c&#39;] }, { arrayFormat: &#39;indices&#39; })
+// &#39;a[0]=b&amp;a[1]=c&#39;
+qs.stringify({ a: [&#39;b&#39;, &#39;c&#39;] }, { arrayFormat: &#39;brackets&#39; })
+// &#39;a[]=b&amp;a[]=c&#39;
+qs.stringify({ a: [&#39;b&#39;, &#39;c&#39;] }, { arrayFormat: &#39;repeat&#39; })
+// &#39;a=b&amp;a=c&#39;
+qs.stringify({ a: [&#39;b&#39;, &#39;c&#39;] }, { arrayFormat: &#39;comma&#39; })
+// &#39;a=b,c&#39;
+</code></pre>
+<p>上面的四种方式，序列化得到的结果越来越精简，但是当面对嵌套数组时，却会导致不同程度的信息丢失，而且丢失的越来越严重。以四种方式对<code>{ a: [['b'], 'c'] }</code> stringify 再 parse为例：</p>
+<pre class="js"><code>
+qs.parse(qs.stringify({ a: [[&#39;b&#39;], &#39;c&#39;] }, { arrayFormat: &#39;indices&#39; })) // { a: [[&#39;b&#39;], &#39;c&#39;] }
+qs.parse(qs.stringify({ a: [[&#39;b&#39;], &#39;c&#39;] }, { arrayFormat: &#39;brackets&#39; })) // {a: [&quot;b&quot;, &quot;c&quot;]}
+qs.parse(qs.stringify({ a: [[&#39;b&#39;], &#39;c&#39;] }, { arrayFormat: &#39;repeat&#39; })) // {a: [&quot;b&quot;, &quot;c&quot;]}
+qs.parse(qs.stringify({ a: [[&#39;b&#39;], &#39;c&#39;] }, { arrayFormat: &#39;comma&#39; })) // {a: &quot;b,c&quot;}
+</code></pre>
+<p>所以当数据里有嵌套时最好使用<code>indices</code>模式，好在这也是默认模式。</p>
+<h4 id="delimiter">delimiter</h4>
+<p>delimiter可以控制将哪种字符作为分隔符，由于cookie的格式是使用<code>;</code>来分隔，一个有用的例子是用来解析<span style="color:#ff40ff">cookie</span>：</p>
+<pre class="js"><code>document.cookie // &quot;_ga=GA1.2.806176131.1570244607; _jsuid=1335121594; _gid=GA1.2.1453554609.1575990858&quot;
+Qs.parse(document.cookie, {delimiter:&#39;; &#39;})</code></pre>
+<h3 id="数字类型的解析">数字类型的解析</h3>
+<p>正如我们在第一个例子看到的那样，我们把一个数字序列化再还原，得到的并不是一个数字，而是一个字符串：</p>
+<pre class="js"><code>Qs.parse(Qs.stringify({x:1})) // {x: &#39;1&#39;}</code></pre>
+<p>如果希望解析出来依旧是数字，可以参考这个<a href="https://github.com/ljharb/qs/issues/91">issue</a>,就是写一个自定义decoder：</p>
+<pre><code><code>Qs.parse(&#39;x[0]=1&#39;, {
+    decoder(str, defaultEncoder, charset, type) {
+      if (/^(\d+|\d*\.\d+)$/.test(str)) {
+        return parseFloat(str)
+      }
+      return str
+    }
+  })</code></pre>
+<p>或者再加上一个解析中文的功能:</p>
+<pre><code><code>      if (/^%[A-Za-z0-9+/]/.test(str)) {
+        return decodeURIComponent(str)
+      }</code></pre>
+<p>本文完</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

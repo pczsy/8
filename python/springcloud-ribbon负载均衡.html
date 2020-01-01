@@ -1,0 +1,176 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springcloud-ribbon负载均衡' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springcloud-ribbon负载均衡</center></div><div class='banquan'>原文出处:本文由博客园博主知识追寻者提供。<br/>
+原文连接:https://www.cnblogs.com/zszxz/p/12081935.html</div><br>
+    <h1 id="一-前言">一 前言</h1>
+<p>经过几篇的cloud系列文章，我想大家都有一个坚实的基础，后续的学习就会轻松很多，如果是刚刚来看的读者需要有eureka基础知识，或者查阅知识追寻者的cloud系列专栏；这篇文章主要讲解如何使用ribbon实现web service客户端调用，ribbon默认算法实现负载均衡等！</p>
+<h1 id="二-ribbon简介">二 ribbon简介</h1>
+<p><a href="https://github.com/Netflix/ribbon">ribbon</a>是一个客户端负载均衡器，其能够整合不同的协议工具进行web service API 调用；</p>
+<p>主要特色如下：</p>
+<ol>
+<li>提供可插拔式的负载均衡</li>
+<li>整合服务发现</li>
+<li>故障弹性恢复</li>
+<li>cloud支持</li>
+<li>客户端整合加载负载均衡</li>
+</ol>
+<p>核心工程如下：</p>
+<p>ribbon-core：整合其他模块实现负载均衡</p>
+<p>ribbon-eureka: 基于 eureka client 实现 负载均衡</p>
+<p>ribbon-httpclient: 包括JSR-311 实现REST 加载负载均衡</p>
+<h1 id="三-eureka-client">三 eureka-client</h1>
+<p>在之前的 eureka-client工程中创建controller包，并提供表现层接口，代码如下，然后启动eureka-client实例2个，分别为8090端口，8091端口;</p>
+<pre><code><code>/**
+ * @Author lsc
+ * &lt;p&gt; 知识追寻者，ribbon provider the restful api&lt;/p&gt;
+ */
+@RestController
+public class RibbonProvidderController {
+
+
+    @GetMapping(&quot;zszxz/ribbon&quot;)
+    public String testRibbon(){
+        return &quot;hell i am zszxz&quot;;
+    }
+}</code></pre>
+<h1 id="四-ribbon-client">四 ribbon-client</h1>
+<h2 id="pom.xml">4.1 pom.xml</h2>
+<p>在父工程低下添加新模块 ribbon-client；原来的start-web依赖在父工程中已经引入，故ribbon模块中不会再次引入该依赖；</p>
+<pre><code><code>    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-ribbon&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;</code></pre>
+<h2 id="config">4.2 config</h2>
+<p>使用restTemplate进行客户端调用，故需要进行配置，并且在方法上加 @LoadBalanced 注解表示开启ribbon负载均衡；</p>
+<pre><code><code>/**
+ * @Author lsc
+ * &lt;p&gt; ribbon-restTemplate配置 &lt;/p&gt;
+ */
+@Configuration
+public class RibbonConfig {
+
+    @Bean
+    @LoadBalanced//表示用于负载均衡
+    RestTemplate restTemplate(){
+        return new RestTemplate();
+    }
+}</code></pre>
+<h2 id="service">4.3 service</h2>
+<p>创建service类，并且使用restTemplate进行HTTP API 调用；注意点是这边不使用ip端口，而是直接使用服务的应用名称 eureka-client ;</p>
+<pre><code><code>/**
+ * @Author lsc
+ * &lt;p&gt; &lt;/p&gt;
+ */
+@Service
+public class RibbonService {
+
+    @Autowired
+    RestTemplate restTemplate;
+
+
+    public String testRibbon(){
+        return restTemplate.getForObject(&quot;http://eureka-client/zszxz/ribbon&quot;,String.class);
+    }
+}</code></pre>
+<h2 id="controller">4.4 controller</h2>
+<p>创建表现层类, 用于浏览器访问;</p>
+<pre><code><code>/**
+ * @Author lsc
+ * &lt;p&gt; &lt;/p&gt;
+ */
+@RestController
+public class RibbonController {
+
+    @Autowired
+    RibbonService ribbonService;
+
+    @GetMapping(&quot;ribbon/test&quot;)
+    public String testRibbon(){
+        return ribbonService.testRibbon();
+    }
+}    </code></pre>
+<h2 id="ribbon启动类">4.5 ribbon启动类</h2>
+<p>ribbon的启动类也是作为 eureka 的客户端故需要加上@EnableEurekaClient注解；</p>
+<pre><code><code>/**
+ * @Author lsc
+ * &lt;p&gt;知识追寻者 ribbon启动类 &lt;/p&gt;
+ */
+@SpringBootApplication
+@EnableEurekaClient
+public class RibbonApp {
+
+    public static void main(String[] args) {
+        SpringApplication.run(RibbonApp.class,args);
+    }
+}</code></pre>
+<h2 id="application.yml">4.6 application.yml</h2>
+<p>application.yml 配置中使用端口8092，服务注册地址分别是peer1,peer2,peer3；</p>
+<pre><code><code>server:
+  port: 8092
+
+spring:
+  application:
+    name: eureka-ribbon # 应用名称
+
+eureka:
+  client:
+    service-url:
+      # 服务注册地址
+      defaultZone: http://peer1:10081/eureka/,http://peer2:10082/eureka/,http://peer3:10083/eureka/</code></pre>
+<h2 id="启动工程">4.7 启动工程</h2>
+<p>分别启动 client ,server ; 如下图</p>
+<p><img src="./images/springcloud-ribbon负载均衡0.png" alt="在这里插入图片描述" /></p>
+<h2 id="浏览器访问结果">4.8 浏览器访问结果</h2>
+<p>浏览器结果如下，说明我们在 eureka-ribbon 中使用 restTemplate 结合 ribbon 实现了HTTP 方式从 eureka-clinet 模块中调用API；<br />
+<img src="./images/springcloud-ribbon负载均衡1.png" alt="在这里插入图片描述" /></p>
+<h1 id="五-ribbon默认负载均衡">五 ribbon默认负载均衡</h1>
+<p>LoadBalancerClient 是 ribbon 的一个核心类，其能够获得 ribbon提供负载均衡的实例信息；在 ribbon-client模块中的controller层添加 方法 ，方法主体是获得实例的端口和主机；以便于于我们分析ribbon负载均衡算法；</p>
+<pre><code><code>    @Autowired
+    LoadBalancerClient loadBalanced;
+
+    @GetMapping(&quot;ribbon&quot;)
+    public String ribbon(){
+        ServiceInstance choose = loadBalanced.choose(&quot;eureka-client&quot;);
+        String s = &quot;host is :&quot; + choose.getHost() + &quot;  port is :&quot; + choose.getPort();
+        System.out.println(s);
+        return s;
+    }</code></pre>
+<p>重启ribbon-client 工程，使用浏览器访问，控制台输出如下，分别调用了8090,8091两个 eureka-client实例API，说明ribbon默认的负载均衡机制是轮询算法；</p>
+<pre><code><code>host is :peer1  port is :8091
+host is :peer1  port is :8090
+host is :peer1  port is :8091
+host is :peer1  port is :8090
+host is :peer1  port is :8091
+host is :peer1  port is :8090
+host is :peer1  port is :8091
+host is :peer1  port is :8090
+</code></pre>
+<p><img src="./images/springcloud-ribbon负载均衡2.png" alt="在这里插入图片描述" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,1183 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修分布式架构-Redis 从入门到精通 完整案例 附源码' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>分布式架构-Redis 从入门到精通 完整案例 附源码</center></div><div class='banquan'>原文出处:本文由博客园博主陈彦斌提供。<br/>
+原文连接:https://www.cnblogs.com/chenyanbin/p/12073107.html</div><br>
+    <h1 style="text-align: center;">导读</h1>
+<p>　　篇幅较长，干货十足，阅读需要花点时间，全部手打出来的字，难免出现错别字，敬请谅解。珍惜原创，转载请注明出处，谢谢~！</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码0.png" alt="" /></p>
+<h1 style="text-align: center;">NoSql介绍与Redis介绍</h1>
+<h2>什么是Redis?</h2>
+<p>　　<span style="color: #ff0000;"><strong>Redis</strong></span>是用<span style="color: #ff0000;"><strong>C语言</strong></span>开发的一个<span style="color: #ff0000;"><strong>开源</strong></span>的高性能<span style="color: #ff0000;"><strong>键值对</strong></span>(key-value)<span style="color: #ff0000;"><strong>内存数据库</strong></span>。</p>
+<p>　　它提供<span style="color: #ff0000;"><strong>五种数据类型</strong></span>来存储值：<span style="color: #ff0000;"><strong>字符串类型、散列类型、列表类型、集合类型、有序类型</strong></span>。</p>
+<p>　　它是一种<span style="color: #ff0000;"><strong>NoSql</strong></span>数据库。</p>
+<h2>什么是NoSql？</h2>
+<ul>
+<li>NoSql，即Not-Only Sql(不仅仅是SQL)，泛指<span style="color: #ff0000;"><strong>非关系型的数据库</strong></span>。</li>
+<li>什么是关系型数据库？数据结构是一种有行有列的数据库。</li>
+<li>NoSql数据库是为了解决<span style="color: #ff0000;"><strong>高并发、高可用、高可扩展、大数据存储</strong></span>问题而产生的数据库解决方案。</li>
+<li>NoSql可以作为关系型数据库的良好补充，但是<span style="color: #ff0000;"><strong>不能替代关系型数据库</strong></span>。</li>
+</ul>
+<h2>NoSql数据库分类</h2>
+<h3>键值(key-value)存储数据库</h3>
+<ul>
+<li>相关产品：Tokyo Cabinet/Tyrant、<strong><span style="color: #ff0000;">Redis</span></strong>、Voldemort、Berkeley Db等</li>
+<li>典型应用：内存缓存，主要用于处理大量数据的高访问负载</li>
+<li>数据模型：一系列键值对</li>
+<li><span style="color: #ff0000;"><strong>优势：快速查询</strong></span></li>
+<li><span style="color: #ff0000;"><strong>劣势：存储的数据缺少结构化</strong></span></li>
+</ul>
+<h3>列存储数据库</h3>
+<ul>
+<li>相关产品：Cassandra、<span style="color: #ff0000;"><strong>Hbase</strong></span>、Riak</li>
+<li>典型应用：分布式的文件系统</li>
+<li>数据模型：以列簇式存储，将同一列数据存在一起</li>
+<li>优势：查找速度快，可扩展性强，更容易进行分布式扩展</li>
+<li>劣势：功能相对局限</li>
+</ul>
+<h3>文档型数据库</h3>
+<ul>
+<li>相关产品：CouchDB、<span style="color: #ff0000;"><strong>MongoDB</strong></span></li>
+<li>典型应用：web应用(与key-value类似，value是结构化的)</li>
+<li>数据模型：一系列键值对</li>
+<li>优势：数据结构要求不严格</li>
+<li>劣势</li>
+</ul>
+<h3>图形(Graph)数据库</h3>
+<ul>
+<li>相关数据库：Neo4J、InfoGrid、Infinite、Graph</li>
+<li>典型应用：社交网络</li>
+<li>数据模型：图结构</li>
+<li>优势：利用图结构先关算法</li>
+<li>劣势：需要对整个图做计算才能得出结果，不容易做分布式的集群方案。</li>
+</ul>
+<h1 style="text-align: center;">Redis历史发展</h1>
+<p>　　<span style="color: #ff0000;"><strong>2008年</strong></span>，意大利的一家创业公司Merzia推出了一款给予MySql的网站实时统计系统LLOOGG，然而没过多久该公司的创始人<span style="color: #ff0000;"><strong>Salvatore Sanfilippo</strong></span>便对MySql的性能感到失望，于是他决定亲力为LLOOGG量身<span style="color: #ff0000;"><strong>定做一个数据库</strong></span>，并<span style="color: #ff0000;"><strong>于2009年开发完成，这个数据库就是Redis</strong></span>。</p>
+<p>　　不过<span style="color: #ff0000;"><strong>Salvatore Sanfilippo</strong></span>并<span style="color: #ff0000;"><strong>不满足</strong></span>只<span style="color: #ff0000;"><strong>将Redis</strong><strong>用</strong></span>于<span style="color: #ff0000;"><strong>LLOOGG</strong></span>这一款产品，而是<span style="color: #ff0000;"><strong>希望更多的人使用它</strong></span>，于是<span style="color: #ff0000;"><strong>在同一年Salvatore Sanfilippo将Redis开源发布</strong></span>。</p>
+<p>　　并<span style="color: #ff0000;"><strong>开始</strong><strong>和Redis</strong></span>的另一名<span style="color: #ff0000;"><strong>主要</strong></span>的代码<span style="color: #ff0000;"><strong>贡献者</strong></span>Pieter Noordhuis一起<span style="color: #ff0000;"><strong>继续</strong></span>着<span style="color: #ff0000;"><strong>Redis</strong></span>的<span style="color: #ff0000;"><strong>开发</strong></span>，<span style="color: #ff0000;"><strong>直到今天</strong></span>。</p>
+<p>　　Salvatore Sanfilippo自己也没有想到，短短的几年时间，Redis就拥有了庞大的用户群体。Hacker News在2012年发布一份数据库的使用请款调查，结果显示有近12%的公司在使用Redis。<span style="color: #ff0000;"><strong>国内如新浪微博、街旁网、知乎网、国外如GitHub、Stack、Overflow、Flickr等都是Redis的用户</strong></span>。</p>
+<p>　　<span style="color: #ff0000;"><strong>VmWare</strong></span>公司从<span style="color: #ff0000;"><strong>2010年</strong></span>开始赞助Redis的开发，Salvatore Sanfilippo和Pieter Noordhuis也分别<span style="color: #ff0000;"><strong>在3月和5月</strong><strong>加入VMware</strong></span>，<span style="color: #ff0000;"><strong>全职开发Redis</strong></span>。</p>
+<h1 style="text-align: center;">Redis的应用场景</h1>
+<ul>
+<li>内存数据库(登录信息、购物车信息、用户浏览记录等)</li>
+<li>缓存服务器(商品数据、广告数据等等)(最多使用)</li>
+<li>解决分布式集群架构中的Session分离问题(Session共享)</li>
+<li>任务队列。(秒杀、抢购、12306等等)</li>
+<li>支持发布订阅的消息模式</li>
+<li>应用排行榜</li>
+<li>网站访问统计</li>
+<li>数据过期处理(可以精确到毫秒)</li>
+</ul>
+<h1 style="text-align: center;">Redis安装及配置</h1>
+<ul>
+<li>官网地址：https://redis.io/</li>
+<li>中文官网地址：http://www.redis.cn</li>
+<li>下载地址：http://download.redis.io/releases/</li>
+</ul>
+<h2>Linux环境下安装Redis</h2>
+<p><span style="color: #ff0000;"><strong>注：将下载后的Redis拖进Linux需要安装下，VMware Tools，<a href="https://www.cnblogs.com/gucb/p/11525557.html" target="_blank">参考链接</a></strong></span></p>
+<h3>将下载后的Redis拖进linux</h3>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码1.png" alt="" /></p>
+<h3>安装C语言需要的GCC环境</h3>
+<div class="cnblogs_code">
+<pre><code>yum install gcc-c++</pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码2.png" alt="" /></p>
+<h3>解压Redis源码压缩包</h3>
+<div class="cnblogs_code">
+<pre><code>tar -zxf redis-4.0.11.tar.gz</pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码3.png" alt="" /></p>
+<h3>编译Redis源码</h3>
+<div class="cnblogs_code">
+<pre><code>make</pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码4.png" alt="" /></p>
+<h3>安装Redis</h3>
+<div class="cnblogs_code">
+<pre><code>make install PREFIX=/user/local/<span style="color: #000000;">redis
+
+格式：make install PREFIX</span>=安装目录</pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码5.png" alt="" /></p>
+<h1 style="text-align: center;">Redis启动</h1>
+<h2>前端启动</h2>
+<ul>
+<li>启动命令：redis-server，直接运行bin/redis-server将以前端模式启动。</li>
+</ul>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码6.png" alt="" /></p>
+<h4>关闭服务</h4>
+<div class="cnblogs_code">
+<pre><code>ctrl+c</pre>
+</div>
+<p>启动缺点：客户端窗口关闭，则redis-server程序结束，不推荐使用</p>
+<h2>后端启动(守护进程启动)</h2>
+<h3>拷贝redis</h3>
+<div class="cnblogs_code">
+<pre><code>cp redis.conf /usr/local/redis/<span style="color: #000000;">bin
+
+格式：cp 拷贝文件夹 拷贝路径</span></pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码7.png" alt="" /></p>
+<h3>&nbsp;修改redis.conf，将daemonize由no改为<span style="color: #ff0000;">yes</span></h3>
+<div class="cnblogs_code">
+<pre><code>vim redis.conf</pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码8.png" alt="" /></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码9.png" alt="" /></p>
+<h3>&nbsp;执行命令</h3>
+<div class="cnblogs_code">
+<pre><code> ./redis-<span style="color: #000000;">server redis.conf
+
+格式：启动服务 指定配置文件</span></pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码10.png" alt="" /></p>
+<h3>&nbsp;关闭服务（粗暴方式）</h3>
+<div class="cnblogs_code">
+<pre><code>kill -9 42126<span style="color: #000000;">
+
+格式：kill </span>-9 进程号</pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码11.png" alt="" /></p>
+<h3>&nbsp;正常关闭</h3>
+<div class="cnblogs_code">
+<pre><code>./redis-cli shutdown</pre>
+</div>
+<h3>修改redis配置文件(<span style="color: #ff0000;">解决IP绑定问题</span>)</h3>
+<div class="cnblogs_code">
+<pre><code># bind <span style="color: #800080;">127.0</span>.<span style="color: #800080;">0.1</span><span style="color: #000000;"> 绑定的IP才能fangwenredis服务器，注释掉该配置
+</span><span style="color: #0000ff;">protected</span>-mode yes 是否开启保护模式，由yes改为no</pre>
+</div>
+<h3>其他命令说明</h3>
+<div class="cnblogs_code">
+<pre><code>redis-<span style="color: #000000;">server ：启动redis服务
+redis</span>-<span style="color: #000000;">cli ：进入redis命令客户端
+redis</span>-<span style="color: #000000;">benchmark： 性能测试的工具
+redis</span>-check-<span style="color: #000000;">aof ： aof文件进行检查的工具
+redis</span>-check-<span style="color: #000000;">dump ：  rdb文件进行检查的工具
+redis</span>-sentinel ：  启动哨兵监控服务</pre>
+</div>
+<h1 style="text-align: center;">Redis客户端</h1>
+<h2>自带命令行客户端</h2>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码12.png" alt="" /></p>
+<h2>语法</h2>
+<div class="cnblogs_code">
+<pre><code>./redis-cli -h 127.0.0.1 -p 6379 </pre>
+</div>
+<h2>修改redis.conf配置文件(解决ip绑定问题)</h2>
+<div class="cnblogs_code">
+<pre><code>#bind 127.0.0.1<span style="color: #000000;"> 绑定的ip才能访问redis服务器，注释掉该配置
+
+</span><span style="color: #0000ff;">protected</span>-mode yes 是否开启保护模式，由yes改为no</pre>
+</div>
+<h2>参数说明</h2>
+<ul>
+<li>-h：redis服务器的ip地址</li>
+<li>-p：redis实例的端口号</li>
+</ul>
+<h2>默认方式</h2>
+<p><span style="color: #ff0000;"><strong>如果不制定主机和端口号也可以</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>./redis-<span style="color: #000000;">cli
+
+默认的主机地址是：</span>127.0.0.1<span style="color: #000000;">
+默认的端口号是：</span>6379</pre>
+</div>
+<h1 style="text-align: center;">Redis数据类型</h1>
+<h2>官网命令大全网址</h2>
+<p>http://www.redis.cn/commands.html</p>
+<ul>
+<li>String(字符类型)</li>
+<li>Hash(散列类型)</li>
+<li>List(列表类型)</li>
+<li>Set(集合类型)</li>
+<li>SortedSet(有序集合类型，简称zset)</li>
+</ul>
+<p><span style="color: #ff0000;"><strong><span style="font-size: 14pt;">注：命令不区分大小写，而key是区分大小写的。</span></strong></span></p>
+<h2>String类型</h2>
+<h3>赋值</h3>
+<p>语法：SET key value</p>
+<h3>取值</h3>
+<p>语法：GET key</p>
+<h3>取值并赋值</h3>
+<p>语法：GETSET key value</p>
+<h3>演示</h3>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码13.png" alt="" /></p>
+<h3>&nbsp;数值增减</h3>
+<h3>前提条件：</h3>
+<ol>
+<li>当<span style="color: #ff0000;"><strong>value</strong></span>为<span style="color: #ff0000;"><strong>整数数据</strong></span>时，才能使用以下命令操作数值的增减。</li>
+<li>数值增减都是<span style="color: #ff0000;"><strong>原子</strong></span>操作。</li>
+</ol>
+<h4>递增数字</h4>
+<p>语法：<span style="color: #ff0000;"><strong>INCR key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码14.png" alt="" /></p>
+<h4>&nbsp;增加指定的整数</h4>
+<p>语法：<span style="color: #ff0000;"><strong>INCRBY key increment</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码15.png" alt="" /></p>
+<h4>&nbsp;递减数值</h4>
+<p>语法：<span style="color: #ff0000;"><strong>DECR key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码16.png" alt="" /></p>
+<h4>减少指定的整数&nbsp;</h4>
+<p>语法：<span style="color: #ff0000;"><strong>DECRBY key decrement</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码17.png" alt="" /></p>
+<h3>&nbsp;仅当不存在时赋值</h3>
+<p><span style="color: #ff0000;"><strong>注：该命令可以实现分布式锁的功能，后续讲解！！！！</strong></span></p>
+<p>语法：<span style="color: #ff0000;"><strong>setnx key value</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码18.png" alt="" /></p>
+<h3>向尾部追加值</h3>
+<p>注：<span style="color: #ff0000;"><strong>APPEND</strong></span>命令，<span style="color: #ff0000;"><strong>向键</strong></span>值的<span style="color: #ff0000;"><strong>末尾追加value</strong></span>。<span style="color: #ff0000;"><strong>如果键不存</strong></span>在则该<span style="color: #ff0000;"><strong>键的值设置为value</strong></span>，即相当于set key value。返回值是追加后字符串的总长度。</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码19.png" alt="" /></p>
+<h3>&nbsp;获取字符串长度</h3>
+<p>注：strlen命令，返回键值的长度，如果键不存在则返回0</p>
+<p>&nbsp;语法：<span style="color: #ff0000;"><strong>STRLEN key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码20.png" alt="" /></p>
+<h3>同时设置/获取多个键值</h3>
+<p>语法：</p>
+<ol>
+<li><span style="color: #ff0000;"><strong>MSET key value [key value ....]</strong></span></li>
+<li><span style="color: #ff0000;"><strong>MGET key [key ....]</strong></span></li>
+</ol>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码21.png" alt="" /></p>
+<h3>&nbsp;应用场景之自增主键</h3>
+<p>需求：<span style="color: #ff0000;"><strong>商品编号、订单号采用INCR命令生成。</strong></span></p>
+<p>设计：key明明要有一定的设计</p>
+<p>实现：定义商品编号key：items:id</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码22.png" alt="" /></p>
+<h2>&nbsp;Hash类型</h2>
+<p>　　Hash叫散列类型，它提供了字段和字段值的映射。字段值只能是字符串类型，不支持散列类型、集合类型等其他类型。</p>
+<p><strong><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码23.png" alt="" /></strong></p>
+<h3>赋值&nbsp;</h3>
+<p>　　<span style="color: #ff0000;"><strong>HSET</strong></span>命令<span style="color: #ff0000;"><strong>不区分插入</strong></span>和<span style="color: #ff0000;"><strong>更新</strong></span>操作，当执行<span style="color: #ff0000;"><strong>插入</strong></span>操作时HSET命令<span style="color: #ff0000;"><strong>返回1</strong></span>，当执行<span style="color: #ff0000;"><strong>更新</strong></span>操作时<span style="color: #ff0000;"><strong>返回0</strong></span>。</p>
+<h4>一次只能设置一个字段值</h4>
+<p>语法：<span style="color: #ff0000;"><strong>HSET key field value</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码24.png" alt="" /></p>
+<h4>&nbsp;一次设置多个字段值</h4>
+<p>语法：<span style="color: #ff0000;"><strong>HMSET key field value [field value ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码25.png" alt="" /></p>
+<h4>&nbsp;当字段不存在时</h4>
+<p>类似HSET，区别在于如何字段存在，该命令不执行任何操作</p>
+<p>语法：<span style="color: #ff0000;"><strong>HSETNX key field value</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码26.png" alt="" /></p>
+<h3>取值</h3>
+<h4>一次只能获取一个字段值</h4>
+<p>语法：<span style="color: #ff0000;"><strong>HGET key field</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码27.png" alt="" /></p>
+<h4>&nbsp;一次可以获取多个字段值</h4>
+<p>语法：<span style="color: #ff0000;"><strong>HMGET key field [field ....]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码28.png" alt="" /></p>
+<h4>获取所有字段值</h4>
+<p>语法：<span style="color: #ff0000;"><strong>HGETALL key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码29.png" alt="" /></p>
+<h3>&nbsp;删除字段</h3>
+<p>可以删除一个或多个字段，返回值是被删除的字段个数</p>
+<p>语法：<span style="color: #ff0000;"><strong>HDEL key field [field ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码30.png" alt="" /></p>
+<h3>&nbsp;增加数字</h3>
+<p>语法：<span style="color: #ff0000;"><strong>HINCRBY key field increment</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码31.png" alt="" /></p>
+<h3>&nbsp;判断字段是否存在</h3>
+<p>语法：<span style="color: #ff0000;"><strong>HEXISTS key field</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码32.png" alt="" /></p>
+<h3>只获取字段名或字段值</h3>
+<p>语法：</p>
+<ol>
+<li><span style="color: #ff0000;"><strong>HKEYS key</strong></span></li>
+<li><span style="color: #ff0000;"><strong>HVALS key</strong></span></li>
+</ol>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码33.png" alt="" /></p>
+<h3>&nbsp;获取字段数量</h3>
+<p>语法：<span style="color: #ff0000;"><strong>HLEN key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码34.png" alt="" /></p>
+<h3>&nbsp;获取所有字段</h3>
+<p>作用：获取hash的所有信息，包括key和value</p>
+<p>语法：<span style="color: #ff0000;"><strong>hgetall key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码35.png" alt="" /></p>
+<h3>&nbsp;应用之存储商品信息</h3>
+<p><span style="color: #ff0000;"><strong>注意事项：存在哪些对象数据，特别是对象属性经常发生增删改操作的数据。</strong></span></p>
+<p>商品信息字段</p>
+<p>　　【商品id，商品名称，商品描述，商品库存，商品好评】</p>
+<p>定义商品信息的key</p>
+<p>　　商品id为1001的信息在Redis中的key为：[items.1001]</p>
+<h4>示例</h4>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码36.png" alt="" /></p>
+<h2>&nbsp;List类型</h2>
+<p>　　ArrayList使用<span style="color: #ff0000;"><strong>数组方式</strong></span>存储数据，所以根据索引查询数据速度快，而新增或者删除元素时需要涉及到位移操作，所以比较慢。</p>
+<p>　　LinkedList使用<span style="color: #ff0000;"><strong>双向链表方式</strong></span>存储数据，每个元素都记录前后元素的指针，所以插入、删除数据时只是更改前后元素的指针即可，速度非常快。然后通过下标查询元素时需要从头开始索引，所以比较慢，但是如果查询前几个元素或后几个元素速度比较快。</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码37.png" alt="" /></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码38.png" alt="" /></p>
+<h3>&nbsp;List介绍</h3>
+<p>　　Redis的列表类型(list)可以存储一个有序的字符串列表，常用的操作是<span style="color: #ff0000;"><strong>向列表两端添加元素，或者获取列表的某一个片段</strong></span>。</p>
+<p>　　列表类型内部是使用<span style="color: #ff0000;"><strong>双向链表(double linked list)</strong></span>实现的，所以向列表两端添加元素的时间复杂度为0/1，获取越接近两端的元素速度就越快。意味着即使是一个有几千万个元素的列表，获取头部或尾部的10条记录也是极快的。</p>
+<h3>向列表两端添加元素</h3>
+<h4>向列表左边添加元素</h4>
+<p>语法：<span style="color: #ff0000;"><strong>LPUSH key value [value ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码39.png" alt="" /></p>
+<h4>&nbsp;向列表右边添加元素</h4>
+<p>语法：<span style="color: #ff0000;"><strong>RPUSH key value [value ....]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码40.png" alt="" /></p>
+<h3>&nbsp;查看列表</h3>
+<p>语法：<span style="color: #ff0000;"><strong>LRANGE key start stop</strong></span></p>
+<p>　　LRANGE命令是列表类型最常用的命令之一，获取列表中的某一片段，将返回start、stop之间的所有元素(包括两端的元素)，索引从0开始。索引可以是负数，<span style="color: #ff0000;"><strong>&ldquo;-1&rdquo;代表最后一边的一个元素</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码41.png" alt="" /></p>
+<h3>&nbsp;从列表两端弹出元素</h3>
+<p>LPOP命令从列表左边弹出一个元素，会分两步完成：</p>
+<ol>
+<li>将列表左边的元素从列表中移除</li>
+<li>返回被移除的元素值</li>
+</ol>
+<p>语法：</p>
+<ol>
+<li><span style="color: #ff0000;"><strong>LPOP key</strong></span></li>
+<li><span style="color: #ff0000;"><strong>RPOP key</strong></span></li>
+</ol>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码42.png" alt="" /></p>
+<h3>获取列表中元素的个数</h3>
+<p>语法：<span style="color: #ff0000;"><strong>LLEN key</strong></span>&nbsp;<img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码43.png" alt="" /></p>
+<h3>&nbsp;删除列表中指定个数的值</h3>
+<p>　　LREM命令会删除列表中前count个数为value的元素，返回实际删除的元素个数。根据count值不同，该命令的执行方式会有所不同。</p>
+<p>语法：<span style="color: #ff0000;"><strong>LREM key count value</strong></span></p>
+<ol>
+<li>当count&gt;0时，LREM会从列表左边开始删除</li>
+<li>当count&lt;0时，LREM会从列表右边开始删除</li>
+<li>当count=0时，LREM会删除所有值为value的元素</li>
+</ol>
+<h3>获取/设置指定索引的元素值</h3>
+<h4>获取指定索引的元素值</h4>
+<p>语法：<span style="color: #ff0000;"><strong>LINDEX key index</strong></span></p>
+<h3>设置指定索引的元素值</h3>
+<p>语法：<span style="color: #ff0000;"><strong>LSET key index value</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码44.png" alt="" /></p>
+<h3>向列表中插入元素&nbsp;</h3>
+<p>　　该命令首先会在列表中从左到右查询值为pivot的元素，然后根据第二个参数是BEFORE还是AFTER来决定将value插入到该元素的前面还是后面。</p>
+<p>语法：<span style="color: #ff0000;"><strong>LINSERT key BEFORE|AFTER pivot value</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码45.png" alt="" /></p>
+<h3>&nbsp;将元素从一个列表转移到另一个列表中</h3>
+<p>语法：<span style="color: #ff0000;"><strong>RPOPLPUSH source destination</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码46.png" alt="" /></p>
+<h3>&nbsp;应用之商品评论列表</h3>
+<p>需求1：用户针对某一商品发布评论，一个商品会被不同的用户进行评论，存储商品评论时，要按时间顺序排序。</p>
+<p>需要2：用户在前端页面查询该商品的评论，需要按照时间顺序降序排序。</p>
+<p>思路：</p>
+<p>　　使用list存储商品评论信息，key是该商品的id，value是商品评论信息商品编号为1001的商品评论key【items:comment:1001】&nbsp;<img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码47.png" alt="" /></p>
+<h2>&nbsp;Set类型</h2>
+<p>set类型即<span style="color: #ff0000;"><strong>集合类型</strong></span>，其中的数据时<span style="color: #ff0000;"><strong>不重复且没有顺序</strong></span>。</p>
+<p>集合类型和列表类型的对比：</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码48.png" alt="" /></p>
+<p>&nbsp;　　集合类型的常用操作是向集合中加入或删除元素、判断某个元素是否存在等，由于集合类型的Redis内部是使用值为空散列标实现，所有这些操作的时间复杂度都为0/1。</p>
+<p>　　Redis还提供了多个集合之间的交集、并集、差集的运算。</p>
+<h3>添加/删除元素</h3>
+<p>语法：<span style="color: #ff0000;"><strong>SADD key member [member ...]</strong></span></p>
+<p>语法：<span style="color: #ff0000;"><strong>SREM key member [member ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码49.png" alt="" /></p>
+<h3>获取集合中的所有元素&nbsp;</h3>
+<p>语法：<span style="color: #ff0000;"><strong>SMEMBERS key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码50.png" alt="" /></p>
+<h3>&nbsp;判断元素是否在集合中</h3>
+<p>语法：<span style="color: #ff0000;"><strong>SISMEMBER key member</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码51.png" alt="" /></p>
+<h3>&nbsp;集合运算命令</h3>
+<h4>集合的差集运算 A-B</h4>
+<p>属于A并且不属于B的元素构成的集合</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码52.png" alt="" /></p>
+<p>&nbsp;语法：<span style="color: #ff0000;"><strong>SDIFF key [key ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码53.png" alt="" /></p>
+<h4>集合的交集运算 A&cap;B</h4>
+<p>属于A且属于B的元素构成的集合。&nbsp;</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码54.png" alt="" /></p>
+<p>&nbsp;语法：<span style="color: #ff0000;"><strong>SINTER key [key ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码55.png" alt="" /></p>
+<h4>集合的并集运算 A &cup;&nbsp;B</h4>
+<p>属于A或者属于B的元素构成的集合</p>
+<p>&nbsp;<img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码56.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;语法：<span style="color: #ff0000;"><strong>SUNION key [key ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码57.png" alt="" /></p>
+<h3>获取集合中的元素个数</h3>
+<p>语法：<span style="color: #ff0000;"><strong>SCARD key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码58.png" alt="" /></p>
+<h3>从集合中弹出一个元素&nbsp;</h3>
+<p>注意：集合是无序的，所有spop命令会从集合中随机选择一个元素弹出</p>
+<p>语法：<span style="color: #ff0000;"><strong>SPOP key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码59.png" alt="" /></p>
+<h2>&nbsp;SortedSet类型zset</h2>
+<p>　　在集合类型的基础上，有序集合为集合中的每个元素都关联一个分数，这使得我们不仅可以完成插入、删除和判断元素是否存在集合中，还能够获得最高或最低的前N个元素、获取指定分数范围内的元素等与分苏有关的操作。</p>
+<p>在某些方面有序集合和列表类型有些相似。</p>
+<ol>
+<li>二者都是有序的。</li>
+<li>二者都可以获得某一范围的元素</li>
+</ol>
+<p>但是二者有着很大的区别：</p>
+<ol>
+<li>列表类型是通过链表实现的，后去靠近两端的数据速度极快，而当元素增多后，访问中间数据的速度会变慢。</li>
+<li>有序集合类型使用散列实现，所有即使读取位于中间部分的数据也很快。</li>
+<li>列表中不能简单的调整某个元素的位置，但是有序集合可以(通过更改分数实现)。</li>
+<li>有序集合要比列表类型更耗内存。</li>
+</ol>
+<h3>添加元素</h3>
+<p>　　向有序集合中加入一个元素和该元素的分数，如果该元素已经存在则会用新的分数替换原有的分数。返回值是新加入到集合中的元素个数，不不含之前已经存在的元素。</p>
+<p>语法：<span style="color: #ff0000;"><strong>ZADD key score member [score member ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码60.png" alt="" /></p>
+<h3>获取排名在某个范围的元素列表</h3>
+<p>按照元素分数从小到大的顺序返回索引从start到stop之间的所有元素(包含两端的元素)</p>
+<p>语法：<span style="color: #ff0000;"><strong>ZRANGE key start stop [WITHSCORES]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码61.png" alt="" /></p>
+<p>&nbsp;如果需要获取元素的分数的可以在命令尾部加上WITHSCORES参数</p>
+<h3><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码62.png" alt="" />&nbsp;获取元素的分数</h3>
+<p>语法：<span style="color: #ff0000;"><strong>ZSCORE key member</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码63.png" alt="" /></p>
+<h3>&nbsp;删除元素</h3>
+<p>移除有序集key中的一个或多个成员，不存在的成员将被忽略。</p>
+<p>当key存在但不是有序集类型时，返回错误。</p>
+<p>语法：<span style="color: #ff0000;"><strong>ZREM key member [member ...]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码64.png" alt="" /></p>
+<h3>&nbsp;获取指定分数范围的元素</h3>
+<p>语法：<span style="color: #ff0000;"><strong>ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码65.png" alt="" /></p>
+<h3>&nbsp;增加某个元素的分数</h3>
+<p>返回值是更改后的分数</p>
+<p>语法：<span style="color: #ff0000;"><strong>ZINCRBY key increment member</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码66.png" alt="" /></p>
+<h3>&nbsp;获取集合中元素的数量</h3>
+<p>语法：<span style="color: #ff0000;"><strong>ZCARD key</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码67.png" alt="" /></p>
+<h3>&nbsp;获得指定分数范围内的元素个数</h3>
+<p>语法：<span style="color: #ff0000;"><strong>ZCOUNT key min max</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码68.png" alt="" /></p>
+<h3>&nbsp;按照排名范围删除元素</h3>
+<p>语法：<span style="color: #ff0000;"><strong>ZREMRANGEBYRANK key start stop</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码69.png" alt="" /></p>
+<h3>&nbsp;按照分数范围删除元素</h3>
+<p>语法：<span style="color: #ff0000;"><strong>ZREMRANGEBYSCORE key min max</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码70.png" alt="" /></p>
+<h3>&nbsp;获取元素的排名</h3>
+<p>从小到大</p>
+<p>语法：<span style="color: #ff0000;"><strong>ZRANK key member</strong></span></p>
+<p>从大到小</p>
+<p>语法：<span style="color: #ff0000;"><strong>ZREVRANK key member</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码71.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>&nbsp;应用之商品销售排行榜</h3>
+<p>需求：根据商品销售对商品进行排序显示</p>
+<p>思路：定义商品销售排行榜(sorted set集合)，key为items:sellsort，分数为商品小数量。</p>
+<p>写入商品销售量：</p>
+<p>&gt;商品编号1001的销量是9，商品编号1002的销量是10</p>
+<p>&gt;商品编号1001销量家1</p>
+<p>&gt;商品销量前10名</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码72.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>&nbsp;通用命令</h2>
+<h3>keys</h3>
+<p>语法：<span style="color: #ff0000;"><strong>keys pattern</strong></span></p>
+<h3>del</h3>
+<p>语法：<span style="color: #ff0000;"><strong>DEL key</strong></span></p>
+<h3>exists</h3>
+<p>作用：确认一个key是否存在</p>
+<p>语法：<span style="color: #ff0000;"><strong>exists key</strong></span></p>
+<h3>expire</h3>
+<p>　　Redis在实际使用过程中更多的用作缓存，然后缓存的数据一般都是需要设置生存时间的，即：到期后数据销毁。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">EXPIRE key seconds             设置key的生存时间（单位：秒）key在多少秒后会自动删除
+
+TTL key                     查看key生于的生存时间
+
+PERSIST key                清除生存时间 
+
+PEXPIRE key milliseconds    生存时间设置单位为：毫秒
+
+例子：
+192.168.101.3:7002&gt; set test 1        设置test的值为1
+OK
+192.168.101.3:7002&gt; get test            获取test的值
+"1"
+192.168.101.3:7002&gt; EXPIRE test 5    设置test的生存时间为5秒
+(integer) 1
+192.168.101.3:7002&gt; TTL test            查看test的生于生成时间还有1秒删除
+(integer) 1
+192.168.101.3:7002&gt; TTL test
+(integer) -2
+192.168.101.3:7002&gt; get test            获取test的值，已经删除
+(nil)</span></pre>
+</div>
+<h3>rename</h3>
+<p>作用：<span style="color: #ff0000;"><strong>重命名key</strong></span></p>
+<p>语法：<span style="color: #ff0000;"><strong>rename oldkey newkey</strong></span></p>
+<h3>type</h3>
+<p>作用：<span style="color: #ff0000;"><strong>显示指定key的数据类型</strong></span></p>
+<p>语法：<span style="color: #ff0000;"><strong>type key</strong></span></p>
+<h1 style="text-align: center;">Redis事务</h1>
+<h2>事务介绍</h2>
+<ul>
+<li>Redis的事务是通过<span style="color: #ff0000;"><strong>MULTI，EXEC，DISCARD和WATCH</strong></span>这四个命令来完成。</li>
+<li>Redis的单个命令都是<span style="color: #ff0000;"><strong>原子性</strong></span>的，所以这里确保事务性的对象是<span style="color: #ff0000;"><strong>命令集合</strong></span>。</li>
+<li>Redis将命令集合序列化并确保处于一事务的<span style="color: #ff0000;"><strong>命令集合连续且不被打断</strong></span>的执行。</li>
+<li>Redis<span style="color: #ff0000;"><strong>不支持回滚</strong></span>的操作。</li>
+</ul>
+<h2>相关命令</h2>
+<ul>
+<li>
+<h3>MULTI</h3>
+</li>
+</ul>
+<p>　　　　注：<span style="color: #ff0000;"><strong>用于标记事务块的开始</strong></span>。</p>
+<p>　　　　Redis会将后续的命令逐个放入队列中，然后使用<span style="color: #ff0000;"><strong>EXEC命令</strong></span>原子化地执行这个命令序列。</p>
+<p>　　　　语法：<span style="color: #ff0000;"><strong>MULTI</strong></span></p>
+<ul>
+<li>
+<h3>EXEC</h3>
+</li>
+</ul>
+<p>　　　　在一个<span style="color: #ff0000;"><strong>事务中执行所有先前放入队列的命令</strong></span>，然后恢复正常的连接状态。</p>
+<p>　　　　语法：<span style="color: #ff0000;"><strong>EXEC</strong></span></p>
+<ul>
+<li>
+<h3>DISCARD</h3>
+</li>
+</ul>
+<p>　　　　清楚所有先前在一个事务中放入队列的命令，然后恢复正常的连接状态。</p>
+<p>　　　　语法：<span style="color: #ff0000;"><strong>DISCARD</strong></span></p>
+<ul>
+<li>
+<h3>WATCH</h3>
+</li>
+</ul>
+<p>　　　　当某个<span style="color: #ff0000;"><strong>事务需要按条件执行</strong></span>时，就要使用这个命令将给定的<span style="color: #ff0000;"><strong>键设置为受监控</strong></span>的<span style="color: #ff0000;"><strong>状态</strong></span>。</p>
+<p>　　　　语法：<span style="color: #ff0000;"><strong>WATCH key [key ....]</strong></span></p>
+<p>　　　　注：该命令可以实现redis的<span style="color: #ff0000;"><strong>乐观锁</strong></span></p>
+<ul>
+<li>
+<h3>UNWATCH</h3>
+</li>
+</ul>
+<p>　　　　清除所有先前为一个事务监控的键。</p>
+<p>　　　　语法：<span style="color: #ff0000;"><strong>UNWATCH</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码73.png" alt="" /></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码74.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>&nbsp;事务失败处理</h3>
+<ul>
+<li>Redis语法错误(编译器错误)</li>
+</ul>
+<p><strong><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码75.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<ul>
+<li>&nbsp;Redis类型错误(运行期错误)</li>
+</ul>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码76.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>为什么redis不支持事务回滚？</h3>
+<ol>
+<li>大多数事务失败是因为<span style="color: #ff0000;"><strong>语法错误或者类型错误</strong></span>，这两种错误，再开发阶段都是可以避免的</li>
+<li>Redis为了<span style="color: #ff0000;"><strong>性能方面</strong></span>就忽略了事务回滚</li>
+</ol>
+<h1 style="text-align: center;">Redis实现分布式锁</h1>
+<h2>锁的处理</h2>
+<p>　　单应用中使用锁：单线程多线程</p>
+<p>　　　　<span style="color: #ff0000;"><strong>synchronize、Lock</strong></span></p>
+<p>　　分布式应用中使用锁：多进程</p>
+<h2>分布式锁的实现方式</h2>
+<ol>
+<li>数据库的乐观锁</li>
+<li>给予zookeeper的分布式锁</li>
+<li><span style="color: #ff0000;"><strong>给予redis的分布式锁</strong></span></li>
+</ol>
+<h2>分布式锁的注意事项</h2>
+<ol>
+<li><span style="color: #ff0000;"><strong>互斥性</strong></span>：在任意时刻，只有一个客户端能持有锁</li>
+<li><span style="color: #ff0000;"><strong>同一性</strong></span>：加锁和解锁必须是同一个客户端，客户端自己不能把别人加的锁给解了。</li>
+<li><span style="color: #ff0000;"><strong>避免死锁</strong></span>：即使有一个客户端在持有锁的期间崩溃而没有主动解锁，也能保证后续其他客户端能加锁。</li>
+</ol>
+<h2>实现分布式锁</h2>
+<h3>获取锁</h3>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码77.png" alt="" /></p>
+<h4>方式一(使用set命令实现)</h4>
+<h4>方式二(使用setnx命令实现)</h4>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.cyb.redis.utils;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis.clients.jedis.Jedis;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis.clients.jedis.JedisPool;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> jedisUtils {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String ip = "192.168.31.200"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> port = 6379<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> JedisPool pool;
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        pool </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> JedisPool(ip, port);
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Jedis getJedis() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pool.getResource();
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">boolean</span> getLock(String lockKey, String requestId, <span style="color: #0000ff;">int</span><span style="color: #000000;"> timeout) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取jedis对象，负责和远程redis服务器进行连接</span>
+        Jedis je=<span style="color: #000000;">getJedis();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">参数3：NX和XX
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">参数4：EX和PX</span>
+        String result = je.set(lockKey, requestId, "NX", "EX"<span style="color: #000000;">, timeout);
+        </span><span style="color: #0000ff;">if</span> (result=="ok"<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">synchronized</span> <span style="color: #0000ff;">boolean</span> getLock2(String lockKey, String requestId, <span style="color: #0000ff;">int</span><span style="color: #000000;"> timeout) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取jedis对象，负责和远程redis服务器进行连接</span>
+        Jedis je=<span style="color: #000000;">getJedis();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">参数3：NX和XX
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">参数4：EX和PX</span>
+        Long result =<span style="color: #000000;"> je.setnx(lockKey, requestId);
+        </span><span style="color: #0000ff;">if</span> (result==1<span style="color: #000000;">) {
+            je.expire(lockKey, timeout); </span><span style="color: #008000;">//</span><span style="color: #008000;">设置有效期</span>
+            <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+}</span></pre>
+</div>
+<h3>释放锁</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.cyb.redis.utils;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis.clients.jedis.Jedis;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis.clients.jedis.JedisPool;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> jedisUtils {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String ip = "192.168.31.200"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> port = 6379<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> JedisPool pool;
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        pool </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> JedisPool(ip, port);
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Jedis getJedis() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pool.getResource();
+    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 释放分布式锁
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> lockKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> requestId
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> releaseLock(String lockKey, String requestId) {
+        Jedis je</span>=<span style="color: #000000;">getJedis();
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (requestId.equals(je.get(lockKey))) {
+            je.del(lockKey);
+        }
+    }
+}</span></pre>
+</div>
+<h1 style="text-align: center;">Redis持久化方案</h1>
+<h2>导读</h2>
+<p>　　Redis是一个内存数据库，为了保证数据的持久性，它提供了两种持久化方案。</p>
+<ol>
+<li>RDB方式(默认)</li>
+<li>AOF方式</li>
+</ol>
+<h2>RDB方式</h2>
+<p>　　RDB是Redis<span style="color: #ff0000;"><strong>默认</strong></span>采用的持久化方式。</p>
+<p>　　RDB方式是通过<span style="color: #ff0000;"><strong>快照</strong></span>(snapshotting)完成的，当<span style="color: #ff0000;"><strong>符合一定条件</strong></span>时Redis会自动将内存中的数据进行快照并持久化到硬盘。</p>
+<h3>RDB触发条件</h3>
+<ol>
+<li>符合自定义配置的快照规则</li>
+<li>执行save或者bgsave命令</li>
+<li>执行flushall命令</li>
+<li>执行主从复制操作</li>
+</ol>
+<h3>在redis.conf中设置自定义快照规则</h3>
+<p>1、RDB持久化条件</p>
+<p>　　格式：save &lt;seconds&gt; &lt;changes&gt;</p>
+<p>示例:</p>
+<p>　　save 900 1：表示15分钟(900秒)内至少1个键更改则进行快照。</p>
+<p>　　save 300 10：表示5分钟(300秒)内至少10个键被更改则进行快照。</p>
+<p>　　save 60 10000：表示1分钟内至少10000个键被更改则进行快照。</p>
+<p>2、配置dir指定rdb快照文件的位置</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;"># Note that you must specify a directory here, not a file name.
+dir ./</span></pre>
+</div>
+<p>3、配置dbfilename指定rdb快照文件的名称</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;"># The filename where to dump the DB
+dbfilename dump.rdb</span></pre>
+</div>
+<h3>说明</h3>
+<ol>
+<li>Redis启动后会读取RDB快照文件，将数据从硬盘载入到内存</li>
+<li>根据数据量大小与结构和服务器性能不同，这个时间也不同。通常将记录1千万个字符串类型键，大小为1GB的快照文件载入到内存中需要花费20-30秒钟。</li>
+</ol>
+<h2>快照的实现原理</h2>
+<h3>快照过程</h3>
+<ol>
+<li><span style="color: #ff0000;"><strong>redis</strong></span>使用f<span style="color: #ff0000;"><strong>ork函数复制</strong></span>一份<span style="color: #ff0000;"><strong>当前进程</strong></span>的<span style="color: #ff0000;"><strong>副本</strong></span>(子进程)</li>
+<li><span style="color: #ff0000;"><strong>父进程继续接受</strong></span>并处理<span style="color: #ff0000;"><strong>客户端发来的命令</strong></span>，而<span style="color: #ff0000;"><strong>子进程</strong></span>开始<span style="color: #ff0000;"><strong>将内存中的数据写</strong></span>入到<span style="color: #ff0000;"><strong>硬盘</strong><strong>中</strong></span>的<span style="color: #ff0000;"><strong>临时文件</strong></span>。</li>
+<li>当<span style="color: #ff0000;"><strong>子进程写入完</strong></span>所有<span style="color: #ff0000;"><strong>数据后</strong></span>会<span style="color: #ff0000;"><strong>用该临时文件替换旧的RDB文件</strong></span>，至此，一次快照操作完成。</li>
+</ol>
+<h3>注意</h3>
+<ol>
+<li>redis在进行<span style="color: #ff0000;"><strong>快照的过程中不会修改RDB文件</strong></span>，只有快照结束后才会将旧的文件替换成新的，也就是说任何时候RDB文件都是完整的。</li>
+<li>这就使得我们可以通过定时备份RDB文件来实现redis数据库的备份，<span style="color: #ff0000;"><strong>RDB文件是经过压缩的二进制文件</strong></span>，占用的空间会小于内存中的数据，更加利于传输。</li>
+</ol>
+<h2>RDB优缺点</h2>
+<h3>缺点</h3>
+<p>　　使用RDB方式实现持久化，一旦redis异常退出，就会<span style="color: #ff0000;"><strong>丢失最后一次快照以后更改的所有数据</strong></span>。这个时候我们就需要根据具体的应用场景，通过组合设置自动快照条件的方式将可能发生的数据损失控制在能够接受范围。如果数据相对来说比较重要，希望将损失降到最小，则可以使用<span style="color: #ff0000;"><strong>AOF</strong></span>方式进行持久化</p>
+<h3>优点</h3>
+<p>　　RDB可以最大化redis的性能：父进程在保存RDB文件时唯一要做的就是fork出一个字进程，然后这个子进程就会处理接下来的所有保存工作，父进程无需执行任何磁盘I/O操作。同时这个也是一个缺点，如果数据集比较大的时候，fork可能比较耗时，造成服务器在一段时间内停止处理客户端的请求。</p>
+<h2>AOF方式</h2>
+<h3>介绍</h3>
+<p>　　默认情况下Redis没有开启AOF(append only file)方式的持久化</p>
+<p>　　开启AOF持久化后每执行一条会<span style="color: #ff0000;"><strong>更改Redis中的数据命令</strong></span>，Redis就会将该命令写入硬盘中的AOF文件，这一过程显示会<span style="color: #ff0000;"><strong>降低Redis的性能</strong></span>，但大部分下这个影响是能够接受的，另外使用<span style="color: #ff0000;"><strong>较快的硬盘可以提高AOF的性能</strong></span>。</p>
+<h3>配置redis.conf</h3>
+<p>设置appendonly参数为yes</p>
+<div class="cnblogs_code">
+<pre><code>appendonly yes</pre>
+</div>
+<p>AOF文件的保存位置和RDB文件的位置相同，都是通过dir参数设置的</p>
+<div class="cnblogs_code">
+<pre><code>dir ./</pre>
+</div>
+<p>默认的文件名是appendonly.aof，可以通过appendfilename参数修改</p>
+<div class="cnblogs_code">
+<pre><code>appendfilename appendonly.aof</pre>
+</div>
+<h3>AOF重写原理(优化AOF文件)</h3>
+<ol>
+<li>Redis可以在AOF文件体积<span style="color: #ff0000;"><strong>变得过大</strong></span>时，自动地<span style="color: #ff0000;"><strong>后台对AOF进行重写</strong></span></li>
+<li>重写后的新AOF文件包含了恢复当前数据集所需的<span style="color: #ff0000;"><strong>最小命令集合</strong></span>。</li>
+<li>整个重写操作是绝对安全的，因为Redis在<span style="color: #ff0000;"><strong>创建新的AOF文件</strong></span>的过程中，会<span style="color: #ff0000;"><strong>继续将命令追加到现有的AOF文件</strong></span>里面，即使重写过程中发生停机，现有的AOF文件也不会丢失。而<span style="color: #ff0000;"><strong>一旦新AOF文件创建完毕</strong></span>，Redis就会从<span style="color: #ff0000;"><strong>旧AOF</strong></span>文件<span style="color: #ff0000;"><strong>切换到新AOF</strong></span>文件，并开始对新AOF文件进行追加操作。</li>
+<li>AOF文件有序地保存了对数据库执行的所有写入操作，这些写入操作以Redis协议的格式保存，因此AOF文件的内容非常容易被人读懂，对文件进行分析(parse)也很轻松。</li>
+</ol>
+<h3>参数说明</h3>
+<ol>
+<li>#auto-aof-rewrite-percentage 100：表示当前aof文件大小超过上次aof文件大小的百分之多少的时候会进行重写。如果之前没有重写过，以启动时aof文件大小为基准。</li>
+<li>#auto-aof-rewrite-min-size 64mb：表示限制允许重写最小aof文件大小，也就是文件大小小于64mb的时候，不需要进行优化</li>
+</ol>
+<h3>同步磁盘数据</h3>
+<p>　　Redis每次更改数据的时候，aof机制都会将命令记录到aof文件，但是实际上由于<span style="color: #ff0000;"><strong>操作系统的缓存机制</strong></span>，<span style="color: #ff0000;"><strong>数据</strong></span>并<span style="color: #ff0000;"><strong>没</strong></span>有<span style="color: #ff0000;"><strong>实时写入到硬盘</strong></span>，而是<span style="color: #ff0000;"><strong>进入硬盘缓存</strong></span>。<span style="color: #ff0000;"><strong>再通过硬盘缓存机制去刷新到保存文件中</strong></span>。</p>
+<h3>参数说明</h3>
+<ol>
+<li>appendfsync always：每次执行写入都会进行同步，这个是最安全但是效率比较低</li>
+<li>appendfsync everysec：每一秒执行</li>
+<li>appendfsync no：不主动进行同步操作，由于操作系统去执行，这个是最快但是最不安全的方式</li>
+</ol>
+<h3>AOF文件损坏以后如何修复</h3>
+<p>　　服务器可能在程序正在对AOF文件进行写入时停机，如果停机造成AOF文件出错(corrupt)，那么Redis在重启时会拒绝载入这个AOF文件，从而确保数据的一致性不会被破坏。</p>
+<p>　　当发生这种情况时，可以以以下方式来修复出错的AOF文件：</p>
+<p>　　　　1、为现有的AOF文件创建一个备份。</p>
+<p>　　　　2、使用Redis附带的redis-check-aof程序，对原来的AOF文件进行修复。</p>
+<p>　　　　3、重启Redis服务器，等待服务器字啊如修复后的AOF文件，并进行数据恢复。</p>
+<h2>如何选择RDB和AOF</h2>
+<ol>
+<li>一般来说，如果对数据的安全性要求非常高的话，应该同时使用两种持久化功能。</li>
+<li>如果可以承受数分钟以内的数据丢失，那么可以只使用RDB持久化。</li>
+<li>有很多用户都只使用AOF持久化，但并不推荐这种方式：因为定时生成RDB快照(snapshot)非常便于进行数据库备份，并且<span style="color: #ff0000;"><strong>RDB恢复数据集的速度也要比AOF恢复的速度要快</strong></span>。</li>
+<li>两种持久化策略可以同时使用，也可以使用其中一种。如果同时使用的话，那么Redis启动时，会<span style="color: #ff0000;"><strong>优先使用AOF</strong></span>文件来还原数据。</li>
+</ol>
+<h1 style="text-align: center;">Redis的主从复制</h1>
+<h2>什么是主从复制</h2>
+<p>　　持久性保证了即使redis服务重启也不会丢失数据，因为redis服务重启后将硬盘上持久化的数据恢复到内存中，但是当redis服务器的硬盘损坏了可能导致数据丢失，不过通过redis的主从复制机制旧可以避免这种单点故障，如下图：</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码78.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;说明：</p>
+<ol>
+<li>主redis中的数据有两个副本(replication)即从redis1和从redis2，即使一台redis服务器宕机其他两台redis服务也可以继续提供服务。</li>
+<li>主redis中的数据和从redis上的数据保持实时同步，当主redis写入数据时通过主从复制机制会复制到两个从redis服务上。</li>
+<li>只有一个主redis，可以有多个从redis。</li>
+<li>主从复制不会阻塞master，在同步数据时，master可以继续处理client请求</li>
+<li>一个redis可以即是主从，如下图：</li>
+</ol>
+<p><strong><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码79.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<h2>主从配置</h2>
+<h3>主redis配置</h3>
+<p>　　无需特殊配置</p>
+<h3>从redis配置</h3>
+<p>　　修改从服务器上的redis.conf文件</p>
+<div class="cnblogs_code">
+<pre><code># slaveof <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">masterip</span><span style="color: #0000ff;">&gt;</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">masterport</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+slaveof 192.168.31.200 6379</span></pre>
+</div>
+<p>　　上边的配置说明当前【从服务器】对应的【主服务器】的ip是192.168.31.200，端口是6379.</p>
+<h2>实现原理</h2>
+<ol>
+<li>slave第一次或者重连到master发送一个<span style="color: #ff0000;"><strong>SYNC</strong></span>的命令。</li>
+<li>master收到SYNC的时候，会做两件事<ol>
+<li>执行bgsave(rdb的快照文件)</li>
+<li>master会把新收到的修改命令存入到缓冲区</li>
+</ol></li>
+</ol>
+<p><span style="color: #ff0000;"><strong>缺点：没有办法对master进行动态选举</strong></span></p>
+<h1 style="text-align: center;">Redis Sentinel哨兵机制</h1>
+<h2>简介</h2>
+<p>　　Sentinel(哨兵)进程是用于监控redis集群中Master主服务器工作的状态，在Master主服务器发生故障的时候，可以实现Master和Slave服务器的切换，保证系统的高可用，其已经被集成在redis2.6+的版本中，Redis的哨兵模式到2.8版本之后就稳定了下来。</p>
+<h2>哨兵进程的作用</h2>
+<ol>
+<li><span style="color: #ff0000;"><strong>监控</strong></span>(Monitoring)：哨兵(Sentinel)会不断地检查你的Master和Slave是否运作正常。</li>
+<li><span style="color: #ff0000;"><strong>提醒</strong></span>(Notification)：当被监控的某个Redis节点出现问题时，哨兵(Sentinel)可以通过API向管理员或者其他应用程序发送通知。</li>
+<li><span style="color: #ff0000;"><strong>自动故障迁移</strong></span>(Automatic failover)：当一个Master不能正常工作时，哨兵(Sentinel)会开始一次自动故障迁移操作。<ol>
+<li>它会将失效Master的其中一个Slave升级为新的Master，并让失效Master的其他Slave改为复制新的Master；</li>
+<li>当客户端视图连接失效的Master时，集群也会向客户端返回新Master的地址，使得集群可以使用现在的Master替换失效的Master。</li>
+<li>Master和Slave服务器切换后，Master的redis.conf、Slave的redis.conf和sentinel.conf的配置文件的内容都会发生相应的改变，即Master主服务器的redis.conf配置文件中会多一行Slave的配置，sentinel.conf的监控目标会随之调换。</li>
+</ol></li>
+</ol>
+<h2>哨兵进程的工作方式</h2>
+<ol>
+<li>每个Sentinel(哨兵)进程以<span style="color: #ff0000;"><strong>每秒钟一次</strong></span>的频率<span style="color: #ff0000;"><strong>向整个集群</strong></span>中的<span style="color: #ff0000;"><strong>Master主服务器</strong></span>，<span style="color: #ff0000;"><strong>Slave从服务器以及其他Sentinel(哨兵)进程</strong></span>发送一个<span style="color: #ff0000;"><strong>PING命令</strong></span>。</li>
+<li>如果一个实例(instance)距离最后一次有效回复PING命令的时间超过down-after-milliseconds选项所指定的值，则这个实例会被Sentinel(哨兵)进程标记为<span style="color: #ff0000;"><strong>主观下线</strong></span>(<span style="color: #ff0000;"><strong>SDOWN</strong></span>)。</li>
+<li>如果一个Master主服务器被标记为主观下线(SDOWN)，则正在监视这个Master主服务器的<span style="color: #ff0000;"><strong>所有Sentinel(哨兵)</strong></span>进程要以每秒一次的频率<span style="color: #ff0000;"><strong>确认Master主服务器</strong></span>确实<span style="color: #ff0000;"><strong>进入</strong></span>了<span style="color: #ff0000;"><strong>主观下线状态</strong></span>。</li>
+<li>当有<span style="color: #ff0000;"><strong>足够数量的Sentinel(哨兵)进程(</strong></span>大于等于配置文件指定的值)在指定的时间范围内<span style="color: #ff0000;"><strong>确认Master主服务器进入了主观下线状态(SDOWN)</strong></span>，则Master<span style="color: #ff0000;"><strong>主服务器</strong></span>会被标记为<span style="color: #ff0000;"><strong>客观下线(ODOWN)</strong></span>。</li>
+<li>在一般情况下，每个Sentinel(哨兵)进程会以每10秒一次的频率向集群中的所有Master主服务器、Slave从服务器发送INFO命令。</li>
+<li>当Master主服务器被Sentinel(哨兵)进程标记为客观下线(ODOWN)时，Sentinel(哨兵)进程向下线的Master主服务器的所有Slave从服务器发送INFO命令的频率会从10秒一次改为每秒一次。</li>
+<li>若没有足够数量的Sentinel(哨兵)进程同意Master主服务器下线，Master主服务器的客观下线状态就会被移除。若Master主服务器重新向Sentinel(哨兵)进程发送PING命令返回有效回复，Master主服务器的主观下线状态就会被移除。</li>
+</ol>
+<h2>实现</h2>
+<h3>修改从机的sentinel.conf</h3>
+<div class="cnblogs_code">
+<pre><code>sentinel monitor mymaster  192.168.127.129 6379 1</pre>
+</div>
+<h3>启动哨兵服务器</h3>
+<div class="cnblogs_code">
+<pre><code>redis-sentinel</pre>
+</div>
+<h1 style="text-align: center;">Redis Cluster集群</h1>
+<h2>redis-cluster架构图</h2>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码80.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>&nbsp;架构细节</h2>
+<ol>
+<li>所有的redis节点彼此互联(PING-PING机制)，内部使用二进制协议优化传输速度和带宽。</li>
+<li>节点的fail是通过集群中超过半数的节点检测失效时才生效。</li>
+<li>客户端与redis节点直连，不需要中间proxy层，客户端不需要连接集群所有节点，连接集群中任何一个可用节点即可。</li>
+<li>redis-cluster把所有的物理节点映射到[0-16383]slot上，cluster负责维护node&lt;-&gt;slot&lt;-&gt;value</li>
+</ol>
+<div class="cnblogs_code">
+<pre><code>    Redis集群中内置了16384个哈希槽，当需要在Redis集群中放置一个key-value时，redis先对key使用crc16算法算出一个结果，然后把结果对16384求余数，这样每个key都会对应一个编号在0-16384之间的哈希槽，redis会根据节点数量大致均等的将哈希槽映射到不同节点。</pre>
+</div>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码81.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>redis-cluster投票：容错&nbsp;</h2>
+<p><strong><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码82.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<ol>
+<li>&nbsp;集群中所有master参与投票，如果半数以上master节点与其中一个master节点通信超过(cluster-node-timeout)，认为该master节点挂掉。</li>
+<li>什么时候整个集群不可用(cluster_state:fail)？<ol>
+<li>如果集群任意master挂掉，且当前master没有slave，则集群进入fail状态。也可以理解成集群的[0-16384]slot映射不完全时进入fail状态。</li>
+<li>如果集群超过半数以上master挂掉，无论是否有slave，集群进入fail状态。</li>
+</ol></li>
+</ol>
+<h1 style="text-align: center;"><strong>安装Ruby环境</strong></h1>
+<h2>导读</h2>
+<p>　　redis集群需要使用<span style="color: #ff0000;"><strong>集群管理脚本redis-trib.rb</strong></span>，它的执行相应依赖ruby环境。</p>
+<h2>安装</h2>
+<h3>安装ruby</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">yum install ruby
+yum install rubygems</span></pre>
+</div>
+<h3>将redis-3.2.9.gen拖近Linux系统</h3>
+<h3>安装ruby和redis的接口程序redis-3.2.9.gem</h3>
+<div class="cnblogs_code">
+<pre><code>gem install redis-3.2.9.gem</pre>
+</div>
+<h3>复制redis-3.2.9/src/redis-trib.rb 文件到/usr/local/redis目录</h3>
+<div class="cnblogs_code">
+<pre><code>cp redis-3.2.9/src/redis-trib.rb /usr/local/redis/ -r</pre>
+</div>
+<h2 style="text-align: left;">安装Redis集群(RedisCluster)</h2>
+<p>　　Redis集群最少需要三台主服务器,三台从服务器,端口号分别为7001~7006。</p>
+<h3>创建7001实例，并编辑redis.conf文件，修改port为7001。</h3>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码83.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>修改redis.conf配置文件，打开Cluster-enable yes&nbsp;</h3>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码84.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>&nbsp;重复以上2个步骤，完成7002~7006实例的创建，<span style="color: #ff0000;">注意端口修改</span></h3>
+<h3>启动所有的实例</h3>
+<h3>创建Redis集群</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">./redis-trib.rb create --replicas 1 192.168.242.129:7001 192.168.242.129:7002 192.168.242.129:7003 192.168.242.129:7004 192.168.242.129:7005  192.168.242.129:7006
+&gt;&gt;&gt; Creating cluster
+Connecting to node 192.168.242.129:7001: OK
+Connecting to node 192.168.242.129:7002: OK
+Connecting to node 192.168.242.129:7003: OK
+Connecting to node 192.168.242.129:7004: OK
+Connecting to node 192.168.242.129:7005: OK
+Connecting to node 192.168.242.129:7006: OK
+&gt;&gt;&gt; Performing hash slots allocation on 6 nodes...
+Using 3 masters:
+192.168.242.129:7001
+192.168.242.129:7002
+192.168.242.129:7003
+Adding replica 192.168.242.129:7004 to 192.168.242.129:7001
+Adding replica 192.168.242.129:7005 to 192.168.242.129:7002
+Adding replica 192.168.242.129:7006 to 192.168.242.129:7003
+M: d8f6a0e3192c905f0aad411946f3ef9305350420 192.168.242.129:7001
+   slots:0-5460 (5461 slots) master
+M: 7a12bc730ddc939c84a156f276c446c28acf798c 192.168.242.129:7002
+   slots:5461-10922 (5462 slots) master
+M: 93f73d2424a796657948c660928b71edd3db881f 192.168.242.129:7003
+   slots:10923-16383 (5461 slots) master
+S: f79802d3da6b58ef6f9f30c903db7b2f79664e61 192.168.242.129:7004
+   replicates d8f6a0e3192c905f0aad411946f3ef9305350420
+S: 0bc78702413eb88eb6d7982833a6e040c6af05be 192.168.242.129:7005
+   replicates 7a12bc730ddc939c84a156f276c446c28acf798c
+S: 4170a68ba6b7757e914056e2857bb84c5e10950e 192.168.242.129:7006
+   replicates 93f73d2424a796657948c660928b71edd3db881f
+Can I set the above configuration? (type 'yes' to accept): yes
+&gt;&gt;&gt; Nodes configuration updated
+&gt;&gt;&gt; Assign a different config epoch to each node
+&gt;&gt;&gt; Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join....
+&gt;&gt;&gt; Performing Cluster Check (using node 192.168.242.129:7001)
+M: d8f6a0e3192c905f0aad411946f3ef9305350420 192.168.242.129:7001
+   slots:0-5460 (5461 slots) master
+M: 7a12bc730ddc939c84a156f276c446c28acf798c 192.168.242.129:7002
+   slots:5461-10922 (5462 slots) master
+M: 93f73d2424a796657948c660928b71edd3db881f 192.168.242.129:7003
+   slots:10923-16383 (5461 slots) master
+M: f79802d3da6b58ef6f9f30c903db7b2f79664e61 192.168.242.129:7004
+   slots: (0 slots) master
+   replicates d8f6a0e3192c905f0aad411946f3ef9305350420
+M: 0bc78702413eb88eb6d7982833a6e040c6af05be 192.168.242.129:7005
+   slots: (0 slots) master
+   replicates 7a12bc730ddc939c84a156f276c446c28acf798c
+M: 4170a68ba6b7757e914056e2857bb84c5e10950e 192.168.242.129:7006
+   slots: (0 slots) master
+   replicates 93f73d2424a796657948c660928b71edd3db881f
+[OK] All nodes agree about slots configuration.
+&gt;&gt;&gt; Check for open slots...
+&gt;&gt;&gt; Check slots coverage...
+[OK] All 16384 slots covered.
+[root@localhost-0723 redis]#</span></pre>
+</div>
+<h3>命令客户端连接集群</h3>
+<p>命令：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">./redis-cli -h 127.0.0.1 -p 7001 -c
+
+
+注：-c表示是以redis集群方式进行连接</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">./redis-cli -p 7006 -c
+127.0.0.1:7006&gt; set key1 123
+-&gt; Redirected to slot [9189] located at 127.0.0.1:7002
+OK
+127.0.0.1:7002&gt;</span></pre>
+</div>
+<h3>查看集群的命令</h3>
+<h4>查看集群状态</h4>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">127.0.0.1:7003&gt; cluster info
+cluster_state:ok
+cluster_slots_assigned:16384
+cluster_slots_ok:16384
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:6
+cluster_size:3
+cluster_current_epoch:6
+cluster_my_epoch:3
+cluster_stats_messages_sent:926
+cluster_stats_messages_received:926</span></pre>
+</div>
+<h4>查看集群中的节点</h4>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">127.0.0.1:7003&gt; cluster nodes
+7a12bc730ddc939c84a156f276c446c28acf798c 127.0.0.1:7002 master - 0 1443601739754 2 connected 5461-10922
+93f73d2424a796657948c660928b71edd3db881f 127.0.0.1:7003 myself,master - 0 0 3 connected 10923-16383
+d8f6a0e3192c905f0aad411946f3ef9305350420 127.0.0.1:7001 master - 0 1443601741267 1 connected 0-5460
+4170a68ba6b7757e914056e2857bb84c5e10950e 127.0.0.1:7006 slave 93f73d2424a796657948c660928b71edd3db881f 0 1443601739250 6 connected
+f79802d3da6b58ef6f9f30c903db7b2f79664e61 127.0.0.1:7004 slave d8f6a0e3192c905f0aad411946f3ef9305350420 0 1443601742277 4 connected
+0bc78702413eb88eb6d7982833a6e040c6af05be 127.0.0.1:7005 slave 7a12bc730ddc939c84a156f276c446c28acf798c 0 1443601740259 5 connected
+127.0.0.1:7003&gt;</span></pre>
+</div>
+<h3>维护节点</h3>
+<p>　　<span style="color: #ff0000;"><strong>集群创建完成后可以继续向集群中添加节点</strong></span>。</p>
+<h4>添加主节点</h4>
+<h5>添加7007节点作为新节点</h5>
+<p>命令：<span style="color: #ff0000;"><strong>./redis-trib.rb add-node 127.0.0.1:7007 127.0.0.1:7001</strong></span></p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码85.png" alt="" /></p>
+<p>&nbsp;</p>
+<h4>查看集群节点发现7007已加到集群中&nbsp;</h4>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码86.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>&nbsp;hash槽重新分配</h3>
+<p>　　<span style="color: #ff0000;"><strong>添加完主节点需要对主节点进行hash槽分配，这样该主节才可以存储数据</strong></span>。</p>
+<h3>查看集群中槽占用情况</h3>
+<p>　　redis集群有16384个槽，集群中的每个节点分配自己槽，通过查看集群节点可以看到槽占用情况。</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码87.png" alt="" /></p>
+<p>&nbsp;</p>
+<h4>&nbsp;给刚添加的7007节点分配槽</h4>
+<p>第一步：连上集群(连接集群中任意一个可用节点都行)</p>
+<div class="cnblogs_code">
+<pre><code>./redis-trib.rb reshard 192.168.101.3:7001</pre>
+</div>
+<p>第二步：输入要分配的槽数量</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码88.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;"><strong>&nbsp;输入500，表示要分配500个槽</strong></span></p>
+<p>第三步：输入接收槽的节点id</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码89.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'YaHei Consolas Hybrid';">输入：</span>15b809eadae88955e36bcdbb8144f61bbbaf38fb</p>
+<p>ps：这里准备给7007分配槽，通过cluster node查看7007节点id为：</p>
+<p>15b809eadae88955e36bcdbb8144f61bbbaf38fb</p>
+<p>第四步：输入源节点id</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码90.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;输入：all</p>
+<p>第五步：输入yes开始移动槽到目标节点id</p>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码91.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;输入：yes</p>
+<h3>添加从节点</h3>
+<p>　　添加7008从节点，将7008作为7007的从节点</p>
+<p>命令：</p>
+<div class="cnblogs_code">
+<pre><code>./redis-trib.rb add-node --slave --master-id  主节点id   新节点的ip和端口   旧节点ip和端口</pre>
+</div>
+<p>执行如下命令：</p>
+<div class="cnblogs_code">
+<pre><code>./redis-trib.rb add-node --slave --master-id cad9f7413ec6842c971dbcc2c48b4ca959eb5db4  192.168.101.3:7008 192.168.101.3:7001</pre>
+</div>
+<p><strong>cad9f7413ec6842c971dbcc2c48b4ca959eb5db4</strong>&nbsp;&nbsp;<span style="font-family: 'YaHei Consolas Hybrid';">是</span>7007结点的id，可通过cluster nodes查看。</p>
+<h4>nodes查看</h4>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码92.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>注意：如果原来该节点在集群中的配置信息已经生成到cluster-config-file指定的配置文件中(如果cluster-config-file没有指定则默认为<span style="color: #ff0000;"><strong>nodes.conf</strong></span>)，这时可能会报错&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code>[ERR] Node XXXXXX is not empty. Either the node already knows other nodes (check with CLUSTER NODES) or contains some key in database 0</pre>
+</div>
+<p><span style="color: #ff0000;"><strong>解决办法是删除生成的配置文件nodes.conf，删除后再执行./redis-trib.rb add-node指令</strong></span></p>
+<h3>查看集群中的节点，刚添加7008为7007的从节点</h3>
+<p><img src="./images/分布式架构-Redis 从入门到精通 完整案例 附源码93.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>&nbsp;删除节点</h3>
+<p>命令：</p>
+<div class="cnblogs_code">
+<pre><code>./redis-trib.rb del-node 127.0.0.1:7005 4b45eb75c8b428fbd77ab979b85080146a9bc017</pre>
+</div>
+<p>删除已经占用hash槽的节点会失败，报错如下</p>
+<div class="cnblogs_code">
+<pre><code>[ERR] Node 127.0.0.1:7005 is not empty! Reshard data away and try again.</pre>
+</div>
+<p>需要将该节点占用的hash槽分配出去</p>
+<h1 style="text-align: center;">Jedis连接集群</h1>
+<h2>创建JedisCluster类连接Redis集群</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> testJedisCluster() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">创建一连接，JedisCluster对象,在系统中是单例存在</span>
+    Set&lt;HostAndPort&gt; nodes = <span style="color: #0000ff;">new</span> HashSet&lt;&gt;<span style="color: #000000;">();
+    nodes.add(</span><span style="color: #0000ff;">new</span> HostAndPort("192.168.242.129", 7001<span style="color: #000000;">));
+    nodes.add(</span><span style="color: #0000ff;">new</span> HostAndPort("192.168.242.129", 7002<span style="color: #000000;">));
+    nodes.add(</span><span style="color: #0000ff;">new</span> HostAndPort("192.168.242.129", 7003<span style="color: #000000;">));
+    nodes.add(</span><span style="color: #0000ff;">new</span> HostAndPort("192.168.242.129", 7004<span style="color: #000000;">));
+    nodes.add(</span><span style="color: #0000ff;">new</span> HostAndPort("192.168.242.129", 7005<span style="color: #000000;">));
+    nodes.add(</span><span style="color: #0000ff;">new</span> HostAndPort("192.168.242.129", 7006<span style="color: #000000;">));
+    JedisCluster cluster </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> JedisCluster(nodes);
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">执行JedisCluster对象中的方法，方法和redis一一对应。</span>
+    cluster.set("cluster-test", "my jedis cluster test"<span style="color: #000000;">);
+    String result </span>= cluster.get("cluster-test"<span style="color: #000000;">);
+    System.out.println(result);
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">程序结束时需要关闭JedisCluster对象</span>
+<span style="color: #000000;">    cluster.close();
+}</span></pre>
+</div>
+<h2>使用Spring</h2>
+<h3>配置applicationContext.xml</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 连接池配置 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="jedisPoolConfig"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="redis.clients.jedis.JedisPoolConfig"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 最大连接数 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="maxTotal"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="30"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 最大空闲连接数 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="maxIdle"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="10"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 每次释放连接的最大数目 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="numTestsPerEvictionRun"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="1024"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 释放连接的扫描间隔（毫秒） </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="timeBetweenEvictionRunsMillis"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="30000"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 连接最小空闲时间 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="minEvictableIdleTimeMillis"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="1800000"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 连接空闲多久后释放, 当空闲时间&gt;该值 且 空闲连接&gt;最大空闲连接数 时直接释放 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="softMinEvictableIdleTimeMillis"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="10000"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 获取连接时的最大等待毫秒数,小于零:阻塞不确定的时间,默认-1 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="maxWaitMillis"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="1500"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 在获取连接的时候检查有效性, 默认false </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="testOnBorrow"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="true"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 在空闲时检查有效性, 默认false </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="testWhileIdle"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="true"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 连接耗尽时是否阻塞, false报异常,ture阻塞直到超时, 默认true </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="blockWhenExhausted"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="false"</span> <span style="color: #0000ff;">/&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> redis集群 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="jedisCluster"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="redis.clients.jedis.JedisCluster"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">set</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="redis.clients.jedis.HostAndPort"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="192.168.101.3"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="7001"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="redis.clients.jedis.HostAndPort"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="192.168.101.3"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="7002"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="redis.clients.jedis.HostAndPort"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="192.168.101.3"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="7003"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="redis.clients.jedis.HostAndPort"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="192.168.101.3"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="7004"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="redis.clients.jedis.HostAndPort"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="192.168.101.3"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="7005"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="redis.clients.jedis.HostAndPort"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="192.168.101.3"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="7006"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">set</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> ref</span><span style="color: #0000ff;">="jedisPoolConfig"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<h3>测试代码</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span><span style="color: #000000;"> ApplicationContext applicationContext;
+    @Before
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> init() {
+        applicationContext </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ClassPathXmlApplicationContext(
+                </span>"classpath:applicationContext.xml"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> redis集群</span>
+<span style="color: #000000;">    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> testJedisCluster() {
+        JedisCluster jedisCluster </span>=<span style="color: #000000;"> (JedisCluster) applicationContext
+                .getBean(</span>"jedisCluster"<span style="color: #000000;">);
+
+        jedisCluster.set(</span>"name", "zhangsan"<span style="color: #000000;">);
+        String value </span>= jedisCluster.get("name"<span style="color: #000000;">);
+        System.out.println(value);
+    }</span></pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

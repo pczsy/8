@@ -1,0 +1,160 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修模块，循环导入' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>模块，循环导入</center></div><div class='banquan'>原文出处:本文由博客园博主SetCreed提供。<br/>
+原文连接:https://www.cnblogs.com/setcreed/p/11605004.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#模块的四种形式">模块的四种形式</a></li>
+        <li><a href="#import和from...import...">import和from...import...</a><ul>
+        <li><a href="#import-模块">import 模块</a></li>
+        <li><a href="#from-模块-import-方法">from 模块 import 方法</a></li>
+        <li><a href="#import与from...import的优缺点">import与from...import的优缺点</a></li>
+        </ul></li>
+        <li><a href="#循环导入">循环导入</a><ul>
+        <li><a href="#解决方法">解决方法</a></li>
+        </ul></li>
+        <li><a href="#模块的搜索路径">模块的搜索路径</a></li>
+        <li><a href="#python文件的两种用途">python文件的两种用途</a></li>
+        </ul>
+    </div>
+</div>
+<h1 id="模块的四种形式">模块的四种形式</h1>
+<p>在python中，总共有以下四种形式的模块：</p>
+<ol>
+<li>内置模块：python解释器启动自带的模块，random / time ……</li>
+<li>pip install 安装的模块</li>
+<li>自定义模块：如果你自己写一个py文件，在文件内写入一堆函数，则它被称为自定义模块，即使用python编写的.py文件</li>
+<li>包：把一系列模块组织到一起的文件夹（注：文件夹下有一个<code>__init__.py</code>文件，该文件夹称为包）</li>
+</ol>
+<h1 id="import和from...import...">import和from...import...</h1>
+<h2 id="import-模块">import 模块</h2>
+<p><code>import time</code>这个代码做了以下事情</p>
+<ul>
+<li>开辟内存空间，内存空间命名为time</li>
+<li>把time.py中的所有代码读入名称空间，然后运行</li>
+<li>通过time.方法名使用time模块中的方法</li>
+</ul>
+<h2 id="from-模块-import-方法">from 模块 import 方法</h2>
+<p><code>from time import sleep</code></p>
+<ul>
+<li>开辟内存空间，内存空间命名为time</li>
+<li>把time.py中的所有代码读入名称空间，然后运行</li>
+<li>把sleep()方法读入当前文件中，因此可以直接使用sleep方法</li>
+</ul>
+<p>如果想使用多个方法：</p>
+<p><code>from time import sleep,time</code></p>
+<p>导入所有功能：</p>
+<p><code>from time import *</code></p>
+<h2 id="import与from...import的优缺点">import与from...import的优缺点</h2>
+<p>import：</p>
+<ul>
+<li>优点：永不冲突</li>
+<li>缺点：每次导入多输入几个字符</li>
+</ul>
+<p>from...import的优缺点：</p>
+<ul>
+<li>优点：少输入几个字符</li>
+<li>缺点：容易与当前执行文件中名称空间中的名字冲突</li>
+</ul>
+<h1 id="循环导入">循环导入</h1>
+<pre><code><code># m1.py
+from m2 import y
+
+x = 10
+print(&#39;m1:&#39;, x, y)</code></pre>
+<ol>
+<li>创建m2的名称空间</li>
+<li>执行m2.py，将执行产生的名字丢到m2.py</li>
+<li>在当前执行文件中拿到m2.x</li>
+</ol>
+<pre><code><code># m2.py
+from m1 import x
+
+x = 20
+print(&#39;m2:&#39;, x, y)</code></pre>
+<ol>
+<li>创建m1的名称空间</li>
+<li>执行m1.py，将执行产生的名字丢到m1.py</li>
+<li>在当前执行文件中拿到m1.y</li>
+</ol>
+<p>由于模块永远只会开辟一次空间，所有这样不会永远循环下去，一次就会报错</p>
+<h2 id="解决方法">解决方法</h2>
+<p>方案一：</p>
+<pre><code><code># m1.py
+x = 10
+from m2 import y
+print(&#39;m1:&#39;, x, y)</code></pre>
+<pre><code><code># m2.py
+y = 20
+from m1 import x
+print(&#39;m2:&#39;, x, y)</code></pre>
+<p>方案二：</p>
+<p>这个解决方法就是：函数定义阶段只检测语法，不执行代码</p>
+<pre><code><code># m1.py
+x = 10
+def f1():
+    from m2 import y
+    
+    print(&#39;m1:&#39;, x, y)
+    
+f1()</code></pre>
+<pre><code><code># m2.py
+y = 10
+def f2():
+    from m2 import x
+    
+    print(&#39;m2:&#39;, x, y)
+    
+f2()</code></pre>
+<p>注：<strong>模块永远只开辟一次；from m1 import 必须执行m1.py中所有代码</strong></p>
+<h1 id="模块的搜索路径">模块的搜索路径</h1>
+<p>模块其实就是一个文件，如果要执行文件，首先就需要找到模块的路径（某个文件夹）。如果模块的文件路径和执行文件不在同一个文件目录下，我们就需要指定模块的路径。</p>
+<p>模块的搜索路径指的就是在导入模块时需要检索的文件夹。</p>
+<p>导入模块时查找模块的顺序是：</p>
+<ol>
+<li>先从内存中已经导入的模块中寻找</li>
+<li>内置（环境变量）</li>
+<li>自定义模块</li>
+</ol>
+<h1 id="python文件的两种用途">python文件的两种用途</h1>
+<p>python文件总共有两种用途，一种是执行文件；另一种是被当做模块导入。</p>
+<p>编写好的一个python文件可以有两种用途：</p>
+<ol>
+<li>执行文件，一个文件就是整个程序，用来被执行</li>
+<li>模块，文件中存放着一堆功能，用来被导入使用</li>
+</ol>
+<pre><code><code># test123.py
+
+def f1():
+    print(&#39;from f1&#39;)
+    
+f1()</code></pre>
+<pre><code><code># run.py
+
+from test123 import f1</code></pre>
+<pre><code><code>如果直接运行run.py会直接运行test123.py中的f1()，但是如果我们在test123.py中加上if`__name__==&#39;__main__&#39;这句话，则可以防止运行run.py时执行f1()。</code></pre>
+<p><code>__name__</code>==<code>'__main__'</code>不成立，<code>__name__</code>！=<code>'__main__'</code></p>
+<p>当test123为模块文件时，<code>__</code>name<code>__</code>等于文件名</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

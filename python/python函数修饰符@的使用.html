@@ -1,0 +1,174 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python函数修饰符@的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python函数修饰符@的使用</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11182441.html</div><br>
+    <p>python函数修饰符@的作用是为现有函数增加额外的功能，常用于插入日志、性能测试、事务处理等等。</p>
+<p>创建函数修饰符的规则：<br />（1）修饰符是一个函数<br />（2）修饰符取被修饰函数为参数<br />（3）修饰符返回一个新函数<br />（4）修饰符维护被维护函数的签名</p>
+<p>例子1：<strong>被修饰函数不带参数</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> log(func):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> wrapper():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log开始 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        func()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log结束 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+    
+@log
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test ..</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+test()</span></pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code>log开始 ...
+test ..
+log结束 ...</pre>
+</div>
+<p>例子2：<strong>使用functools模块提供的修改函数属性的方法wraps</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> log(func):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> wrapper():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log开始 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        func()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log结束 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+    
+@log
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test1():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test1 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test2():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test2 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">print</span>(test1.<span style="color: #800080;">__name__</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(test2.<span style="color: #800080;">__name__</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code>wrapper
+test2</pre>
+</div>
+<p>可见test1的函数名称变了，如果某些代码用到就会出问题，可以使用functools模块提供的修改函数属性的方法wraps</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> functools <span style="color: #0000ff;">import</span><span style="color: #000000;"> wraps
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> log(func):
+    @wraps(func)
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> wrapper():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log开始 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        func()
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log结束 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+    
+@log
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test1():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test1 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test2():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test2 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">print</span>(test1.<span style="color: #800080;">__name__</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(test2.<span style="color: #800080;">__name__</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code>test1
+test2</pre>
+</div>
+<p>例子3：<strong>被修饰函数带参数</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> functools <span style="color: #0000ff;">import</span><span style="color: #000000;"> wraps
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> log(func):
+    @wraps(func)
+    </span><span style="color: #0000ff;">def</span> wrapper(*args,**<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log开始 ...</span><span style="color: #800000;">'</span>,func.<span style="color: #800080;">__name__</span><span style="color: #000000;">)
+        ret </span>= func(*args,**<span style="color: #000000;">kwargs)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log结束 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+    
+@log
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test1(s):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test1 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">, s)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> s
+
+@log
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test2(s1, s2):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test2 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">, s1, s2)
+    </span><span style="color: #0000ff;">return</span> s1 +<span style="color: #000000;"> s2
+
+
+test1(</span><span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+test2(</span><span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">bc</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code>log开始 ... test1
+test1 .. a
+log结束 ...
+log开始 ... test2
+test2 .. a bc
+log结束 ...</pre>
+</div>
+<p>例子4：<strong>修饰符带参数</strong>，需要比上面例子多一层包装</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> functools <span style="color: #0000ff;">import</span><span style="color: #000000;"> wraps
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> log(arg):    
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> _log(func):
+        @wraps(func)
+        </span><span style="color: #0000ff;">def</span> wrapper(*args,**<span style="color: #000000;">kwargs):
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log开始 ...</span><span style="color: #800000;">'</span>,func.<span style="color: #800080;">__name__</span><span style="color: #000000;">, arg)            
+            ret </span>= func(*args,**<span style="color: #000000;">kwargs)
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">log结束 ...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> _log
+ 
+@log(</span><span style="color: #800000;">'</span><span style="color: #800000;">module1</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test1(s):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test1 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">, s)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> s
+
+@log(</span><span style="color: #800000;">'</span><span style="color: #800000;">module1</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test2(s1, s2):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">test2 ..</span><span style="color: #800000;">'</span><span style="color: #000000;">, s1, s2)
+    </span><span style="color: #0000ff;">return</span> s1 +<span style="color: #000000;"> s2
+
+
+test1(</span><span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+test2(</span><span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">bc</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code>log开始 ... test1 module1
+test1 .. a
+log结束 ...
+log开始 ... test2 module1
+test2 .. a bc
+log结束 ...</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

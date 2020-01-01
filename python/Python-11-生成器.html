@@ -1,0 +1,142 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python-11-生成器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python-11-生成器</center></div><div class='banquan'>原文出处:本文由博客园博主lsf123456提供。<br/>
+原文连接:https://www.cnblogs.com/lsf123456/p/11178544.html</div><br>
+    <h1><span style="font-size: 18pt;">一、定义</span></h1>
+<p><span style="font-size: 16px;">可以理解为一种数据类型，这种数据类型自动实现了迭代器协议(其他数据类型需要调用__iter__方法)，所以生成器就是一种迭代器。</span></p>
+<h1><span style="font-size: 18pt;">二、生成器的两种形式</span></h1>
+<h2><span style="font-size: 14pt;">1. 生成器函数</span></h2>
+<p><span style="font-size: 16px;">使用yield代替return返回结果，yield语句一次返回一个结果，返回一个结果后，挂起函数的状态，下次从yield的位置继续执行。</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>def fib(max):
+    n, a, b = 0, 0, 1
+    while n &lt; max:
+        yield b
+        a, b = b, a + b
+        n = n + 1
+    return 'done'
+
+
+f = fib(10)
+print(next(f))
+print(next(f))
+print(next(f))
+print(next(f))
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code># 函数是顺序执行，遇到return语句或者最后一行函数语句就返回。而变成generator的函数，在每次调用next()的时候执行，遇到yield语句返回，再次执行时从上次返回的yield语句处继续执行。
+def odd():
+    print('step 1')
+    yield 1
+    print('step 2')
+    yield(3)
+    print('step 3')
+    yield(5)
+
+&gt;&gt;&gt; o = odd()
+&gt;&gt;&gt; next(o)
+step 1
+1
+&gt;&gt;&gt; next(o)
+step 2
+3
+&gt;&gt;&gt; next(o)
+step 3
+5
+&gt;&gt;&gt; next(o)
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+StopIteration
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code>def test():
+    print('开始啦')
+    first = yield 1
+    print('第一次', first)
+    yield 2
+    print('第二次')
+    yield 3
+    print('第三次')
+# yield 1相当于return，控制的是函数的返回值
+# yield可以接收send传过来的值
+
+t = test()
+res = t.__next__()
+print(res)
+
+t.send('hello')
+</pre>
+</div>
+<h2><span style="font-size: 14pt;">2. 生成器表达式</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code># 三元表达式
+name = 'alex'
+res = 'SB' if name == 'alex' else '123'
+print(res)
+
+SB
+
+# 列表解析
+l1 = ['鸡蛋%s' % i for i in range(1, 10)]
+l2 = ['鸡蛋%s' % i for i in range(1, 10) if i &gt; 5]
+# l3 = ['鸡蛋%s' % i for i in range(1, 10) if i &gt; 5 else i] # 没有四元表达式
+print(l1)
+print(l2)
+
+['鸡蛋1', '鸡蛋2', '鸡蛋3', '鸡蛋4', '鸡蛋5', '鸡蛋6', '鸡蛋7', '鸡蛋8', '鸡蛋9']
+['鸡蛋6', '鸡蛋7', '鸡蛋8', '鸡蛋9']
+
+# 生成器表达式
+g = ('鸡蛋%s' % i for i in range(1, 10) if i &gt; 5)
+print(next(g))
+print(next(g))
+print(next(g))
+print(next(g))
+
+鸡蛋6
+鸡蛋7
+鸡蛋8
+鸡蛋9
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">三、特性</span></h1>
+<ul>
+<li>
+<p><span style="font-size: 18pt;"><span style="font-size: 16px;">延迟计算，一次产生一个数据，也就是说不会一次产生全部结果，对于大量数据的处理非常有用。</span></span></p>
+</li>
+</ul>
+<div class="cnblogs_Highlighter">
+<pre><code>sum([x for x in range(1000000000)])  # 一次计算全部结果，占用大量内存
+sum(x for x in range(1000000000))  # 一次计算一个结果，几乎不占内存
+</pre>
+</div>
+<ul>
+<li>
+<p><span style="font-size: 18pt;"><span style="font-size: 16px;">有效提高代码可读性</span></span></p>
+</li>
+<li><span style="font-size: 18pt;"><span style="font-size: 16px;">生成器只能遍历一次</span></span></li>
+</ul>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

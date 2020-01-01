@@ -1,0 +1,279 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python学习日记(二十六) 封装和几个装饰器函数' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python学习日记(二十六) 封装和几个装饰器函数</center></div><div class='banquan'>原文出处:本文由博客园博主Fantac提供。<br/>
+原文连接:https://www.cnblogs.com/Fantac/p/11487685.html</div><br>
+    <p><span style="font-family: 宋体; font-size: 18pt;"><strong><span style="background-color: #ff0000; color: #ffffff;">封装</span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">广义上的封装,它其实是一种面向对象的思想,它能够保护代码;狭义上的封装是面向对象三大特性之一,能把属性和方法都藏起来不让人看见</span></p>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">私有属性</span></strong></p>
+<p><span style="font-family: 宋体; font-size: 18px;">私有属性表示方式即在一个属性名前加上两个双下划线</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Fighter:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,hp,atk,speed):
+        self.name </span>=<span style="color: #000000;"> name
+        self.</span><span style="color: #800080;">__hp</span> = hp                      <span style="color: #008000;">#</span><span style="color: #008000;">私有属性　　变形成self._Fighter__hp</span>
+        self.<span style="color: #800080;">__atk</span> = atk                    <span style="color: #008000;">#</span><span style="color: #008000;">私有属性　　变形为self._Fighter__atk</span>
+        self.<span style="color: #800080;">__speed</span> = speed                <span style="color: #008000;">#</span><span style="color: #008000;">私有属性　　变形为self._Fighter__speed</span>
+f1 = Fighter(<span style="color: #800000;">'</span><span style="color: #800000;">AKK-18</span><span style="color: #800000;">'</span>,1500,200,300<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__dict__</span>)                          <span style="color: #008000;">#</span><span style="color: #008000;">{'name': 'AKK-18', '_Fighter__hp': 1500, '_Fighter__atk': 200, '_Fighter__speed': 300}</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">python的私有属性只是在代码的级别给加了一层密,不允许你直接去访问这些私有属性,像你去打印一个私有属性它的结果就是报错,或者你想尝试修改一个私有属性的时候,结果并不能修改成功</span></p>
+<div class="cnblogs_code">
+<pre><code>f1.<span style="color: #800080;">__hp</span> = 1000
+<span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__dict__</span>)                          <span style="color: #008000;">#</span><span style="color: #008000;">{'name': 'AKK-18', '_Fighter__hp': 1500, '_Fighter__atk': 200, '_Fighter__speed': 300, '__hp': 1000}</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">因为上面的私有属性都已经变形成_类名__属性名的格式,我们这样写,相当于直接给self添加了一个新的'键名'__hp,所以在类的外部调用双下划线就不行</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>那如何访问我们的私有属性呢?</strong>我们可以看到上面的私有属性都被变形成了_类名__属性名的形式,那么我们可以这样去访问:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">print</span>(f1._Fighter__hp)                      <span style="color: #008000;">#</span><span style="color: #008000;">1500</span>
+<span style="color: #0000ff;">print</span>(f1._Fighter__atk)                     <span style="color: #008000;">#</span><span style="color: #008000;">200</span>
+<span style="color: #0000ff;">print</span>(f1._Fighter__speed)                   <span style="color: #008000;">#</span><span style="color: #008000;">300</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">但光这样走这样的捷径是不完美的,我们可以在类内部添加一个get_value函数来获得那些私有属性</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Fighter:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,hp,atk,speed):
+        self.name </span>=<span style="color: #000000;"> name
+        self.</span><span style="color: #800080;">__hp</span> = hp                      <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+        self.<span style="color: #800080;">__atk</span> = atk                    <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+        self.<span style="color: #800080;">__speed</span> = speed                <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_value(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__hp</span>,self.<span style="color: #800080;">__atk</span>,self.<span style="color: #800080;">__speed</span>        <span style="color: #008000;">#</span><span style="color: #008000;">只要在类内部使用私有属性就会自动带上'_类名&rsquo;</span>
+f1 = Fighter(<span style="color: #800000;">'</span><span style="color: #800000;">AKK-18</span><span style="color: #800000;">'</span>,1500,200,300<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__dict__</span>)                          <span style="color: #008000;">#</span><span style="color: #008000;">{'name': 'AKK-18', '_Fighter__hp': 1500, '_Fighter__atk': 200, '_Fighter__speed': 300}</span>
+<span style="color: #0000ff;">print</span>(f1.get_value())                       <span style="color: #008000;">#</span><span style="color: #008000;">(1500, 200, 300)</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> f1.get_value():
+    </span><span style="color: #0000ff;">print</span>(i)                                <span style="color: #008000;">#</span><span style="color: #008000;">1500</span>
+                                            <span style="color: #008000;">#</span><span style="color: #008000;">200</span>
+                                            <span style="color: #008000;">#</span><span style="color: #008000;">300</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">在get_value中return的写法其实就是变形后再获取私有属性</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_value(self):
+    </span><span style="color: #0000ff;">return</span> self._Fighter__hp,self._Fighter__atk,self._Fighter__speed</pre>
+</div>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">私有静态属性</span></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Fighter:
+    </span><span style="color: #800080;">__id</span> = 1234445                          <span style="color: #008000;">#</span><span style="color: #008000;">私有静态属性</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,hp,atk,speed):
+        self.name </span>=<span style="color: #000000;"> name
+        self.</span><span style="color: #800080;">__hp</span> = hp                      <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+        self.<span style="color: #800080;">__atk</span> = atk                    <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+        self.<span style="color: #800080;">__speed</span> = speed                <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+    <span style="color: #0000ff;">def</span> get_value(self):                    <span style="color: #008000;">#</span><span style="color: #008000;">获取内部私有属性方法</span>
+        <span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__hp</span>,self.<span style="color: #800080;">__atk</span>,self.<span style="color: #800080;">__speed</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_id(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__id</span><span style="color: #000000;">
+f1 </span>= Fighter(<span style="color: #800000;">'</span><span style="color: #800000;">AKK-18</span><span style="color: #800000;">'</span>,1500,200,300<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(f1._Fighter__id)                      <span style="color: #008000;">#</span><span style="color: #008000;">1234445</span>
+<span style="color: #0000ff;">print</span>(f1.get_id())                          <span style="color: #008000;">#</span><span style="color: #008000;">1234445</span></pre>
+</div>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">私有方法</span></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Fighter:
+    </span><span style="color: #800080;">__id</span> = 1234445                          <span style="color: #008000;">#</span><span style="color: #008000;">私有静态属性</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,hp,atk,speed):
+        self.name </span>=<span style="color: #000000;"> name
+        self.</span><span style="color: #800080;">__hp</span> = hp                      <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+        self.<span style="color: #800080;">__atk</span> = atk                    <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+        self.<span style="color: #800080;">__speed</span> = speed                <span style="color: #008000;">#</span><span style="color: #008000;">私有属性</span>
+    <span style="color: #0000ff;">def</span> get_value(self):                    <span style="color: #008000;">#</span><span style="color: #008000;">获取内部私有属性方法</span>
+        <span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__hp</span>,self.<span style="color: #800080;">__atk</span>,self.<span style="color: #800080;">__speed</span>
+    <span style="color: #0000ff;">def</span> get_id(self):                       <span style="color: #008000;">#</span><span style="color: #008000;">获取静态属性id的方法</span>
+        <span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__id</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__shoot</span>(self):                      <span style="color: #008000;">#</span><span style="color: #008000;">私有方法</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Shooting!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> get_shoot(self):                    <span style="color: #008000;">#</span><span style="color: #008000;">获取私有方法shoot</span>
+        self.<span style="color: #800080;">__shoot</span><span style="color: #000000;">()                      
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">self._Fighter__shoot()</span>
+f1 = Fighter(<span style="color: #800000;">'</span><span style="color: #800000;">AKK-18</span><span style="color: #800000;">'</span>,1500,200,300<span style="color: #000000;">)
+f1.get_shoot()                              </span><span style="color: #008000;">#</span><span style="color: #008000;">Shooting!</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>修改私有属性</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Room:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,length,width):
+        self.</span><span style="color: #800080;">__name</span> =<span style="color: #000000;"> name
+        self.</span><span style="color: #800080;">__length</span> =<span style="color: #000000;"> length
+        self.</span><span style="color: #800080;">__width</span> =<span style="color: #000000;"> width
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> Area(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__width</span>*self.<span style="color: #800080;">__length</span>
+    <span style="color: #0000ff;">def</span> get_name(self):         <span style="color: #008000;">#</span><span style="color: #008000;">获取这个私有名字的方法</span>
+        <span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__name</span>
+    <span style="color: #0000ff;">def</span> set_name(self,new_name):<span style="color: #008000;">#</span><span style="color: #008000;">重新设定这个房号</span>
+        <span style="color: #0000ff;">if</span> type(new_name) <span style="color: #0000ff;">is</span> str <span style="color: #0000ff;">and</span> new_name.isdigit() ==<span style="color: #000000;"> True:
+            self.</span><span style="color: #800080;">__name</span> =<span style="color: #000000;"> new_name
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">错误的命名方式!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+r1 </span>= Room(<span style="color: #800000;">'</span><span style="color: #800000;">1101</span><span style="color: #800000;">'</span>,15,20<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(r1.Area())                <span style="color: #008000;">#</span><span style="color: #008000;">300</span>
+<span style="color: #0000ff;">print</span>(r1.get_name())            <span style="color: #008000;">#</span><span style="color: #008000;">1101</span>
+r1.set_name(<span style="color: #800000;">'</span><span style="color: #800000;">asd</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(r1.<span style="color: #800080;">__dict__</span>)              <span style="color: #008000;">#</span><span style="color: #008000;">{'_Room__name': '1103', '_Room__length': 15, '_Room__width': 20}</span>
+<span style="color: #0000ff;">print</span>(r1.get_name())            <span style="color: #008000;">#</span><span style="color: #008000;">1103</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体; font-size: 18pt;"><strong><span style="background-color: #ff0000; color: #ffffff;">几个装饰器</span></strong></span></p>
+<p><span style="font-size: 14pt;"><strong><span style="font-family: 宋体;">1.@property</span></strong></span></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;">我们在用面向对象的思想去写一个圆经常会把它的周长和面积当成一个方法,然而我们知道方法是一个获取的动作,而不是一个属性名词,所以要想处理这种将一个方法伪装成为一个属性就要用到@property,这样这个方法它就看起来像是一个属性了</span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> math <span style="color: #0000ff;">import</span><span style="color: #000000;"> pi as P
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Circle:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,r):
+        self.r </span>=<span style="color: #000000;"> r
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> Perimeter(self):
+        </span><span style="color: #0000ff;">return</span> 2*P*<span style="color: #000000;">self.r
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> Area(self):
+        </span><span style="color: #0000ff;">return</span> P*self.r**2<span style="color: #000000;">
+c </span>= Circle(5<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(c.Area())                     <span style="color: #008000;">#</span><span style="color: #008000;">78.53981633974483</span>
+<span style="color: #0000ff;">print</span>(c.Perimeter())                <span style="color: #008000;">#</span><span style="color: #008000;">31.41592653589793</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">改进:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> math <span style="color: #0000ff;">import</span><span style="color: #000000;"> pi as P
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Circle:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,r):
+        self.r </span>=<span style="color: #000000;"> r
+    @property
+    </span><span style="color: #0000ff;">def</span> Perimeter(self):        <span style="color: #008000;">#</span><span style="color: #008000;">这里在self的后面不能传任何参数</span>
+        <span style="color: #0000ff;">return</span> 2*P*<span style="color: #000000;">self.r
+    @property
+    </span><span style="color: #0000ff;">def</span> Area(self):             <span style="color: #008000;">#</span><span style="color: #008000;">这里在self的后面不能传任何参数</span>
+        <span style="color: #0000ff;">return</span> P*self.r**2<span style="color: #000000;">
+c </span>= Circle(5<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(c.Perimeter)              <span style="color: #008000;">#</span><span style="color: #008000;">31.41592653589793</span>
+<span style="color: #0000ff;">print</span>(c.Area)                   <span style="color: #008000;">#</span><span style="color: #008000;">78.53981633974483</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">BMI问题:BMI指数(BMI)=体重(kg)&divide;身高^2(m)</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">　　　　成人的BMI数值:</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">　　　　过轻:低于18.5<br /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">　　　　正常:18.5-23.9<br /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">　　　　过重:24-27</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">　　　　非常肥胖:&gt;32</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> BMI:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,height,weight):
+        self.</span><span style="color: #800080;">__height</span> =<span style="color: #000000;"> height
+        self.</span><span style="color: #800080;">__weight</span> =<span style="color: #000000;"> weight
+    @property
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__bmi</span>(self):                        <span style="color: #008000;">#</span><span style="color: #008000;">把计算bmi的方法伪装成一个属性</span>
+        <span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__weight</span>/self.<span style="color: #800080;">__height</span>**2
+
+    <span style="color: #0000ff;">def</span> get_bmi(self):                      <span style="color: #008000;">#</span><span style="color: #008000;">BMI判断</span>
+        <span style="color: #0000ff;">if</span> self.<span style="color: #800080;">__bmi</span> &gt; 32<span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">非常肥胖!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">elif</span> 24 &lt;= self.<span style="color: #800080;">__bmi</span> &lt;= 27<span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">过重!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">elif</span> 18.5 &lt;= self.<span style="color: #800080;">__bmi</span> &lt;= 23.9<span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">正常!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">过轻!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+b </span>= BMI(1.75,72<span style="color: #000000;">)
+b.get_bmi()                                 </span><span style="color: #008000;">#</span><span style="color: #008000;">正常!</span></pre>
+</div>
+<pre><code><span style="font-family: 宋体; font-size: 18px;"><strong>在@property的前提下用@setter来修改属性</strong><br /></span></pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,):
+        self.</span><span style="color: #800080;">__name</span> =<span style="color: #000000;"> name
+    @property
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> name(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__name</span> + <span style="color: #800000;">'</span><span style="color: #800000;"> hello!</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    @name.setter
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> name(self,new_name):
+        self.</span><span style="color: #800080;">__name</span> =<span style="color: #000000;"> new_name
+p1 </span>= Person(<span style="color: #800000;">'</span><span style="color: #800000;">Jogn</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(p1.name)                               <span style="color: #008000;">#</span><span style="color: #008000;">Jogn hello!</span><span style="color: #008000;">
+#</span><span style="color: #008000;">p1._Person__name = 'Maria'                  #Maria hello!</span>
+<span style="color: #0000ff;">print</span>(p1.name)                               <span style="color: #008000;">#</span><span style="color: #008000;">Maria hello!</span></pre>
+</div>
+<pre><code><span style="font-family: 宋体; font-size: 18px;"><strong>在@property的前提下用@deleter来删除属性</strong></span></pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,):
+        self.</span><span style="color: #800080;">__name</span> =<span style="color: #000000;"> name
+    @property
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> name(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__name</span> + <span style="color: #800000;">'</span><span style="color: #800000;"> hello!</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    @name.deleter
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> name(self):                     
+        </span><span style="color: #0000ff;">del</span><span style="color: #000000;"> self.name                       
+p1 </span>= Person(<span style="color: #800000;">'</span><span style="color: #800000;">Jogn</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(p1.name)                               <span style="color: #008000;">#</span><span style="color: #008000;">Jogn hello!</span>
+<span style="color: #0000ff;">del</span> p1.name                                  <span style="color: #008000;">#</span><span style="color: #008000;">del p1.name它在这里的作用是指向deleter下面这个方法,再去做这个方法的功能</span>
+<span style="color: #0000ff;">print</span>(p1.name)                               <span style="color: #008000;">#</span><span style="color: #008000;">找不到这个名字了</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">我们可以看一下在这里的del关键字它起到了什么的作用</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,):
+        self.</span><span style="color: #800080;">__name</span> =<span style="color: #000000;"> name
+    @property
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> name(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__name</span> + <span style="color: #800000;">'</span><span style="color: #800000;"> hello!</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    @name.deleter
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> name(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行了这个方法!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+p1 </span>= Person(<span style="color: #800000;">'</span><span style="color: #800000;">Jogn</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(p1.name)                               <span style="color: #008000;">#</span><span style="color: #008000;">Jogn hello!</span>
+<span style="color: #0000ff;">del</span> p1.name                                  <span style="color: #008000;">#</span><span style="color: #008000;">del p1.name它在这里的作用是指向deleter下面这个方法,再去做这个方法的功能</span>
+<span style="color: #0000ff;">print</span>(p1.name)                               <span style="color: #008000;">#</span><span style="color: #008000;">Jogn hello!</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">因为第二个name里面没有关于修改名字的操作所以在最后p1.name还能打印出原来的名字</span></p>
+<p><span style="font-size: 14pt;"><strong><span style="font-family: 宋体;">2.@classmethod</span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">当这个方法只涉及到静态属性的时候,就应该使用classmethod来装饰这个方法</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Goods:
+    </span><span style="color: #800080;">__discount</span> = 0.8                                    <span style="color: #008000;">#</span><span style="color: #008000;">折扣</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,price):
+        self.name </span>=<span style="color: #000000;"> name
+        self.</span><span style="color: #800080;">__price</span> =<span style="color: #000000;"> price
+    @property
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> price(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__price</span> * self.<span style="color: #800080;">__discount</span><span style="color: #000000;">
+    @classmethod
+    </span><span style="color: #0000ff;">def</span> change_discount(cls,new_discount):              <span style="color: #008000;">#</span><span style="color: #008000;">cls为类名</span>
+        cls.<span style="color: #800080;">__discount</span> = new_discount                   <span style="color: #008000;">#</span><span style="color: #008000;">修改折扣</span>
+apple = Goods(<span style="color: #800000;">'</span><span style="color: #800000;">苹果</span><span style="color: #800000;">'</span>,4<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(apple.price)                                      <span style="color: #008000;">#</span><span style="color: #008000;">3.2</span>
+Goods.change_discount(0.5<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(apple.price)                                      <span style="color: #008000;">#</span><span style="color: #008000;">2.0</span></pre>
+</div>
+<p><span style="font-size: 14pt;"><strong><span style="font-family: 宋体;">3.@staticmethod</span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">在完全面向对象的程序中,如果一个函数和对象没有关系那么就用staticmethod把这个函数变成一个静态方法</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Login:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,password):
+        self.name </span>=<span style="color: #000000;"> name
+        self.password </span>=<span style="color: #000000;"> password
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span> get_n_psw():                            <span style="color: #008000;">#</span><span style="color: #008000;">没有默认参数就像函数一样</span>
+        username = input(<span style="color: #800000;">'</span><span style="color: #800000;">请输入用户名:</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        psw </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请输入密码:</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        Login(username,psw)                     </span><span style="color: #008000;">#</span><span style="color: #008000;">请输入用户名:asdd                                               </span>
+        <span style="color: #0000ff;">return</span> username,psw                     <span style="color: #008000;">#</span><span style="color: #008000;">请输入密码:4564648</span>
+<span style="color: #0000ff;">print</span>(Login.get_n_psw())                        <span style="color: #008000;">#</span><span style="color: #008000;">('asdd', '4564648')</span></pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

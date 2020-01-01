@@ -1,0 +1,84 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修拼音检查python' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>拼音检查python</center></div><div class='banquan'>原文出处:本文由博客园博主何同学提供。<br/>
+原文连接:https://www.cnblogs.com/henabo/p/11574151.html</div><br>
+    <div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">coding=utf-8</span><span style="color: #008000;">
+#</span><span style="color: #008000;">!/usr/bin/python</span>
+
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> sys, re, collections
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">读入文件</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> read_file(filename):
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+        fp </span>=<span style="color: #000000;"> open(filename)
+        text </span>=<span style="color: #000000;"> fp.read()
+    </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> IOError:
+        </span><span style="color: #0000ff;">print</span> (<span style="color: #800000;">"</span><span style="color: #800000;">Error opening or reading input file: </span><span style="color: #800000;">"</span><span style="color: #000000;">,filename)
+        sys.exit()
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> text
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">分割文件为单词，并将字母都转换为小写</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> words(text):
+    </span><span style="color: #0000ff;">return</span> re.findall(<span style="color: #800000;">'</span><span style="color: #800000;">[a-z]+</span><span style="color: #800000;">'</span><span style="color: #000000;">, text.lower())
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 该函数计算输入文本每个单词出现的次数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> train(features):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 生成了一个默认value=1的带key的数据字典</span>
+    model = collections.defaultdict(<span style="color: #0000ff;">lambda</span>: 1<span style="color: #000000;">) 
+    </span><span style="color: #0000ff;">for</span> f <span style="color: #0000ff;">in</span><span style="color: #000000;"> features:
+        model[f] </span>+= 1
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> model
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> big文本中每一个单词及其出现的次数</span>
+NWORDS = train(words(read_file(<span style="color: #800000;">'</span><span style="color: #800000;">/home/aistudio/data/data12892/big.txt</span><span style="color: #800000;">'</span><span style="color: #000000;">)))
+
+alphabet </span>= <span style="color: #800000;">'</span><span style="color: #800000;">abcdefghijklmnopqrstxyz</span><span style="color: #800000;">'</span>
+<span style="color: #008000;">#</span><span style="color: #008000;"> 变换输入单词形式，得到那种是最可能的错误</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> edist1(word):
+    n </span>=<span style="color: #000000;"> len(word)
+    </span><span style="color: #0000ff;">return</span> set([word[0:i]+word[i+1: ] <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(n)] +                      <span style="color: #008000;">#</span><span style="color: #008000;">删除</span>
+               [word[0:i]+word[i+1]+word[i]+word[i+2: ] <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(n-1)] +  <span style="color: #008000;">#</span><span style="color: #008000;">错位</span>
+               [word[0:i]+c+word[i+1: ] <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(n) <span style="color: #0000ff;">for</span> c <span style="color: #0000ff;">in</span> alphabet] +  <span style="color: #008000;">#</span><span style="color: #008000;">变换</span>
+               [word[0:i]+c+word[i: ] <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(n+1) <span style="color: #0000ff;">for</span> c <span style="color: #0000ff;">in</span> alphabet])   <span style="color: #008000;">#</span><span style="color: #008000;">添加</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 在edist1的基础上进一步变换,要去是出现在字典内的词</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> known_edist2(word):
+    </span><span style="color: #0000ff;">return</span> set(e2 <span style="color: #0000ff;">for</span> e1 <span style="color: #0000ff;">in</span> edist1(word) <span style="color: #0000ff;">for</span> e2 <span style="color: #0000ff;">in</span> edist1(e1) <span style="color: #0000ff;">if</span> e2 <span style="color: #0000ff;">in</span><span style="color: #000000;"> NWORDS)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> big.txt中已知的单词集合</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> known(words):
+    wordintxt </span>=<span style="color: #000000;"> set([])
+    </span><span style="color: #0000ff;">for</span> w <span style="color: #0000ff;">in</span><span style="color: #000000;"> words:
+        </span><span style="color: #0000ff;">if</span> w <span style="color: #0000ff;">in</span><span style="color: #000000;"> NWORDS:
+            wordintxt.add(w)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wordintxt
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> return set(w for w in words if w in NWORDS)</span>
+
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> correct(word):
+    candidates </span>= known([word]) <span style="color: #0000ff;">or</span> known(edist1(word)) <span style="color: #0000ff;">or</span> known_edist2(word) <span style="color: #0000ff;">or</span><span style="color: #000000;"> [word]
+    </span><span style="color: #0000ff;">return</span> max(candidates, key=<span style="color: #0000ff;">lambda</span><span style="color: #000000;"> w:NWORDS[w])
+
+
+</span><span style="color: #0000ff;">print</span> (correct(<span style="color: #800000;">"</span><span style="color: #800000;">acacss</span><span style="color: #800000;">"</span>))</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

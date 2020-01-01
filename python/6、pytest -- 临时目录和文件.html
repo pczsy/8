@@ -1,0 +1,233 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修6、pytest -- 临时目录和文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>6、pytest -- 临时目录和文件</center></div><div class='banquan'>原文出处:本文由博客园博主luizyao提供。<br/>
+原文连接:https://www.cnblogs.com/luizyao/p/11732764.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#相关的fixture">1. 相关的<code>fixture</code></a><ul>
+        <li><a href="#tmp_path">1.1. <code>tmp_path</code></a></li>
+        <li><a href="#tmp_path_factory">1.2. <code>tmp_path_factory</code></a></li>
+        <li><a href="#tmpdir">1.3. <code>tmpdir</code></a></li>
+        <li><a href="#tmpdir_factory">1.4. <code>tmpdir_factory</code></a></li>
+        <li><a href="#区别">1.5. 区别</a></li>
+        </ul></li>
+        <li><a href="#默认的基本临时目录">2. 默认的基本临时目录</a></li>
+        </ul>
+    </div>
+</div>
+<h2 id="相关的fixture">1. 相关的<code>fixture</code></h2>
+<h3 id="tmp_path">1.1. <code>tmp_path</code></h3>
+<p><code>tmp_path</code>是一个<strong>用例</strong>级别的<code>fixture</code>，其作用是返回一个唯一的临时目录对象（<code>pathlib.Path</code>）；</p>
+<p>我们看下面的例子：</p>
+<pre><code><code># src/chapter-6/test_tmp_path.py
+
+CONTENT = &quot;content&quot;
+
+
+def test_create_file(tmp_path):
+    d = tmp_path / &quot;sub&quot;  
+    d.mkdir()  # 创建一个子目录
+    p = d / &quot;hello.txt&quot;
+    p.write_text(CONTENT)
+    assert p.read_text() == CONTENT
+    assert len(list(tmp_path.iterdir())) == 1  # iterdir() 迭代目录，返回迭代器
+    assert 0  # 为了展示，强制置为失败</code></pre>
+<p>执行：</p>
+<pre class="bash"><code>λ pipenv run pytest -q -s src/chapter-6/test_tmp_path.py
+F
+==================================== FAILURES =====================================
+________________________________ test_create_file _________________________________
+
+tmp_path = WindowsPath(&#39;C:/Users/luyao/AppData/Local/Temp/pytest-of-luyao/pytest-4/test_create_file0&#39;)
+
+    def test_create_file(tmp_path):
+        d = tmp_path / &quot;sub&quot;
+        d.mkdir()  # 创建一个子目录
+        p = d / &quot;hello.txt&quot;
+        p.write_text(CONTENT)
+        assert p.read_text() == CONTENT
+        assert len(list(tmp_path.iterdir())) == 1  # iterdir() 迭代目录，返回迭代器
+&gt;       assert 0  # 为了展示，强制置为失败
+E       assert 0
+
+src\chapter-6\test_tmp_path.py:32: AssertionError
+1 failed in 0.06s</code></pre>
+<p>可以看出：</p>
+<ul>
+<li><code>tmp_path</code>在不同的操作系统中，返回的是不同类型的<code>pathlib.Path</code>对象，这里<code>Windows</code>系统下返回的是<code>WindowsPath</code>对象，它是<code>Path</code>的子类对象；</li>
+<li><code>Path</code>对象可以使用<code>/</code>操作符代替常用的<code>os.path.join()</code>的方法；更多关于<code>pathlib</code>的使用方法可以查看：<a href="https://docs.python.org/3.7/library/pathlib.html" class="uri">https://docs.python.org/3.7/library/pathlib.html</a></li>
+</ul>
+<h3 id="tmp_path_factory">1.2. <code>tmp_path_factory</code></h3>
+<p><code>tmp_path_factory</code>是一个<strong>会话</strong>级别的<code>fixture</code>，其作用是在其它<code>fixture</code>或者用例中创建任意的临时目录；</p>
+<p>查看上一章<code>tmp_path fixture</code>的源码，我们能够看到<code>tmp_path</code>就是使用<code>tmp_path_factory</code>的一个例子：</p>
+<pre><code><code># _pytest.tmpdir
+
+@pytest.fixture
+def tmp_path(request, tmp_path_factory):
+    &quot;&quot;&quot;Return a temporary directory path object
+    which is unique to each test function invocation,
+    created as a sub directory of the base temporary
+    directory.  The returned object is a :class:`pathlib.Path`
+    object.
+
+    .. note::
+
+        in python &lt; 3.6 this is a pathlib2.Path
+    &quot;&quot;&quot;
+
+    return _mk_tmp(request, tmp_path_factory)
+
+@pytest.fixture(scope=&quot;session&quot;)
+def tmp_path_factory(request):
+    &quot;&quot;&quot;Return a :class:`_pytest.tmpdir.TempPathFactory` instance for the test session.
+    &quot;&quot;&quot;
+    return request.config._tmp_path_factory</code></pre>
+<p>可以看出：</p>
+<ul>
+<li><code>tmp_path</code>调用了<code>tmp_path_factory</code>；</li>
+<li><code>tmp_path_factory</code>返回一个<code>_pytest.tmpdir.TempPathFactory</code>对象；</li>
+<li><p>进一步查看<code>_mk_tmp</code>的源码：</p>
+<pre><code><code>def _mk_tmp(request, factory):
+  name = request.node.name
+  name = re.sub(r&quot;[\W]&quot;, &quot;_&quot;, name)
+  MAXVAL = 30
+  name = name[:MAXVAL]
+  return factory.mktemp(name, numbered=True)</code></pre>
+<p>可以看出，<code>tmp_path</code>最终调用了<code>TempPathFactory.mktemp()</code>方法，它返回的是一个<code>pathlib.Path</code>对象；</p></li>
+</ul>
+<h3 id="tmpdir">1.3. <code>tmpdir</code></h3>
+<p><code>tmp_path</code>是一个<strong>用例</strong>级别的<code>fixture</code>，其作用是返回一个唯一的临时目录对象（<a href="https://py.readthedocs.io/en/latest/path.html">py.path.local</a>），它提供<code>os.path</code>的方法；</p>
+<p><a href="#11-tmp_path">上面的例子</a>也可以修改成如下这样：</p>
+<pre><code><code># src/chapter-6/test_tmpdir.py
+
+CONTENT = &quot;content&quot;
+
+
+def test_create_file(tmpdir):
+    p = tmpdir.mkdir(&quot;sub&quot;).join(&quot;hello.txt&quot;)  # 创建子文件夹，并新建文件
+    p.write(CONTENT)
+    assert p.read() == CONTENT
+    assert len(tmpdir.listdir()) == 1  # iterdir() 迭代目录，返回列表
+    assert 0  # 为了展示，强制置为失败</code></pre>
+<p>执行：</p>
+<pre class="bash"><code>λ pipenv run pytest -q -s src/chapter-6/test_tmpdir.py
+F
+==================================== FAILURES =====================================
+________________________________ test_create_file _________________________________
+tmpdir = local(&#39;C:\\Users\\luyao\\AppData\\Local\\Temp\\pytest-of-luyao\\pytest-6\\test_create_file0&#39;)
+
+    def test_create_file(tmpdir):
+        p = tmpdir.mkdir(&quot;sub&quot;).join(&quot;hello.txt&quot;)  # 创建子文件夹，并新建文件
+        p.write(CONTENT)
+        assert p.read() == CONTENT
+        assert len(tmpdir.listdir()) == 1  # iterdir() 迭代目录，返回列表
+&gt;       assert 0  # 为了展示，强制置为失败
+E       assert 0
+
+src\chapter-6\test_tmpdir.py:30: AssertionError
+1 failed in 0.06s</code></pre>
+<p>其实，<code>tmpdir</code>也调用了<code>tmp_path</code>，只是对返回值做了一次<code>py.path.local()</code>封装：</p>
+<pre><code><code># _pytest.tmpdir
+
+@pytest.fixture
+def tmpdir(tmp_path):
+    &quot;&quot;&quot;Return a temporary directory path object
+    which is unique to each test function invocation,
+    created as a sub directory of the base temporary
+    directory.  The returned object is a `py.path.local`_
+    path object.
+
+    .. _`py.path.local`: https://py.readthedocs.io/en/latest/path.html
+    &quot;&quot;&quot;
+    return py.path.local(tmp_path)</code></pre>
+<h3 id="tmpdir_factory">1.4. <code>tmpdir_factory</code></h3>
+<p><code>tmpdir_factory</code>是一个<strong>会话</strong>级别的<code>fixture</code>，其作用是在其它<code>fixture</code>或者用例中创建任意的临时目录；</p>
+<p>假设，一个测试会话需要使用到一个很大的由程序生成的图像文件，相比于每个测试用例生成一次文件，更好的做法是每个会话只生成一次：</p>
+<pre><code><code>import pytest
+
+
+@pytest.fixture(scope=&quot;session&quot;)
+def image_file(tmpdir_factory):
+    img = compute_expensive_image()
+    fn = tmpdir_factory.mktemp(&quot;data&quot;).join(&quot;img.png&quot;)
+    img.save(str(fn))
+    return fn
+
+
+def test_histogram(image_file):
+    img = load_image(image_file)
+    # compute and test histogram</code></pre>
+<h3 id="区别">1.5. 区别</h3>
+<table>
+<thead>
+<tr class="header">
+<th>fixture</th>
+<th>作用域</th>
+<th>返回值类型</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tmp_path</td>
+<td>用例级别（function）</td>
+<td><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">pathlib.Path</a></td>
+</tr>
+<tr class="even">
+<td>tmp_path_factory</td>
+<td>会话级别（session）</td>
+<td><a href="https://docs.pytest.org/en/5.1.3/reference.html#tmp-path-factory-factory-api">TempPathFactory</a></td>
+</tr>
+<tr class="odd">
+<td>tmpdir</td>
+<td>用例级别（function）</td>
+<td><a href="https://py.readthedocs.io/en/latest/path.html">py.local.path</a></td>
+</tr>
+<tr class="even">
+<td>tmpdir_factory</td>
+<td>会话级别（session）</td>
+<td><a href="https://docs.pytest.org/en/5.1.3/reference.html#tmpdir-factory-api">TempDirFactory</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="默认的基本临时目录">2. 默认的基本临时目录</h2>
+<p>上述<code>fixture</code>在创建临时目录时，都是创建在<strong>系统默认的临时目录</strong>（例如：<code>Windows</code>系统的<code>%temp%</code>目录）下；你可以通过指定<code>--basetemp=mydir</code>选项自定义默认的基本临时目录；</p>
+<pre class="bash"><code>λ pipenv run pytest -q -s --basetemp=&quot;/d/temp&quot; src/chapter-6/test_tmpdir.py
+F
+==================================== FAILURES =====================================
+________________________________ test_create_file _________________________________
+tmpdir = local(&#39;D:\\temp\\test_create_file0&#39;)
+
+    def test_create_file(tmpdir):
+        p = tmpdir.mkdir(&quot;sub&quot;).join(&quot;hello.txt&quot;)  # 创建子文件夹，并新建文件
+        p.write(CONTENT)
+        assert p.read() == CONTENT
+        assert len(tmpdir.listdir()) == 1  # iterdir() 迭代目录，返回列表
+&gt;       assert 0  # 为了展示，强制置为失败
+E       assert 0
+
+src\chapter-6\test_tmpdir.py:30: AssertionError
+1 failed in 0.04s</code></pre>
+<p>GitHub仓库地址：<a href="https://github.com/luizyao/pytest-chinese-doc" class="uri">https://github.com/luizyao/pytest-chinese-doc</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

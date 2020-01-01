@@ -1,0 +1,239 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修NIO-Channel' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>NIO-Channel</center></div><div class='banquan'>原文出处:本文由博客园博主杰哥很忙提供。<br/>
+原文连接:https://www.cnblogs.com/Jack-Blog/p/12015516.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#nio-channel">NIO-Channel</a><ul>
+        <li><a href="#目录">目录</a></li>
+        <li><a href="#前言">前言</a></li>
+        <li><a href="#什么是channel">什么是Channel</a></li>
+        <li><a href="#通道类型">通道类型</a></li>
+        <li><a href="#如何使用">如何使用</a><ul>
+        <li><a href="#serversocketchannel">ServerSocketChannel</a></li>
+        <li><a href="#socketchannel">SocketChannel</a></li>
+        <li><a href="#filechannel">FileChannel</a></li>
+        </ul></li>
+        <li><a href="#总结">总结</a></li>
+        <li><a href="#相关文献">相关文献</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<hr />
+<hr />
+<h1 id="nio-channel">NIO-Channel</h1>
+<h2 id="目录">目录</h2>
+<p><a href="https://www.cnblogs.com/Jack-Blog/p/11991240.html">NIO-概览</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/11996309.html">NIO-Buffer</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12015516.html">NIO-Channel</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12040082.html">NIO-Channel接口分析</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12061595.html">NIO-SocketChannel源码分析</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12078767.html">NIO-FileChannel源码分析</a></p>
+<h2 id="前言">前言</h2>
+<p>本来是想学习Netty的，但是Netty是一个NIO框架，因此在学习netty之前，还是先梳理一下NIO的知识。通过剖析<a href="http://jdk.java.net/">源码</a>理解NIO的设计原理。</p>
+<blockquote>
+<p>本系列文章针对的是JDK1.8.0.161的源码。</p>
+</blockquote>
+<h2 id="什么是channel">什么是Channel</h2>
+<p>通道(Channel)是对原I/O包中的流的模拟。与文件设备I/O交互的所有数据都必须通过一个Channel对象。</p>
+<p><a href="https://www.cnblogs.com/Jack-Blog/p/11996309.html">上一节</a>我们提到在NIO中使用缓冲区来存放指定基元的数据，我们可以通过Buffer来读写数据。<br />
+将数据写入到硬盘时，我们可以将字节数据写入到缓冲区中；若我们要从硬盘读取数据，则需要通过通道将数据写入到缓冲区，然后再从缓冲区读取数据。</p>
+<p><img src="./images/NIO-Channel0.png" /></p>
+<h2 id="通道类型">通道类型</h2>
+<p>根据不同的使用方式，分为不同的通道。比如我们需要网络读写，就需要网络交互的通道。需要文件读写就需要文件交互的通道。<br />
+NIO实现了Sctp协议、TCP协议、UDP协议以及文件传输四种通道，同时还实现了Windows平台的异步Socket通道以及异步文件通道。</p>
+<blockquote>
+<p>windows平台的异步I/O是通过重叠I/O和IOCP(I/O完成端口)实现的，想要了解windows异步I/O的知识可以看一下我另一篇文章<a href="https://www.cnblogs.com/Jack-Blog/p/11385686.html">《Windows内核原理-同步IO与异步IO》</a></p>
+</blockquote>
+<table>
+<thead>
+<tr class="header">
+<th>类型</th>
+<th>通道</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sctp协议客户端</td>
+<td>SctpChannel</td>
+</tr>
+<tr class="even">
+<td>Sctp协议多播客户端</td>
+<td>SctpMultiChannel</td>
+</tr>
+<tr class="odd">
+<td>Sctp协议服务端</td>
+<td>SctpServerChannel</td>
+</tr>
+<tr class="even">
+<td>UDP协议</td>
+<td>DatagramChannel</td>
+</tr>
+<tr class="odd">
+<td>TCP协议同步I/O服务端</td>
+<td>ServerSocketChannel</td>
+</tr>
+<tr class="even">
+<td>TCP协议同步I/O客户端</td>
+<td>ServerChannel</td>
+</tr>
+<tr class="odd">
+<td>文件读写</td>
+<td>FileChannel</td>
+</tr>
+</tbody>
+</table>
+<p>对于Windows平台的异步通道</p>
+<table>
+<thead>
+<tr class="header">
+<th>类型</th>
+<th>通道</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TCP协议异步I/O服务端</td>
+<td>WindowsAsynchronousServerSocketChannel</td>
+</tr>
+<tr class="even">
+<td>TCP协议异步I/O客户端</td>
+<td>WindowsAsynchronousSocketChannel</td>
+</tr>
+<tr class="odd">
+<td>异步文件读写</td>
+<td>WindowsAsynchronousFileChannel</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>另外NIO还实现了一个单向通讯管道(Pipe)的功能，通过引入<code>SourceChannel</code>和<code>SinkChannel</code>实现，底层实际还是Socket通讯。</p>
+</blockquote>
+<h2 id="如何使用">如何使用</h2>
+<p>在介绍不同的Channel的实现之前我们先介绍下Channel如何使用。</p>
+<h3 id="serversocketchannel">ServerSocketChannel</h3>
+<p>以TCP协议为例，我们进行网络收发的时候，首先需要创建一个ServerSocketChannel用于监听端口。</p>
+<pre><code><code>//创建一个服务端socket通道用于接收连接
+ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+//绑定监听地址
+serverSocketChannel.socket().bind(new InetSocketAddress(8080));
+//等待连接
+SocketChannel socketChannel = serverSocketChannel.accept();</code></pre>
+<blockquote>
+<p>我们监听了8080端口。若没有连接时，线程会阻塞在<code>accept</code>。</p>
+</blockquote>
+<p>当有收到新的连接创建时，会获取到SocketChannel,此时我们需要创建一个Buffer用来从Channel中读取数据。</p>
+<pre><code><code>ByteBuffer buf = ByteBuffer.allocate(1024);
+//数据将写入到buffer中
+int length = socketChannel.read(buf);</code></pre>
+<p>数据写入到我们的Buffer中，我们就需要将他们读出来</p>
+<pre><code><code>buf.flip();  //转化为可读模式
+byte[] data = new byte[length];
+buf.get(data);</code></pre>
+<p>将数据从Buffer写入到Channel时</p>
+<pre><code><code>buf.clear(); 
+byte[] resp = {&#39;O&#39;,&#39;K&#39;};
+buf.put(resp);
+buf.flip();//转换为读模式
+socketChannel.write(buf);</code></pre>
+<blockquote>
+<p>这里为了方便直接使用原来的Buffer。</p>
+</blockquote>
+<h3 id="socketchannel">SocketChannel</h3>
+<p>作为客户端我们需要创建一个SocketChannel。</p>
+<pre><code><code>SocketChannel.open();
+client.connect(new InetSocketAddress(&quot;127.0.0.1&quot;, 6060));</code></pre>
+<p>发送<code>HELLO</code>给服务端</p>
+<pre><code><code>ByteBuffer buffer = ByteBuffer.allocate(10);
+byte[] data = {&#39;H&#39;, &#39;E&#39;, &#39;L&#39;, &#39;L&#39;, &#39;O&#39;};
+buffer.put(data);
+buffer.flip();//转换为读模式
+client.write(buffer);</code></pre>
+<p>阻塞等待读取数据</p>
+<pre><code><code>buffer.clear();
+client.read(buffer);
+buffer.flip();//转换为读模式</code></pre>
+<p>处理完成，需要关闭释放连接</p>
+<pre><code><code>//关闭客户端输入流
+client.socket().shutdownInput();
+//关闭客户端输出流
+client.socket().shutdownOutput();
+//关闭客户端socket时会关闭客户端channel
+client.socket().close();
+//关闭客户端channel，会同时关闭输入和输出流。
+client.close();</code></pre>
+<blockquote>
+<p>关闭输出流会发送FIN包，若输入流未关闭仍然可以继续接收数据，这就是TCP的半连接。若处理完最后需要确保channel关闭。</p>
+</blockquote>
+<h3 id="filechannel">FileChannel</h3>
+<p>FileChannel只能被FileInputStream、FileOutputStream、RandomAccessFile创建</p>
+<h4 id="randomaccessfile">RandomAccessFile</h4>
+<p>使用<code>RandomAccessFile</code>创建FileChannel</p>
+<pre><code><code>//第一个参数时文件名，第二个参数是读写方式
+RandomAccessFile randomAccessFile = new RandomAccessFile(&quot;1.txt&quot;,&quot;rw&quot;);
+FileChannel channel = randomAccessFile.getChannel();</code></pre>
+<h4 id="fileinputstream">FileInputStream</h4>
+<p>使用<code>RandomAccessFile</code>创建FileChannel</p>
+<pre><code><code>FileInputStream  inputStream = new FileInputStream(&quot;1.txt&quot;);
+channel  = inputStream.getChannel();</code></pre>
+<blockquote>
+<p>inputStream获取的FileChannel只能读</p>
+</blockquote>
+<h4 id="fileoutputstream">FileOutputStream</h4>
+<p>使用<code>RandomAccessFile</code>创建FileChannel</p>
+<pre><code><code>
+FileOutputStream outputStream = new FileOutputStream(&quot;1.txt&quot;);
+channel  = outputStream.getChannel();</code></pre>
+<blockquote>
+<p>inputStream获取的FileChannel只能写</p>
+</blockquote>
+<h4 id="关闭filechannel">关闭FileChannel</h4>
+<p>关闭FileChannel的方法和关闭SocketChannel方法一样。</p>
+<pre><code><code>//关闭channel时会关闭文件
+channel.close();
+//关闭文件时会关闭channel
+randomAccessFile.close();
+//关闭文件流时会关闭channel
+inputStream.close();
+//关闭文件流时会关闭channel
+inputStream.close();</code></pre>
+<h2 id="总结">总结</h2>
+<p>由于源码解析的篇幅较长，因此将<a href="https://www.cnblogs.com/Jack-Blog/p/12040082.html">channel源码</a>单独分出来讲解。</p>
+<h2 id="相关文献">相关文献</h2>
+<ol>
+<li><a href="https://blog.csdn.net/wuxing26jiayou/article/details/79743683">SCTP协议详解</a></li>
+<li><a href="https://www.cnblogs.com/imstudy/p/11108085.html">史上最强Java NIO入门：担心从入门到放弃的，请读这篇！</a></li>
+<li><a href="https://ifeve.com/java-nio-all/">Java NIO系列教程</a></li>
+</ol>
+<hr />
+<blockquote>
+<p><img src="./images/NIO-Channel1.png" alt="20191127212134.png" /><br />
+微信扫一扫二维码关注订阅号杰哥技术分享<br />
+出处：<a href="https://www.cnblogs.com/Jack-Blog/p/12015516.html" class="uri">https://www.cnblogs.com/Jack-Blog/p/12015516.html</a><br />
+作者：杰哥很忙<br />
+本文使用「CC BY 4.0」创作共享协议。欢迎转载，请在明显位置给出出处及链接。</p>
+</blockquote>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

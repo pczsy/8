@@ -1,0 +1,72 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修APP爬虫（1）想学新语言，又没有动力，怎么办？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>APP爬虫（1）想学新语言，又没有动力，怎么办？</center></div><div class='banquan'>原文出处:本文由博客园博主lts8989提供。<br/>
+原文连接:https://www.cnblogs.com/lts8989/p/11209745.html</div><br>
+    <p>最近Python和GO语言很火，想学但是只能看得懂21天精通这种级别的教程。公司的项目暂时不会上py或go的技术栈，给的薪资福利待遇还可以，暂时又不想辞职。没有项目实战经验，完全看不懂大神写的干货，怎么办？</p>
+<p><img src="./images/APP爬虫（1）想学新语言，又没有动力，怎么办？0.png" alt="怎么办？" /></p>
+<p>既然没有别人给我们定目标，我就给我自己定一个目标。<br />
+我在手机上发现一个卖qqyp的app叫touch，里面有个社区经常有人发帖讲述自己chg和yp的经历，配图都是这样风格的(但不局限于此)，just like this！</p>
+<p><img src="./images/APP爬虫（1）想学新语言，又没有动力，怎么办？1.png" alt="他趣图片" /></p>
+<p>所以我的目标是要把这些内容连同图片都爬到我的硬盘里。</p>
+<p>web页面里的内容我们都会爬取，无非就是用curl或者wget等工具实现http请求嘛，那么问题来了APP里的内容如何爬取？</p>
+<p>一位测试同学曾和我说过，某些web页面加载过程比较复杂，所以需要使用selenium这类测试框架，selenium是模拟了浏览器加载页面的过程，并可以在页面加载完成后通过页面元素来断言测试用例是否通过。</p>
+<p>既然web的测试框架可以获取到页面的元素，那么APP的测试框架是不是也能获取到APP指定控件（图片）的属性（url）呢？顺着这个思路我在百度里谷歌了一下，发现了appium这个工具。</p>
+<p>appium有很强大的功能，具体请参看下面链接。</p>
+<p><a href="https://www.jianshu.com/p/3c5ee599a20d/">appium简介的链接</a></p>
+<h3 id="自己给自己定的需求">自己给自己定的需求</h3>
+<p>使用Python编写程序，通过appium操作安卓虚拟机，打开指定APP并进入帖子页面，循环获取帖子内容。</p>
+<h3 id="环境准备">环境准备</h3>
+<ol>
+<li>安装java Python nodejs环境。</li>
+<li>安装androidSDK。</li>
+<li>安装appium。</li>
+<li>安装Genymotion（安卓虚拟机）。</li>
+</ol>
+<h6 id="注本人电脑为mac1中的软件可以使用brew安装234的软件请到各自的官网下载安装如果下载速度较慢需要fq">注：本人电脑为mac，1中的软件可以使用brew安装，234的软件请到各自的官网下载安装，如果下载速度较慢，需要FQ。</h6>
+<p>appium安装完成后使用appium-doctor --android命令验证</p>
+<p><img src="./images/APP爬虫（1）想学新语言，又没有动力，怎么办？2.png" /></p>
+<p>如果都打钩，就ok；如果有叉请自行检查环境变量相关配置。本人是在本地搭建的上述环境，没有使用docker。因为无论使用安卓虚拟机还是真机，docker连接起来都比较麻烦。</p>
+<p>用真机手机热，用虚拟机电脑热，抓到内容本人热。</p>
+<h3 id="我们需要appium完成的功能">我们需要appium完成的功能：</h3>
+<ol>
+<li>打开APP。</li>
+<li>欢迎页面跳过后点击按钮进入帖子列表页面。</li>
+</ol>
+<p><strong>社区</strong>-&gt;<strong>查看全部</strong>-&gt;<strong>圈子列表</strong>-&gt;<strong>帖子列表</strong></p>
+<ol>
+<li>进入帖子详情界面，点击右上角<strong>只看楼主</strong></li>
+<li>获取帖子标题、内容。</li>
+<li>获取每条回复内容，下滑循环此过程。</li>
+</ol>
+<p>需求给自己提好了，开始code。appium选择了Client/Server的设计模式。只要client能够发送http请求给server，那么的话client用什么语言来实现都是可以的。我们对Python不熟，所以这里用Python来撸代码，以此熟悉一下Python的语法。</p>
+<p>初始化获取driver相关参数：platformName、deviceName、appPackage、appActivity等。请参考下面链接。</p>
+<p>platformName写Android</p>
+<p><a href="https://blog.csdn.net/weixin_38374974/article/details/83589633">查看deviceName</a></p>
+<p><a href="https://www.cnblogs.com/kristin/p/10336807.html">查看appPackage和appActivity</a></p>
+<p>获取APP界面上元素对象，可以通过xpath、id方式获取。请参考下面链接。</p>
+<p><a href="https://www.cnblogs.com/feng0815/p/8481679.html">appium元素定位</a></p>
+<p>代码撸到这里遇到了第一个坑，帖子详情页的回复是列表形式呈现，没有id。如果使用xpath方式获取只能通过下标来定位，但是安卓只会将屏幕内的元素按下标呈现，滑动到屏幕外的元素就无法通过下标找到了？这可怎么办！</p>
+<p><img src="./images/APP爬虫（1）想学新语言，又没有动力，怎么办？3.png" /></p>
+<p><img src="./images/APP爬虫（1）想学新语言，又没有动力，怎么办？4.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

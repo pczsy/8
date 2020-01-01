@@ -1,0 +1,236 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修多线程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>多线程</center></div><div class='banquan'>原文出处:本文由博客园博主被放弃的程序员提供。<br/>
+原文连接:https://www.cnblogs.com/liwenhu/p/11401675.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#多线程">多线程</a><ul>
+        <li><a href="#线程">1. 线程</a></li>
+        <li><a href="#线程vs进程">2. 线程vs进程</a></li>
+        <li><a href="#开启线程的两种方法">3. 开启线程的两种方法。</a></li>
+        <li><a href="#线程的特性">4. 线程的特性</a></li>
+        <li><a href="#线程的相关方法">5. 线程的相关方法</a></li>
+        <li><a href="#join-阻塞">6. join 阻塞</a></li>
+        <li><a href="#守护线程-daemon">7. 守护线程 daemon</a></li>
+        <li><a href="#互斥锁">8. 互斥锁</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="多线程">多线程</h1>
+<h2 id="线程">1. 线程</h2>
+<p>​ 开启一个进程，操作系统会开辟一个进程空间，将进程的数据资源全部复制一份，然后cpu使线程执行代码。</p>
+<p>进程负责开辟空间、加载数据资源，线程负责执行。</p>
+<h2 id="线程vs进程">2. 线程vs进程</h2>
+<pre><code><code>    1. 开启进程的开销大；</code></pre>
+<ol>
+<li>开启进程的速度满，线程比进程快10—100倍；<br />
+3. 同一进程的线程之间可共享数据，进程与进程之间使隔离的。</li>
+</ol>
+<p>线程的应用：多线程并发。比多进程并发开销小、速度快，可共享数据。</p>
+<h2 id="开启线程的两种方法">3. 开启线程的两种方法。</h2>
+<pre class="python"><code># 第一种方式
+from threading import Thread
+
+def task():
+    print(&quot;===子线程&quot;)
+
+if __name__ == &#39;__main__&#39;:      # 在windows下也可不写
+    t1 = Thread(target=task)
+    t1.start()
+    print(&#39;===主线程&#39;) 
+&quot;&quot;&quot;
+===子线程
+===主线程
+&quot;&quot;&quot;</code></pre>
+<pre class="python"><code># 第二种方式
+from threading import Thread
+
+class MyThread(Thread):
+    
+    def __init__(self, name)
+    super().__init()
+    self.name=name
+
+    def run(self):
+        print(&quot;==={self.name}子线程&quot;)
+
+if __name__ == &#39;__main__&#39;:
+    t1 = MyThread(&quot;meet&quot;)
+    t1.start()
+    print(&#39;===主线程&#39;)
+&quot;&quot;&quot;
+===meet子线程
+===主线程
+&quot;&quot;&quot;</code></pre>
+<h2 id="线程的特性">4. 线程的特性</h2>
+<ol>
+<li>同一进程中，每个线程的pid相同，因为它们在同一进程内。</li>
+<li><strong>主线程需等待其他子线程结束后，才能结束。（因为主线程结束代表本进程结束，而子线程需依赖进程存活。）</strong></li>
+<li>同一进程内的数据资源对于本进程的多个进程来说是共享的。</li>
+</ol>
+<h2 id="线程的相关方法">5. 线程的相关方法</h2>
+<pre class="python"><code>Thread实例对象方法：
+    t.is_alive()（t.isAlive()）   #判断线程是否活着
+    t.getName()         # 获取线程名
+    print(t.name)       # 获取线程名
+    t.setName()         # 设置线程名
+
+threading模块方法：
+    currentThread()     # 获取当前线程的对象
+    enumerate()         # 获取进程中所有线程对象，返回列表
+    activeCount()       # 获取活跃的线程数量</code></pre>
+<pre class="python"><code>from threading import Thread,currentThread,enumerate,activeCount
+import time
+
+def task():
+    time.sleep(1)
+    print(&quot;is task&quot;)
+
+if __name__ == &#39;__main__&#39;:
+    t1 = Thread(target=task,name=&#39;===子线程&#39;)
+    t1.start()
+    print(t1.name)  # ===子线程
+    print(t1.is_alive())    # True
+    t1.setName(&#39;子线程&#39;)
+    print(t1.getName())     # 子线程
+
+    print(currentThread())    #主线程对象
+    print(enumerate())      # 列表中两个线程对象 
+    print(activeCount())    # 2
+    print(&#39;===主线程&#39;)
+&quot;&quot;&quot;
+True
+子线程
+&lt;_MainThread(MainThread, started 14876)&gt;
+[&lt;_MainThread(MainThread, started 14876)&gt;, &lt;Thread(子线程, started 8736)&gt;]
+2
+===主线程
+is task
+&quot;&quot;&quot;</code></pre>
+<h2 id="join-阻塞">6. join 阻塞</h2>
+<p>​ 告知主线程需等待子线程执行结束后，再开始执行。</p>
+<pre class="python"><code>from threading import Thread
+import time
+def sayhi(name):
+    time.sleep(2)
+    print(&#39;%s say hello&#39; %name)
+
+if __name__ == &#39;__main__&#39;:
+    t=Thread(target=sayhi,args=(&#39;meet&#39;,))
+    t.start()
+    t.join()
+    print(t.is_alive())
+    print(&#39;主线程&#39;)
+&#39;&#39;&#39;
+meet say hello
+False
+主线程
+&#39;&#39;&#39;</code></pre>
+<h2 id="守护线程-daemon">7. 守护线程 daemon</h2>
+<p>若主线程运行结束，守护线程也会跟着结束。</p>
+<p>对主线程来说，运行完毕指的是本进程内所有非守护线程统统运行完毕，主线程才算运行完毕（若守护线程的生命周期小于其他的线程，会先结束）。</p>
+<pre class="python"><code>from threading import Thread
+import time
+
+def foo():
+    print(123)  
+    time.sleep(3)
+    print(&quot;end123&quot;)  
+
+def bar():
+    print(456)  
+    time.sleep(1)
+    print(&quot;end456&quot;)
+
+if __name__ == &#39;__main__&#39;:
+    t1=Thread(target=foo)
+    t2=Thread(target=bar)
+    t1.daemon=True      # 设置t1为守护进程
+    t1.start()
+    t2.start()
+    print(&quot;main---&quot;) 
+&quot;&quot;&quot;
+123
+456
+main---
+end456
+&quot;&quot;&quot;</code></pre>
+<pre class="python"><code># 面试题---迷惑人的例子
+from threading import Thread
+import time
+
+def foo():
+    print(123)  # 1
+    time.sleep(1)
+    print(&quot;end123&quot;)  # 4
+
+def bar():
+    print(456)  # 2
+    time.sleep(2)
+    print(&quot;end456&quot;)  # 5
+
+if __name__ == &#39;__main__&#39;:
+
+    t1=Thread(target=foo)
+    t2=Thread(target=bar)
+    t1.daemon=True      # 设置t1为守护进程
+    t1.start()
+    t2.start()
+    print(&quot;main-------&quot;)  # 3
+    
+&quot;&quot;&quot;
+123
+456
+main---
+end123      
+end456
+&quot;&quot;&quot;
+# 因为bar需2s执行完毕，2s足够守护进程的foo执行完毕。因此在主线程结束前，守护线程以及结束。</code></pre>
+<h2 id="互斥锁">8. 互斥锁</h2>
+<p>​ 多线程的同步锁与多进程的同步锁是一个道理，就是多个线程抢占同一个数据（资源）时，我们要保证数据的安全，合理的顺序，因此需串行。</p>
+<pre class="python"><code>from threading import Thread
+from threading import Lock
+import time
+import random
+
+x = 100
+
+def task(lock):
+    global x
+    lock.acquire()
+    num = x
+    time.sleep(random.random())
+    x = num-1
+    lock.release()
+
+if __name__ == &#39;__main__&#39;:
+    mutex = Lock()
+    for i in range(100):
+        t = Thread(target=task, args=(mutex,))
+        t.start()
+    time.sleep(2)
+    print(f&#39;主线程{x}&#39;)        # 输出不固定 串行执行</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

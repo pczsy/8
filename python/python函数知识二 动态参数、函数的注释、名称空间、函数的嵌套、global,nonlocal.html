@@ -1,0 +1,215 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python函数知识二 动态参数、函数的注释、名称空间、函数的嵌套、global,nonlocal' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python函数知识二 动态参数、函数的注释、名称空间、函数的嵌套、global,nonlocal</center></div><div class='banquan'>原文出处:本文由博客园博主OnlyWang提供。<br/>
+原文连接:https://www.cnblogs.com/Onlywang/p/11210393.html</div><br>
+    <h2 id="函数的动态参数">6.函数的动态参数</h2>
+<p>*args，**kwargs:能接受动态的位置参数和动态的关键字参数</p>
+<p>*args -- tuple</p>
+<p>*kwargs -- dict</p>
+<p>动态参数优先级：位置参数 &gt; 动态位置参数 &gt; 默认参数(关键字参数) &gt; 动态关键字参数</p>
+<h5 id="args">1.*.args:</h5>
+<p>​ 接收动态的位置参数，接受任意多个,定义阶段*为聚合，调用阶段*为打散</p>
+<pre><code><code>def func(a,b,*args):#*.args可以替换，*s
+    print(a,b,args)
+    print(a,b,*args) #*为打散
+func(1,2,3,4,5,6)
+#优先级： 位置参数 &gt; 动态参数
+
+def func(a=1,b=2,*args):#不推荐使用,不会报错
+    print(a,b,args)
+func(1,2,3,4,5,6)
+#默认参数放在动态参数后面
+def func(*args,a=11,b=12):
+    print(a,b,args)
+func(1,2,3,4,5,6)
+#*args:元组，接收位置参数</code></pre>
+<h5 id="kwargs">2.**kwargs:</h5>
+<p>​ 接收动态的关键字参数</p>
+<pre><code><code>#**kwargs:字典，接收关键字参数。
+def func(a,b,**kwargs):
+    print(a,b,kwargs)
+func(1,2,3,4,5,6)</code></pre>
+<p><img src="./images/python函数知识二 动态参数、函数的注释、名称空间、函数的嵌套、global,nonlocal0.png" /></p>
+<pre><code><code>def func(a,b,*args,c=1,d=2,**kwargs):
+    print(a,b,args,c,d,kwargs)#*kwargs:获取是字典的键
+ print(*kwargs)
+func(1,2,3,4,c=8,d=10,e=&#39;alex&#39;,f=&#39;wusir&#39;)</code></pre>
+<h5 id="argskwargs结合">3.#*args，**kwargs结合：</h5>
+<pre><code><code>def func(*args,**kwargs):
+    print(args,kwargs)
+func(1,2,3,4,a=5,b=2,c=7)</code></pre>
+<h5 id="扩展将列表和字典传进去的方法">4.扩展：将列表和字典传进去的方法</h5>
+<pre><code><code>#列表
+list1 = [12,23,3,4,5,6]
+def func(*args):
+    print(*args)
+func(list1[0],list1[1]...)#笨方法
+func(*list1)#用*打散全部上传
+#字典
+dict1 = {&#39;k1&#39;:1,&#39;k2&#39;:2}
+def func(**kwargs):
+    print(kwargs)
+func(**dict1)</code></pre>
+<h2 id="函数的注释">7.函数的注释：</h2>
+<h1 id="反射">反射</h1>
+<pre><code><code>def func(user,passwd):
+    &quot;&quot;&quot;
+    密码加密
+    :param user:  用户名  str
+    :param passwd:  密码  str
+    :return:  加密的密码  
+    &quot;&quot;&quot;
+    return user,passwd
+
+print(func.__doc__)#查看函数注释
+print(func.__name__)#查看函数名</code></pre>
+<h2 id="名称空间">8.名称空间：</h2>
+<p>全局空间：当前的py文件需要开辟的空间存放在全局空间，(无缩进)</p>
+<p>局部空间：函数中开辟的的空间就是局部空间</p>
+<p>内置空间：用于存放内置函数</p>
+<p>​ #每一次运行，都一定会加载内置空间和全局空间</p>
+<p>​ 加载顺序：内置空间 &gt; 全局空间 &gt; 局部空间</p>
+<p>​ 取值顺序：局部空间 &gt; 全局空间 &gt; 内置空间</p>
+<p><img src="./images/python函数知识二 动态参数、函数的注释、名称空间、函数的嵌套、global,nonlocal1.png" /></p>
+<p>作用域：</p>
+<p>​ 全局作用域：内置空间 + 全局空间</p>
+<p>​ 局部作用域：局部空间</p>
+<h2 id="函数的嵌套">10.函数的嵌套</h2>
+<h5 id="简单嵌套">1.简单嵌套</h5>
+<pre><code><code>def func():
+    print(1)
+    def f1():
+        print(2)
+    return f1()#f1没有返回值，默认返回None
+func()#结果： 1  \n 2
+
+#不管在什么位置，只要是函数名+(),就是调用此函数 </code></pre>
+<pre><code><code>def func():
+    a = 1
+    def foo():
+        b = 2
+        print(b)
+        print(a)
+        def f1():
+            print(b)
+        return f1()
+    return foo #返回的是foo的内存地址，没有(),表示没有调用foo函数
+print(func())#结果：&lt;function func.&lt;locals&gt;.foo at 0x000002C49CBADD90&gt;
+
+#**调用foo.
+def func():
+    def foo():
+        a = 1 
+        print(a)
+    return doo
+#a = func(),得到foo的内存，然后a()调用foo
+a = func()
+a()
+</code></pre>
+<h5 id="函数的互相引用">2.函数的互相引用：</h5>
+<pre><code><code>def func():
+    a = 1
+    foo()
+    print(a)
+def foo():
+    b = 2
+    print(b)
+func()#结果： 2 \n 1
+foo()#结果：2</code></pre>
+<p>同级函数：同级局部空间的数据不共享</p>
+<pre><code><code>def a():
+    a = 1
+    c()
+    print(c)
+def b():
+    b = 2
+    print(b)
+def c():
+    c = 3
+    print(a)
+def run():
+    a()
+run()#结果
+#&lt;function a at 0x0000015464512F28&gt;
+#&lt;function c at 0x00000154661DDC80&gt;
+#同级局部空间的数据不共享，输出的是函数名对应的内存地址</code></pre>
+<h5 id="函数嵌套的参数传递">3.函数嵌套的参数传递：</h5>
+<pre><code><code>def func(a):
+    foo(a)
+def foo(e):
+    b(e)
+def b(c):
+    print(c)
+func(15)#结果：15
+
+def func(a):
+    foo(a)
+def foo(e):
+    b(e)
+def b(c):
+    print(c)
+    return 10
+print(func(15))#结果：15  \n None
+
+#每一个函数都需要返回上一层结果才能返回最深层结果
+def func(a):
+    return(foo(a))
+def foo(e):
+    return(b(e))
+def b(c):
+    print(c)
+    return 10
+print(func(15))#结果：15  \n 10</code></pre>
+<h2 id="globalnonlocal">11.global,nonlocal</h2>
+<h5 id="global">1.global:</h5>
+<p>​ 声明全局变量,可以修改全局变量</p>
+<pre><code><code>a = 10
+def func():
+    #a += 1#局部不可修改全局数据
+    global a#声明全局变量，可以修改
+    a +=1
+    print(a)
+func()
+print(a)</code></pre>
+<h5 id="nonlocal">2.nonlocal：</h5>
+<p>​ nonlocal声明的变量不是局部变量,也不是全局变量,而是外部嵌套函数内的变量</p>
+<p>​ 在外层的函数中，修改局部空间内的变量值，完全不涉及全局空间的变量，只修改此函数最近的上层的变量，上一层没有，继续向上寻找，直到最外层函数，如果最外层也没有，就报错。</p>
+<pre><code><code>a = 10
+def func():
+    def f1():
+        a = 12
+        def fool():
+            nonlocal a
+            a += 1
+            print(a) #13
+        print(a)# 12
+        fool()
+        print(a)#13
+    print(a)# 10
+    f1()
+    print(a)#10
+func()
+print(a) #10</code></pre>
+<h2 id="section"></h2>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

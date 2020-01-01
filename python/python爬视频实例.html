@@ -1,0 +1,70 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python爬视频实例' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python爬视频实例</center></div><div class='banquan'>原文出处:本文由博客园博主Rohmeng提供。<br/>
+原文连接:https://www.cnblogs.com/rohmeng/p/11300427.html</div><br>
+    <p>例：抓取PhotoShop视频教程 网址http://www.mxiaobei.com/?id=424</p>
+<pre><code><code>import requests
+import re
+from bs4 import BeautifulSoup
+import time
+
+dicts = {}
+list1 = set()
+
+print(&#39;start&#39;)
+
+ua = &#39;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.87 Safari/537.36&#39;
+
+urls = &#39;http://www.mxiaobei.com/?id=&#39;
+
+for index in range(451, 565):
+    r = requests.get(urls + str(index), headers = {&#39;user-agent&#39;: ua })
+    r.encoding = &#39;utf-8&#39;
+    soup = BeautifulSoup(r.text, &#39;lxml&#39;)
+    title = soup.find(name=&#39;h2&#39;)
+    mp4url = soup.find(&#39;div&#39;, id=&#39;CuPlayer&#39;)
+    if mp4url is None:
+        list1.add(index)
+        continue
+    mpurl = re.search(&#39;http.*?mp4&#39;, mp4url.text)
+    dicts[title.text] = mpurl.group()
+    #print(index)
+    #time.sleep(1)
+    #print(title.text + &#39; : &#39; + dicts[title.text])
+print(dicts)
+print(list1)
+for temp in dicts.items():
+    #time.sleep(1)
+    r = requests.get(temp[1], stream=True)
+    with open(temp[0] + &#39;.mp4&#39;, &quot;wb&quot;) as mp4:
+        for chunk in r.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                mp4.write(chunk)
+    print(temp[0]+&#39;下载完成&#39;)
+print(&#39;end!&#39;)</code></pre>
+<ul>
+<li>BeautifulSoup: <a href="https://beautifulsoup.readthedocs.io/zh_CN/v4.4.0/" class="uri">https://beautifulsoup.readthedocs.io/zh_CN/v4.4.0/</a></li>
+<li>Requests: <a href="http://cn.python-requests.org/zh_CN/latest/" class="uri">http://cn.python-requests.org/zh_CN/latest/</a></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

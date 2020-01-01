@@ -1,0 +1,758 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修将数值化之后的特征值进行特征预处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>将数值化之后的特征值进行特征预处理</center></div><div class='banquan'>原文出处:本文由博客园博主何同学提供。<br/>
+原文连接:https://www.cnblogs.com/henabo/p/11594593.html</div><br>
+    <div class="cell text_cell rendered selected">
+<div class="inner_cell">
+<div class="text_cell_render rendered_html">
+<h4 id="目标：">目标：</h4>
+<pre><code><code>了解数值型数据、类别型数据特点
+
+应用MinMaxScaler实现对特征数据归一化
+
+应用StandarScaler实现对特征数据进行标准化</code></pre>
+</div>
+</div>
+</div>
+<div class="cell text_cell unselected rendered">
+<div class="prompt input_prompt">&nbsp;</div>
+<div class="inner_cell">
+<div class="text_cell_render rendered_html">
+<h3 id="特征预处理：">特征预处理：</h3>
+<pre><code><code>通过一些转换函数将特征数据转化为更合适算法模型的特征数据过程</code></pre>
+<h3 id="数值型数据的无量纲化（无量纲化，数学名词，不同规格的数据转换到统一规格）">数值型数据的无量纲化（无量纲化，数学名词，不同规格的数据转换到统一规格）</h3>
+<pre><code><code>归一化：根据最大最小值进行缩放，默认范围0-1，容易受到异常值的影响稳定性差，只适合小规模的数据场景
+
+标准化：原始数据变化到0-1直接</code></pre>
+<h3 id="特征预处理API：">特征预处理API：</h3>
+<pre><code><code>sklearn.preprocession
+
+为什么要进行归一化/标准化？
+
+特征的单位或者大小相差较大，或者某特征的方差相比其他的特征要大出几个数量级，容易影响（支配）目标结果，使得一些算法无法学习到其他特征</code></pre>
+</div>
+</div>
+</div>
+<div class="cell text_cell unselected rendered">
+<div class="prompt input_prompt">&nbsp;</div>
+<div class="inner_cell">
+<div class="text_cell_render rendered_html">
+<h2 id="1、归一化">1、归一化</h2>
+<p>定义：通过对原始数据进行变换把数据映射到（默认为[0,1]）之间</p>
+<p>X' = (x - min)/(max - min) x'' = x' * (mx - mi) + mi</p>
+<p>(max为一列的最大值，min为一列的最小值。mx，mi分别为指定区间值默认mx为1，mi为0）</p>
+</div>
+</div>
+</div>
+<div class="cell text_cell unselected rendered">
+<div class="prompt input_prompt">&nbsp;</div>
+<div class="inner_cell">
+<div class="text_cell_render rendered_html">
+<p>sklearn.preprocessing.MinMaxScaler(feature_range = (0,1))</p>
+<p>MinMaxScaler.fit_transform(X)</p>
+<pre><code><code>X:numpy array格式的数据[n_samples, n_features]
+
+返回：转换后的形状相同的array</code></pre>
+</div>
+</div>
+</div>
+<div class="cell text_cell unselected rendered">
+<div class="prompt input_prompt">&nbsp;</div>
+<div class="inner_cell">
+<div class="text_cell_render rendered_html">
+<p>归一化总结：注意最大值最小值是变化的，另外，最大值与最小值非常容易受异常点影响，所以这种方法鲁棒性较差，知识和传统精确小数据场景。</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> sklearn.datasets <span style="color: #0000ff;">import</span><span style="color: #000000;"> load_iris
+</span><span style="color: #0000ff;">from</span> sklearn.preprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> MinMaxScaler
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pandas as pd
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">归一化</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> minmax_demo():
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">使用sklearn的自带的数据集</span>
+    iris =<span style="color: #000000;"> load_iris()
+    data </span>= pd.DataFrame(iris.data, columns =<span style="color: #000000;"> iris.feature_names)
+    data_new </span>= data.iloc[:, :4<span style="color: #000000;">].values
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_new:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_new)
+    
+    transfer </span>= MinMaxScaler(feature_range = [1, 2]) <span style="color: #008000;">#</span><span style="color: #008000;">默认feature_range是[0, 1]</span>
+<span style="color: #000000;">    
+    data_minmax_value </span>=<span style="color: #000000;"> transfer.fit_transform(data_new)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_minmax_value:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_minmax_value)
+    
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    minmax_demo()
+
+
+
+输出结果：
+data_new:
+ [[</span>5.1 3.5 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.  1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>4.6 3.1 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.6 1.4 0.2<span style="color: #000000;">]
+ [</span>5.4 3.9 1.7 0.4<span style="color: #000000;">]
+ [</span>4.6 3.4 1.4 0.3<span style="color: #000000;">]
+ [</span>5.  3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>4.4 2.9 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.4 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>4.8 3.4 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.1<span style="color: #000000;">]
+ [</span>4.3 3.  1.1 0.1<span style="color: #000000;">]
+ [</span>5.8 4.  1.2 0.2<span style="color: #000000;">]
+ [</span>5.7 4.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.4 3.9 1.3 0.4<span style="color: #000000;">]
+ [</span>5.1 3.5 1.4 0.3<span style="color: #000000;">]
+ [</span>5.7 3.8 1.7 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.5 0.3<span style="color: #000000;">]
+ [</span>5.4 3.4 1.7 0.2<span style="color: #000000;">]
+ [</span>5.1 3.7 1.5 0.4<span style="color: #000000;">]
+ [</span>4.6 3.6 1.  0.2<span style="color: #000000;">]
+ [</span>5.1 3.3 1.7 0.5<span style="color: #000000;">]
+ [</span>4.8 3.4 1.9 0.2<span style="color: #000000;">]
+ [</span>5.  3.  1.6 0.2<span style="color: #000000;">]
+ [</span>5.  3.4 1.6 0.4<span style="color: #000000;">]
+ [</span>5.2 3.5 1.5 0.2<span style="color: #000000;">]
+ [</span>5.2 3.4 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.1 1.6 0.2<span style="color: #000000;">]
+ [</span>5.4 3.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.2 4.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.5 4.2 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.  3.2 1.2 0.2<span style="color: #000000;">]
+ [</span>5.5 3.5 1.3 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>4.4 3.  1.3 0.2<span style="color: #000000;">]
+ [</span>5.1 3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.3 0.3<span style="color: #000000;">]
+ [</span>4.5 2.3 1.3 0.3<span style="color: #000000;">]
+ [</span>4.4 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.6 0.6<span style="color: #000000;">]
+ [</span>5.1 3.8 1.9 0.4<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.6 0.2<span style="color: #000000;">]
+ [</span>4.6 3.2 1.4 0.2<span style="color: #000000;">]
+ [</span>5.3 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.3 1.4 0.2<span style="color: #000000;">]
+ [</span>7.  3.2 4.7 1.4<span style="color: #000000;">]
+ [</span>6.4 3.2 4.5 1.5<span style="color: #000000;">]
+ [</span>6.9 3.1 4.9 1.5<span style="color: #000000;">]
+ [</span>5.5 2.3 4.  1.3<span style="color: #000000;">]
+ [</span>6.5 2.8 4.6 1.5<span style="color: #000000;">]
+ [</span>5.7 2.8 4.5 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 4.7 1.6<span style="color: #000000;">]
+ [</span>4.9 2.4 3.3 1<span style="color: #000000;">. ]
+ [</span>6.6 2.9 4.6 1.3<span style="color: #000000;">]
+ [</span>5.2 2.7 3.9 1.4<span style="color: #000000;">]
+ [</span>5.  2.  3.5 1<span style="color: #000000;">. ]
+ [</span>5.9 3.  4.2 1.5<span style="color: #000000;">]
+ [</span>6.  2.2 4.  1<span style="color: #000000;">. ]
+ [</span>6.1 2.9 4.7 1.4<span style="color: #000000;">]
+ [</span>5.6 2.9 3.6 1.3<span style="color: #000000;">]
+ [</span>6.7 3.1 4.4 1.4<span style="color: #000000;">]
+ [</span>5.6 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>5.8 2.7 4.1 1<span style="color: #000000;">. ]
+ [</span>6.2 2.2 4.5 1.5<span style="color: #000000;">]
+ [</span>5.6 2.5 3.9 1.1<span style="color: #000000;">]
+ [</span>5.9 3.2 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 2.8 4.  1.3<span style="color: #000000;">]
+ [</span>6.3 2.5 4.9 1.5<span style="color: #000000;">]
+ [</span>6.1 2.8 4.7 1.2<span style="color: #000000;">]
+ [</span>6.4 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>6.6 3.  4.4 1.4<span style="color: #000000;">]
+ [</span>6.8 2.8 4.8 1.4<span style="color: #000000;">]
+ [</span>6.7 3.  5.  1.7<span style="color: #000000;">]
+ [</span>6.  2.9 4.5 1.5<span style="color: #000000;">]
+ [</span>5.7 2.6 3.5 1<span style="color: #000000;">. ]
+ [</span>5.5 2.4 3.8 1.1<span style="color: #000000;">]
+ [</span>5.5 2.4 3.7 1<span style="color: #000000;">. ]
+ [</span>5.8 2.7 3.9 1.2<span style="color: #000000;">]
+ [</span>6.  2.7 5.1 1.6<span style="color: #000000;">]
+ [</span>5.4 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>6.  3.4 4.5 1.6<span style="color: #000000;">]
+ [</span>6.7 3.1 4.7 1.5<span style="color: #000000;">]
+ [</span>6.3 2.3 4.4 1.3<span style="color: #000000;">]
+ [</span>5.6 3.  4.1 1.3<span style="color: #000000;">]
+ [</span>5.5 2.5 4.  1.3<span style="color: #000000;">]
+ [</span>5.5 2.6 4.4 1.2<span style="color: #000000;">]
+ [</span>6.1 3.  4.6 1.4<span style="color: #000000;">]
+ [</span>5.8 2.6 4.  1.2<span style="color: #000000;">]
+ [</span>5.  2.3 3.3 1<span style="color: #000000;">. ]
+ [</span>5.6 2.7 4.2 1.3<span style="color: #000000;">]
+ [</span>5.7 3.  4.2 1.2<span style="color: #000000;">]
+ [</span>5.7 2.9 4.2 1.3<span style="color: #000000;">]
+ [</span>6.2 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>5.1 2.5 3.  1.1<span style="color: #000000;">]
+ [</span>5.7 2.8 4.1 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 6.  2.5<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>7.1 3.  5.9 2.1<span style="color: #000000;">]
+ [</span>6.3 2.9 5.6 1.8<span style="color: #000000;">]
+ [</span>6.5 3.  5.8 2.2<span style="color: #000000;">]
+ [</span>7.6 3.  6.6 2.1<span style="color: #000000;">]
+ [</span>4.9 2.5 4.5 1.7<span style="color: #000000;">]
+ [</span>7.3 2.9 6.3 1.8<span style="color: #000000;">]
+ [</span>6.7 2.5 5.8 1.8<span style="color: #000000;">]
+ [</span>7.2 3.6 6.1 2.5<span style="color: #000000;">]
+ [</span>6.5 3.2 5.1 2<span style="color: #000000;">. ]
+ [</span>6.4 2.7 5.3 1.9<span style="color: #000000;">]
+ [</span>6.8 3.  5.5 2.1<span style="color: #000000;">]
+ [</span>5.7 2.5 5.  2<span style="color: #000000;">. ]
+ [</span>5.8 2.8 5.1 2.4<span style="color: #000000;">]
+ [</span>6.4 3.2 5.3 2.3<span style="color: #000000;">]
+ [</span>6.5 3.  5.5 1.8<span style="color: #000000;">]
+ [</span>7.7 3.8 6.7 2.2<span style="color: #000000;">]
+ [</span>7.7 2.6 6.9 2.3<span style="color: #000000;">]
+ [</span>6.  2.2 5.  1.5<span style="color: #000000;">]
+ [</span>6.9 3.2 5.7 2.3<span style="color: #000000;">]
+ [</span>5.6 2.8 4.9 2<span style="color: #000000;">. ]
+ [</span>7.7 2.8 6.7 2<span style="color: #000000;">. ]
+ [</span>6.3 2.7 4.9 1.8<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.1<span style="color: #000000;">]
+ [</span>7.2 3.2 6.  1.8<span style="color: #000000;">]
+ [</span>6.2 2.8 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 3.  4.9 1.8<span style="color: #000000;">]
+ [</span>6.4 2.8 5.6 2.1<span style="color: #000000;">]
+ [</span>7.2 3.  5.8 1.6<span style="color: #000000;">]
+ [</span>7.4 2.8 6.1 1.9<span style="color: #000000;">]
+ [</span>7.9 3.8 6.4 2<span style="color: #000000;">. ]
+ [</span>6.4 2.8 5.6 2.2<span style="color: #000000;">]
+ [</span>6.3 2.8 5.1 1.5<span style="color: #000000;">]
+ [</span>6.1 2.6 5.6 1.4<span style="color: #000000;">]
+ [</span>7.7 3.  6.1 2.3<span style="color: #000000;">]
+ [</span>6.3 3.4 5.6 2.4<span style="color: #000000;">]
+ [</span>6.4 3.1 5.5 1.8<span style="color: #000000;">]
+ [</span>6.  3.  4.8 1.8<span style="color: #000000;">]
+ [</span>6.9 3.1 5.4 2.1<span style="color: #000000;">]
+ [</span>6.7 3.1 5.6 2.4<span style="color: #000000;">]
+ [</span>6.9 3.1 5.1 2.3<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>6.8 3.2 5.9 2.3<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.5<span style="color: #000000;">]
+ [</span>6.7 3.  5.2 2.3<span style="color: #000000;">]
+ [</span>6.3 2.5 5.  1.9<span style="color: #000000;">]
+ [</span>6.5 3.  5.2 2<span style="color: #000000;">. ]
+ [</span>6.2 3.4 5.4 2.3<span style="color: #000000;">]
+ [</span>5.9 3.  5.1 1.8<span style="color: #000000;">]]
+data_minmax_value:
+ [[</span>1.22222222 1.625      1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.16666667 1.41666667 1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.11111111 1.5        1.05084746 1.04166667<span style="color: #000000;">]
+ [</span>1.08333333 1.45833333 1.08474576 1.04166667<span style="color: #000000;">]
+ [</span>1.19444444 1.66666667 1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.30555556 1.79166667 1.11864407 1.125<span style="color: #000000;">     ]
+ [</span>1.08333333 1.58333333 1.06779661 1.08333333<span style="color: #000000;">]
+ [</span>1.19444444 1.58333333 1.08474576 1.04166667<span style="color: #000000;">]
+ [</span>1.02777778 1.375      1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.16666667 1.45833333 1.08474576 1<span style="color: #000000;">.        ]
+ [</span>1.30555556 1.70833333 1.08474576 1.04166667<span style="color: #000000;">]
+ [</span>1.13888889 1.58333333 1.10169492 1.04166667<span style="color: #000000;">]
+ [</span>1.13888889 1.41666667 1.06779661 1<span style="color: #000000;">.        ]
+ [</span>1.         1.41666667 1.01694915 1<span style="color: #000000;">.        ]
+ [</span>1.41666667 1.83333333 1.03389831 1.04166667<span style="color: #000000;">]
+ [</span>1.38888889 2.         1.08474576 1.125<span style="color: #000000;">     ]
+ [</span>1.30555556 1.79166667 1.05084746 1.125<span style="color: #000000;">     ]
+ [</span>1.22222222 1.625      1.06779661 1.08333333<span style="color: #000000;">]
+ [</span>1.38888889 1.75       1.11864407 1.08333333<span style="color: #000000;">]
+ [</span>1.22222222 1.75       1.08474576 1.08333333<span style="color: #000000;">]
+ [</span>1.30555556 1.58333333 1.11864407 1.04166667<span style="color: #000000;">]
+ [</span>1.22222222 1.70833333 1.08474576 1.125<span style="color: #000000;">     ]
+ [</span>1.08333333 1.66666667 1.         1.04166667<span style="color: #000000;">]
+ [</span>1.22222222 1.54166667 1.11864407 1.16666667<span style="color: #000000;">]
+ [</span>1.13888889 1.58333333 1.15254237 1.04166667<span style="color: #000000;">]
+ [</span>1.19444444 1.41666667 1.10169492 1.04166667<span style="color: #000000;">]
+ [</span>1.19444444 1.58333333 1.10169492 1.125<span style="color: #000000;">     ]
+ [</span>1.25       1.625      1.08474576 1.04166667<span style="color: #000000;">]
+ [</span>1.25       1.58333333 1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.11111111 1.5        1.10169492 1.04166667<span style="color: #000000;">]
+ [</span>1.13888889 1.45833333 1.10169492 1.04166667<span style="color: #000000;">]
+ [</span>1.30555556 1.58333333 1.08474576 1.125<span style="color: #000000;">     ]
+ [</span>1.25       1.875      1.08474576 1<span style="color: #000000;">.        ]
+ [</span>1.33333333 1.91666667 1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.16666667 1.45833333 1.08474576 1<span style="color: #000000;">.        ]
+ [</span>1.19444444 1.5        1.03389831 1.04166667<span style="color: #000000;">]
+ [</span>1.33333333 1.625      1.05084746 1.04166667<span style="color: #000000;">]
+ [</span>1.16666667 1.45833333 1.08474576 1<span style="color: #000000;">.        ]
+ [</span>1.02777778 1.41666667 1.05084746 1.04166667<span style="color: #000000;">]
+ [</span>1.22222222 1.58333333 1.08474576 1.04166667<span style="color: #000000;">]
+ [</span>1.19444444 1.625      1.05084746 1.08333333<span style="color: #000000;">]
+ [</span>1.05555556 1.125      1.05084746 1.08333333<span style="color: #000000;">]
+ [</span>1.02777778 1.5        1.05084746 1.04166667<span style="color: #000000;">]
+ [</span>1.19444444 1.625      1.10169492 1.20833333<span style="color: #000000;">]
+ [</span>1.22222222 1.75       1.15254237 1.125<span style="color: #000000;">     ]
+ [</span>1.13888889 1.41666667 1.06779661 1.08333333<span style="color: #000000;">]
+ [</span>1.22222222 1.75       1.10169492 1.04166667<span style="color: #000000;">]
+ [</span>1.08333333 1.5        1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.27777778 1.70833333 1.08474576 1.04166667<span style="color: #000000;">]
+ [</span>1.19444444 1.54166667 1.06779661 1.04166667<span style="color: #000000;">]
+ [</span>1.75       1.5        1.62711864 1.54166667<span style="color: #000000;">]
+ [</span>1.58333333 1.5        1.59322034 1.58333333<span style="color: #000000;">]
+ [</span>1.72222222 1.45833333 1.66101695 1.58333333<span style="color: #000000;">]
+ [</span>1.33333333 1.125      1.50847458 1.5<span style="color: #000000;">       ]
+ [</span>1.61111111 1.33333333 1.61016949 1.58333333<span style="color: #000000;">]
+ [</span>1.38888889 1.33333333 1.59322034 1.5<span style="color: #000000;">       ]
+ [</span>1.55555556 1.54166667 1.62711864 1.625<span style="color: #000000;">     ]
+ [</span>1.16666667 1.16666667 1.38983051 1.375<span style="color: #000000;">     ]
+ [</span>1.63888889 1.375      1.61016949 1.5<span style="color: #000000;">       ]
+ [</span>1.25       1.29166667 1.49152542 1.54166667<span style="color: #000000;">]
+ [</span>1.19444444 1.         1.42372881 1.375<span style="color: #000000;">     ]
+ [</span>1.44444444 1.41666667 1.54237288 1.58333333<span style="color: #000000;">]
+ [</span>1.47222222 1.08333333 1.50847458 1.375<span style="color: #000000;">     ]
+ [</span>1.5        1.375      1.62711864 1.54166667<span style="color: #000000;">]
+ [</span>1.36111111 1.375      1.44067797 1.5<span style="color: #000000;">       ]
+ [</span>1.66666667 1.45833333 1.57627119 1.54166667<span style="color: #000000;">]
+ [</span>1.36111111 1.41666667 1.59322034 1.58333333<span style="color: #000000;">]
+ [</span>1.41666667 1.29166667 1.52542373 1.375<span style="color: #000000;">     ]
+ [</span>1.52777778 1.08333333 1.59322034 1.58333333<span style="color: #000000;">]
+ [</span>1.36111111 1.20833333 1.49152542 1.41666667<span style="color: #000000;">]
+ [</span>1.44444444 1.5        1.6440678  1.70833333<span style="color: #000000;">]
+ [</span>1.5        1.33333333 1.50847458 1.5<span style="color: #000000;">       ]
+ [</span>1.55555556 1.20833333 1.66101695 1.58333333<span style="color: #000000;">]
+ [</span>1.5        1.33333333 1.62711864 1.45833333<span style="color: #000000;">]
+ [</span>1.58333333 1.375      1.55932203 1.5<span style="color: #000000;">       ]
+ [</span>1.63888889 1.41666667 1.57627119 1.54166667<span style="color: #000000;">]
+ [</span>1.69444444 1.33333333 1.6440678  1.54166667<span style="color: #000000;">]
+ [</span>1.66666667 1.41666667 1.6779661  1.66666667<span style="color: #000000;">]
+ [</span>1.47222222 1.375      1.59322034 1.58333333<span style="color: #000000;">]
+ [</span>1.38888889 1.25       1.42372881 1.375<span style="color: #000000;">     ]
+ [</span>1.33333333 1.16666667 1.47457627 1.41666667<span style="color: #000000;">]
+ [</span>1.33333333 1.16666667 1.45762712 1.375<span style="color: #000000;">     ]
+ [</span>1.41666667 1.29166667 1.49152542 1.45833333<span style="color: #000000;">]
+ [</span>1.47222222 1.29166667 1.69491525 1.625<span style="color: #000000;">     ]
+ [</span>1.30555556 1.41666667 1.59322034 1.58333333<span style="color: #000000;">]
+ [</span>1.47222222 1.58333333 1.59322034 1.625<span style="color: #000000;">     ]
+ [</span>1.66666667 1.45833333 1.62711864 1.58333333<span style="color: #000000;">]
+ [</span>1.55555556 1.125      1.57627119 1.5<span style="color: #000000;">       ]
+ [</span>1.36111111 1.41666667 1.52542373 1.5<span style="color: #000000;">       ]
+ [</span>1.33333333 1.20833333 1.50847458 1.5<span style="color: #000000;">       ]
+ [</span>1.33333333 1.25       1.57627119 1.45833333<span style="color: #000000;">]
+ [</span>1.5        1.41666667 1.61016949 1.54166667<span style="color: #000000;">]
+ [</span>1.41666667 1.25       1.50847458 1.45833333<span style="color: #000000;">]
+ [</span>1.19444444 1.125      1.38983051 1.375<span style="color: #000000;">     ]
+ [</span>1.36111111 1.29166667 1.54237288 1.5<span style="color: #000000;">       ]
+ [</span>1.38888889 1.41666667 1.54237288 1.45833333<span style="color: #000000;">]
+ [</span>1.38888889 1.375      1.54237288 1.5<span style="color: #000000;">       ]
+ [</span>1.52777778 1.375      1.55932203 1.5<span style="color: #000000;">       ]
+ [</span>1.22222222 1.20833333 1.33898305 1.41666667<span style="color: #000000;">]
+ [</span>1.38888889 1.33333333 1.52542373 1.5<span style="color: #000000;">       ]
+ [</span>1.55555556 1.54166667 1.84745763 2<span style="color: #000000;">.        ]
+ [</span>1.41666667 1.29166667 1.69491525 1.75<span style="color: #000000;">      ]
+ [</span>1.77777778 1.41666667 1.83050847 1.83333333<span style="color: #000000;">]
+ [</span>1.55555556 1.375      1.77966102 1.70833333<span style="color: #000000;">]
+ [</span>1.61111111 1.41666667 1.81355932 1.875<span style="color: #000000;">     ]
+ [</span>1.91666667 1.41666667 1.94915254 1.83333333<span style="color: #000000;">]
+ [</span>1.16666667 1.20833333 1.59322034 1.66666667<span style="color: #000000;">]
+ [</span>1.83333333 1.375      1.89830508 1.70833333<span style="color: #000000;">]
+ [</span>1.66666667 1.20833333 1.81355932 1.70833333<span style="color: #000000;">]
+ [</span>1.80555556 1.66666667 1.86440678 2<span style="color: #000000;">.        ]
+ [</span>1.61111111 1.5        1.69491525 1.79166667<span style="color: #000000;">]
+ [</span>1.58333333 1.29166667 1.72881356 1.75<span style="color: #000000;">      ]
+ [</span>1.69444444 1.41666667 1.76271186 1.83333333<span style="color: #000000;">]
+ [</span>1.38888889 1.20833333 1.6779661  1.79166667<span style="color: #000000;">]
+ [</span>1.41666667 1.33333333 1.69491525 1.95833333<span style="color: #000000;">]
+ [</span>1.58333333 1.5        1.72881356 1.91666667<span style="color: #000000;">]
+ [</span>1.61111111 1.41666667 1.76271186 1.70833333<span style="color: #000000;">]
+ [</span>1.94444444 1.75       1.96610169 1.875<span style="color: #000000;">     ]
+ [</span>1.94444444 1.25       2.         1.91666667<span style="color: #000000;">]
+ [</span>1.47222222 1.08333333 1.6779661  1.58333333<span style="color: #000000;">]
+ [</span>1.72222222 1.5        1.79661017 1.91666667<span style="color: #000000;">]
+ [</span>1.36111111 1.33333333 1.66101695 1.79166667<span style="color: #000000;">]
+ [</span>1.94444444 1.33333333 1.96610169 1.79166667<span style="color: #000000;">]
+ [</span>1.55555556 1.29166667 1.66101695 1.70833333<span style="color: #000000;">]
+ [</span>1.66666667 1.54166667 1.79661017 1.83333333<span style="color: #000000;">]
+ [</span>1.80555556 1.5        1.84745763 1.70833333<span style="color: #000000;">]
+ [</span>1.52777778 1.33333333 1.6440678  1.70833333<span style="color: #000000;">]
+ [</span>1.5        1.41666667 1.66101695 1.70833333<span style="color: #000000;">]
+ [</span>1.58333333 1.33333333 1.77966102 1.83333333<span style="color: #000000;">]
+ [</span>1.80555556 1.41666667 1.81355932 1.625<span style="color: #000000;">     ]
+ [</span>1.86111111 1.33333333 1.86440678 1.75<span style="color: #000000;">      ]
+ [</span>2.         1.75       1.91525424 1.79166667<span style="color: #000000;">]
+ [</span>1.58333333 1.33333333 1.77966102 1.875<span style="color: #000000;">     ]
+ [</span>1.55555556 1.33333333 1.69491525 1.58333333<span style="color: #000000;">]
+ [</span>1.5        1.25       1.77966102 1.54166667<span style="color: #000000;">]
+ [</span>1.94444444 1.41666667 1.86440678 1.91666667<span style="color: #000000;">]
+ [</span>1.55555556 1.58333333 1.77966102 1.95833333<span style="color: #000000;">]
+ [</span>1.58333333 1.45833333 1.76271186 1.70833333<span style="color: #000000;">]
+ [</span>1.47222222 1.41666667 1.6440678  1.70833333<span style="color: #000000;">]
+ [</span>1.72222222 1.45833333 1.74576271 1.83333333<span style="color: #000000;">]
+ [</span>1.66666667 1.45833333 1.77966102 1.95833333<span style="color: #000000;">]
+ [</span>1.72222222 1.45833333 1.69491525 1.91666667<span style="color: #000000;">]
+ [</span>1.41666667 1.29166667 1.69491525 1.75<span style="color: #000000;">      ]
+ [</span>1.69444444 1.5        1.83050847 1.91666667<span style="color: #000000;">]
+ [</span>1.66666667 1.54166667 1.79661017 2<span style="color: #000000;">.        ]
+ [</span>1.66666667 1.41666667 1.71186441 1.91666667<span style="color: #000000;">]
+ [</span>1.55555556 1.20833333 1.6779661  1.75<span style="color: #000000;">      ]
+ [</span>1.61111111 1.41666667 1.71186441 1.79166667<span style="color: #000000;">]
+ [</span>1.52777778 1.58333333 1.74576271 1.91666667<span style="color: #000000;">]
+ [</span>1.44444444 1.41666667 1.69491525 1.70833333]]</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3 id="2、标准化">2、标准化</h3>
+<p>定义：通过对原始数据进行变换把数据变换到均值为0，标准差为1范围内</p>
+<p>公式：X' = (x - mean)/ &prop;</p>
+<p>mean是平均值，&prop;是标准差</p>
+<p>对于归一化来说，如果出现异常点，影响了最大值和最小值，那么结果显然会发生改变</p>
+<p>对于标准化来说：如果出现异常点，由于具有一定数据量，商量的异常点对于平均值的影响并不大，从而方差改变较小</p>
+<p>总结：在已有样本足够多的情况下比较稳定，适合现代嘈杂大数据场景</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> sklearn.datasets <span style="color: #0000ff;">import</span><span style="color: #000000;"> load_iris
+</span><span style="color: #0000ff;">from</span> sklearn.preprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> StandardScaler
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pandas as pd
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> standard_demo():
+    iris </span>=<span style="color: #000000;"> load_iris()
+    data </span>= pd.DataFrame(iris.data, columns =<span style="color: #000000;"> iris.feature_names)
+    data_new </span>= data.iloc[:, :4<span style="color: #000000;">].values
+    
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_new:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_new)
+    
+    transfer </span>=<span style="color: #000000;"> StandardScaler()
+    
+    data_standard_value </span>=<span style="color: #000000;"> transfer.fit_transform(data_new)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_standard_value:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_standard_value)
+    
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    standard_demo()
+
+
+
+输出结果：
+data_new:
+ [[</span>5.1 3.5 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.  1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>4.6 3.1 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.6 1.4 0.2<span style="color: #000000;">]
+ [</span>5.4 3.9 1.7 0.4<span style="color: #000000;">]
+ [</span>4.6 3.4 1.4 0.3<span style="color: #000000;">]
+ [</span>5.  3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>4.4 2.9 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.4 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>4.8 3.4 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.1<span style="color: #000000;">]
+ [</span>4.3 3.  1.1 0.1<span style="color: #000000;">]
+ [</span>5.8 4.  1.2 0.2<span style="color: #000000;">]
+ [</span>5.7 4.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.4 3.9 1.3 0.4<span style="color: #000000;">]
+ [</span>5.1 3.5 1.4 0.3<span style="color: #000000;">]
+ [</span>5.7 3.8 1.7 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.5 0.3<span style="color: #000000;">]
+ [</span>5.4 3.4 1.7 0.2<span style="color: #000000;">]
+ [</span>5.1 3.7 1.5 0.4<span style="color: #000000;">]
+ [</span>4.6 3.6 1.  0.2<span style="color: #000000;">]
+ [</span>5.1 3.3 1.7 0.5<span style="color: #000000;">]
+ [</span>4.8 3.4 1.9 0.2<span style="color: #000000;">]
+ [</span>5.  3.  1.6 0.2<span style="color: #000000;">]
+ [</span>5.  3.4 1.6 0.4<span style="color: #000000;">]
+ [</span>5.2 3.5 1.5 0.2<span style="color: #000000;">]
+ [</span>5.2 3.4 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.1 1.6 0.2<span style="color: #000000;">]
+ [</span>5.4 3.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.2 4.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.5 4.2 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.  3.2 1.2 0.2<span style="color: #000000;">]
+ [</span>5.5 3.5 1.3 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>4.4 3.  1.3 0.2<span style="color: #000000;">]
+ [</span>5.1 3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.3 0.3<span style="color: #000000;">]
+ [</span>4.5 2.3 1.3 0.3<span style="color: #000000;">]
+ [</span>4.4 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.6 0.6<span style="color: #000000;">]
+ [</span>5.1 3.8 1.9 0.4<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.6 0.2<span style="color: #000000;">]
+ [</span>4.6 3.2 1.4 0.2<span style="color: #000000;">]
+ [</span>5.3 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.3 1.4 0.2<span style="color: #000000;">]
+ [</span>7.  3.2 4.7 1.4<span style="color: #000000;">]
+ [</span>6.4 3.2 4.5 1.5<span style="color: #000000;">]
+ [</span>6.9 3.1 4.9 1.5<span style="color: #000000;">]
+ [</span>5.5 2.3 4.  1.3<span style="color: #000000;">]
+ [</span>6.5 2.8 4.6 1.5<span style="color: #000000;">]
+ [</span>5.7 2.8 4.5 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 4.7 1.6<span style="color: #000000;">]
+ [</span>4.9 2.4 3.3 1<span style="color: #000000;">. ]
+ [</span>6.6 2.9 4.6 1.3<span style="color: #000000;">]
+ [</span>5.2 2.7 3.9 1.4<span style="color: #000000;">]
+ [</span>5.  2.  3.5 1<span style="color: #000000;">. ]
+ [</span>5.9 3.  4.2 1.5<span style="color: #000000;">]
+ [</span>6.  2.2 4.  1<span style="color: #000000;">. ]
+ [</span>6.1 2.9 4.7 1.4<span style="color: #000000;">]
+ [</span>5.6 2.9 3.6 1.3<span style="color: #000000;">]
+ [</span>6.7 3.1 4.4 1.4<span style="color: #000000;">]
+ [</span>5.6 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>5.8 2.7 4.1 1<span style="color: #000000;">. ]
+ [</span>6.2 2.2 4.5 1.5<span style="color: #000000;">]
+ [</span>5.6 2.5 3.9 1.1<span style="color: #000000;">]
+ [</span>5.9 3.2 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 2.8 4.  1.3<span style="color: #000000;">]
+ [</span>6.3 2.5 4.9 1.5<span style="color: #000000;">]
+ [</span>6.1 2.8 4.7 1.2<span style="color: #000000;">]
+ [</span>6.4 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>6.6 3.  4.4 1.4<span style="color: #000000;">]
+ [</span>6.8 2.8 4.8 1.4<span style="color: #000000;">]
+ [</span>6.7 3.  5.  1.7<span style="color: #000000;">]
+ [</span>6.  2.9 4.5 1.5<span style="color: #000000;">]
+ [</span>5.7 2.6 3.5 1<span style="color: #000000;">. ]
+ [</span>5.5 2.4 3.8 1.1<span style="color: #000000;">]
+ [</span>5.5 2.4 3.7 1<span style="color: #000000;">. ]
+ [</span>5.8 2.7 3.9 1.2<span style="color: #000000;">]
+ [</span>6.  2.7 5.1 1.6<span style="color: #000000;">]
+ [</span>5.4 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>6.  3.4 4.5 1.6<span style="color: #000000;">]
+ [</span>6.7 3.1 4.7 1.5<span style="color: #000000;">]
+ [</span>6.3 2.3 4.4 1.3<span style="color: #000000;">]
+ [</span>5.6 3.  4.1 1.3<span style="color: #000000;">]
+ [</span>5.5 2.5 4.  1.3<span style="color: #000000;">]
+ [</span>5.5 2.6 4.4 1.2<span style="color: #000000;">]
+ [</span>6.1 3.  4.6 1.4<span style="color: #000000;">]
+ [</span>5.8 2.6 4.  1.2<span style="color: #000000;">]
+ [</span>5.  2.3 3.3 1<span style="color: #000000;">. ]
+ [</span>5.6 2.7 4.2 1.3<span style="color: #000000;">]
+ [</span>5.7 3.  4.2 1.2<span style="color: #000000;">]
+ [</span>5.7 2.9 4.2 1.3<span style="color: #000000;">]
+ [</span>6.2 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>5.1 2.5 3.  1.1<span style="color: #000000;">]
+ [</span>5.7 2.8 4.1 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 6.  2.5<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>7.1 3.  5.9 2.1<span style="color: #000000;">]
+ [</span>6.3 2.9 5.6 1.8<span style="color: #000000;">]
+ [</span>6.5 3.  5.8 2.2<span style="color: #000000;">]
+ [</span>7.6 3.  6.6 2.1<span style="color: #000000;">]
+ [</span>4.9 2.5 4.5 1.7<span style="color: #000000;">]
+ [</span>7.3 2.9 6.3 1.8<span style="color: #000000;">]
+ [</span>6.7 2.5 5.8 1.8<span style="color: #000000;">]
+ [</span>7.2 3.6 6.1 2.5<span style="color: #000000;">]
+ [</span>6.5 3.2 5.1 2<span style="color: #000000;">. ]
+ [</span>6.4 2.7 5.3 1.9<span style="color: #000000;">]
+ [</span>6.8 3.  5.5 2.1<span style="color: #000000;">]
+ [</span>5.7 2.5 5.  2<span style="color: #000000;">. ]
+ [</span>5.8 2.8 5.1 2.4<span style="color: #000000;">]
+ [</span>6.4 3.2 5.3 2.3<span style="color: #000000;">]
+ [</span>6.5 3.  5.5 1.8<span style="color: #000000;">]
+ [</span>7.7 3.8 6.7 2.2<span style="color: #000000;">]
+ [</span>7.7 2.6 6.9 2.3<span style="color: #000000;">]
+ [</span>6.  2.2 5.  1.5<span style="color: #000000;">]
+ [</span>6.9 3.2 5.7 2.3<span style="color: #000000;">]
+ [</span>5.6 2.8 4.9 2<span style="color: #000000;">. ]
+ [</span>7.7 2.8 6.7 2<span style="color: #000000;">. ]
+ [</span>6.3 2.7 4.9 1.8<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.1<span style="color: #000000;">]
+ [</span>7.2 3.2 6.  1.8<span style="color: #000000;">]
+ [</span>6.2 2.8 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 3.  4.9 1.8<span style="color: #000000;">]
+ [</span>6.4 2.8 5.6 2.1<span style="color: #000000;">]
+ [</span>7.2 3.  5.8 1.6<span style="color: #000000;">]
+ [</span>7.4 2.8 6.1 1.9<span style="color: #000000;">]
+ [</span>7.9 3.8 6.4 2<span style="color: #000000;">. ]
+ [</span>6.4 2.8 5.6 2.2<span style="color: #000000;">]
+ [</span>6.3 2.8 5.1 1.5<span style="color: #000000;">]
+ [</span>6.1 2.6 5.6 1.4<span style="color: #000000;">]
+ [</span>7.7 3.  6.1 2.3<span style="color: #000000;">]
+ [</span>6.3 3.4 5.6 2.4<span style="color: #000000;">]
+ [</span>6.4 3.1 5.5 1.8<span style="color: #000000;">]
+ [</span>6.  3.  4.8 1.8<span style="color: #000000;">]
+ [</span>6.9 3.1 5.4 2.1<span style="color: #000000;">]
+ [</span>6.7 3.1 5.6 2.4<span style="color: #000000;">]
+ [</span>6.9 3.1 5.1 2.3<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>6.8 3.2 5.9 2.3<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.5<span style="color: #000000;">]
+ [</span>6.7 3.  5.2 2.3<span style="color: #000000;">]
+ [</span>6.3 2.5 5.  1.9<span style="color: #000000;">]
+ [</span>6.5 3.  5.2 2<span style="color: #000000;">. ]
+ [</span>6.2 3.4 5.4 2.3<span style="color: #000000;">]
+ [</span>5.9 3.  5.1 1.8<span style="color: #000000;">]]
+data_standard_value:
+ [[</span>-9.00681170e-01  1.03205722e+00 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.14301691e+00 -1.24957601e-01 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.38535265e+00  3.37848329e-01 -1.39813811e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.50652052e+00  1.06445364e-01 -1.28440670e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00  1.26346019e+00 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-5.37177559e-01  1.95766909e+00 -1.17067529e+00 -1.05003079e+00<span style="color: #000000;">]
+ [</span>-1.50652052e+00  8.00654259e-01 -1.34127240e+00 -1.18150376e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00  8.00654259e-01 -1.28440670e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.74885626e+00 -3.56360566e-01 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.14301691e+00  1.06445364e-01 -1.28440670e+00 -1.44444970e+00<span style="color: #000000;">]
+ [</span>-5.37177559e-01  1.49486315e+00 -1.28440670e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.26418478e+00  8.00654259e-01 -1.22754100e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.26418478e+00 -1.24957601e-01 -1.34127240e+00 -1.44444970e+00<span style="color: #000000;">]
+ [</span>-1.87002413e+00 -1.24957601e-01 -1.51186952e+00 -1.44444970e+00<span style="color: #000000;">]
+ [</span>-5.25060772e-02  2.18907205e+00 -1.45500381e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.73673948e-01  3.11468391e+00 -1.28440670e+00 -1.05003079e+00<span style="color: #000000;">]
+ [</span>-5.37177559e-01  1.95766909e+00 -1.39813811e+00 -1.05003079e+00<span style="color: #000000;">]
+ [</span>-9.00681170e-01  1.03205722e+00 -1.34127240e+00 -1.18150376e+00<span style="color: #000000;">]
+ [</span>-1.73673948e-01  1.72626612e+00 -1.17067529e+00 -1.18150376e+00<span style="color: #000000;">]
+ [</span>-9.00681170e-01  1.72626612e+00 -1.28440670e+00 -1.18150376e+00<span style="color: #000000;">]
+ [</span>-5.37177559e-01  8.00654259e-01 -1.17067529e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-9.00681170e-01  1.49486315e+00 -1.28440670e+00 -1.05003079e+00<span style="color: #000000;">]
+ [</span>-1.50652052e+00  1.26346019e+00 -1.56873522e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-9.00681170e-01  5.69251294e-01 -1.17067529e+00 -9.18557817e-01<span style="color: #000000;">]
+ [</span>-1.26418478e+00  8.00654259e-01 -1.05694388e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00 -1.24957601e-01 -1.22754100e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00  8.00654259e-01 -1.22754100e+00 -1.05003079e+00<span style="color: #000000;">]
+ [</span>-7.79513300e-01  1.03205722e+00 -1.28440670e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-7.79513300e-01  8.00654259e-01 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.38535265e+00  3.37848329e-01 -1.22754100e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.26418478e+00  1.06445364e-01 -1.22754100e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-5.37177559e-01  8.00654259e-01 -1.28440670e+00 -1.05003079e+00<span style="color: #000000;">]
+ [</span>-7.79513300e-01  2.42047502e+00 -1.28440670e+00 -1.44444970e+00<span style="color: #000000;">]
+ [</span>-4.16009689e-01  2.65187798e+00 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.14301691e+00  1.06445364e-01 -1.28440670e+00 -1.44444970e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00  3.37848329e-01 -1.45500381e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-4.16009689e-01  1.03205722e+00 -1.39813811e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.14301691e+00  1.06445364e-01 -1.28440670e+00 -1.44444970e+00<span style="color: #000000;">]
+ [</span>-1.74885626e+00 -1.24957601e-01 -1.39813811e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-9.00681170e-01  8.00654259e-01 -1.28440670e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00  1.03205722e+00 -1.39813811e+00 -1.18150376e+00<span style="color: #000000;">]
+ [</span>-1.62768839e+00 -1.74477836e+00 -1.39813811e+00 -1.18150376e+00<span style="color: #000000;">]
+ [</span>-1.74885626e+00  3.37848329e-01 -1.39813811e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00  1.03205722e+00 -1.22754100e+00 -7.87084847e-01<span style="color: #000000;">]
+ [</span>-9.00681170e-01  1.72626612e+00 -1.05694388e+00 -1.05003079e+00<span style="color: #000000;">]
+ [</span>-1.26418478e+00 -1.24957601e-01 -1.34127240e+00 -1.18150376e+00<span style="color: #000000;">]
+ [</span>-9.00681170e-01  1.72626612e+00 -1.22754100e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.50652052e+00  3.37848329e-01 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-6.58345429e-01  1.49486315e+00 -1.28440670e+00 -1.31297673e+00<span style="color: #000000;">]
+ [</span>-1.02184904e+00  5.69251294e-01 -1.34127240e+00 -1.31297673e+00<span style="color: #000000;">]
+ [ </span>1.40150837e+00  3.37848329e-01  5.35295827e-01  2.64698913e-01<span style="color: #000000;">]
+ [ </span>6.74501145e-01  3.37848329e-01  4.21564419e-01  3.96171883e-01<span style="color: #000000;">]
+ [ </span>1.28034050e+00  1.06445364e-01  6.49027235e-01  3.96171883e-01<span style="color: #000000;">]
+ [</span>-4.16009689e-01 -1.74477836e+00  1.37235899e-01  1.33225943e-01<span style="color: #000000;">]
+ [ </span>7.95669016e-01 -5.87763531e-01  4.78430123e-01  3.96171883e-01<span style="color: #000000;">]
+ [</span>-1.73673948e-01 -5.87763531e-01  4.21564419e-01  1.33225943e-01<span style="color: #000000;">]
+ [ </span>5.53333275e-01  5.69251294e-01  5.35295827e-01  5.27644853e-01<span style="color: #000000;">]
+ [</span>-1.14301691e+00 -1.51337539e+00 -2.60824029e-01 -2.61192967e-01<span style="color: #000000;">]
+ [ </span>9.16836886e-01 -3.56360566e-01  4.78430123e-01  1.33225943e-01<span style="color: #000000;">]
+ [</span>-7.79513300e-01 -8.19166497e-01  8.03701950e-02  2.64698913e-01<span style="color: #000000;">]
+ [</span>-1.02184904e+00 -2.43898725e+00 -1.47092621e-01 -2.61192967e-01<span style="color: #000000;">]
+ [ </span>6.86617933e-02 -1.24957601e-01  2.50967307e-01  3.96171883e-01<span style="color: #000000;">]
+ [ </span>1.89829664e-01 -1.97618132e+00  1.37235899e-01 -2.61192967e-01<span style="color: #000000;">]
+ [ </span>3.10997534e-01 -3.56360566e-01  5.35295827e-01  2.64698913e-01<span style="color: #000000;">]
+ [</span>-2.94841818e-01 -3.56360566e-01 -9.02269170e-02  1.33225943e-01<span style="color: #000000;">]
+ [ </span>1.03800476e+00  1.06445364e-01  3.64698715e-01  2.64698913e-01<span style="color: #000000;">]
+ [</span>-2.94841818e-01 -1.24957601e-01  4.21564419e-01  3.96171883e-01<span style="color: #000000;">]
+ [</span>-5.25060772e-02 -8.19166497e-01  1.94101603e-01 -2.61192967e-01<span style="color: #000000;">]
+ [ </span>4.32165405e-01 -1.97618132e+00  4.21564419e-01  3.96171883e-01<span style="color: #000000;">]
+ [</span>-2.94841818e-01 -1.28197243e+00  8.03701950e-02 -1.29719997e-01<span style="color: #000000;">]
+ [ </span>6.86617933e-02  3.37848329e-01  5.92161531e-01  7.90590793e-01<span style="color: #000000;">]
+ [ </span>3.10997534e-01 -5.87763531e-01  1.37235899e-01  1.33225943e-01<span style="color: #000000;">]
+ [ </span>5.53333275e-01 -1.28197243e+00  6.49027235e-01  3.96171883e-01<span style="color: #000000;">]
+ [ </span>3.10997534e-01 -5.87763531e-01  5.35295827e-01  1.75297293e-03<span style="color: #000000;">]
+ [ </span>6.74501145e-01 -3.56360566e-01  3.07833011e-01  1.33225943e-01<span style="color: #000000;">]
+ [ </span>9.16836886e-01 -1.24957601e-01  3.64698715e-01  2.64698913e-01<span style="color: #000000;">]
+ [ </span>1.15917263e+00 -5.87763531e-01  5.92161531e-01  2.64698913e-01<span style="color: #000000;">]
+ [ </span>1.03800476e+00 -1.24957601e-01  7.05892939e-01  6.59117823e-01<span style="color: #000000;">]
+ [ </span>1.89829664e-01 -3.56360566e-01  4.21564419e-01  3.96171883e-01<span style="color: #000000;">]
+ [</span>-1.73673948e-01 -1.05056946e+00 -1.47092621e-01 -2.61192967e-01<span style="color: #000000;">]
+ [</span>-4.16009689e-01 -1.51337539e+00  2.35044910e-02 -1.29719997e-01<span style="color: #000000;">]
+ [</span>-4.16009689e-01 -1.51337539e+00 -3.33612130e-02 -2.61192967e-01<span style="color: #000000;">]
+ [</span>-5.25060772e-02 -8.19166497e-01  8.03701950e-02  1.75297293e-03<span style="color: #000000;">]
+ [ </span>1.89829664e-01 -8.19166497e-01  7.62758643e-01  5.27644853e-01<span style="color: #000000;">]
+ [</span>-5.37177559e-01 -1.24957601e-01  4.21564419e-01  3.96171883e-01<span style="color: #000000;">]
+ [ </span>1.89829664e-01  8.00654259e-01  4.21564419e-01  5.27644853e-01<span style="color: #000000;">]
+ [ </span>1.03800476e+00  1.06445364e-01  5.35295827e-01  3.96171883e-01<span style="color: #000000;">]
+ [ </span>5.53333275e-01 -1.74477836e+00  3.64698715e-01  1.33225943e-01<span style="color: #000000;">]
+ [</span>-2.94841818e-01 -1.24957601e-01  1.94101603e-01  1.33225943e-01<span style="color: #000000;">]
+ [</span>-4.16009689e-01 -1.28197243e+00  1.37235899e-01  1.33225943e-01<span style="color: #000000;">]
+ [</span>-4.16009689e-01 -1.05056946e+00  3.64698715e-01  1.75297293e-03<span style="color: #000000;">]
+ [ </span>3.10997534e-01 -1.24957601e-01  4.78430123e-01  2.64698913e-01<span style="color: #000000;">]
+ [</span>-5.25060772e-02 -1.05056946e+00  1.37235899e-01  1.75297293e-03<span style="color: #000000;">]
+ [</span>-1.02184904e+00 -1.74477836e+00 -2.60824029e-01 -2.61192967e-01<span style="color: #000000;">]
+ [</span>-2.94841818e-01 -8.19166497e-01  2.50967307e-01  1.33225943e-01<span style="color: #000000;">]
+ [</span>-1.73673948e-01 -1.24957601e-01  2.50967307e-01  1.75297293e-03<span style="color: #000000;">]
+ [</span>-1.73673948e-01 -3.56360566e-01  2.50967307e-01  1.33225943e-01<span style="color: #000000;">]
+ [ </span>4.32165405e-01 -3.56360566e-01  3.07833011e-01  1.33225943e-01<span style="color: #000000;">]
+ [</span>-9.00681170e-01 -1.28197243e+00 -4.31421141e-01 -1.29719997e-01<span style="color: #000000;">]
+ [</span>-1.73673948e-01 -5.87763531e-01  1.94101603e-01  1.33225943e-01<span style="color: #000000;">]
+ [ </span>5.53333275e-01  5.69251294e-01  1.27454998e+00  1.71090158e+00<span style="color: #000000;">]
+ [</span>-5.25060772e-02 -8.19166497e-01  7.62758643e-01  9.22063763e-01<span style="color: #000000;">]
+ [ </span>1.52267624e+00 -1.24957601e-01  1.21768427e+00  1.18500970e+00<span style="color: #000000;">]
+ [ </span>5.53333275e-01 -3.56360566e-01  1.04708716e+00  7.90590793e-01<span style="color: #000000;">]
+ [ </span>7.95669016e-01 -1.24957601e-01  1.16081857e+00  1.31648267e+00<span style="color: #000000;">]
+ [ </span>2.12851559e+00 -1.24957601e-01  1.61574420e+00  1.18500970e+00<span style="color: #000000;">]
+ [</span>-1.14301691e+00 -1.28197243e+00  4.21564419e-01  6.59117823e-01<span style="color: #000000;">]
+ [ </span>1.76501198e+00 -3.56360566e-01  1.44514709e+00  7.90590793e-01<span style="color: #000000;">]
+ [ </span>1.03800476e+00 -1.28197243e+00  1.16081857e+00  7.90590793e-01<span style="color: #000000;">]
+ [ </span>1.64384411e+00  1.26346019e+00  1.33141568e+00  1.71090158e+00<span style="color: #000000;">]
+ [ </span>7.95669016e-01  3.37848329e-01  7.62758643e-01  1.05353673e+00<span style="color: #000000;">]
+ [ </span>6.74501145e-01 -8.19166497e-01  8.76490051e-01  9.22063763e-01<span style="color: #000000;">]
+ [ </span>1.15917263e+00 -1.24957601e-01  9.90221459e-01  1.18500970e+00<span style="color: #000000;">]
+ [</span>-1.73673948e-01 -1.28197243e+00  7.05892939e-01  1.05353673e+00<span style="color: #000000;">]
+ [</span>-5.25060772e-02 -5.87763531e-01  7.62758643e-01  1.57942861e+00<span style="color: #000000;">]
+ [ </span>6.74501145e-01  3.37848329e-01  8.76490051e-01  1.44795564e+00<span style="color: #000000;">]
+ [ </span>7.95669016e-01 -1.24957601e-01  9.90221459e-01  7.90590793e-01<span style="color: #000000;">]
+ [ </span>2.24968346e+00  1.72626612e+00  1.67260991e+00  1.31648267e+00<span style="color: #000000;">]
+ [ </span>2.24968346e+00 -1.05056946e+00  1.78634131e+00  1.44795564e+00<span style="color: #000000;">]
+ [ </span>1.89829664e-01 -1.97618132e+00  7.05892939e-01  3.96171883e-01<span style="color: #000000;">]
+ [ </span>1.28034050e+00  3.37848329e-01  1.10395287e+00  1.44795564e+00<span style="color: #000000;">]
+ [</span>-2.94841818e-01 -5.87763531e-01  6.49027235e-01  1.05353673e+00<span style="color: #000000;">]
+ [ </span>2.24968346e+00 -5.87763531e-01  1.67260991e+00  1.05353673e+00<span style="color: #000000;">]
+ [ </span>5.53333275e-01 -8.19166497e-01  6.49027235e-01  7.90590793e-01<span style="color: #000000;">]
+ [ </span>1.03800476e+00  5.69251294e-01  1.10395287e+00  1.18500970e+00<span style="color: #000000;">]
+ [ </span>1.64384411e+00  3.37848329e-01  1.27454998e+00  7.90590793e-01<span style="color: #000000;">]
+ [ </span>4.32165405e-01 -5.87763531e-01  5.92161531e-01  7.90590793e-01<span style="color: #000000;">]
+ [ </span>3.10997534e-01 -1.24957601e-01  6.49027235e-01  7.90590793e-01<span style="color: #000000;">]
+ [ </span>6.74501145e-01 -5.87763531e-01  1.04708716e+00  1.18500970e+00<span style="color: #000000;">]
+ [ </span>1.64384411e+00 -1.24957601e-01  1.16081857e+00  5.27644853e-01<span style="color: #000000;">]
+ [ </span>1.88617985e+00 -5.87763531e-01  1.33141568e+00  9.22063763e-01<span style="color: #000000;">]
+ [ </span>2.49201920e+00  1.72626612e+00  1.50201279e+00  1.05353673e+00<span style="color: #000000;">]
+ [ </span>6.74501145e-01 -5.87763531e-01  1.04708716e+00  1.31648267e+00<span style="color: #000000;">]
+ [ </span>5.53333275e-01 -5.87763531e-01  7.62758643e-01  3.96171883e-01<span style="color: #000000;">]
+ [ </span>3.10997534e-01 -1.05056946e+00  1.04708716e+00  2.64698913e-01<span style="color: #000000;">]
+ [ </span>2.24968346e+00 -1.24957601e-01  1.33141568e+00  1.44795564e+00<span style="color: #000000;">]
+ [ </span>5.53333275e-01  8.00654259e-01  1.04708716e+00  1.57942861e+00<span style="color: #000000;">]
+ [ </span>6.74501145e-01  1.06445364e-01  9.90221459e-01  7.90590793e-01<span style="color: #000000;">]
+ [ </span>1.89829664e-01 -1.24957601e-01  5.92161531e-01  7.90590793e-01<span style="color: #000000;">]
+ [ </span>1.28034050e+00  1.06445364e-01  9.33355755e-01  1.18500970e+00<span style="color: #000000;">]
+ [ </span>1.03800476e+00  1.06445364e-01  1.04708716e+00  1.57942861e+00<span style="color: #000000;">]
+ [ </span>1.28034050e+00  1.06445364e-01  7.62758643e-01  1.44795564e+00<span style="color: #000000;">]
+ [</span>-5.25060772e-02 -8.19166497e-01  7.62758643e-01  9.22063763e-01<span style="color: #000000;">]
+ [ </span>1.15917263e+00  3.37848329e-01  1.21768427e+00  1.44795564e+00<span style="color: #000000;">]
+ [ </span>1.03800476e+00  5.69251294e-01  1.10395287e+00  1.71090158e+00<span style="color: #000000;">]
+ [ </span>1.03800476e+00 -1.24957601e-01  8.19624347e-01  1.44795564e+00<span style="color: #000000;">]
+ [ </span>5.53333275e-01 -1.28197243e+00  7.05892939e-01  9.22063763e-01<span style="color: #000000;">]
+ [ </span>7.95669016e-01 -1.24957601e-01  8.19624347e-01  1.05353673e+00<span style="color: #000000;">]
+ [ </span>4.32165405e-01  8.00654259e-01  9.33355755e-01  1.44795564e+00<span style="color: #000000;">]
+ [ </span>6.86617933e-02 -1.24957601e-01  7.62758643e-01  7.90590793e-01]]</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>参考链接：<a href="https://www.cnblogs.com/ftl1012/p/10498480.html">https://www.cnblogs.com/ftl1012/p/10498480.html</a></p>
+</div>
+</div>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

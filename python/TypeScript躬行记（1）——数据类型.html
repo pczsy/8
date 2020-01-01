@@ -1,0 +1,295 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修TypeScript躬行记（1）——数据类型' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>TypeScript躬行记（1）——数据类型</center></div><div class='banquan'>原文出处:本文由博客园博主咖啡机（K.F.J）提供。<br/>
+原文连接:https://www.cnblogs.com/strick/p/11640802.html</div><br>
+    <p>　　TypeScript不仅支持JavaScript所包含的数据类型，还额外扩展了许多实用的数据类型，例如枚举、空值、任意值等。</p>
+<h1>一、JavaScript的数据类型</h1>
+<p>　　JavaScript的数据类型包括6种基本类型：undefined、null、布尔值、数字、字符串以及ES6新增的Symbol，还有1种复杂类型：object。由于TypeScript提供了可选的静态类型声明（即在变量后跟一个冒号和类型声明），因此同样的变量声明，在TypeScript中将更能传播代码的意图，并且在编译时还能验证代码的正确性。在下面的代码中，声明了6种类型（不包括Symbol），并且引入了ES6新增的二进制、八进制和模板字面量。</p>
+<div class="cnblogs_code">
+<pre><code>let isDone: <span style="color: #0000ff;">boolean</span> = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+let decimal: number </span>= 10;　　　　　　 <span style="color: #008000;">//</span><span style="color: #008000;">十进制</span>
+let hex: number = 0xa;　　　　　　　　<span style="color: #008000;">//</span><span style="color: #008000;">十六进制</span>
+let binary: number = 0b1010;　　　　 <span style="color: #008000;">//</span><span style="color: #008000;">二进制</span>
+let octal: number = 0o12;　　　　　　<span style="color: #008000;">//</span><span style="color: #008000;">八进制</span>
+<span style="color: #000000;">
+let name: string </span>= "strick"<span style="color: #000000;">;
+let template: string </span>= `my name is ${name}`;    <span style="color: #008000;">//</span><span style="color: #008000;">模板字面量</span>
+<span style="color: #000000;">
+let u: undefined </span>=<span style="color: #000000;"> undefined;
+let n: </span><span style="color: #0000ff;">null</span> = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+
+let obj: object </span>= {};</pre>
+</div>
+<h1>二、TypeScript扩展的类型</h1>
+<p><span style="font-size: 18px;"><strong>1）任意值</strong></span></p>
+<p>　　当变量声明为任意值（any类型）时，它在编译阶段会跨过类型检查，并且能被赋为任意类型的值，还允许访问任意属性、调用任意方法。在下面的示例中，虽然能编译通过，但是在使用时却会抛出错误，因为字符串类型的变量没有toFixed()方法。</p>
+<div class="cnblogs_code">
+<pre><code>let data: any = 10.5<span style="color: #000000;">;
+data </span>= "strick"<span style="color: #000000;">;
+data.toFixed();    </span><span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p>　　注意，没有显式声明类型的变量，默认都是any类型的。</p>
+<p><span style="font-size: 18px;"><strong>2）空值</strong></span></p>
+<p>　　在JavaScript中，没有空值（void类型）的概念。TypeScript中的void不表示任意类型，与any类型相悖。当一个函数没有返回值时，通常会将其返回值的类型声明成void，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> send(): <span style="color: #0000ff;">void</span> { }</pre>
+</div>
+<p>　　如果声明一个void类型的变量，那么它的值只能是undefined或null，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let u: <span style="color: #0000ff;">void</span> =<span style="color: #000000;"> undefined;
+let n: </span><span style="color: #0000ff;">void</span> = <span style="color: #0000ff;">null</span>;</pre>
+</div>
+<p><span style="font-size: 18px;"><strong>3）Never</strong></span></p>
+<p>　　never类型表示那些永不存在的值的类型，例如包含死循环不会有返回值的函数或抛出错误的函数，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span><span style="color: #000000;"> loop(): never {
+  </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {}
+}
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> error(message: string): never {
+  </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Error(message);
+}</span></pre>
+</div>
+<p>　　注意，当一个函数没有返回值时，它返回一个void类型；而当函数被意外中断时，它返回一个never类型。</p>
+<p>　　由于never类型是所有类型的子类型，因此可被赋给任意类型。但是除了其自身之外，其它类型（包括any）都不能赋给它，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">let none: never;
+let digit: number </span>= none;        <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+let figure: never = 10;          <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>4）数组</strong></span></p>
+<p>　　在TypeScript中，有两种常见的数组声明方式。第一种通过类型和方括号组合来表示数组，第二种是使用数组泛型，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let arr1: number[] = [1, 2, 3<span style="color: #000000;">];
+let arr2: Array</span>&lt;number&gt; = [1, 2, 3];</pre>
+</div>
+<p>　　在指定了元素类型之后，就不能添加其它类型的元素，例如为数组的push()方法传入一个字符串数字，如下所示，在编译时会报错。</p>
+<div class="cnblogs_code">
+<pre><code>arr1.push("4");</pre>
+</div>
+<p>　　如果数组需要包含各种类型的元素，那么可以将其声明成any类型，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let arr3: any[] = [1, "2", <span style="color: #0000ff;">true</span>];</pre>
+</div>
+<p><span style="font-size: 18px;"><strong>5）元组</strong></span></p>
+<p>　　在TypeScript中，元组（Tuple）会合并不同类型的值，例如定义一对string和number两种类型的元组，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let list: [string, number];</pre>
+</div>
+<p>　　当为元组赋值时，需要指定相应类型的元素，即先传字符串，后传数字，下面代码的第二次赋值没有按照这个顺序，因此在编译时将报错。</p>
+<div class="cnblogs_code">
+<pre><code>list = ["strick", 10];        <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+list = [10, "strick"];        <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p>　　也可以通过索引为元组添加元素，但也要遵守类型限制，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>list[0] = "strick"<span style="color: #000000;">;
+list[</span>1] = 10;</pre>
+</div>
+<p>　　当添加越界的元素时，只要该元素是元组的联合类型（既可以是字符串，也可以是数字），就能编译成功，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>list.push(10);            <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+list.push(<span style="color: #0000ff;">true</span>);          <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p>　　在编译第二条语句时，会报&ldquo;Argument of type 'true' is not assignable to parameter of type 'string | number'.&rdquo;的错误。</p>
+<h1>三、枚举</h1>
+<p>　　枚举是一个被命名的常量集合，该类型也是对JavaScript标准数据类型的一个补充。和C#、Java等其它语言一样，使用枚举可以更清晰的表达代码意图。TypeScript支持数字的和字符串两种类型的枚举。</p>
+<p><span style="font-size: 18px;"><strong>1）数字枚举</strong></span></p>
+<p>　　默认情况下，定义的都是数字枚举，如下所示，其中枚举成员的值从0开始自增长，例如Up的值为0，Down的值为1，其余依次递增。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">enum</span> Direction { Up, Down, Left, Right }</pre>
+</div>
+<p>　　通过枚举名可以正向映射得到枚举值，而通过枚举值也可以反向映射得到枚举名，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>Direction.Up;        <span style="color: #008000;">//</span><span style="color: #008000;">0</span>
+Direction[0];        <span style="color: #008000;">//</span><span style="color: #008000;">"Up"</span></pre>
+</div>
+<p>　　由于TypeScript中的枚举会被编译成下面这样，因此才能通过两种映射方式分别得到枚举名和枚举值。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">var</span><span style="color: #000000;"> Direction;
+(</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> (Direction) {
+    Direction[Direction[</span>"Up"] = 0] = "Up"<span style="color: #000000;">;
+    Direction[Direction[</span>"Down"] = 1] = "Down"<span style="color: #000000;">;
+    Direction[Direction[</span>"Left"] = 2] = "Left"<span style="color: #000000;">;
+    Direction[Direction[</span>"Right"] = 3] = "Right"<span style="color: #000000;">;
+})(Direction </span>|| (Direction = {}));</pre>
+</div>
+<p>　　数字枚举也支持手动赋值，例如将上例中的Direction从1开始递增，如下所示，Down的值为2。注意，定义的数字还可以是小数、负数等各种与数字兼容的值。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">enum</span> Direction { Up = <span style="color: #800080;">1</span>, Down, Left, Right }</pre>
+</div>
+<p>　　或者也可以为每个枚举成员都赋值，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">enum</span> Direction { Up = <span style="color: #800080;">1</span>, Down = <span style="color: #800080;">3</span>, Left = <span style="color: #800080;">5</span>, Right = <span style="color: #800080;">7</span> }</pre>
+</div>
+<p><span style="font-size: 18px;"><strong>2）字符串枚举</strong></span></p>
+<p>　　在字符串枚举中，每个成员的值都得是字符串类型的，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">enum</span> Color { Red = <span style="color: #800000;">"</span><span style="color: #800000;">RED</span><span style="color: #800000;">"</span>, Green = <span style="color: #800000;">"</span><span style="color: #800000;">GREEN</span><span style="color: #800000;">"</span>, Blue = <span style="color: #800000;">"</span><span style="color: #800000;">BLUE</span><span style="color: #800000;">"</span> }</pre>
+</div>
+<p>　　字符串枚举提供了有意义、可调试的字符串，常用于简单的值比较，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">if</span> (colorName ===<span style="color: #000000;"> Color.Red) {
+  console.log(</span>"success"<span style="color: #000000;">);
+}</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>3）异构枚举</strong></span></p>
+<p>　　枚举还可以混合字符串和数字两种成员，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">enum</span> Mix { Up = <span style="color: #800080;">1</span>, Red = <span style="color: #800000;">"</span><span style="color: #800000;">RED</span><span style="color: #800000;">"</span> }</pre>
+</div>
+<p><span style="font-size: 18px;"><strong>4）枚举成员</strong></span></p>
+<p>　　每个枚举成员都会包含一个值，而根据值的来源可将成员分成常量成员（Constant Member）和计算成员（Computed Member）。</p>
+<p>　　之前示例中的枚举成员都是常量，除此之外，当枚举成员通过常量枚举表达式初始化时，也会成为常量成员。常量枚举表达式是TypeScript表达式的子集，可在编译阶段求值。当一个表达式满足下面一个条件时（引用自官方文档），它就是一个常量枚举表达式：</p>
+<p>　　（1）枚举表达式字面量，例如字符串字面量或数字字面量。</p>
+<p>　　（2）一个对之前定义的常量成员的引用，可以在不同的枚举类型中。</p>
+<p>　　（3）带括号的常量枚举表达式。</p>
+<p>　　（4）将+、-、~三个一元运算符中的一个应用到常量枚举表达式中。</p>
+<p>　　（5）常量枚举表达式作为二元运算符+、-、*、/、%、&lt;&lt;、&gt;&gt;、&gt;&gt;&gt;、&amp;、|或^的操作对象。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">enum</span><span style="color: #000000;"> Con {
+  Red </span>= <span style="color: #800080;">1</span><span style="color: #000000;">, 
+  Green </span>=<span style="color: #000000;"> Direction.Down,
+  Blue </span>= -(<span style="color: #800080;">1</span> &lt;&lt; <span style="color: #800080;">1</span><span style="color: #000000;">),
+  Yellow </span>= Red &amp;<span style="color: #000000;"> Blue
+}</span></pre>
+</div>
+<p>　　不满足上述条件的枚举成员会被当作计算成员来使用，并且要注意，计算成员之后，都需要手动赋值，否则会在编译阶段报错。下面这个枚举就会编译失败。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">enum</span><span style="color: #000000;"> Computed {
+  Red </span>= <span style="color: #800000;">"</span><span style="color: #800000;">red</span><span style="color: #800000;">"</span><span style="color: #000000;">.length, 
+  Green,
+  Blue
+}</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>5）常量枚举</strong></span></p>
+<p>　　在声明枚举时添加const关键字就能生成常量枚举，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">const</span> <span style="color: #0000ff;">enum</span> Colors { Red, Green, Blue }</pre>
+</div>
+<p>　　常量枚举只能使用常量枚举表达式，不能包含计算成员，并且会在编译阶段被删除，其成员在被引用到时才会被内联进来，例如将上例Colors中的成员组成一个数组，其编译结果如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let colors =<span style="color: #000000;"> [Colors.Red, Colors.Green, Colors.Blue];
+</span><span style="color: #008000;">//</span><span style="color: #008000;">编译结果</span>
+<span style="color: #0000ff;">var</span> colors = [0 <span style="color: #008000;">/*</span><span style="color: #008000;"> Red </span><span style="color: #008000;">*/</span>, 1 <span style="color: #008000;">/*</span><span style="color: #008000;"> Green </span><span style="color: #008000;">*/</span>, 2 <span style="color: #008000;">/*</span><span style="color: #008000;"> Blue </span><span style="color: #008000;">*/</span>];</pre>
+</div>
+<p><span style="font-size: 18px;"><strong>6）外部枚举</strong></span></p>
+<p>　　在声明枚举时添加declare关键字就能生成外部枚举，即全局枚举，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>declare <span style="color: #0000ff;">enum</span> Externals { Red, Green, Blue }</pre>
+</div>
+<p>　　外部枚举用于描述已经存在的枚举类型，并且在编译结果中会移除declare声明的枚举，例如将Externals的成员组成一个数组。</p>
+<div class="cnblogs_code">
+<pre><code>let externals = [Externals.Red, Externals.Green, Externals.Blue];</pre>
+</div>
+<p>　　在运行时调用externals时，如果没有定义Externals对象，那么就会报错。</p>
+<p>　　declare还可以与其它关键字（例如var、function、class等）配合，声明全局变量、全局函数、全局类等。</p>
+<h1>四、类型断言</h1>
+<p>　　类型断言可指定一个值的类型，类似于类型转换，但它只在编译阶段起作用，并且不影响运行时的结果。类型断言包含两种语法形式，第一种是尖括号语法，第二种是as语法，如下所示。当在TypeScript中使用JSX时，只支持as语法。</p>
+<div class="cnblogs_code">
+<pre><code>let age: number = <span style="color: #800080;">28</span><span style="color: #000000;">;
+let digit </span>= &lt;number&gt;age;        　　<span style="color: #008000;">//</span><span style="color: #008000;">语法一</span>
+let figure = age <span style="color: #0000ff;">as</span> number;        <span style="color: #008000;">//</span><span style="color: #008000;">语法二</span></pre>
+</div>
+<h1>五、联合类型</h1>
+<p>　　联合类型（Union Type）可让一个变量拥有多种类型，在语法上，通过竖线（|）来分隔每个类型，例如下面的data变量，既可以是字符串，也可以是数字。</p>
+<div class="cnblogs_code">
+<pre><code>let data: number | <span style="color: #0000ff;">string</span><span style="color: #000000;">;
+data </span>= <span style="color: #800080;">10</span><span style="color: #000000;">;
+data </span>= <span style="color: #800000;">"</span><span style="color: #800000;">strick</span><span style="color: #800000;">"</span>;</pre>
+</div>
+<p>　　注意，当访问联合类型的成员时，只能访问它们共有的成员。以上面示例的data变量为例，它能成功调用toString()方法，但不能访问length属性（如下所示），因为length属性只存在于string中，而toString()方法是两者共有的。</p>
+<div class="cnblogs_code">
+<pre><code>data.toString();    <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+data.length;        <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<h1>六、函数</h1>
+<p>　　TypeScript中的函数不仅包含ES6的默认参数、剩余参数等功能，还新增了许多额外的功能，例如类型声明、重载等。</p>
+<p><span style="font-size: 18px;"><strong>1）函数创建</strong></span></p>
+<p>　　在创建函数时可以为其参数和返回值添加类型，从而起到约束的作用。在下面的示例中，通过两种方式创建函数，第一种是函数声明，第二种是函数表达式。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> add(x: number, y: number): number {            　　 <span style="color: #008000;">//</span><span style="color: #008000;">第一种</span>
+  <span style="color: #0000ff;">return</span> x +<span style="color: #000000;"> y;
+}
+let minus </span>= <span style="color: #0000ff;">function</span>(x: number, y: number): number {        <span style="color: #008000;">//</span><span style="color: #008000;">第二种</span>
+  <span style="color: #0000ff;">return</span> x -<span style="color: #000000;"> y;
+};</span></pre>
+</div>
+<p>　　由于TypeScript能根据return语句推断出返回值的类型，因此可以省略该类型的声明。注意，如果在调用函数时传递多余的参数，那么在编译时就会报错。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> add(x: number, y: number) {        <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+  <span style="color: #0000ff;">return</span> x +<span style="color: #000000;"> y;
+}
+add(</span>1, 2, 3);</pre>
+</div>
+<p>　　TypeScript还可以为函数表达式右侧的变量添加类型，如下所示，其中&ldquo;=&gt;&rdquo;符号不表示箭头函数，而是用来定义函数的返回值类型，并且返回值类型必须指定。</p>
+<div class="cnblogs_code">
+<pre><code>let minus: (x: number, y: number) =&gt; number = 
+    <span style="color: #0000ff;">function</span>(x: number, y: number): number { <span style="color: #0000ff;">return</span> x - y; };        <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+let minus: (x: number, y: number) = 
+    <span style="color: #0000ff;">function</span>(x: number, y: number): number { <span style="color: #0000ff;">return</span> x - y; };        <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p>　　注意，两处的参数名称可以不一致，只要类型匹配即可，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let minus: (left: number, right: number) =&gt; number = 
+    <span style="color: #0000ff;">function</span>(x: number, y: number): number { <span style="color: #0000ff;">return</span> x - y; };        <span style="color: #008000;">//</span><span style="color: #008000;">正确</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>2）可选参数</strong></span></p>
+<p>　　在JavaScript中，函数的参数都是可选的，而在TypeScript中的参数默认都是必传的。如果要让参数可选，那么需要在其后面跟一个问号（?），如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> sum(x: number, y?<span style="color: #000000;">: number): number {
+  </span><span style="color: #0000ff;">return</span> x +<span style="color: #000000;"> y;
+}</span></pre>
+</div>
+<p>　　注意，可选参数得位于必选参数之后，下面的写法是错误的。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> sum(x?<span style="color: #000000;">: number, y: number): number {
+  </span><span style="color: #0000ff;">return</span> x +<span style="color: #000000;"> y;
+}</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>3）重载</strong></span></p>
+<p>　　JavaScript里的函数可根据不同数量和类型的参数返回不同类型的值，这样虽然很便捷，但是无法精确的传达出函数的输入和输出之间的对应关系。TypeScript提供了重载功能，可有效改善JavaScript函数定义不明确的问题。以重载定义多个caculate()函数为例，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span><span style="color: #000000;"> caculate(x: number, y: number): number;
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> caculate(x: string, y: string): string;
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> caculate(x, y): any {
+  </span><span style="color: #0000ff;">return</span> x +<span style="color: #000000;"> y;
+}</span></pre>
+</div>
+<p>　　编译器会从重载列表中选出最先匹配的函数定义，并进行正确的类型检查。当多个函数定义之间是包含关系时，优先把最精确的定义放在最前面。</p>
+<p>　　在调用改变后的caculate()函数时（如下所示），传递给它的实参，其类型和组合只要能与重载列表中的一个相同，就能编译成功，否则就会报错。</p>
+<div class="cnblogs_code">
+<pre><code>caculate(1, 2);        　　　　 <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+caculate("1", "2");        　　<span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+caculate(<span style="color: #0000ff;">false</span>, <span style="color: #0000ff;">true</span>);        <span style="color: #008000;">//</span><span style="color: #008000;">错误</span>
+caculate("1", 2);        　　  <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>4）this参数</strong></span></p>
+<p>　　TypeScript能在定义函数时，显式地声明一个this参数，指定this的类型（即限制其指向），从而避免错误的使用this。例如为this定义为void类型，那么在函数中一旦使用this，就无法编译成功，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> func(<span style="color: #0000ff;">this</span>: <span style="color: #0000ff;">void</span><span style="color: #000000;">) {
+  </span><span style="color: #0000ff;">this</span>.name = "strick";        <span style="color: #008000;">//</span><span style="color: #008000;">错误</span>
+}</pre>
+</div>
+<p>　　注意，this是个假参数，位于参数列表的最前面，只用来做静态检查，不会出现在编译后的代码中。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

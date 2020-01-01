@@ -1,0 +1,122 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修mybatis精讲(五)--映射器组件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>mybatis精讲(五)--映射器组件</center></div><div class='banquan'>原文出处:本文由博客园博主烟花散尽13141提供。<br/>
+原文连接:https://www.cnblogs.com/zhangxinhua/p/11997434.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#前言">前言</a></li>
+        <li><a href="#标签">标签</a><ul>
+        <li><a href="#select">select</a></li>
+        <li><a href="#insertupdatedelete">insert|update|delete</a></li>
+        </ul></li>
+        <li><a href="#参数">参数</a></li>
+        <li><a href="#resultmap">resultMap</a></li>
+        <li><a href="#cache">cache</a><ul>
+        <li><a href="#自定义缓存">自定义缓存</a></li>
+        </ul></li>
+        <li><a href="#加入战队"># <span id="addMe">加入战队</span></a><ul>
+        <li><a href="#微信公众号">微信公众号</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="前言">前言</h1>
+<ul>
+<li>映射器之前我们已经提到了，是mybatis特有的组件： java+xml组合的方式。对于Java类和xml的编写也很简单。值得注意的是需要将Java编写的mapper注册到mybatis中来。之前的注册的方式通过xml。到后续通过spirng来管理通过@Mapper就很方便了。</li>
+</ul>
+<h1 id="标签">标签</h1>
+<ul>
+<li>Java实现的接口Mapper很简单，就是已接口的形式暴露，方法和参数和我们正常的写一样，就是在多参数的时候我们需要通过<code>@Param</code>注解标注在sql中的变量名。</li>
+<li><ul>
+<li>但是xml就需要按照mybatis的格式来写了。xml中有select、insert、update、delete等对应方法的标签。除了这些还有sql、resultMap、</li>
+</ul></li>
+</ul>
+<h2 id="select">select</h2>
+<ul>
+<li><p>严格来说，select及下面的insert这些都有一个id,这些id形成JavaMapper中对应的方法。mybatis也是通过id来定位到要执行的sql的。我们通过parameterType、resultType定义入参和出参的类型。Type也可以事先定义为对应的Map 即 parameterMap、resultMap。 在select标签中还有一个flushCache用来表示是否清楚缓存在查询。因为mybatis默认对SESSION级别开启一级缓存。还有之前提到的fetchSize获取记录的条数。常见的就这些属性。还有其他属性感兴趣的可以深入</p></li>
+<li><p>在入参出参的时候我们可以使用别名来制定类型。这就是别名带来的好处。不需要写一大长串的包名类名。</p></li>
+<li><p>在第一张我们就提到mybatis和Hibernate的区别是前者是半自动后者是全自动。半自动映射是因为mybatis在列明和属性名相同的时候自动映射，剩下的就需要我们sql别名了。mybatis还提供一种列名转驼峰映射的方式也是经常使用的。</p></li>
+<li><p>select中经常会用到resultMap， resultMap这个标签用途可以说是跟大。首先定义Javabean属性和数据库列的映射。映射包括一对一，一对多，还有根据情况选择器这三种特殊标签。初次之外在列与属性映射时候还可以指定TypeHandler来进行覆盖。有机会好好总结一下这个resultMap。</p></li>
+</ul>
+<h2 id="insertupdatedelete">insert|update|delete</h2>
+<ul>
+<li><p>这些标签实际上和select标签一样。属性上也都是差不多。不同的是select有结果集。而这三个标签返回的就是记录数。并不注重他们的返回，更加注重的是他们的入参的执行。经常在他们里面会有foreach这些用来批量操作。</p></li>
+<li><p>在新增的时候mybatis提供selectKey标签来实现主键自增长策略，也可以实现自定义主键增长策略。这里的增长并不是数字层面的增长，而是不同的意思。</p></li>
+</ul>
+<h1 id="参数">参数</h1>
+<ul>
+<li><p>在传参的方式有很多种，我们可以选择map ，也可以选择javabean,也可以多参传递。多参传递的时候我们需要添加<code>@Param</code>注解标注属性名。根据实际情况自行选取哪种方式。</p></li>
+<li><p>上面提到resultMap可以指定typeHandler，实际上在参数上我们也可以。#{name,javaType=double,jdvbType=NUMERIC,typeHandler=MyTypeHandler}</p></li>
+<li><p>#{name} 这种方式mybatis会自动根据数据格式进行映射，但是当name为null，mybatis就无法映射，这个时候我们#{name,jdbcType=VARCHAR}。mybatis就会采用StringTypeHandler去解析</p></li>
+<li><p>还有就是# ,$ 的区别。这里不多说，前者是占位，后者是拼接</p></li>
+</ul>
+<h1 id="resultmap">resultMap</h1>
+<ul>
+<li>resultMap是最复杂的一个标签，他的功能可以实现字段的映射、级联的查询、定制类型转换器。resultMap目前只能用在select标签中。新增没有。</li>
+</ul>
+<p>```xml</p>
+<p><resultMap><br />
+<constructor><br />
+<idArg/><br />
+<arg/><br />
+</constructor><br />
+<id/><br />
+<result/><br />
+<association/><br />
+<discriminator/><br />
+</resultMap></p>
+<pre><code><code>                                ```
+                                
+                                ## 级联
+                                
+                                  - 级联在我们平时开发中是最常见的。我们通过pojo接收返回结果的时候我们经常需要处理的就是级联的问题。在上面的resultMap中通过association、collection来负责一对一。一对多的处理。具体的级联在我之前的文章中都有的。大家可以关注我查看。</code></pre>
+<h1 id="cache">cache</h1>
+<ul>
+<li><p>缓存是为了提高运行效率产生的一个功能。主要就是讲数据保存 在内存中。因为cpu读取内存是非常的快的。所以缓存能够提高我们的效率。之前我们已经提过了，mybatis为我们提供两种缓存。一级缓存和二级缓存。一级缓存默认是打开的。他的生命周期是SESSION。就是说在同一个sqlsession中相同的查询是经过缓存的。这个缓存如果没有在insert或者select其他标签内没有flush缓存的话，这个缓存在规定时间内就会一直存在。换句话说同样的sql将会一直查询缓存。上述情况仅仅是针对相同的sqlsession.</p></li>
+<li><p>一级缓存针对sqlsession。有的时候我们需要讲mapper进行缓存。换句话说讲缓存放到sqlsessionfactory上。这时候我们引入了二级缓存的概念。mybatis默认是不开启二级缓存的。开启的方式也很简单</p></li>
+</ul>
+<pre class="xml"><code>
+&lt;cache/&gt;
+</code></pre>
+<ul>
+<li><p>只需要在mybatis-config.xml中加入cache这个标签就可以了。当然我们如果是用pojo接收结果的。pojo需要进行序列化。</p></li>
+<li><p>在二级缓存中我们所有的select都讲被缓存起来。在insert、update、delete执行的时候都将会刷新缓存的。下面给出一个全的cache配合。</p></li>
+</ul>
+<pre class="xml"><code>
+&lt;cache eviction=&quot;LRU&quot; flushInterval=&quot;1000&quot; size=&quot;1024&quot; readOnly=&quot;true&quot;/&gt;
+</code></pre>
+<h2 id="自定义缓存">自定义缓存</h2>
+<ul>
+<li>我们上面开启的只是mybatis为我们提供的二级缓存。但是往往我们都是结合redis这种第三方缓存实现的。下面我们来看看我们如何实现自定义缓存。</li>
+<li><ul>
+<li>首先我们需要先继承<code>org.apache.ibatis.cache.Cache</code>接口。然后通过在mybatis-config.xml中引入我们的类就行了</li>
+</ul></li>
+<li><pre><code><code>`&lt;cache type=&quot;*******&quot;/&gt;`往往在select、insert、update、delete这些标签中和userCache、flushCache结合使用实现缓存的使用的sql</code></pre></li>
+<li><a href="#addMe">加入战队</a></li>
+</ul>
+<h1 id="加入战队"># <span id="addMe">加入战队</span></h1>
+<h2 id="微信公众号">微信公众号</h2>
+<p><img src="./images/mybatis精讲(五)--映射器组件0.png" alt="微信公众号" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

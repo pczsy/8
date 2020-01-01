@@ -1,0 +1,130 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修多次回归分析及推导' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>多次回归分析及推导</center></div><div class='banquan'>原文出处:本文由博客园博主bbird2018提供。<br/>
+原文连接:https://www.cnblogs.com/bbird/p/11493266.html</div><br>
+    <h2 id="多次回归分析">多次回归分析</h2>
+<p>在线性回归分析的时候，我用了一条直线去拟合年龄和工资的数据，结果不是太贴合的。我们尝试先用多次方程组来拟合数据。<br />
+<br /><br />
+我们先把数据读出出来。</p>
+<pre><code><code>import tensorflow as tf
+import pandas as pd
+import numpy as np
+from matplotlib import pyplot as plt</code></pre>
+<pre><code><code>unrate = pd.read_csv(&#39;SD.csv&#39;)
+unrate = unrate.sort_values(&#39;Year&#39;)
+print(unrate)</code></pre>
+<pre><code><code>    Year  Salary
+0    1.0   39451
+30   1.1   40343
+1    1.2   46313
+31   1.3   47605
+2    1.4   37839
+..   ...     ...
+85  12.0  106247
+86  12.5  117634
+87  12.6  113300
+88  13.3  123056
+89  13.5  122537
+
+[90 rows x 2 columns]</code></pre>
+<p>这次我们用一个二次方程来拟合一下这些数据。<br><br />
+方程我们定义为如下：<br />
+<span class="math display">\[ \hat(y_i)=W_1*x_i^2 + W_2*x_i+b\]</span><br />
+那么这样的话，我们就有三个参数 W_1, W_2, b。我们先给这三个参数一个初始数值。</p>
+<pre><code><code>w_1 = 1000
+w_2 =1000
+b = 1000
+print(w_1)
+print(w_2)
+print(b)
+
+y_pred = w_1* np.power(unrate[&#39;Year&#39;],2) + w_2* unrate[&#39;Year&#39;] + b
+plt.scatter(unrate[&#39;Year&#39;],unrate[&#39;Salary&#39;])
+plt.plot(unrate[&#39;Year&#39;],y_pred)
+plt.show()</code></pre>
+<pre><code><code>1000
+1000
+1000</code></pre>
+<p><img src="./images/多次回归分析及推导0.png" /></p>
+<p>我们如果按照上述的模型，求出预测值<span class="math inline">\(\hat{y}\)</span>，我们需要一个函数来评估这个值的好坏。<br />
+<span class="math display">\[loss=\sum_{i=0}^{n} (y_i -\hat{y}_i)^2\]</span><br />
+这个函数和一次的一样，没有任何变化。接下来，我们需要求出这个函数的导函数。</p>
+<p><span class="math display">\[\frac{dl}{dw_1} = \frac{dl}{d\hat{y}}*\frac{d\hat{y}}{dw_1}
+=-2\sum_{i=0}^{n}(y_i-\hat{y}_i)*x_i^2
+\]</span></p>
+<p><span class="math display">\[
+\frac{dl}{dw_2} = \frac{dl}{d\hat{y}}*\frac{d\hat{y}}{dw_2}=-2\sum_{i=0}^{n}(y_i-\hat{y}_i)*x_i
+\]</span></p>
+<p><span class="math display">\[
+\frac{dl}{db}=\frac{dl}{d\hat{y}}*\frac{d\hat{y}}{db}=-2\sum_{i=0}^{n}(y_i-\hat{y}_i)
+\]</span></p>
+<p>我们来把上述的函数代码化</p>
+<pre><code><code>def train(w_1,w_2, b):
+    
+    learning_rate = 0.000001
+    
+    y_pred = w_1* np.power(unrate[&#39;Year&#39;],2) + w_2* unrate[&#39;Year&#39;] + b
+    
+    dw_1 =  -2*np.sum( np.transpose(unrate[&#39;Salary&#39;] - y_pred)*np.power(unrate[&#39;Year&#39;],2))
+    dw_2 = -2*np.sum( np.transpose(unrate[&#39;Salary&#39;] - y_pred)*unrate[&#39;Year&#39;])
+    db =  -2*np.sum((unrate[&#39;Salary&#39;] - y_pred))
+
+    temp_w_1 = w_1 - learning_rate * dw_1
+    temp_w_2 = w_2 - learning_rate * dw_2
+    temp_b = b - learning_rate * db
+    
+    w_1 = temp_w_1
+    w_2= temp_w_2
+    b = temp_b
+    return w_1,w_2,b
+ 
+
+    </code></pre>
+<p>我们来运行下测试下效果：</p>
+<pre><code><code>for i in range(10000):
+    w_1, w_2, b = train(w_1,w_2,b)
+
+    
+    
+print(w_1)
+print(w_2)
+print(b)
+y_pred = w_1 * np.power(unrate[&#39;Year&#39;],2) + w_2 * unrate[&#39;Year&#39;] + b
+loss = np.power((y_pred-unrate[&#39;Salary&#39;]),2).sum()
+
+
+plt.scatter(unrate[&#39;Year&#39;],unrate[&#39;Salary&#39;])
+plt.plot(unrate[&#39;Year&#39;],y_pred)
+
+
+
+</code></pre>
+<pre><code><code>-695.3117280326662
+17380.592541992835
+8744.131370136933
+8487947406.30475</code></pre>
+<p><img src="./images/多次回归分析及推导1.png" /></p>
+<p>上面就是我们拟合出来的效果。</p>
+<p>我们可以看出来，比我们之前一次的拟合的数据要好很多。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

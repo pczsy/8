@@ -1,0 +1,276 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修小白学 Python 爬虫（14）：urllib 基础使用（四）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>小白学 Python 爬虫（14）：urllib 基础使用（四）</center></div><div class='banquan'>原文出处:本文由博客园博主极客挖掘机提供。<br/>
+原文连接:https://www.cnblogs.com/babycomeon/p/12014583.html</div><br>
+    <p><img src="./images/小白学 Python 爬虫（14）：urllib 基础使用（四）0.png" /></p>
+<blockquote>
+<p>人生苦短，我用 Python</p>
+</blockquote>
+<p>前文传送门：</p>
+<p><a href="https://www.geekdigging.com/2019/11/13/3303836941/">小白学 Python 爬虫（1）：开篇</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/20/2586166930/">小白学 Python 爬虫（2）：前置准备（一）基本类库的安装</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/21/1005563697/">小白学 Python 爬虫（3）：前置准备（二）Linux基础入门</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/22/3679472340/">小白学 Python 爬虫（4）：前置准备（三）Docker基础入门</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/24/334078215/">小白学 Python 爬虫（5）：前置准备（四）数据库基础</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/25/1881661601/">小白学 Python 爬虫（6）：前置准备（五）爬虫框架的安装</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/26/1197821400/">小白学 Python 爬虫（7）：HTTP 基础</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/27/101847406/">小白学 Python 爬虫（8）：网页基础</a></p>
+<p><a href="https://www.geekdigging.com/2019/11/28/1668465912/">小白学 Python 爬虫（9）：爬虫基础</a></p>
+<p><a href="https://www.geekdigging.com/2019/12/01/2475257648/">小白学 Python 爬虫（10）：Session 和 Cookies</a></p>
+<p><a href="https://www.geekdigging.com/2019/12/02/2333822325/">小白学 Python 爬虫（11）：urllib 基础使用（一）</a></p>
+<p><a href="https://www.geekdigging.com/2019/12/03/819896244/">小白学 Python 爬虫（12）：urllib 基础使用（二）</a></p>
+<p><a href="https://www.geekdigging.com/2019/12/04/2992515886/">小白学 Python 爬虫（13）：urllib 基础使用（三）</a></p>
+<h2 id="parse-模块">Parse 模块</h2>
+<p>官方文档：<a href="https://docs.python.org/zh-cn/3.7/library/urllib.parse.html" class="uri">https://docs.python.org/zh-cn/3.7/library/urllib.parse.html</a></p>
+<p>前面我们介绍了 urllib 的 Request 模块和 Error 模块，本篇我们接着介绍 Parse 模块。</p>
+<p>先看一下官方文档的解释吧：</p>
+<blockquote>
+<p>This module defines a standard interface to break Uniform Resource Locator (URL) strings up in components (addressing scheme, network location, path etc.), to combine the components back into a URL string, and to convert a &quot;relative URL&quot; to an absolute URL given a &quot;base URL.&quot;</p>
+</blockquote>
+<blockquote>
+<p>The module has been designed to match the Internet RFC on Relative Uniform Resource Locators. It supports the following URL schemes: file, ftp, gopher, hdl, http, https, imap, mailto, mms, news, nntp, prospero, rsync, rtsp, rtspu, sftp, shttp, sip, sips, snews, svn, svn+ssh, telnet, wais, ws, wss.</p>
+</blockquote>
+<blockquote>
+<p>The urllib.parse module defines functions that fall into two broad categories: URL parsing and URL quoting.</p>
+</blockquote>
+<p>大意是该模块定义了一个处理 URL 的标准接口，主要用于分解 URL 字符串为组件和将组件组合回 URL 字符串，并且可以将相对 URL 转换为绝对 URL 。</p>
+<p>它支持的 URL 协议有：file, ftp, gopher, hdl, http, https, imap, mailto, mms, news, nntp, prospero, rsync, rtsp, rtspu, sftp, shttp, sip, sips, snews, svn, svn+ssh, telnet, wais, ws, wss。</p>
+<p>urllib.parse 模块定义的函数分为两大类：URL 解析和 URL 引用。</p>
+<h2 id="url-解析">URL 解析</h2>
+<h3 id="urlparse">urlparse()</h3>
+<p>先看最常用的一个方法 <code>urlparse()</code> ，该方法主要用于识别 URL 和将其分段，再来看下 urlparse 对于一个 URL 的定义：</p>
+<pre><code><code>scheme://netloc/path;parameters?query#fragment</code></pre>
+<p>可以看到， urlparse() 将一个 URL 拆解成为 6 个部分，分别是 <code>scheme</code> 、 <code>netloc</code> 、 <code>path</code> 、 <code>params</code> 、 <code>query</code> 和 <code>fragment</code> 。</p>
+<p>大体上可以看出来，解析时是会有特定的分隔符的。</p>
+<ul>
+<li>scheme：位于 <code>://</code> 前面，代表了当前的协议。</li>
+<li>netloc：位于第一个 <code>/</code> 之前，代表了域名。</li>
+<li>path：位于第一个 <code>/</code> 和 <code>;</code> 之间，代表了访问路径。</li>
+<li>parameters：位于 <code>;</code> 和 <code>?</code> 之间，代表了路径元素的参数。</li>
+<li>query：位于 <code>?</code> 和 <code>#</code> 之间，代表了查询组件。</li>
+<li>fragment：位于 <code>#</code> 之后，代表了片段识别。</li>
+</ul>
+<p>一个标准的 URL 应该是由以上部分组成，但是实际上，我们现在看到的大部分的 URL 并不会在链接中包含 <code>;</code> 。</p>
+<p>看个小例子吧，随便在官方文档上找了个连接，我们使用 <code>urlparse()</code> 将它解析一下看下结果：</p>
+<pre><code><code>from urllib.parse import urlparse
+
+result = urlparse(&#39;https://docs.python.org/zh-cn/3.7/library/urllib.parse.html#module-urllib.parse&#39;)
+print(type(result))
+print(result)</code></pre>
+<p>执行结果：</p>
+<pre><code><code>&lt;class &#39;urllib.parse.ParseResult&#39;&gt;
+ParseResult(scheme=&#39;https&#39;, netloc=&#39;docs.python.org&#39;, path=&#39;/zh-cn/3.7/library/urllib.parse.html&#39;, params=&#39;&#39;, query=&#39;&#39;, fragment=&#39;module-urllib.parse&#39;)</code></pre>
+<p>可以看到， <code>urlparse()</code> 返回的数据类型是 <code>urllib.parse.ParseResult</code> 对象，它实际上是一个元组数据类型，而这个元组则包含了我们上面介绍的那些组件元素。</p>
+<p>如果我们想要获取这个链接中的某个值怎么获取呢？比如说我们想获取当前这个链接的域名信息：</p>
+<pre><code><code>print(result.netloc)</code></pre>
+<p>结果如下：</p>
+<pre><code><code>docs.python.org</code></pre>
+<p>我们可以直接通过这个 <code>urllib.parse.ParseResult</code> 对应的属性将它取出来，而 <code>urlparse()</code> 甚至为我们提供了索引的方式来进行取值，对应关系如下表（以下内容来自官方文档）：</p>
+<table>
+<thead>
+<tr class="header">
+<th>属性</th>
+<th>索引</th>
+<th>描述</th>
+<th>值（如果不存在）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>scheme</td>
+<td>0</td>
+<td>URL 方案说明符</td>
+<td>scheme parameter</td>
+</tr>
+<tr class="even">
+<td>netloc</td>
+<td>1</td>
+<td>域名</td>
+<td>空字符串</td>
+</tr>
+<tr class="odd">
+<td>path</td>
+<td>2</td>
+<td>分层路径</td>
+<td>空字符串</td>
+</tr>
+<tr class="even">
+<td>params</td>
+<td>3</td>
+<td>最后路径元素的参数</td>
+<td>空字符串</td>
+</tr>
+<tr class="odd">
+<td>query</td>
+<td>4</td>
+<td>查询组件</td>
+<td>空字符串</td>
+</tr>
+<tr class="even">
+<td>fragment</td>
+<td>5</td>
+<td>片段识别</td>
+<td>空字符串</td>
+</tr>
+</tbody>
+</table>
+<p>我们再通过索引的方式获取一下刚才我们想获取的域名信息：</p>
+<pre><code><code>print(result[1])</code></pre>
+<p>结果如下：</p>
+<pre><code><code>docs.python.org</code></pre>
+<p>获取成功。</p>
+<p>我们再来看一下 <code>urlparse()</code> 的语法：</p>
+<pre><code><code>urllib.parse.urlparse(urlstring, scheme=&#39;&#39;, allow_fragments=True)</code></pre>
+<ul>
+<li>urlstring：这是必填项，即待解析的URL。</li>
+<li>scheme：它是默认的协议（比如 http 或 https 等）。假如这个链接没有带协议信息，会将这个作为默认的协议。</li>
+<li>allow_fragments：即是否忽略 fragment 。如果它被设置为 False ， fragment 部分就会被忽略，它会被解析为 path 、 parameters 或者 query 的一部分，而 fragment 部分为空。</li>
+</ul>
+<p>我们再来写一个示例，连接还是使用刚才上面的链接，我们在这个示例中去掉链接中的 scheme 信息，在参数中指定 scheme 信息，并且将 allow_fragments 设置为 False ，看下片段识别将会被解析成哪一部分：</p>
+<pre><code><code>from urllib.parse import urlparse
+
+result1 = urlparse(&#39;docs.python.org/zh-cn/3.7/library/urllib.parse.html#module-urllib.parse&#39;, scheme = &quot;https&quot;, allow_fragments = False)
+print(result1)</code></pre>
+<p>运行结果如下：</p>
+<pre><code><code>ParseResult(scheme=&#39;https&#39;, netloc=&#39;&#39;, path=&#39;docs.python.org/zh-cn/3.7/library/urllib.parse.html#module-urllib.parse&#39;, params=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</code></pre>
+<p>可以从结果中看出， scheme 信息是可以正常识别出来的，而片段识别信息则被解析成为了 path 的一部分。</p>
+<h3 id="urlunparse">urlunparse()</h3>
+<p>有了解析链接的 <code>urlparse()</code> ，那么一定会存在构建链接的 <code>urlunparse()</code> 。</p>
+<p>这个方法它接受的参数是一个可迭代对象，但是它的长度必须是 6 ，否则会抛出参数数量不足或者过多的问题。</p>
+<p>我们还是通过一个示例了解一下：</p>
+<pre><code><code>from urllib.parse import urlparse, urlunparse
+
+params = (&#39;https&#39;, &#39;www.geekdigging.com&#39;, &#39;index.html&#39;, &#39;people&#39;, &#39;a=1&#39;, &#39;geekdigging&#39;)
+print(urlunparse(params))</code></pre>
+<p>这里的参数使用的数据类型是元组，当然也可以选择其他的可迭代的数据类型，例如列表或者特定的数据结构等等。</p>
+<p>运行结果如下：</p>
+<pre><code><code>https://www.geekdigging.com/index.html;people?a=1#geekdigging</code></pre>
+<p>这样我们就简单的实现了 URL 的构造，如果其中某些参数在构建的时候不存在，切记不可直接不写，留空字符串即可，如下：</p>
+<pre><code><code>params = (&#39;https&#39;, &#39;www.geekdigging.com&#39;, &#39;index.html&#39;, &#39;&#39;, &#39;&#39;, &#39;geekdigging&#39;)</code></pre>
+<h3 id="urlsplit">urlsplit()</h3>
+<p><code>urlsplit()</code> 这个方法和 <code>urlparse()</code> 非常像，唯一的区别就是 <code>urlsplit()</code> 不再单独解析 <code>params</code> 这个组件，只会返回 5 个组件的结果，它将 <code>params</code> 合并到了 <code>path</code> 中。还是看一个示例：</p>
+<pre><code><code>from urllib.parse import urlsplit
+
+result_urlsplit = urlsplit(&quot;https://www.geekdigging.com/index.html;people?a=1#geekdigging&quot;)
+print(type(result_urlsplit))
+print(result_urlsplit)</code></pre>
+<p>结果如下：</p>
+<pre><code><code>&lt;class &#39;urllib.parse.SplitResult&#39;&gt;
+SplitResult(scheme=&#39;https&#39;, netloc=&#39;www.geekdigging.com&#39;, path=&#39;/index.html;people&#39;, query=&#39;a=1&#39;, fragment=&#39;geekdigging&#39;)</code></pre>
+<p>可以发现，返回结果是 <code>urllib.parse.SplitResult</code> ，它其实也是一个元组类型，既可以用属性获取值，也可以用索引来获取。示例如下：</p>
+<pre><code><code>print(result_urlsplit.netloc)
+print(result_urlsplit[1])</code></pre>
+<p>结果如下：</p>
+<pre><code><code>www.geekdigging.com
+www.geekdigging.com</code></pre>
+<h3 id="urlunsplit">urlunsplit()</h3>
+<p>看到这个命名各位同学应该大致上已经可以猜出来 <code>urlunsplit()</code> 它的作用以及用法了。</p>
+<p>对的，木有错，它和上面介绍的 <code>urlunparse()</code> 是非常相似的，唯一的区别就是它的参数长度必须为 5 。示例如下：</p>
+<pre><code><code>from urllib.parse import urlunsplit
+
+params_urlunsplit = (&#39;https&#39;, &#39;www.geekdigging.com&#39;, &#39;index.html;people&#39;, &#39;a=1&#39;, &#39;geekdigging&#39;)
+print(urlunsplit(params_urlunsplit))</code></pre>
+<p>结果如下：</p>
+<pre><code><code>https://www.geekdigging.com/index.html;people?a=1#geekdigging</code></pre>
+<p>其余的不多做介绍，完全参考上面的 <code>urlunparse()</code> 。</p>
+<h3 id="urljoin">urljoin()</h3>
+<p>上面我们介绍了 <code>urlunparse()</code> 和 <code>urlunsplit()</code> 两个方法可以合成链接，前提是我们需要有定长的参数可迭代对象，链接的每一个组件都要对应的分开。</p>
+<p>而 urllib.parase 中提供的 <code>urljoin()</code> 这个方法就比较有意思了。我们先看下官方的解释：</p>
+<blockquote>
+<p>Construct a full (&quot;absolute&quot;) URL by combining a &quot;base URL&quot; (base) with another URL (url). Informally, this uses components of the base URL, in particular the addressing scheme, the network location and (part of) the path, to provide missing components in the relative URL.</p>
+</blockquote>
+<p>其中的大意是：通过基础的 URL 和另一个 URL 来完成组合完成最终的 URL ，它会分析基础的 URL 的 <code>scheme</code> 、 <code>netloc</code> 和 <code>path</code> 这三个内容，并对新连接缺失的部分进行补充，完成最终的组合。</p>
+<p>有点没看懂？没关系，我们写几个简单的示例就清楚了：</p>
+<pre><code><code>print(urljoin(&quot;https://www.geekdigging.com/&quot;, &quot;index.html&quot;))
+print(urljoin(&quot;https://www.geekdigging.com/&quot;, &quot;https://www.geekdigging.com/index.html&quot;))
+print(urljoin(&quot;https://www.geekdigging.com/&quot;, &quot;?a=aa&quot;))
+print(urljoin(&quot;https://www.geekdigging.com/#geekdigging&quot;, &quot;https://docs.python.org/zh-cn/3.7/library/urllib.parse.html&quot;))</code></pre>
+<p>结果如下：</p>
+<pre><code><code>https://www.geekdigging.com/index.html
+https://www.geekdigging.com/index.html
+https://www.geekdigging.com/?a=aa
+https://docs.python.org/zh-cn/3.7/library/urllib.parse.html</code></pre>
+<p>不知各位同学看懂了没？</p>
+<p>只有在第二个参数链接缺失 <code>scheme</code> 、 <code>netloc</code> 和 <code>path</code> 这三个内容的时候，才会从第一个参数中获取对应的内容进行组合。</p>
+<h3 id="parse_qs">parse_qs()</h3>
+<p>这个方法可以让我们将一串 GET 请求中的参数转换成为字典。</p>
+<p>我们在百度搜索的时候，像百度发送的请求其实是 GET 请求，例如我在百度搜索 Python ，这时浏览器上的链接显示为：<a href="https://www.baidu.com/s?ie=UTF-8&amp;wd=python" class="uri">https://www.baidu.com/s?ie=UTF-8&amp;wd=python</a> 。这里的 GET请求参数实际上是 <code>?</code> 后面这部分 <code>ie=UTF-8&amp;wd=python</code> 。我们还是用 <code>parse_qs()</code> 来写个示例看一下：</p>
+<pre><code><code>from urllib.parse import parse_qs
+
+print(parse_qs(&quot;ie=UTF-8&amp;wd=python&quot;))</code></pre>
+<p>执行结果如下：</p>
+<pre><code><code>{&#39;ie&#39;: [&#39;UTF-8&#39;], &#39;wd&#39;: [&#39;python&#39;]}</code></pre>
+<p>可以看到，参数成功的转换成了字典。</p>
+<h3 id="parse_qsl">parse_qsl()</h3>
+<p>还有一个parse_qsl()方法，它用于将参数转化为元组组成的列表，示例如下：</p>
+<pre><code><code>from urllib.parse import parse_qsl
+
+# parse_qsl 示例
+print(parse_qsl(&quot;ie=UTF-8&amp;wd=python&quot;))</code></pre>
+<p>执行结果如下：</p>
+<pre><code><code>[(&#39;ie&#39;, &#39;UTF-8&#39;), (&#39;wd&#39;, &#39;python&#39;)]</code></pre>
+<p>可以看到，参数成功的转换成了元组组成的列表。</p>
+<h2 id="url-引用">URL 引用</h2>
+<h3 id="urlencode">urlencode()</h3>
+<p>我们接着介绍一个比较常用的方法： <code>urlencode()</code> 。</p>
+<p>这个方法是用来构造 GET 请求参数的，例如我们上面示例中所使用到的百度搜索的参数，它可以将一个字典转换成为 GET 请求参数。示例如下：</p>
+<pre><code><code>from urllib.parse import urlencode
+
+# urlencode 示例
+dict = {
+    &quot;name&quot;: &quot;极客挖掘机&quot;,
+    &quot;age&quot;: 18
+}
+print(&quot;https://www.geekdigging.com/&quot; + urlencode(dict))</code></pre>
+<p>结果如下：</p>
+<pre><code><code>https://www.geekdigging.com/name=%E6%9E%81%E5%AE%A2%E6%8C%96%E6%8E%98%E6%9C%BA&amp;age=18</code></pre>
+<p>执行结果中有一串看不懂是什么的字符串，这个是 URL 编码，因为参数中含有中文参数时，可能会导致乱码，可以看到 <code>urlencode()</code> 这个方法，自动的帮我们对中文进行了 URL 编码。</p>
+<h3 id="quote">quote()</h3>
+<p>这个方法是 urllib.parse 中专门为我们提供的 URL 转码的方法，我们还是拿上面一个示例的中文进行转码，各位同学可以看下结果是否相同：</p>
+<pre><code><code>from urllib.parse import quote
+
+# quote 示例
+print(quote(&quot;极客挖掘机&quot;))</code></pre>
+<p>结果如下：</p>
+<pre><code><code>%E6%9E%81%E5%AE%A2%E6%8C%96%E6%8E%98%E6%9C%BA</code></pre>
+<p>好像是一样的对吧，说明我们测试成功。</p>
+<h3 id="unquote">unquote()</h3>
+<p>有了 <code>quote()</code> 的方法，当然会搞一个专门逆向的方法咯~~~</p>
+<p>我们把刚才经过 URL 编码后的字符串拿出来做测试，看看能不能转回去：</p>
+<pre><code><code>from urllib.parse import unquote
+
+# unquote 示例
+print(unquote(&quot;%E6%9E%81%E5%AE%A2%E6%8C%96%E6%8E%98%E6%9C%BA&quot;))</code></pre>
+<p>结果如下：</p>
+<pre><code><code>极客挖掘机</code></pre>
+<p>可以看到，经过我们 URL 编码后的字符串逆向成功。</p>
+<p>本篇的内容就到这里了，内容有些又臭又长，不过还是希望各位同学可以亲自动手练习一下。</p>
+<p>毕竟，自己不敲代码是永远学不会代码的。</p>
+<h2 id="示例代码">示例代码</h2>
+<p>本系列的所有代码小编都会放在代码管理仓库 Github 和 Gitee 上，方便大家取用。</p>
+<p><a href="https://github.com/meteor1993/python-learning/tree/master/python-spider/urllib-request" title="示例代码-Github">示例代码-Github</a></p>
+<p><a href="https://gitee.com/inwsy/python-learning/tree/master/python-spider/urllib-request" title="示例代码-Gitee">示例代码-Gitee</a></p>
+<h2 id="参考">参考</h2>
+<p><a href="https://www.cnblogs.com/zhangxinqi/p/9170312.html" class="uri">https://www.cnblogs.com/zhangxinqi/p/9170312.html</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

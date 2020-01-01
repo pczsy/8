@@ -1,0 +1,210 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage</center></div><div class='banquan'>原文出处:本文由博客园博主TM0831提供。<br/>
+原文连接:https://www.cnblogs.com/TM0831/p/12087966.html</div><br>
+    <h2>一、前言</h2>
+<p>　　现在开发一个网站，分页是一个很常见的功能了，尤其是当数据达到一定量的时候，如果都显示在页面上，会造成页面过长而影响用户体验，除此之外，还可能出现加载过慢等问题。因此，分页就很有必要了。</p>
+<p>　　<strong>分页功能的常用的实现方法有两种：前台分页和后台分页。</strong>前台分页就是一次查询取出所有数据保存在内存中，需要的时候就从相应区间中取数据，但只适用于少量数据的情况。后台分页就是查询时只取出相应区间中的数据并返回，翻页时再次查询并取数据，此方法能减小传输压力提高性能。今天这篇博客就记录一下在 Flask 中怎么使用 Flask 的扩展库 flask-pagination 和分页插件 layPage 实现分页功能。</p>
+<p>&nbsp;</p>
+<h2>二、准备工作</h2>
+<h3>1.Flask 环境配置</h3>
+<p>　　首先你需要一个 Python 环境，然后需要安装几个第三方库：</p>
+<ul>
+<li>flask</li>
+<li>pymysql</li>
+<li>flask-pagination</li>
+<li>SQLAlchemy</li>
+</ul>
+<p>　　使用如下命令进行安装：</p>
+<blockquote>
+<p>pip install flask</p>
+<p>pip install pymysql</p>
+<p>pip install flask-pagination</p>
+<p>pip install SQLAlchemy</p>
+</blockquote>
+<h3>2.layui 下载安装</h3>
+<p>　　layui 是一个经典模块化前端 UI 框架，网址为：<a href="https://www.layui.com/" target="_blank">https://www.layui.com/</a>，也可以直接点击<a href="https://res.layui.com/static/download/layui/layui-v2.5.5.zip?v=" target="_blank">这里</a>进行下载。</p>
+<p>　　layui 是一款采用自身模块规范编写的前端 UI 框架，遵循原生 HTML/CSS/JS 的书写与组织形式，门槛极低，拿来即用。其外在极简，却又不失饱满的内在，体积轻盈，组件丰盈，从核心代码到 API 的每一处细节都经过精心雕琢，非常适合界面的快速开发。</p>
+<p>　　<img src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage0.png" alt="" /></p>
+<h3>3.数据准备</h3>
+<p>　　这次使用的数据库是 MySQL，建了一个表 students，这个表只有两个字段：stu_id 和 stu_name，表中数据如下：</p>
+<p>　　<img src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage1.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>三、使用flask-pagination</h2>
+<p>&nbsp;　　要使用 flask-pagination 来进行分页，需要从中导出一个类 Pagination：</p>
+<blockquote>
+<p>from flask_paginate import Pagination</p>
+</blockquote>
+<p>　　下面是分页的代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> @app.route(<span style="color: #800000;">'</span><span style="color: #800000;">/index</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">def</span> index(limit=10<span style="color: #000000;">):
+</span><span style="color: #008080;"> 3</span>     sess =<span style="color: #000000;"> DBSession()
+</span><span style="color: #008080;"> 4</span>     data =<span style="color: #000000;"> sess.query(t_students).all()
+</span><span style="color: #008080;"> 5</span>     page = int(request.args.get(<span style="color: #800000;">"</span><span style="color: #800000;">page</span><span style="color: #800000;">"</span>, 1<span style="color: #000000;">))
+</span><span style="color: #008080;"> 6</span>     start = (page - 1) *<span style="color: #000000;"> limit
+</span><span style="color: #008080;"> 7</span>     end = page * limit <span style="color: #0000ff;">if</span> len(data) &gt; page * limit <span style="color: #0000ff;">else</span><span style="color: #000000;"> len(data)
+</span><span style="color: #008080;"> 8</span>     paginate = Pagination(page=page, total=<span style="color: #000000;">len(data))
+</span><span style="color: #008080;"> 9</span>     ret =<span style="color: #000000;"> sess.query(t_students).slice(start, end)
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">return</span> render_template(<span style="color: #800000;">"</span><span style="color: #800000;">index.html</span><span style="color: #800000;">"</span>, data=ret, paginate=paginate)</pre>
+</div>
+<p>&nbsp;　　其中 limit 表示每页显示的条数，page 代表页数，start 和 end 分别表示该页面显示的数据区间，然后实例化 Pagination 类。这里我只传入了两个参数：page 和 total（total 代表数据总条数），除了这两个参数，还可以传入其他参数，例如：</p>
+<ul>
+<li>bs_version：支持的 BootStrap 版本，默认为2；</li>
+<li>css_framework：使用的 CSS 框架，默认为 BootStrap；</li>
+<li>url_coding：URL 编码格式，默认为 UTF-8。</li>
+</ul>
+<p>　　在代码中，我使用了 render_template 来渲染页面并返回数据，下面是前端中的核心代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">table</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 2</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>ID<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>NAME<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 9</span> <span style="color: #000000;">    {% for i in data %}
+</span><span style="color: #008080;">10</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">11</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ i.stu_id }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">12</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ i.stu_name }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">13</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">14</span> <span style="color: #000000;">    {% endfor %}
+</span><span style="color: #008080;">15</span>     <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">16</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">table</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">17</span> {{ paginate.links }}</pre>
+</div>
+<p>　　最终得到的结果如下：</p>
+<p>　　<img src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage2.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>四、使用layPage</h2>
+<p>　　可以看到使用 flask-pagination 得到的分页效果是比较简单的，但如果想要更好的效果，可以使用一些前端框架来实现，例如 layui 中的分页插件 layPage。layPage 致力于提供极致的分页逻辑，既可轻松胜任异步分页，也可作为页面刷新式分页，可以在<a href="https://www.layui.com/doc/modules/laypage.html" target="_blank">这里</a>查看文档。</p>
+<p>　　首先需要导入 layui.js 和 layui.css：</p>
+<blockquote>
+<p>&lt;script src="../static/layui.js"&gt;&lt;/script&gt;<br />&lt;link rel="stylesheet" href="../static/css/layui.css"&gt;</p>
+
+
+
+</blockquote>
+<p>　　laypage 的使用非常简单，指向一个用于存放分页的容器，通过服务端得到一些初始值，即可完成分页渲染。例如：</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('ea5df6ea-f0af-423b-90fe-e7f1614b51c9')"><img id="code_img_closed_ea5df6ea-f0af-423b-90fe-e7f1614b51c9" class="code_img_closed" src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage3.png" alt="" /><img id="code_img_opened_ea5df6ea-f0af-423b-90fe-e7f1614b51c9" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('ea5df6ea-f0af-423b-90fe-e7f1614b51c9',event)" src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage4.png" alt="" />
+<div id="cnblogs_code_open_ea5df6ea-f0af-423b-90fe-e7f1614b51c9" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">table</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>ID<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>NAME<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">10</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tbody </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="demoBody"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">11</span>     <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">table</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">12</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="demo"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">13</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　其中 demo 用于存放分页，demoBody 则用于显示数据内容。但要实现分页，还需要使用 laypage.render() 来渲染。在 laypage.render() 中，有一些核心参数：</p>
+<ul>
+<li>elem：指向存放分页的容器，可以是 ID、DOM 对象；</li>
+<li>count：数据总量，一般通过服务端得到；</li>
+<li>limit：每页显示条数，默认为10条；</li>
+<li>prev：自定义&ldquo;上一页&rdquo;的内容，支持传入普通文本和HTML；</li>
+<li>next：自定义&ldquo;下一页&rdquo;的内容，支持传入普通文本和HTML；</li>
+<li>theme：自定义主题，支持传入颜色值或任意普通字符。</li>
+</ul>
+<p>　　这里使用 layPage 来显示分页内容，而具体数据内容则需要使用 JS 来加载，具体代码如下：</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('0500d56c-29cc-4568-9e8b-55a435d4bade')"><img id="code_img_closed_0500d56c-29cc-4568-9e8b-55a435d4bade" class="code_img_closed" src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage3.png" alt="" /><img id="code_img_opened_0500d56c-29cc-4568-9e8b-55a435d4bade" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('0500d56c-29cc-4568-9e8b-55a435d4bade',event)" src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage4.png" alt="" />
+<div id="cnblogs_code_open_0500d56c-29cc-4568-9e8b-55a435d4bade" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 2</span> <span style="background-color: #f5f5f5; color: #000000;">    $(</span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> () {
+</span><span style="color: #008080;"> 3</span> <span style="background-color: #f5f5f5; color: #000000;">        initPage();
+</span><span style="color: #008080;"> 4</span> <span style="background-color: #f5f5f5; color: #000000;">    });
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> initPage(pageConf) {
+</span><span style="color: #008080;"> 7</span>         <span style="background-color: #f5f5f5; color: #0000ff;">if</span><span style="background-color: #f5f5f5; color: #000000;"> (</span><span style="background-color: #f5f5f5; color: #000000;">!</span><span style="background-color: #f5f5f5; color: #000000;">pageConf) {
+</span><span style="color: #008080;"> 8</span> <span style="background-color: #f5f5f5; color: #000000;">            pageConf </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> {};
+</span><span style="color: #008080;"> 9</span> <span style="background-color: #f5f5f5; color: #000000;">            pageConf.pageSize </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #000000;">10</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">10</span> <span style="background-color: #f5f5f5; color: #000000;">            pageConf.currentPage </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #000000;">1</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">11</span> <span style="background-color: #f5f5f5; color: #000000;">        }
+</span><span style="color: #008080;">12</span> <span style="background-color: #f5f5f5; color: #000000;">        $.post(</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">http://127.0.0.1:5000/get_data</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">, pageConf, </span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (data) {
+</span><span style="color: #008080;">13</span> <span style="background-color: #f5f5f5; color: #000000;">            layui.use([</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">laypage</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">, </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">layer</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">], </span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> () {
+</span><span style="color: #008080;">14</span>                 <span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> page </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> layui.laypage;
+</span><span style="color: #008080;">15</span> <span style="background-color: #f5f5f5; color: #000000;">                page.render({
+</span><span style="color: #008080;">16</span> <span style="background-color: #f5f5f5; color: #000000;">                    elem: </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">demo</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">,
+</span><span style="color: #008080;">17</span> <span style="background-color: #f5f5f5; color: #000000;">                    count: data.count,
+</span><span style="color: #008080;">18</span> <span style="background-color: #f5f5f5; color: #000000;">                    curr: pageConf.currentPage,
+</span><span style="color: #008080;">19</span> <span style="background-color: #f5f5f5; color: #000000;">                    limit: pageConf.pageSize,
+</span><span style="color: #008080;">20</span> <span style="background-color: #f5f5f5; color: #000000;">                    first: </span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">首页</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">,
+</span><span style="color: #008080;">21</span> <span style="background-color: #f5f5f5; color: #000000;">                    last: </span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">尾页</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">,
+</span><span style="color: #008080;">22</span> <span style="background-color: #f5f5f5; color: #000000;">                    layout: [</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">count</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">, </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">prev</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">, </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">page</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">, </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">next</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">, </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">limit</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">, </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">skip</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">],
+</span><span style="color: #008080;">23</span> <span style="background-color: #f5f5f5; color: #000000;">                    jump: </span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (obj, first) {
+</span><span style="color: #008080;">24</span>                         <span style="background-color: #f5f5f5; color: #0000ff;">if</span><span style="background-color: #f5f5f5; color: #000000;"> (</span><span style="background-color: #f5f5f5; color: #000000;">!</span><span style="background-color: #f5f5f5; color: #000000;">first) {
+</span><span style="color: #008080;">25</span> <span style="background-color: #f5f5f5; color: #000000;">                            pageConf.currentPage </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> obj.curr;
+</span><span style="color: #008080;">26</span> <span style="background-color: #f5f5f5; color: #000000;">                            pageConf.pageSize </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> obj.limit;
+</span><span style="color: #008080;">27</span> <span style="background-color: #f5f5f5; color: #000000;">                            initPage(pageConf);
+</span><span style="color: #008080;">28</span> <span style="background-color: #f5f5f5; color: #000000;">                        }
+</span><span style="color: #008080;">29</span> <span style="background-color: #f5f5f5; color: #000000;">                    }
+</span><span style="color: #008080;">30</span> <span style="background-color: #f5f5f5; color: #000000;">                });
+</span><span style="color: #008080;">31</span> <span style="background-color: #f5f5f5; color: #000000;">                fillTable(data[</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">data</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">], (pageConf.currentPage </span><span style="background-color: #f5f5f5; color: #000000;">-</span> <span style="background-color: #f5f5f5; color: #000000;">1</span><span style="background-color: #f5f5f5; color: #000000;">) </span><span style="background-color: #f5f5f5; color: #000000;">*</span><span style="background-color: #f5f5f5; color: #000000;"> pageConf.pageSize); </span><span style="background-color: #f5f5f5; color: #008000;">//</span><span style="background-color: #f5f5f5; color: #008000;">页面填充</span>
+<span style="color: #008080;">32</span> <span style="background-color: #f5f5f5; color: #000000;">            })
+</span><span style="color: #008080;">33</span> <span style="background-color: #f5f5f5; color: #000000;">        });
+</span><span style="color: #008080;">34</span> <span style="background-color: #f5f5f5; color: #000000;">    }
+</span><span style="color: #008080;">35</span> 
+<span style="color: #008080;">36</span>     <span style="background-color: #f5f5f5; color: #008000;">//</span><span style="background-color: #f5f5f5; color: #008000;">填充表格数据</span>
+<span style="color: #008080;">37</span>     <span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> fillTable(data, num) {
+</span><span style="color: #008080;">38</span> <span style="background-color: #f5f5f5; color: #000000;">        $(</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">#demoBody</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">).html(</span><span style="background-color: #f5f5f5; color: #000000;">''</span><span style="background-color: #f5f5f5; color: #000000;">);
+</span><span style="color: #008080;">39</span> <span style="background-color: #f5f5f5; color: #000000;">        $.each(data, </span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (index, obj) {
+</span><span style="color: #008080;">40</span>             <span style="background-color: #f5f5f5; color: #008000;">//</span><span style="background-color: #f5f5f5; color: #008000;"> id 很多时候并不是连续的，如果为了显示比较连续的记录数，可以这样根据当前页和每页条数动态的计算记录序号</span>
+<span style="color: #008080;">41</span> <span style="background-color: #f5f5f5; color: #000000;">            index </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> index </span><span style="background-color: #f5f5f5; color: #000000;">+</span><span style="background-color: #f5f5f5; color: #000000;"> num </span><span style="background-color: #f5f5f5; color: #000000;">+</span> <span style="background-color: #f5f5f5; color: #000000;">1</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">42</span>             <span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> info </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #000000;">''</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">43</span> <span style="background-color: #f5f5f5; color: #000000;">            info </span><span style="background-color: #f5f5f5; color: #000000;">+=</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;tr&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">44</span> <span style="background-color: #f5f5f5; color: #000000;">            info </span><span style="background-color: #f5f5f5; color: #000000;">+=</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;td&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span> <span style="background-color: #f5f5f5; color: #000000;">+</span><span style="background-color: #f5f5f5; color: #000000;"> index </span><span style="background-color: #f5f5f5; color: #000000;">+</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;/td&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">45</span> <span style="background-color: #f5f5f5; color: #000000;">            info </span><span style="background-color: #f5f5f5; color: #000000;">+=</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;td&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span> <span style="background-color: #f5f5f5; color: #000000;">+</span><span style="background-color: #f5f5f5; color: #000000;"> obj.id </span><span style="background-color: #f5f5f5; color: #000000;">+</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;/td&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">46</span> <span style="background-color: #f5f5f5; color: #000000;">            info </span><span style="background-color: #f5f5f5; color: #000000;">+=</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;td&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span> <span style="background-color: #f5f5f5; color: #000000;">+</span><span style="background-color: #f5f5f5; color: #000000;"> obj.name </span><span style="background-color: #f5f5f5; color: #000000;">+</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;/td&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">47</span> <span style="background-color: #f5f5f5; color: #000000;">            info </span><span style="background-color: #f5f5f5; color: #000000;">+=</span> <span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">&lt;/tr&gt;</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">;
+</span><span style="color: #008080;">48</span> <span style="background-color: #f5f5f5; color: #000000;">            $(</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">#demoBody</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">).append(info);
+</span><span style="color: #008080;">49</span> <span style="background-color: #f5f5f5; color: #000000;">        });
+</span><span style="color: #008080;">50</span> <span style="background-color: #f5f5f5; color: #000000;">    }
+</span><span style="color: #008080;">51</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　前端代码完成了，还需要一个提供数据的接口，可以使用 Flask 定义一个路由来实现，例如：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> @app.route(<span style="color: #800000;">'</span><span style="color: #800000;">/get_data</span><span style="color: #800000;">'</span>, methods=[<span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_data():
+</span><span style="color: #008080;"> 3</span>     sess =<span style="color: #000000;"> DBSession()
+</span><span style="color: #008080;"> 4</span>     data =<span style="color: #000000;"> sess.query(t_students).all()
+</span><span style="color: #008080;"> 5</span>     limit = int(request.form.get(<span style="color: #800000;">"</span><span style="color: #800000;">pageSize</span><span style="color: #800000;">"</span><span style="color: #000000;">))
+</span><span style="color: #008080;"> 6</span>     page = int(request.form.get(<span style="color: #800000;">"</span><span style="color: #800000;">currentPage</span><span style="color: #800000;">"</span><span style="color: #000000;">))
+</span><span style="color: #008080;"> 7</span>     start = (page - 1) *<span style="color: #000000;"> limit
+</span><span style="color: #008080;"> 8</span>     end = page * limit <span style="color: #0000ff;">if</span> len(data) &gt; page * limit <span style="color: #0000ff;">else</span><span style="color: #000000;"> len(data)
+</span><span style="color: #008080;"> 9</span>     ret = [{<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>: data[i].stu_id, <span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span>: data[i].stu_name} <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(start, end)]
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">return</span> {<span style="color: #800000;">"</span><span style="color: #800000;">data</span><span style="color: #800000;">"</span>: ret, <span style="color: #800000;">"</span><span style="color: #800000;">count</span><span style="color: #800000;">"</span>: len(data)}</pre>
+</div>
+<p>　　前端使用了 POST 请求，传输的数据包括当前页数和每页显示条数，然后在 Flask 中使用 request.form.get() 来获取数据，得到页数和条数后取出相应区间中的数据，返回的结果是一个 JSON 格式数据，其中 data 表示数据，count 表示数据总条数。</p>
+<p>　　最终得到的结果如下：</p>
+<p>　　<img src="./images/Flask学习之旅--分页功能：分别使用 flask--pagination 和分页插件 layPage7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 14pt;">完整代码已上传到 <a href="https://github.com/TM0831/PythonCode/tree/master/PaginateTest" target="_blank">GitHub</a>！</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

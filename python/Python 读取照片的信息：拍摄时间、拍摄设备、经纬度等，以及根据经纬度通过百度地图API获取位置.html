@@ -1,0 +1,84 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python 读取照片的信息：拍摄时间、拍摄设备、经纬度等，以及根据经纬度通过百度地图API获取位置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python 读取照片的信息：拍摄时间、拍摄设备、经纬度等，以及根据经纬度通过百度地图API获取位置</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11537776.html</div><br>
+    <p>通过第三方库exifread读取照片信息。<br />exifread官网：https://pypi.org/project/ExifRead/</p>
+<p><span style="font-size: 16px;"><strong>一、安装exifread</strong></span><br />pip install exifread </p>
+<p><span style="font-size: 16px;"><strong>二、读取照片信息，以及根据经纬度通过百度地图API获取位置</strong></span></p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> exifread
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> urllib.request
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Open image file for reading (binary mode)</span>
+f = open(<span style="color: #800000;">'</span><span style="color: #800000;">001.jpg</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">rb</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Return Exif tags</span>
+tags =<span style="color: #000000;"> exifread.process_file(f)
+
+</span><span style="color: #800000;">'''</span><span style="color: #800000;">
+#打印所有照片信息
+for tag in tags.keys():    
+    print("Key: {}, value {}".format(tag, tags[tag]))
+</span><span style="color: #800000;">'''</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">打印照片其中一些信息</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">拍摄时间：</span><span style="color: #800000;">'</span>, tags[<span style="color: #800000;">'</span><span style="color: #800000;">EXIF DateTimeOriginal</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">照相机制造商：</span><span style="color: #800000;">'</span>, tags[<span style="color: #800000;">'</span><span style="color: #800000;">Image Make</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">照相机型号：</span><span style="color: #800000;">'</span>, tags[<span style="color: #800000;">'</span><span style="color: #800000;">Image Model</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">照片尺寸：</span><span style="color: #800000;">'</span>, tags[<span style="color: #800000;">'</span><span style="color: #800000;">EXIF ExifImageWidth</span><span style="color: #800000;">'</span>], tags[<span style="color: #800000;">'</span><span style="color: #800000;">EXIF ExifImageLength</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">获取经度或纬度</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> getLatOrLng(refKey, tudeKey):
+    </span><span style="color: #0000ff;">if</span> refKey <span style="color: #0000ff;">not</span> <span style="color: #0000ff;">in</span><span style="color: #000000;"> tags:
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+    ref</span>=<span style="color: #000000;">tags[refKey].printable
+    LatOrLng</span>=tags[tudeKey].printable[1:-1].replace(<span style="color: #800000;">"</span> <span style="color: #800000;">"</span>,<span style="color: #800000;">""</span>).replace(<span style="color: #800000;">"</span><span style="color: #800000;">/</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">,</span><span style="color: #800000;">"</span>).split(<span style="color: #800000;">"</span><span style="color: #800000;">,</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    LatOrLng</span>=float(LatOrLng[0])+float(LatOrLng[1])/60+float(LatOrLng[2])/float(LatOrLng[3])/3600
+    <span style="color: #0000ff;">if</span> refKey == <span style="color: #800000;">'</span><span style="color: #800000;">GPS GPSLatitudeRef</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">and</span> tags[refKey].printable != <span style="color: #800000;">"</span><span style="color: #800000;">N</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+        LatOrLng</span>=LatOrLng*(-1<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">if</span> refKey == <span style="color: #800000;">'</span><span style="color: #800000;">GPS GPSLongitudeRef</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">and</span> tags[refKey].printable != <span style="color: #800000;">"</span><span style="color: #800000;">E</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+        LatOrLng</span>=LatOrLng*(-1<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> LatOrLng
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">调用百度地图API通过经纬度获取位置</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> getlocation(lat,lng):   
+    url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">http://api.map.baidu.com/geocoder/v2/?location=</span><span style="color: #800000;">'</span> + lat + <span style="color: #800000;">'</span><span style="color: #800000;">,</span><span style="color: #800000;">'</span> + lng + <span style="color: #800000;">'</span><span style="color: #800000;">&amp;output=json&amp;pois=1&amp;ak=申请的百度地图KEY</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    req </span>=<span style="color: #000000;"> urllib.request.urlopen(url)
+    res </span>= req.read().decode(<span style="color: #800000;">"</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">"</span><span style="color: #000000;">) 
+    str </span>=<span style="color: #000000;"> json.loads(res)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">print(str)</span>
+    jsonResult = str.get(<span style="color: #800000;">'</span><span style="color: #800000;">result</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    formatted_address </span>= jsonResult.get(<span style="color: #800000;">'</span><span style="color: #800000;">formatted_address</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> formatted_address
+
+lat </span>= getLatOrLng(<span style="color: #800000;">'</span><span style="color: #800000;">GPS GPSLatitudeRef</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">GPS GPSLatitude</span><span style="color: #800000;">'</span>) <span style="color: #008000;">#</span><span style="color: #008000;">纬度</span>
+lng = getLatOrLng(<span style="color: #800000;">'</span><span style="color: #800000;">GPS GPSLongitudeRef</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">GPS GPSLongitude</span><span style="color: #800000;">'</span>) <span style="color: #008000;">#</span><span style="color: #008000;">经度</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">纬度:{} 经度：{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(lat, lng))
+
+location </span>=<span style="color: #000000;"> getlocation(str(lat), str(lng))
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">位置：{}</span><span style="color: #800000;">'</span>.format(location))</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

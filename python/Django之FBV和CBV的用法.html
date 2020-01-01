@@ -1,0 +1,224 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django之FBV和CBV的用法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django之FBV和CBV的用法</center></div><div class='banquan'>原文出处:本文由博客园博主YifChan提供。<br/>
+原文连接:https://www.cnblogs.com/yifchan/p/python-1-33.html</div><br>
+    <h2>FBV</h2>
+<p>FBV，即 func base views，函数视图，在视图里使用函数处理请求。</p>
+<p>以用户注册代码为例，</p>
+<h3>使用两个函数完成注册</h3>
+<p>初级注册代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> register(request):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">返回注册页面</span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> register_handle(request):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">进行注册处理</span><span style="color: #800000;">"""</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 接收数据</span>
+    username = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">user_name</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    password </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">pwd</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    email </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">email</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    allow </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">allow</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 进行数据校验，all方法可以进行迭代，如果有内容为空的，返回false</span>
+    <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> all([username, password, email]):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 数据不完整</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">数据不完整</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 邮箱校验</span>
+    <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> re.match(r<span style="color: #800000;">'</span><span style="color: #800000;">[a-z0-9][\w.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$</span><span style="color: #800000;">'</span><span style="color: #000000;">, email):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 邮箱不合法</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">邮箱格式不正确</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 协议是否同意校验</span>
+    <span style="color: #0000ff;">if</span> allow != <span style="color: #800000;">"</span><span style="color: #800000;">on</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户不同意协议</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">请同意协议</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 校验用户名是否重复</span>
+    <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+        user </span>= models.User.objects.get(username=<span style="color: #000000;">username)
+    </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> models.User.DoesNotExist:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户名不存在</span>
+        user =<span style="color: #000000;"> None
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> user:
+        </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">用户名已存在</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 进行业务处理：进行用户注册</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 使用Django默认的认证系统</span>
+    user =<span style="color: #000000;"> models.User.objects.create_user(username, email, password)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 因为默认注册后用户是激活的，得进行修改</span>
+    user.is_active =<span style="color: #000000;"> 0
+    user.save()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回应答，跳转到首页</span>
+    <span style="color: #0000ff;">return</span> redirect(reverse(<span style="color: #800000;">"</span><span style="color: #800000;">goods:index</span><span style="color: #800000;">"</span>))</pre>
+</div>
+<p>配套url</p>
+<div class="cnblogs_code">
+<pre><code>urlpatterns =<span style="color: #000000;"> [
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^register/$</span><span style="color: #800000;">'</span>, views.register, name=<span style="color: #800000;">"</span><span style="color: #800000;">register</span><span style="color: #800000;">"</span>),  <span style="color: #008000;">#</span><span style="color: #008000;"> 注册</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^register_handle/$</span><span style="color: #800000;">'</span>, views.register_handle, name=<span style="color: #800000;">"</span><span style="color: #800000;">register_handle</span><span style="color: #800000;">"</span>),  <span style="color: #008000;">#</span><span style="color: #008000;"> 注册处理</span>
+]</pre>
+</div>
+<p>这样虽然分工比较明确，但却比较麻烦，要使用到两个url和两个处理函数，众所周知，程序员是比较懒的，所以FBV的正确打开方式如下</p>
+<p>&nbsp;</p>
+<h3>使用一个函数完成注册</h3>
+<p>FBV注册代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> register(request):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">注册</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">GET</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 接收数据</span>
+    username = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">user_name</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    password </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">pwd</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    email </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">email</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    allow </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">allow</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 进行数据校验，all方法可以进行迭代，如果有内容为空的，返回false</span>
+    <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> all([username, password, email]):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 数据不完整</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">数据不完整</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 邮箱校验</span>
+    <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> re.match(r<span style="color: #800000;">'</span><span style="color: #800000;">[a-z0-9][\w.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$</span><span style="color: #800000;">'</span><span style="color: #000000;">, email):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 邮箱不合法</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">邮箱格式不正确</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 协议是否同意校验</span>
+    <span style="color: #0000ff;">if</span> allow != <span style="color: #800000;">"</span><span style="color: #800000;">on</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户不同意协议</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">请同意协议</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 校验用户名是否重复</span>
+    <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+        user </span>= models.User.objects.get(username=<span style="color: #000000;">username)
+    </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> models.User.DoesNotExist:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户名不存在</span>
+        user =<span style="color: #000000;"> None
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> user:
+        </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">用户名已存在</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 进行业务处理：进行用户注册</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 使用Django默认的认证系统</span>
+    user =<span style="color: #000000;"> models.User.objects.create_user(username, email, password)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 因为默认注册后用户是激活的，得进行修改</span>
+    user.is_active =<span style="color: #000000;"> 0
+    user.save()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回应答，跳转到首页</span>
+    <span style="color: #0000ff;">return</span> redirect(reverse(<span style="color: #800000;">"</span><span style="color: #800000;">goods:index</span><span style="color: #800000;">"</span>))</pre>
+</div>
+<p>配套url</p>
+<div class="cnblogs_code">
+<pre><code>urlpatterns =<span style="color: #000000;"> [
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^register/$</span><span style="color: #800000;">'</span>, views.register, name=<span style="color: #800000;">"</span><span style="color: #800000;">register</span><span style="color: #800000;">"</span>),  <span style="color: #008000;">#</span><span style="color: #008000;"> 注册</span>
+]</pre>
+</div>
+<p>&nbsp;</p>
+<p>但此时问题又来了，我们知道，在http中请求的方式有get,post,head,options,put,delete,trace,connect等多种方式，从网上盗了一张图来描述这些请求，原图链接地址为：<a href="https://www.cnblogs.com/weibanggang/p/9454581.html" target="_blank">https://www.cnblogs.com/weibanggang/p/9454581.html</a>&nbsp;</p>
+<p><img src="./images/Django之FBV和CBV的用法0.png" alt="" /></p>
+<p>而上面的只处理了get和post，虽然我们可以再定义其他的函数和url来处理，或者通过if判断来进行区别对待，但这明显会显得麻烦，此时，我们可以使用CBV来解决这个问题。</p>
+<p>&nbsp;</p>
+<h2>CBV</h2>
+<p>CBV，即 class base views，类视图，在视图里使用类处理请求。</p>
+<p>CBV代码可以解决诸多请求方式的问题，具备可读性，同时也更加符合面向对象编程。</p>
+<h3>使用CBV完成注册</h3>
+<p>CBV注册代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.shortcuts <span style="color: #0000ff;">import</span><span style="color: #000000;"> render, redirect, HttpResponse
+</span><span style="color: #0000ff;">from</span> django.views.generic <span style="color: #0000ff;">import</span><span style="color: #000000;"> View
+</span><span style="color: #0000ff;">from</span> django.core.urlresolvers <span style="color: #0000ff;">import</span><span style="color: #000000;"> reverse
+</span><span style="color: #0000ff;">from</span> django.core.mail <span style="color: #0000ff;">import</span><span style="color: #000000;"> send_mail
+</span><span style="color: #0000ff;">from</span> django.contrib.auth <span style="color: #0000ff;">import</span><span style="color: #000000;"> authenticate, login
+</span><span style="color: #0000ff;">from</span> itsdangerous <span style="color: #0000ff;">import</span><span style="color: #000000;"> TimedJSONWebSignatureSerializer as Serializer
+</span><span style="color: #0000ff;">from</span> itsdangerous <span style="color: #0000ff;">import</span><span style="color: #000000;"> SignatureExpired
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+</span><span style="color: #0000ff;">from</span> django.conf <span style="color: #0000ff;">import</span><span style="color: #000000;"> settings
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> user.models as models
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> RegisterView(View):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">注册视图</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, request):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">返回注册页面</span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> post(self, request):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">进行注册处理</span><span style="color: #800000;">"""</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 接收数据</span>
+        username = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">user_name</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        password </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">pwd</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        email </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">email</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        allow </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">allow</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 进行数据校验，all方法可以进行迭代，如果有内容为空的，返回false</span>
+        <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> all([username, password, email]):
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 数据不完整</span>
+            <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">数据不完整</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 邮箱校验</span>
+        <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> re.match(r<span style="color: #800000;">'</span><span style="color: #800000;">[a-z0-9][\w.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$</span><span style="color: #800000;">'</span><span style="color: #000000;">, email):
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 邮箱不合法</span>
+            <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">邮箱格式不正确</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 协议是否同意校验</span>
+        <span style="color: #0000ff;">if</span> allow != <span style="color: #800000;">"</span><span style="color: #800000;">on</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户不同意协议</span>
+            <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">请同意协议</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 校验用户名是否重复</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            user </span>= models.User.objects.get(username=<span style="color: #000000;">username)
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> models.User.DoesNotExist:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户名不存在</span>
+            user =<span style="color: #000000;"> None
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> user:
+            </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">register.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">errormsg</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">用户名已存在</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 进行业务处理：进行用户注册</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 使用Django默认的认证系统</span>
+        user =<span style="color: #000000;"> models.User.objects.create_user(username, email, password)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 因为默认注册后用户是激活的，得进行修改</span>
+        user.is_active =<span style="color: #000000;"> 0
+        user.save()
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 发送激活邮件，包括激活链接：http://127.0.0.1:8000/user/active/3</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 激活链接中需要包含用户的身份信息，并且要把身份信息进行加密</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 加密用户的身份信息，生成激活token</span>
+        serializer = Serializer(settings.SECRET_KEY, 1800<span style="color: #000000;">)
+        info </span>= {<span style="color: #800000;">'</span><span style="color: #800000;">confirm</span><span style="color: #800000;">'</span><span style="color: #000000;">: user.id}
+        token </span>=<span style="color: #000000;"> serializer.dumps(info)
+        token </span>=<span style="color: #000000;"> token.decode()
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 发邮件</span>
+        subject = <span style="color: #800000;">"</span><span style="color: #800000;">绿色果园欢迎信息</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        message </span>= <span style="color: #800000;">""</span><span style="color: #000000;">
+        sender </span>=<span style="color: #000000;"> settings.EMAIL_FROM
+        receiver </span>=<span style="color: #000000;"> [email]
+        html_message </span>= <span style="color: #800000;">"</span><span style="color: #800000;">&lt;h2&gt;%s， 欢迎你成为绿色果园注册会员&lt;/h2&gt;&lt;/br&gt;请点击以下链接激活账号&lt;a href='http:127.0.0.1:8000/</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+                       </span><span style="color: #800000;">"</span><span style="color: #800000;">user/active/%s'&gt;http:127.0.0.1:8000/user/active/%s&lt;/a&gt;</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> (username, token, token)
+        send_mail(subject, message, sender, receiver, html_message</span>=<span style="color: #000000;">html_message)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回应答，跳转到首页</span>
+        <span style="color: #0000ff;">return</span> redirect(reverse(<span style="color: #800000;">"</span><span style="color: #800000;">goods:index</span><span style="color: #800000;">"</span>))</pre>
+</div>
+<p>配套url</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> user.views <span style="color: #0000ff;">import</span><span style="color: #000000;"> RegisterView
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^register/$</span><span style="color: #800000;">'</span>, RegisterView.as_view(), name=<span style="color: #800000;">"</span><span style="color: #800000;">register</span><span style="color: #800000;">"</span>),  <span style="color: #008000;">#</span><span style="color: #008000;"> 注册</span>
+]</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

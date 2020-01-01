@@ -1,0 +1,243 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修小数据池,深浅拷贝以及集合' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>小数据池,深浅拷贝以及集合</center></div><div class='banquan'>原文出处:本文由博客园博主Bugbiss提供。<br/>
+原文连接:https://www.cnblogs.com/tutougold/p/11172601.html</div><br>
+    <h1 id="小数据池深浅拷贝以及集合">小数据池,深浅拷贝以及集合</h1>
+<h2 id="一.小数据池">一.小数据池</h2>
+<p>小数据池的验证方法必须脱离代码块才能进行验证</p>
+<p>驻留机制--先执行代码块的规则,再执行小数据池的规则</p>
+<h3 id="小数据池---缓存机制驻留机制">1.小数据池 --缓存机制(驻留机制)</h3>
+<p>小数据池的支持数据类型和范围:</p>
+<ul>
+<li>数字
+<ul>
+<li>-5 ~ 256</li>
+</ul></li>
+<li>字符串
+<ul>
+<li>在同一个代码块下,只要内容相同就采用相同的内存地址</li>
+<li>字符串做乘法的时候总长度不能超过20</li>
+<li>中文和特殊符号乘法的时候乘以0</li>
+</ul></li>
+<li>布尔值
+<ul>
+<li>在同一个代码块下,只要内容相同就采用相同的内存地址</li>
+</ul></li>
+</ul>
+<h3 id="代码块">2.代码块</h3>
+<p>一个文件,一个函数,一个模块,一个类,终端中一行就是一个代码块.</p>
+<p>代码块的支持数据类型和范围</p>
+<ul>
+<li>数字
+<ul>
+<li>在同一个代码块下,只要内容相同就采用相同的内存地址(-5以后不是)</li>
+<li>数字在做乘法的时候范围 -5 ~ 256</li>
+<li>数字在做乘法的时候不能使用浮点数</li>
+</ul></li>
+<li>字符串
+<ul>
+<li>在同一个代码块下,只要内容相同就采用相同的内存地址</li>
+<li>字符串进行乘法的时候总长度不能超过20</li>
+<li>中文和特殊符号乘法的时候只能乘以1或0</li>
+</ul></li>
+<li>布尔值
+<ul>
+<li>在同一个代码块下,只要内容相同就采用相同的内存地址二.</li>
+</ul></li>
+</ul>
+<h2 id="二.-和-is">二. == 和 is</h2>
+<ul>
+<li>== 判断等号两边的值是否相等</li>
+<li>is 判断两边的值内存地址是否相同</li>
+</ul>
+<h2 id="三.深浅拷贝">三.深浅拷贝</h2>
+<h3 id="赋值">1.赋值</h3>
+<p>赋值: 多个变量名指向同一个内存地址,一个变量对其进行操作后,其他变量进行查看时都变动</p>
+<pre><code><code>lst = [1,2,3,[5,6,7]]
+lst1 = lst
+print(lst)
+print(lst1)     #[1,2,3,[5,6,7]]
+                #[1,2,3,[5,6,7]]</code></pre>
+<h3 id="浅拷贝">2.浅拷贝</h3>
+<ul>
+<li>浅拷贝的时候只拷贝第一层元素</li>
+<li>浅拷贝在修改第一层元素(不可变数据类型)的时候,拷贝出来的新列表不进行改变</li>
+<li>浅拷贝在替换第一层元素内的(可变数据类型)时候,拷贝出来的新列表进行改变</li>
+<li>浅拷贝在修改第一层元素中的元素(第二层)的时候,拷贝出来的新列表进行改变</li>
+<li>lst[:] --是浅拷贝</li>
+</ul>
+<pre><code><code>lst =[1,2,3,[6,7,8]]
+lst1= lst
+lst[-1].append(9)
+print(lst)
+print(lst1)      #[1, 2, 3, [6, 7, 8, 9]]
+                 #[1, 2, 3, [6, 7, 8, 9]]
+</code></pre>
+<p><img src="./images/小数据池,深浅拷贝以及集合0.png" /></p>
+<p>浅拷贝</p>
+<pre><code><code>lst = [1,2,3[6,7,8]]
+lst1 = lst.copy()
+print(lst)
+print(lst1)     #[1,2,3,[6,7,8]]
+                #[1,2,3,[6,7,8]]</code></pre>
+<p><img src="./images/小数据池,深浅拷贝以及集合1.png" /></p>
+<pre><code><code>lst = [1,2,3,[6,7,8]]
+lst1 = lst.copy()
+lst[-1].append(9)
+print(lst)
+print(lst1)      #[1, 2, 3, [6, 7, 8, 9]]
+                 #[1, 2, 3, [6, 7, 8, 9]]
+</code></pre>
+<p><img src="./images/小数据池,深浅拷贝以及集合2.png" /></p>
+<pre><code><code>lst = [1,2,3,[6,7,8]]
+lst1 = lst.copy()
+lst[3] = 9
+print(lst)
+print(lst1)        #[1, 2, 3, 9]
+                   #[1, 2, 3, [6, 7, 8]]
+  
+lst = [1,2,3,[5,6,7,[8,9]]]
+lst1 = lst.copy()
+lst.append(10)
+print(lst)
+print(lst1)       #[1, 2, 3, [5, 6, 7, [8, 9]],10]
+                  #[1, 2, 3, [5, 6, 7, [8, 9]]]
+
+    
+lst = [[1,2,],90,6,7,[5,6]]
+lst1 = lst.copy()
+lst[-1] = 8
+print(lst)
+print(lst1)      #[[1, 2], 90, 6, 7, 8]
+                 #[[1, 2], 90, 6, 7, [5,6]]    
+        
+lst = [1,2,3,4,[5,6,7,[8,9]]] 
+lst1 = lst.copy()
+lst[-1][-1] = &quot;56&quot;
+print(lst)
+print(lst1)      #[1, 2, 3, 4, [5, 6, 7, &#39;56&#39;]]
+                 #[1, 2, 3, 4, [5, 6, 7, &#39;56&#39;]]
+
+dic = {&quot;alex&quot;:[1,2,3,[5,6]]}
+dic1 = dic.copy()
+dic[&quot;alex&quot;][-1] = &quot;56&quot;
+print(dic)
+print(dic1)     #{&#39;alex&#39;: [1, 2, 3, &#39;56&#39;]}
+                #{&#39;alex&#39;: [1, 2, 3, &#39;56&#39;]}</code></pre>
+<h3 id="深拷贝">3.深拷贝</h3>
+<ul>
+<li>不可变的数据类型共用,可变的数据类型重新开辟空间</li>
+<li>对源数据进行修改,深拷贝的内容不进行修改</li>
+</ul>
+<p><img src="./images/小数据池,深浅拷贝以及集合3.png" /></p>
+<pre><code><code>import copy
+lst = (1,2,3,[5,6,7])
+lst1 = copy.deepcopy(lst)
+lst[-1].append(8)
+print(lst)
+print(lst1)            #(1, 2, 3, [5, 6, 7, 8])
+                       #(1, 2, 3, [5, 6, 7])</code></pre>
+<h2 id="四.集合set">四.集合(set)</h2>
+<ul>
+<li>没有值的字典</li>
+<li>无序,不支持索引</li>
+<li>天然去重</li>
+</ul>
+<p>定义集合 s = {1,&quot;alex&quot;,False}</p>
+<h3 id="增">增:</h3>
+<pre><code><code>s = {&quot;刘嘉玲&quot;, &#39;关之琳&#39;, &quot;王祖贤&quot;}
+
+#添加 s.add()
+s.add(&quot;郑裕玲&quot;) # 重复的内容不会被添加到set集合中
+print(s)
+
+
+#迭代添加 s.update()
+s.update(&quot;麻花藤&quot;) 
+print(s)
+s.update([&quot;张曼⽟&quot;, &quot;李若彤&quot;,&quot;李若彤&quot;])
+print(s)</code></pre>
+<h3 id="删">删:</h3>
+<pre><code><code>s = {&quot;刘嘉玲&quot;, &#39;关之琳&#39;, &quot;王祖贤&quot;,&quot;张曼⽟&quot;, &quot;李若彤&quot;}
+
+# s.pop()     # 随机弹出⼀个.
+
+#s.remove()    # 直接删除元素
+
+s.remove(&quot;⻢⻁疼&quot;) # 不存在这个元素. 删除会报错
+
+
+#s.clear() # 清空set集合.需要注意的是set集合如果是空的. 打印出来是set()</code></pre>
+<h3 id="改">改:</h3>
+<pre><code><code># set集合中的数据没有索引. 也没有办法去定位⼀个元素. 所以没有办法进⾏直接修改.
+# 我们可以采⽤先删除后添加的⽅式来完成修改操作
+s = {&quot;刘嘉玲&quot;, &#39;关之琳&#39;, &quot;王祖贤&quot;,&quot;张曼⽟&quot;, &quot;李若彤&quot;}
+# 把刘嘉玲改成赵本⼭
+s.remove(&quot;刘嘉玲&quot;)
+s.add(&quot;赵本⼭&quot;)
+print(s)
+</code></pre>
+<h3 id="查">查:</h3>
+<pre><code><code># set是⼀个可迭代对象. 所以可以进⾏for循环
+for el in s:
+ print(el)
+</code></pre>
+<h3 id="常用操作">常用操作</h3>
+<pre><code><code>s1 = {&quot;刘能&quot;, &quot;赵四&quot;, &quot;⽪⻓⼭&quot;}
+s2 = {&quot;刘科⻓&quot;, &quot;冯乡⻓&quot;, &quot;⽪⻓⼭&quot;}
+
+# 交集(&amp;)
+# 两个集合中的共有元素
+print(s1 &amp; s2) # {&#39;⽪⻓⼭&#39;}
+print(s1.intersection(s2)) # {&#39;⽪⻓⼭&#39;}
+
+# 并集(丨)
+print(s1 | s2) # {&#39;刘科⻓&#39;, &#39;冯乡⻓&#39;, &#39;赵四&#39;, &#39;⽪⻓⼭&#39;, &#39;刘能&#39;}
+print(s1.union(s2)) # {&#39;刘科⻓&#39;, &#39;冯乡⻓&#39;, &#39;赵四&#39;, &#39;⽪⻓⼭&#39;, &#39;刘能&#39;}
+
+# 差集(-)
+print(s1 - s2) # {&#39;赵四&#39;, &#39;刘能&#39;} 得到第⼀个中单独存在的
+print(s1.difference(s2)) # {&#39;赵四&#39;, &#39;刘能&#39;}
+
+# 反交集(^)
+print(s1 ^ s2) # 两个集合中单独存在的数据 {&#39;冯乡⻓&#39;, &#39;刘能&#39;, &#39;刘科⻓&#39;, &#39;赵四&#39;}
+print(s1.symmetric_difference(s2)) # {&#39;冯乡⻓&#39;, &#39;刘能&#39;, &#39;刘科⻓&#39;, &#39;赵四&#39;}
+s1 = {&quot;刘能&quot;, &quot;赵四&quot;}
+s2 = {&quot;刘能&quot;, &quot;赵四&quot;, &quot;⽪⻓⼭&quot;}
+
+# ⼦集(&lt;)
+print(s1 &lt; s2) # set1是set2的⼦集吗? True
+print(s1.issubset(s2))
+
+# 超集(&gt;)
+print(s1 &gt; s2) # set1是set2的超集吗? False
+print(s1.issuperset(s2))
+
+
+#冻结集合
+s = frozenset([&quot;赵本⼭&quot;, &quot;刘能&quot;, &quot;⽪⻓⼭&quot;, &quot;长桂&quot;])
+dic = {s:&#39;123&#39;}   # 可以正常使⽤了
+print(dic)
+</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

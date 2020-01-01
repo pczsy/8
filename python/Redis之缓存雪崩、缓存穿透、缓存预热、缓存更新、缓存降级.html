@@ -1,0 +1,64 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis之缓存雪崩、缓存穿透、缓存预热、缓存更新、缓存降级' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis之缓存雪崩、缓存穿透、缓存预热、缓存更新、缓存降级</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11750255.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#redis之缓存雪崩缓存穿透缓存预热缓存更新缓存降级">Redis之缓存雪崩、缓存穿透、缓存预热、缓存更新、缓存降级</a><ul>
+        <li><a href="#缓存雪崩">1、缓存雪崩</a></li>
+        <li><a href="#缓存穿透">2、缓存穿透</a></li>
+        <li><a href="#缓存预热">3、缓存预热</a></li>
+        <li><a href="#缓存更新">4、缓存更新</a></li>
+        <li><a href="#缓存降级">5、缓存降级</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="redis之缓存雪崩缓存穿透缓存预热缓存更新缓存降级">Redis之缓存雪崩、缓存穿透、缓存预热、缓存更新、缓存降级</h1>
+<h2 id="缓存雪崩">1、缓存雪崩</h2>
+<p>　　发生场景：当Redis服务器重启或者大量缓存在同一时期失效时,此时大量的流量会全部冲击到数据库上面,数据库有可能会因为承受不住而宕机</p>
+<p>　　解决办法：</p>
+<p>　　　　1）随机均匀设置失效时间</p>
+<p>　　　　2）设置过期标志更新缓存</p>
+<p>　　　　3）并发量不是特别多的时候，使用最多的解决方案是加锁排队</p>
+<h2 id="缓存穿透">2、缓存穿透</h2>
+<p>　　发生场景：是指查询一个数据库一定不存在的数据。正常的使用缓存流程大致是，数据查询先进行缓存查询，如果key不存在或者key已经过期，再对数据库进行查询，并把查询到的对象，放进缓存。如果数据库查询对象为空，则不放进缓存。此时，若攻击者抓住这个漏洞不断请求数据库，就会对数据库造成压力，甚至压垮数据库。</p>
+<p>　　解决办法：采用缓存空值的方式，也就是从数据库查询的对象为空，也放入缓存，只是设定的缓存过期时间较短，比如设置为60秒。</p>
+<h2 id="缓存预热">3、缓存预热</h2>
+<p>　　是一种机制, 就是系统上线后，提前将相关的缓存数据直接加载到缓存系统。避免在用户请求的时候，先查询数据库，然后再将数据缓存的问题。</p>
+<h2 id="缓存更新">4、缓存更新</h2>
+<p>　　是一种机制,怎么样保证缓存中的key是实时有效的,以及及时的更新数据资源</p>
+<p>　　解决办法：</p>
+<p>　　　　1）缓存服务器自带的缓存失效策略</p>
+<p>　　　　2）自定义：定时去清理过期的缓存；当用户请求过来时，再判断这个请求所用到的缓存是否过期，过期的话就去底层系统得到新数据并更新缓存。</p>
+<h2 id="缓存降级">5、缓存降级</h2>
+<p>　　发生场景：当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级。降级的最终目的是保证核心服务可用，即使是有损的。而且有些服务是无法降级的（如加入购物车、结算）。</p>
+<p>　　解决办法：</p>
+<p>　　　　在进行降级之前要对系统进行梳理，看看系统是不是可以丢卒保帅；从而梳理出哪些必须誓死保护，哪些可降级；比如可以参考日志级别设置预案：</p>
+<p>　　　　（1）一般：比如有些服务偶尔因为网络抖动或者服务正在上线而超时，可以自动降级；</p>
+<p>　　　　（2）警告：有些服务在一段时间内成功率有波动（如在95~100%之间），可以自动降级或人工降级，并发送告警；</p>
+<p>　　　　（3）错误：比如可用率低于90%，或者数据库连接池被打爆了，或者访问量突然猛增到系统能承受的最大阀值，此时可以根据情况自动降级或者人工降级；</p>
+<p>　　　　（4）严重错误：比如因为特殊原因数据错误了，此时需要紧急人工降级。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

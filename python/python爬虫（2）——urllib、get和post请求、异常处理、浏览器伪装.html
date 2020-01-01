@@ -1,0 +1,199 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python爬虫（2）——urllib、get和post请求、异常处理、浏览器伪装' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python爬虫（2）——urllib、get和post请求、异常处理、浏览器伪装</center></div><div class='banquan'>原文出处:本文由博客园博主swineherd_MCQ提供。<br/>
+原文连接:https://www.cnblogs.com/mcq1999/p/11378870.html</div><br>
+    <h1 id="urllib基础">urllib基础</h1>
+<h2 id="urlretrieve">urlretrieve()</h2>
+<p>urlretrieve(网址,本地文件存储地址) 直接下载网页到本地</p>
+<pre><code><code>import urllib.request
+#urlretrieve(网址,本地文件存储地址) 直接下载网页到本地
+urllib.request.urlretrieve(&quot;http://www.baidu.com&quot;,&quot;dld.html&quot;)</code></pre>
+<h2 id="urlcleanup">urlcleanup()</h2>
+<p>清除缓存</p>
+<pre><code><code>urllib.request.urlcleanup()</code></pre>
+<h2 id="info">info()</h2>
+<p>查看网页简介</p>
+<pre><code><code>file=urllib.request.urlopen(&quot;http://www.baidu.com&quot;)
+print(file.info())</code></pre>
+<h2 id="getcode">getcode()</h2>
+<p>输出网页爬取状态码，200为正常，其他都不正常</p>
+<pre><code><code>file=urllib.request.urlopen(&quot;http://www.baidu.com&quot;)
+print(file.getcode())</code></pre>
+<h2 id="geturl">geturl()</h2>
+<p>获取当前访问的网页的url</p>
+<pre><code><code>file=urllib.request.urlopen(&quot;http://www.baidu.com&quot;)
+print(file.geturl())</code></pre>
+<h1 id="超时设置">超时设置</h1>
+<p>timeout设置为多少秒才判断超时</p>
+<pre><code><code>import urllib.request
+for i in range(1000):
+    try:
+        file = urllib.request.urlopen(&quot;https://www.cnblogs.com/mcq1999/&quot;, timeout=1)
+        print(len(file.read().decode(&quot;utf-8&quot;)))
+    except Exception as e:
+        print(&quot;出现异常&quot;)
+        </code></pre>
+<h1 id="自动模拟http请求">自动模拟HTTP请求</h1>
+<h2 id="get请求">get请求</h2>
+<p>模拟百度搜索python：</p>
+<pre class="ru"><code>import urllib.request
+import re
+keywd=&quot;python&quot;
+url=&quot;http://www.baidu.com/s?wd=&quot;+keywd
+data=urllib.request.urlopen(url).read().decode(&quot;utf-8&quot;)
+pat=&#39;{&quot;title&quot;:&quot;(.*?)&quot;,&#39;
+res=re.compile(pat).findall(data)
+print(res)
+</code></pre>
+<p>关键字为中文：</p>
+<pre><code><code>import urllib.request
+import re
+keywd=&quot;百度&quot;
+keywd=urllib.request.quote(keywd) #如果有中文
+url=&quot;http://www.baidu.com/s?wd=&quot;+keywd
+data=urllib.request.urlopen(url).read().decode(&quot;utf-8&quot;)
+pat=&#39;{&quot;title&quot;:&quot;(.*?)&quot;,&#39;
+res=re.compile(pat).findall(data)
+print(res)</code></pre>
+<p>提取前1~10页：</p>
+<pre><code><code>import urllib.request
+import re
+keywd=&quot;百度&quot;
+keywd=urllib.request.quote(keywd) #如果有中文
+# 页码公式：page=(num-1)*10
+for i in range(1,11):
+    url=&quot;http://www.baidu.com/s?wd=&quot;+keywd+&quot;&amp;pn=&quot;+str((i-1)*10)
+    data=urllib.request.urlopen(url).read().decode(&quot;utf-8&quot;)
+    pat=&#39;{&quot;title&quot;:&quot;(.*?)&quot;,&#39;
+    res=re.compile(pat).findall(data)
+    for j in range(len(res)):
+        print(res[j])</code></pre>
+<h2 id="post请求">post请求</h2>
+<p><img src="./images/python爬虫（2）——urllib、get和post请求、异常处理、浏览器伪装0.png" /></p>
+<pre><code><code>import urllib.request
+import urllib.parse
+posturl=&quot;https://www.iqianyue.com/mypost&quot;
+postdata=urllib.parse.urlencode({
+    &quot;name&quot;:&quot;mcq@163.com&quot;,
+    &quot;pass&quot;:&quot;123456&quot;,
+}).encode(&quot;utf-8&quot;)
+#进行post，需要使用urllib.request下面的Request(真实post地址,post数据)
+req=urllib.request.Request(posturl,postdata)
+res=urllib.request.urlopen(req).read().decode(&quot;utf-8&quot;)
+print(res)
+fh=open(&quot;post.html&quot;,&quot;w&quot;)
+fh.write(res)</code></pre>
+<p><img src="./images/python爬虫（2）——urllib、get和post请求、异常处理、浏览器伪装1.png" /></p>
+<h1 id="爬虫的异常处理">爬虫的异常处理</h1>
+<p>如果没有异常处理，爬虫遇到异常时就会直接崩溃停止运行，下次再次运行时，又会从头开始，所以，要开发一个具有顽强生命力的爬虫，必须要进行异常处理。</p>
+<h2 id="常见状态码及含义">常见状态码及含义</h2>
+<p><img src="./images/python爬虫（2）——urllib、get和post请求、异常处理、浏览器伪装2.png" /></p>
+<h2 id="httperror和urlerror">HTTPError和URLError</h2>
+<p>两者都是异常处理的类，HTTPError是URLError的子类，HTTPError有异常状态码与异常原因，URLError没有异常状态码，所以在处理的时候，不能使用URLError直接代替HTTPError。如果要代替，必须要判断是否有状态码属性。</p>
+<p>URLError出现的原因：</p>
+<ol>
+<li>连不上服务器</li>
+<li>远程url不存在</li>
+<li>无网络</li>
+<li>触发HTTPError</li>
+</ol>
+<pre><code><code>import urllib.request
+import urllib.error
+for i in range(20):
+    try:
+        urllib.request.urlopen(&quot;https://www.cnblogs.com/mcq1999/p/python_Crawler_1.html&quot;)
+        print(&quot;gg&quot;)
+    except urllib.error.URLError as e:
+        if hasattr(e,&quot;code&quot;):
+            print(e.code)
+        if hasattr(e,&quot;reason&quot;):
+            print(e.reason)</code></pre>
+<h1 id="浏览器伪装技术">浏览器伪装技术</h1>
+<p>有的网站爬取的时候会返回403，因为对方服务器会对爬虫进行屏蔽。此时，我们要伪装成浏览器才能爬取。</p>
+<p>浏览器伪装一般通过报头实现。</p>
+<p><img src="./images/python爬虫（2）——urllib、get和post请求、异常处理、浏览器伪装3.png" /></p>
+<p>由于urlopen()对于一些HTTP的高级功能不支持，所以要修改报头，可以使用urllib.request.build_opener()或urllib.request.Request()下的add_header()实现浏览器的模拟。</p>
+<p>opener的全局安装在下面的糗事百科爬虫里有应用</p>
+<pre><code><code>import urllib.request
+url=&quot;https://blog.csdn.net/&quot;
+#头文件格式header=(&quot;User-Agent&quot;,具体用户代理制)
+headers=(&quot;User-Agent&quot;,&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0&quot;)
+opener=urllib.request.build_opener()
+opener.addheaders=[headers]
+data=opener.open(url).read()
+fh=open(&quot;ua.html&quot;,&quot;wb&quot;)
+fh.write(data)
+fh.close()</code></pre>
+<h1 id="python新闻爬虫实战">python新闻爬虫实战</h1>
+<p>需求：将新浪新闻首页所有新闻都爬倒本地</p>
+<p>思路：先爬首页，通过正则表达式获取所有新闻链接，然后依次爬各新闻，并存储到本地</p>
+<pre><code><code>import urllib.request
+import re
+url=&quot;https://news.sina.com.cn/&quot;
+data=urllib.request.urlopen(url).read().decode(&quot;utf-8&quot;,&quot;ignore&quot;) #忽略有异常的编码
+pat1=&#39;&lt;a target=&quot;_blank&quot; href=&quot;(.*?)&quot;&#39;
+alllink=re.compile(pat1).findall(data)
+for i in range(len(alllink)):
+    thislink=alllink[i]
+    urllib.request.urlopen(thislink).read().decode(&quot;utf-8&quot;,&quot;ignore&quot;)
+    urllib.request.urlretrieve(thislink,&quot;news/&quot;+str(i)+&quot;.html&quot;)</code></pre>
+<h1 id="糗事百科爬取">糗事百科爬取</h1>
+<p>目标1：爬取糗事百科首页的内容（包括视频、图片）</p>
+<p><strong>涉及伪装浏览器、opener安装为全局等知识</strong></p>
+<pre><code><code>import urllib.request
+import re
+url=&quot;https://www.qiushibaike.com/&quot;
+#测试是否需要伪装浏览器
+try:
+    urllib.request.urlopen(url)
+except Exception as e:
+    print(e)
+#显示Remote end closed connection without response，要伪装
+headers=(&quot;User-Agent&quot;,&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0&quot;)
+opener=urllib.request.build_opener()
+opener.addheaders=[headers]
+urllib.request.install_opener(opener) #安装为全局
+data=urllib.request.urlopen(url).read().decode(&quot;utf-8&quot;,&quot;ignore&quot;)
+pat=&#39;&lt;a class=&quot;recmd-content&quot; href=&quot;/(.*?)&quot;&#39;
+alllink=re.compile(pat).findall(data)
+for i in range(len(alllink)):
+    realurl=url+alllink[i]
+    print(realurl)
+    urllib.request.urlretrieve(realurl,&quot;糗事百科/&quot;+str(i)+&quot;.html&quot;)</code></pre>
+<p>目标2：爬取1~10页的文章</p>
+<pre><code><code>import urllib.request
+import re
+headers=(&quot;User-Agent&quot;,&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0&quot;)
+opener=urllib.request.build_opener()
+opener.addheaders=[headers]
+urllib.request.install_opener(opener) #安装为全局
+for i in range(10):
+    thisurl=&quot;https://www.qiushibaike.com/text/page/&quot;+str(i+1)+&quot;/&quot;;
+    data=urllib.request.urlopen(thisurl).read().decode(&quot;utf-8&quot;,&quot;ignore&quot;)
+    pat=&#39;&lt;div class=&quot;content&quot;&gt;.*?&lt;span&gt;(.*?)&lt;/span&gt;.*?&lt;/div&gt;&#39;
+    res=re.compile(pat,re.S).findall(data)
+    for j in range(len(res)):
+        print(res[j])
+        print(&#39;---------------------&#39;)</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

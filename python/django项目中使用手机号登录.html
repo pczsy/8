@@ -1,0 +1,251 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修django项目中使用手机号登录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>django项目中使用手机号登录</center></div><div class='banquan'>原文出处:本文由博客园博主记住我忘记我提供。<br/>
+原文连接:https://www.cnblogs.com/nmsghgnv/p/11358217.html</div><br>
+    <p>本文使用聚合数据的短信接口，需要先获取到申请接口的appkey和模板id</p>
+<p>项目目录下创建ubtils文件夹，定义返回随机验证码和调取短信接口的函数</p>
+<p>function.py文件</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> random
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 随机数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> range_num(num):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义一个种子，从这里面随机拿出一个值，可以是字母</span>
+    seeds = <span style="color: #800000;">"</span><span style="color: #800000;">1234567890</span><span style="color: #800000;">"</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 定义一个空列表，每次循环，将拿到的值，加入列表</span>
+    random_num =<span style="color: #000000;"> []
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> choice函数：每次从seeds拿一个值，加入列表</span>
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(num):
+        random_num.append(random.choice(seeds))
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 将列表里的值，变成四位字符串</span>
+    <span style="color: #0000ff;">return</span> <span style="color: #800000;">""</span> . join(random_num)<span style="color: #008000;">#</span><span style="color: #008000;">5454</span></pre>
+</div>
+<p>sendMsg.py文件</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> json, urllib
+</span><span style="color: #0000ff;">from</span> urllib.parse <span style="color: #0000ff;">import</span><span style="color: #000000;"> urlencode
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 发送短信</span>
+<span style="color: #0000ff;">def</span> request2(mobile,num, m=<span style="color: #800000;">"</span><span style="color: #800000;">GET</span><span style="color: #800000;">"</span><span style="color: #000000;">):
+    appkey </span>= <span style="color: #800000;">'</span><span style="color: #800000;">6bba3e7dffa71b79483002e1d92f4d00</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    url </span>= <span style="color: #800000;">"</span><span style="color: #800000;">http://v.juhe.cn/sms/send</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    params </span>=<span style="color: #000000;"> {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">mobile</span><span style="color: #800000;">"</span>: mobile,  <span style="color: #008000;">#</span><span style="color: #008000;"> 接收短信的手机号码</span>
+        <span style="color: #800000;">"</span><span style="color: #800000;">tpl_id</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">167106</span><span style="color: #800000;">"</span>,  <span style="color: #008000;">#</span><span style="color: #008000;"> 短信模板ID，请参考个人中心短信模板设置</span>
+        <span style="color: #800000;">"</span><span style="color: #800000;">tpl_value</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">#code#=%s</span><span style="color: #800000;">"</span>%<span style="color: #000000;">num,
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 变量名和变量值对。如果你的变量名或者变量值中带有#&amp;amp;=中的任意一个特殊符号，请先分别进行urlencode编码后再传递，&amp;lt;a href=&amp;quot;http://www.juhe.cn/news/index/id/50&amp;quot; target=&amp;quot;_blank&amp;quot;&amp;gt;详细说明&amp;gt;&amp;lt;/a&amp;gt;</span>
+        <span style="color: #800000;">"</span><span style="color: #800000;">key</span><span style="color: #800000;">"</span>: appkey,  <span style="color: #008000;">#</span><span style="color: #008000;"> 应用APPKEY(应用详细页查询)</span>
+        <span style="color: #800000;">"</span><span style="color: #800000;">dtype</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span>,  <span style="color: #008000;">#</span><span style="color: #008000;"> 返回数据的格式,xml或json，默认json</span>
+<span style="color: #000000;">    }
+    params </span>= urlencode(params)<span style="color: #008000;">#</span><span style="color: #008000;">mobile=15038062130&amp;tpl_id=166467&amp;tpl_value=%23code%23%3d431515&amp;key=dabf6ecaebfa9554395dad7dcc6be7c8</span>
+    <span style="color: #0000ff;">if</span> m == <span style="color: #800000;">"</span><span style="color: #800000;">GET</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+        f </span>= urllib.request.urlopen(<span style="color: #800000;">"</span><span style="color: #800000;">%s?%s</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> (url, params))
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+        f </span>=<span style="color: #000000;"> urllib.request.urlopen(url, params)
+    content </span>= f.read()<span style="color: #008000;">#</span><span style="color: #008000;">{"reason":"操作成功","result":{"sid":"201906200911371223162juhe6hy","fee":1,"count":1},"error_code":0}</span>
+    res = json.loads(content)<span style="color: #008000;">#</span><span style="color: #008000;">json转字典</span>
+    <span style="color: #0000ff;">if</span><span style="color: #000000;"> res:
+        error_code </span>= res[<span style="color: #800000;">"</span><span style="color: #800000;">error_code</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+        </span><span style="color: #0000ff;">if</span> error_code ==<span style="color: #000000;"> 0:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 成功请求</span>
+            <span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span>
+            <span style="color: #008000;">#</span><span style="color: #008000;"> print(res["result"])</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">"</span><span style="color: #800000;">%s:%s</span><span style="color: #800000;">"</span> % (res[<span style="color: #800000;">"</span><span style="color: #800000;">error_code</span><span style="color: #800000;">"</span>], res[<span style="color: #800000;">"</span><span style="color: #800000;">reason</span><span style="color: #800000;">"</span><span style="color: #000000;">])
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> print("%s:%s" % (res["error_code"], res["reason"]))</span>
+    <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">"</span><span style="color: #800000;">request api error</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>路由</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 手机验证码登录</span>
+path(<span style="color: #800000;">'</span><span style="color: #800000;">loginTel/</span><span style="color: #800000;">'</span>, login.loginTel,name=<span style="color: #800000;">'</span><span style="color: #800000;">loginTel</span><span style="color: #800000;">'</span>),</pre>
+</div>
+<p>方法</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> blog.utils <span style="color: #0000ff;">import</span><span style="color: #000000;"> sendMsg  
+</span><span style="color: #0000ff;">from</span> blog.utils <span style="color: #0000ff;">import</span> function  <span style="color: #008000;">#</span><span style="color: #008000;"> 引入自定义的验证码</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 手机验证登陆</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> loginTel(request):
+    res </span>= {<span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>: None, <span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span><span style="color: #000000;">: None}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 点击发送短信执行以下程序</span>
+    <span style="color: #0000ff;">if</span> request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">sendSms</span><span style="color: #800000;">'</span>) == <span style="color: #800000;">'</span><span style="color: #800000;">1</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+
+        tel </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">user_tel</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(tel)
+        range_num </span>= function.range_num(4);  <span style="color: #008000;">#</span><span style="color: #008000;"> 5454</span>
+<span style="color: #000000;">
+        request.session[</span><span style="color: #800000;">'</span><span style="color: #800000;">validcode</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> range_num
+
+        result </span>= sendMsg.request2(tel, range_num, <span style="color: #800000;">"</span><span style="color: #800000;">GET</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> result='ok'</span>
+
+        <span style="color: #0000ff;">if</span> result == <span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+            res[</span><span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>] = 1
+            <span style="color: #008000;">#</span><span style="color: #008000;"> res['info']='发送成功%s'%range_num</span>
+            res[<span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span>] = <span style="color: #800000;">'</span><span style="color: #800000;">发送成功</span><span style="color: #800000;">'</span>
+            <span style="color: #0000ff;">print</span><span style="color: #000000;">(res)
+            </span><span style="color: #0000ff;">return</span> HttpResponse(json.dumps(res))  <span style="color: #008000;">#</span><span style="color: #008000;"> 把这个结果告诉给前台，ajax</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            res[</span><span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> 0
+            res[</span><span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span>] = <span style="color: #800000;">'</span><span style="color: #800000;">发送失败</span><span style="color: #800000;">'</span>
+            <span style="color: #0000ff;">return</span> HttpResponse(json.dumps(res))  <span style="color: #008000;">#</span><span style="color: #008000;"> 把这个结果告诉给前台，ajax</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 点击登录按钮执行以下程序：</span>
+    <span style="color: #0000ff;">if</span> request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">dosubmit</span><span style="color: #800000;">'</span>) == <span style="color: #800000;">'</span><span style="color: #800000;">1</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        validcode_form </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">validcode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        validcode_session </span>= request.session.get(<span style="color: #800000;">'</span><span style="color: #800000;">validcode</span><span style="color: #800000;">'</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 获取session</span>
+
+        <span style="color: #0000ff;">if</span><span style="color: #000000;"> validcode_form:
+            </span><span style="color: #0000ff;">if</span> validcode_form !=<span style="color: #000000;"> validcode_session:
+                res[</span><span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> 0
+                res[</span><span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span>] = <span style="color: #800000;">'</span><span style="color: #800000;">短信验证码不正确</span><span style="color: #800000;">'</span>
+                <span style="color: #0000ff;">return</span> HttpResponse(json.dumps(res))  <span style="color: #008000;">#</span><span style="color: #008000;"> 把这个结果告诉给前台，ajax</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            res[</span><span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> 0
+            res[</span><span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span>] = <span style="color: #800000;">'</span><span style="color: #800000;">短信验证码不存在</span><span style="color: #800000;">'</span>
+            <span style="color: #0000ff;">return</span> HttpResponse(json.dumps(res))  <span style="color: #008000;">#</span><span style="color: #008000;"> 把这个结果告诉给前台，ajax</span>
+
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 写判断手机号是否在会员表中</span>
+        member_obj = Member.objects.filter(member_tel=request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">user_tel</span><span style="color: #800000;">'</span><span style="color: #000000;">)).first()
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> member_obj:
+            request.session[</span><span style="color: #800000;">'</span><span style="color: #800000;">member_id</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> member_obj.member_id
+            request.session[</span><span style="color: #800000;">'</span><span style="color: #800000;">member_name</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> member_obj.member_name
+            res[</span><span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>] = 1<span style="color: #000000;">
+            res[</span><span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span>] = <span style="color: #800000;">'</span><span style="color: #800000;">登录成功</span><span style="color: #800000;">'</span>
+            <span style="color: #0000ff;">return</span> HttpResponse(json.dumps(res))  <span style="color: #008000;">#</span><span style="color: #008000;"> 把这个结果告诉给前台，ajax</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">blog/loginTel.html</span><span style="color: #800000;">'</span>, locals())</pre>
+</div>
+<p>前端登录的表单</p>
+<div class="cnblogs_code">
+<pre><code>{<span style="color: #008000;">#</span><span style="color: #008000;">手机登陆的表单#}</span>
+&lt;form method=<span style="color: #800000;">"</span><span style="color: #800000;">post</span><span style="color: #800000;">"</span>&gt;
+
+    &lt;input type=<span style="color: #800000;">"</span><span style="color: #800000;">text</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">user_tel</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入手机号</span><span style="color: #800000;">"</span>&gt;
+
+    &lt;input type=<span style="color: #800000;">"</span><span style="color: #800000;">text</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">validcode</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入短信验证码</span><span style="color: #800000;">"</span>&gt;
+
+
+    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">am-g</span><span style="color: #800000;">"</span>&gt;
+        &lt;input id=<span style="color: #800000;">"</span><span style="color: #800000;">yanzhengma</span><span style="color: #800000;">"</span> type=<span style="color: #800000;">"</span><span style="color: #800000;">button</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">获取验证码</span><span style="color: #800000;">"</span>/&gt;
+        &lt;input id=<span style="color: #800000;">"</span><span style="color: #800000;">nowYanzhengma</span><span style="color: #800000;">"</span> style=<span style="color: #800000;">"</span><span style="color: #800000;">display: none;</span><span style="color: #800000;">"</span> type=<span style="color: #800000;">"</span><span style="color: #800000;">button</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">""</span>/&gt;
+        &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">submit </span><span style="color: #800000;">"</span> type=<span style="color: #800000;">"</span><span style="color: #800000;">button</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">btn_login</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">登录</span><span style="color: #800000;">"</span>/&gt;
+
+    &lt;/div&gt;
+&lt;/form&gt;<span style="color: #000000;">
+
+{</span><span style="color: #008000;">#</span><span style="color: #008000;">手机登陆的表单#}</span></pre>
+</div>
+<p>前端登录的jquery</p>
+<div class="cnblogs_code">
+<pre><code>{<span style="color: #008000;">#</span><span style="color: #008000;">手机号登陆的jquery#}</span>
+//<span style="color: #000000;">校验用户名
+$(</span><span style="color: #800000;">"</span><span style="color: #800000;">#btn_login</span><span style="color: #800000;">"</span><span style="color: #000000;">).click(function () {
+    var user_tel </span>= $.trim($(<span style="color: #800000;">"</span><span style="color: #800000;">input[name='user_tel']</span><span style="color: #800000;">"</span><span style="color: #000000;">).val());
+    var validcode </span>= $.trim($(<span style="color: #800000;">"</span><span style="color: #800000;">input[name='validcode']</span><span style="color: #800000;">"</span><span style="color: #000000;">).val());
+
+    $.post(</span><span style="color: #800000;">"</span><span style="color: #800000;">/blog/loginTel/</span><span style="color: #800000;">"</span><span style="color: #000000;">, {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">user_tel</span><span style="color: #800000;">"</span><span style="color: #000000;">: user_tel,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">validcode</span><span style="color: #800000;">"</span><span style="color: #000000;">: validcode,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">dosubmit</span><span style="color: #800000;">"</span>: 1<span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">csrfmiddlewaretoken</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">{{ csrf_token }}</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    }, function (data) {
+        </span><span style="color: #0000ff;">if</span> (data[<span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>] == 1<span style="color: #000000;">) {
+            layer.msg(</span><span style="color: #800000;">"</span><span style="color: #800000;">登录成功!即将跳转至首页～</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+            location.href </span>= <span style="color: #800000;">"</span><span style="color: #800000;">{% url 'index' %}</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+
+            layer.msg(data[</span><span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        }
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> false;
+    }, </span><span style="color: #800000;">"</span><span style="color: #800000;">json</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+});
+</span>//<span style="color: #000000;">点击获取验证码按钮
+$(</span><span style="color: #800000;">"</span><span style="color: #800000;">#yanzhengma</span><span style="color: #800000;">"</span><span style="color: #000000;">).click(function () {
+    getSmsCode();
+});
+
+</span>//<span style="color: #000000;">获取短信验证码
+function getSmsCode() {
+
+    var user_tel </span>= $.trim($(<span style="color: #800000;">"</span><span style="color: #800000;">input[name='user_tel']</span><span style="color: #800000;">"</span>).val());//<span style="color: #000000;">得到页面里的手机号码
+    var reguser </span>= /^[1][3-8]\d{9}$/<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">if</span> (user_tel == <span style="color: #800000;">""</span><span style="color: #000000;">) {
+        layer.msg(</span><span style="color: #800000;">"</span><span style="color: #800000;">请填写手机号码</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> false;
+    }
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (!reguser.test(user_tel)) {
+        layer.msg(</span><span style="color: #800000;">"</span><span style="color: #800000;">手机号码格式不正确</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> false;
+    }
+    {</span><span style="color: #008000;">#</span><span style="color: #008000;">$("#yanzhengma").off('click');#}</span>
+    $.post(<span style="color: #800000;">"</span><span style="color: #800000;">/blog/loginTel/</span><span style="color: #800000;">"</span><span style="color: #000000;">, {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">user_tel</span><span style="color: #800000;">"</span><span style="color: #000000;">: user_tel,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">sendSms</span><span style="color: #800000;">'</span>: 1<span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">csrfmiddlewaretoken</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">{{ csrf_token }}</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    }, function (data) {
+        </span><span style="color: #0000ff;">if</span> (data[<span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span>] == 1<span style="color: #000000;">) {
+            timeout();
+            layer.msg(data[</span><span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            layer.msg(data[</span><span style="color: #800000;">'</span><span style="color: #800000;">content</span><span style="color: #800000;">'</span><span style="color: #000000;">]);
+        }
+    }, </span><span style="color: #800000;">'</span><span style="color: #800000;">json</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+}
+
+var sec </span>= 60<span style="color: #000000;">;
+var interval </span>=<span style="color: #000000;"> null;
+
+</span>//<span style="color: #000000;">开启定时器
+function timeout() {
+    interval </span>= setInterval(run, 1000<span style="color: #000000;">);
+}
+
+function run() {
+    </span><span style="color: #0000ff;">if</span> (sec &gt;= 1<span style="color: #000000;">) {
+        sec</span>--<span style="color: #000000;">;
+        $(</span><span style="color: #800000;">"</span><span style="color: #800000;">#yanzhengma</span><span style="color: #800000;">"</span><span style="color: #000000;">).hide();
+        $(</span><span style="color: #800000;">"</span><span style="color: #800000;">#nowYanzhengma</span><span style="color: #800000;">"</span><span style="color: #000000;">).show();
+        $(</span><span style="color: #800000;">"</span><span style="color: #800000;">#nowYanzhengma</span><span style="color: #800000;">"</span>).val(<span style="color: #800000;">"</span><span style="color: #800000;">倒计时(</span><span style="color: #800000;">"</span> + sec + <span style="color: #800000;">"</span><span style="color: #800000;">)s</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        $(</span><span style="color: #800000;">"</span><span style="color: #800000;">#yanzhengma</span><span style="color: #800000;">"</span>).off(<span style="color: #800000;">'</span><span style="color: #800000;">click</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+        $(</span><span style="color: #800000;">'</span><span style="color: #800000;">#yanzhengma</span><span style="color: #800000;">'</span>).on(<span style="color: #800000;">"</span><span style="color: #800000;">click</span><span style="color: #800000;">"</span><span style="color: #000000;">, function (event) {
+            getSmsCode();
+        });
+        $(</span><span style="color: #800000;">"</span><span style="color: #800000;">#yanzhengma</span><span style="color: #800000;">"</span><span style="color: #000000;">).show();
+        $(</span><span style="color: #800000;">"</span><span style="color: #800000;">#nowYanzhengma</span><span style="color: #800000;">"</span><span style="color: #000000;">).hide();
+        clearInterval(interval);</span>//<span style="color: #000000;">关闭定时器
+        sec </span>= 60<span style="color: #000000;">;
+    }
+
+}
+
+{</span><span style="color: #008000;">#</span><span style="color: #008000;">手机号登陆的jquery结束#}</span></pre>
+</div>
+<p>前端效果</p>
+<p><img src="./images/django项目中使用手机号登录0.png" alt="" /></p>
+<p>done。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

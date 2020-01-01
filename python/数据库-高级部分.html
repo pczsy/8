@@ -1,0 +1,518 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修数据库-高级部分' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>数据库-高级部分</center></div><div class='banquan'>原文出处:本文由博客园博主CoderJerry提供。<br/>
+原文连接:https://www.cnblogs.com/yangyuanhu/p/11188880.html</div><br>
+    <p>本章目录</p>
+<p>一.视图</p>
+<p>二.触发器</p>
+<p>三.事务</p>
+<p>四.存储过程</p>
+<p>五.函数</p>
+<p>六.数据备份与恢复</p>
+<p>七.流程控制(了解)</p>
+<h1 id="一.视图">一.视图</h1>
+<h3 id="什么是视图">什么是视图</h3>
+<p>视图是有一张表或多张表的查询结果构成的一张虚拟表</p>
+<h3 id="为什么使用视图">为什么使用视图</h3>
+<p>当我们在使用多表查询时 我们的sql语句可能会非常的复杂,如果每次都编写一遍sql'的话无疑是一件麻烦的事情,这时候就可以使用视图来避免多次编写sql的问题;</p>
+<p>简答的说可以帮我们节省sql的编写,</p>
+<p>视图的另一个作用是,可以不同的视图来展示开放不同数据的访问</p>
+<p>例如,同一张工资表,老板可以查看全部,部门主管可以查看该部门所有人,员工只能看自己的一条记录</p>
+<h3 id="使用方法">使用方法</h3>
+<p><strong>创建视图</strong></p>
+<pre><code><code>CREATE [OR REPLACE] VIEW view_name [(column_list)]
+AS select_statement</code></pre>
+<p>加上OR REPLACE 时如果已经存在相同视图则替换原有视图</p>
+<p>column_list指定哪些字段要出现在视图中</p>
+<p>注意:由于是一张虚拟表,视图中的数据实际上来源于其他其他表,所以在视图中的数据不会出现在硬盘上</p>
+<p><strong>使用视图</strong></p>
+<p>视图是一张虚拟表 所以使用方式与普通表没有任何区别</p>
+<p><strong>查看视图</strong></p>
+<p>1.desc view_name; //查看数据结构</p>
+<p>2.show create view view_name;//查看 创建语句</p>
+<p><strong>修改视图</strong></p>
+<p>alter view view_name as select_statement</p>
+<p><strong>删除视图</strong></p>
+<p>drop view view_name</p>
+<p><strong>案例1:</strong> 简化多表sql语句</p>
+<p>有哦学生表和详细信息表 每次都要写查询连接查询比较繁琐,可以使用视图来简化查询.</p>
+<pre class="mysql"><code>#准备数据
+create database db02 charset utf8;
+use db02
+create table student(
+  s_id int(3),
+  name varchar(20),
+  math float,
+  chinese float 
+);
+insert into student values(1,&#39;tom&#39;,80,70),(2,&#39;jack&#39;,80,80),(3,&#39;rose&#39;,60,75);
+
+create table stu_info(
+  s_id int(3),
+  class varchar(50),
+  addr varchar(100)
+);
+insert into stu_info values(1,&#39;二班&#39;,&#39;安徽&#39;),(2,&#39;二班&#39;,&#39;湖南&#39;),(3,&#39;三班&#39;,&#39;黑龙江&#39;);
+
+#创建视图包含 编号 学生的姓名 和班级
+create view stu_v (编号,姓名,班级) as 
+select 
+student.s_id,student.name ,stu_info.class
+from student,stu_info 
+where student.s_id=stu_info.s_id;
+# 查看视图中的数据
+select *from stu_v;</code></pre>
+<p><strong>案例2:</strong> 隔离数据</p>
+<p>一些情况下我们可能需要对某用户开放部分数据,隐藏其他数据,可以用视图来实现;</p>
+<p>下例中:希望市场部的员工只能看市场部的工资信息</p>
+<pre class="mysql"><code># 创建工资表
+create table salarys(
+id int primary key,
+name char(10),
+salary double,
+dept char(10)
+);
+insert into salarys values
+(1,&quot;刘强东&quot;,900000,&quot;市场&quot;),
+(2,&quot;马云&quot;,800090,&quot;市场&quot;),
+(3,&quot;李彦宏&quot;,989090,&quot;财务&quot;),
+(4,&quot;马化腾&quot;,87879999,&quot;财务&quot;);
+
+# 创建市场部视图
+create view dept_sc as select *from salarys where dept = &quot;市场&quot;;
+# 查看市场部视图
+select *from dept_sc;</code></pre>
+<p><strong>注意</strong> 对视图数据的insert update delete 会同步到原表中,但由于视图可能是部分字段,很多时候会失败</p>
+<p>总结:mysql可以分担程序中的部分逻辑,但这样一来后续的维护会变得更麻烦</p>
+<p>如果需要改表结构,那意味着视图也需要相应的修改,没有直接在程序中修改sql来的方便</p>
+<h1 id="二.触发器">二.触发器</h1>
+<h3 id="什么是触发器">什么是触发器</h3>
+<p>触发器是一段与表有关的mysql程序<br />
+当这个表在某个时间点发生了某种事件时 将会自动执行相应的触发器程序</p>
+<h3 id="何时使用触发器">何时使用触发器</h3>
+<p>当我们想要在一个表记录被更新时做一些操作时就可以使用触发器</p>
+<p>但是我们完全可以在python中来完成这个事情,因为python的扩展性更强,语法更简单</p>
+<h3 id="创建触发器">创建触发器</h3>
+<pre class="mysql"><code>语法:
+CREATE TRIGGER t_name t_time t_event ON table_name FOR EACH ROW
+begin
+stmts.....
+end</code></pre>
+<p>支持的时间点(t_time):时间发生前和发生前后 before|after</p>
+<p>支持的事件(t_event): update insert delete</p>
+<p>在触发器中可以访问到将被修改的那一行数据<br />
+根据事件不同 能访问也不同<br />
+update 可用OLD访问旧数据 NEW访问新数据<br />
+insert 可用NEW访问新数据<br />
+delete 可用OLD访问旧数据</p>
+<p>可以将NEW和OLD看做一个对象其中封装了这列数据的所有字段</p>
+<p>案例:</p>
+<p>有cmd表和错误日志表,需求:在cmd执行失败时自动将信息存储到错误日志表中</p>
+<pre class="mysql"><code>#准备数据
+CREATE TABLE cmd (
+    id INT PRIMARY KEY auto_increment,
+    USER CHAR (32),
+    priv CHAR (10),
+    cmd CHAR (64),
+    sub_time datetime, #提交时间
+    success enum (&#39;yes&#39;, &#39;no&#39;) #0代表执行失败
+);
+#错误日志表
+CREATE TABLE errlog (
+    id INT PRIMARY KEY auto_increment,
+    err_cmd CHAR (64),
+    err_time datetime
+);
+# 创建触发器
+delimiter //
+create trigger trigger1 after insert on cmd for each row
+begin
+if new.success = &quot;no&quot; then
+    insert into errlog values(null,new.cmd,new.sub_time);
+end if;
+end//
+delimiter ;
+
+#往表cmd中插入记录，触发触发器，根据IF的条件决定是否插入错误日志
+INSERT INTO cmd (
+    USER,
+    priv,
+    cmd,
+    sub_time,
+    success
+)
+VALUES
+    (&#39;egon&#39;,&#39;0755&#39;,&#39;ls -l /etc&#39;,NOW(),&#39;yes&#39;),
+    (&#39;egon&#39;,&#39;0755&#39;,&#39;cat /etc/passwd&#39;,NOW(),&#39;no&#39;),
+    (&#39;egon&#39;,&#39;0755&#39;,&#39;useradd xxx&#39;,NOW(),&#39;no&#39;),
+    (&#39;egon&#39;,&#39;0755&#39;,&#39;ps aux&#39;,NOW(),&#39;yes&#39;);
+# 查看错误日志表中的记录是否有自动插入
+select *from errlog;
+</code></pre>
+<p><code>delimiter</code> 用于修改默认的行结束符 ,由于在触发器中有多条sql语句他们需要使用分号来结束,但是触发器是一个整体,所以我们需要先更换默认的结束符,在触发器编写完后在将结束符设置回分号</p>
+<p>注意:</p>
+<p>外键不能触发事件 主表删除了某个主键 从表也会相应删除 但是并不会执行触发器<br />
+触发器中不能使用事务<br />
+相同时间点的相同事件的触发器 不能同时存在</p>
+<h3 id="删除触发器">删除触发器</h3>
+<pre class="mysql"><code>语法:
+drop trigger trigger_name;
+案例:
+drop trigger trigger1;</code></pre>
+<p>同样的这种需求我们完全可以在python中来完成! mysql最想完成的事情是将所有能处理的逻辑全部放到mysql中,那样一来应用程序开发者的活儿就变少了,相应的数据库管理员的工资就高了,可惜大多中小公司都没有专门的DBA;</p>
+<p><strong>疑惑:</strong>修改行结束符后,触发器内的sql语句任然是以分号结束,为什么? 实际上在mysql中输入分号回车,mysql会立即将语句发送给服务器端,修改行结束符仅仅是告诉mysql客户端,语句没有写完,不要立即发送!</p>
+<h1 id="三.事务-重点中的重点">三.事务 (重点中的重点)</h1>
+<h3 id="什么是事务">什么是事务</h3>
+<p>事务是逻辑上的一组操作,要么都成功,要么都失败</p>
+<h3 id="为什么需要事务">为什么需要事务</h3>
+<p>很多时候一个数据操作,不是一个sql语句就完成的,可能有很多个sql语句,如果部分sql执行成功而部分sql执行失败将导致数据错乱!</p>
+<p>例如转账操作,</p>
+<p>1.从原有账户减去转账金额</p>
+<p>2.给目标账户加上转账金额</p>
+<p>若中间突然断电了或系统崩溃了,钱就不翼而飞了!</p>
+<h3 id="使用事务">使用事务</h3>
+<p><strong>start transaction;</strong> --开启事物,在这条语句之后的sql将处在同一事务,并不会立即修改数据库</p>
+<p><strong>commit;</strong>--提交事务,让这个事物中的sql立即执行数据的操作,</p>
+<p><strong>rollback;</strong>--回滚事务,取消这个事物,这个事物不会对数据库中的数据产生任何影响</p>
+<p>案例:转账过程中发生异常</p>
+<pre class="mysql"><code>#准备数据
+create table account(
+    id int primary key auto_increment,
+    name varchar(20),
+    money double
+);
+insert into account values(1,&#39;赵大儿子&#39;,1000);
+insert into account values(2,&#39;刘大牛&#39;,1000);
+insert into account values(3,&#39;猪头三&#39;,1000);
+insert into account values(4,&#39;王进&#39;,1000);
+insert into account values(5,&#39;黄卉&#39;,1000);
+
+# 赵大儿子给刘大牛转账1000块
+# 未使用事务
+update account set money = money - 1000 where id = 1;
+update account set moneys = money - 1000 where id = 1; # money打错了导致执行失败</code></pre>
+<p>python中使用事务案例:</p>
+<pre class="python"><code>try:
+    conn = pymysql.connect(host=&quot;127.0.0.1&quot;,user=&quot;root&quot;,password=&quot;&quot;,db=&quot;day46&quot;)
+    print(&quot;连接服务器成功!&quot;)
+
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    sql = &#39;update account set money = money - 1000 where id = 1;&#39;
+    sql2 = &#39;update account set money = money + 1000 where id = 2;&#39;  # money打错了将导致执行失败
+    try:
+        cursor.execute(sql)
+        cursor.execute(sql2)
+        conn.commit()
+        print(&quot;执行成功 提交&quot;)
+    except:
+        print(&quot;发送错误   回滚..&quot;)
+        conn.rollback()
+
+except Exception as e:
+    print(&quot;连接服务器失败.....&quot;)
+    print(type(e),e)
+finally:
+    if cursor:cursor.close()
+    if conn:conn.close()</code></pre>
+<p>注意:事务的回滚的前提是能捕捉到异常,否则无法决定何时回滚,Python中很简单就实现了,另外mysql中需要使用存储过程才能捕获异常!</p>
+<h3 id="事务的四个特性">事务的四个特性:</h3>
+<p><strong>原子性:</strong></p>
+<p>​ 事务是一组不可分割的单位,要么同时成功,要么同时不成功</p>
+<p><strong>一致性:</strong></p>
+<p>​ 事物前后的数据完整性应该保持一致,(数据库的完整性:如果数据库在某一时间点下,所有的数据都符合所有的约束,则称数据库为完整性的状态);</p>
+<p><strong>隔离性:</strong></p>
+<p>​ 事物的隔离性是指多个用户并发访问数据时,一个用户的事物不能被其它用户的事务所干扰,多个并发事务之间数据要相互隔离</p>
+<p><strong>持久性:</strong></p>
+<p>​ 持久性是指一个事物一旦被提交,它对数据的改变就是永久性的,接下来即使数据库发生故障也不应该对其有任何影响</p>
+<h3 id="事务的用户隔离级别">事务的用户隔离级别:</h3>
+<p>数据库使用者可以控制数据库工作在哪个级别下,就可与防止不同的隔离性问题</p>
+<p>read uncommitted --不做任何隔离,可能脏读,幻读</p>
+<p>read committed----可以防止脏读,不能防止不可重复读,和幻读,</p>
+<p>Repeatable read --可以防止脏读,不可重复读,不能防止幻读</p>
+<p>Serializable--数据库运行在串行化实现,所有问题都没有,就是性能低</p>
+<h3 id="修改隔离级别">修改隔离级别:</h3>
+<p>select @@tx_isolation;--查询当前级别</p>
+<p>set[session|global] transaction isolation level .... ;修改级别</p>
+<p>实例:</p>
+<p>set global transaction isolation level Repeatable read ;</p>
+<p>修改后重新连接服务器生效</p>
+<h1 id="四.存储过程">四.存储过程</h1>
+<h3 id="什么是存储过程">什么是存储过程</h3>
+<p>存储过程是一组任意的sql语句集合,存储在mysql中,调用存储过程时将会执行其包含的所有sql语句;与python中函数类似;</p>
+<h3 id="为什么使用存储过程">为什么使用存储过程</h3>
+<p>回顾触发器与视图都是为了简化应用程序中sql语句的书写,但是还是需要编写,而存储过程中可以包含任何的sql语句,包括视图,事务,流程控制等,这样一来,应用程序可以从sql语句中完全解放,mysql可以替代应用程序完成数据相关的的逻辑处理!</p>
+<p>那我们以后都是用存储过程不就完了?</p>
+<h3 id="三种开发方式对比">三种开发方式对比</h3>
+<p>1.应用程序仅负责业务逻辑编写,所有与数据相关的逻辑都交给mysql来完成,通过存储过程(推荐使用)</p>
+<p>​ 优点:</p>
+<p>​ 应用程序与数据处理完解耦合,一堆复杂的sql被封装成了一个简单的存储过程,考虑到网络环境因素,效率高</p>
+<p>​ 应用程序开发者不需要编写sql语句,开发效率高</p>
+<p>​ 缺点:</p>
+<p>​ python语法与mysql语法区别巨大,学习成本高</p>
+<p>​ 并且各种数据库的语法大不相同,所以移植性非常差</p>
+<p>​ 应用程序开发者与BDA的跨部门沟通成本高,造成整体效率低</p>
+<p>2.应用程序不仅编写业务逻辑,还需要编写所有的sql语句</p>
+<p>​ 优点:扩展性高,对于应用程序开发者而言,扩展性和维护性相较于第一种都有所提高</p>
+<p>​ 缺点:sql语句过于复杂,导致开发效率低,且需要考虑sql'优化问题</p>
+<p>3.应用程序仅负责业务逻辑,sql语句的编写交给ORM框架,(常用解决方案)</p>
+<p>​ 优点:应用程序开发者不需要编写sql语句,开发效率高</p>
+<p>​ 缺点:执行效率低,由于需要将对象的操作转化为sql语句,且需要通过网络发送大量sql</p>
+<h3 id="创建存储过程">创建存储过程</h3>
+<pre class="mysql"><code>create procedure pro_name(p_Type p_name data_type)
+begin
+sql语句......流程控制
+end</code></pre>
+<p>p_type 参数类型</p>
+<p>​ in 表示输入参数</p>
+<p>​ out 表示输出参数</p>
+<p>​ inout表示既能输入又能输出</p>
+<p>p_name 参数名称</p>
+<p>data_type 参数类型 可以是mysql支持的数据类型</p>
+<p>案例:使用存储过程完成对student表的查询</p>
+<pre class="mysql"><code>delimiter //
+create procedure p1(in m int,in n int,out res int)
+begin
+    select *from student where chinese &gt; m and chinese &lt; n;
+    #select *from student where chineseXXX &gt; m and chinese &lt; n; 修改错误的列名以测试执行失败
+    set res = 100;
+end//
+delimiter ;
+set @res = 0;
+#调用存储过程
+call p1(70,80,@res);
+#查看执行结果
+select @res;</code></pre>
+<p style="color:red">需要注意的是,存储过程的out类参数必须是一个变量,不能是值;</p>
+<h3 id="在python中调用存储过程">在python中调用存储过程</h3>
+<pre class="python"><code>import  pymysql
+#建立连接
+conn = pymysql.connect(
+    host=&quot;127.0.0.1&quot;,
+    user=&quot;root&quot;,
+    password=&quot;admin&quot;,
+    database=&quot;db02&quot;
+)
+# 获取游标
+cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+# 调用用存储过程
+cursor.callproc(&quot;p1&quot;,(70,80,0)) #p1为存储过程名 会自动为为每个值设置变量,名称为 @_p1_0,@_p1_1,@_p1_2
+# 提取执行结果时否有结果取决于存储过程中的sql语句
+print(cursor.fetchall())
+# 获取执行状态
+cursor.execute(&quot;select @_p1_2&quot;)
+print(cursor.fetchone())</code></pre>
+<p>此处pymysql会自动将参数都设置一个变量所以可以直接传入一个值,当然值如果作为输出参数的话,传入什么都无所谓!</p>
+<h3 id="删除存储过程">删除存储过程</h3>
+<pre class="mysql"><code>drop procedure 过程名称;</code></pre>
+<p>修改存储过程意义不大,不如删除重写!</p>
+<p>查看存储过程</p>
+<pre class="mysql"><code> #当前库所有存储过程名称
+ select `name` from mysql.proc where db = &#39;db02&#39; and `type` = &#39;PROCEDURE&#39;;
+ #查看创建语句
+ show create procedure p1;</code></pre>
+<h3 id="存储过程中的事务应用">存储过程中的事务应用</h3>
+<p>存储过程中支持任何的sql语句包括事务!</p>
+<p>案例:模拟转账中发生异常,进行回滚</p>
+<pre class="mysql"><code>
+delimiter //
+create PROCEDURE p5(OUT p_return_code tinyint)
+BEGIN 
+    DECLARE exit handler for sqlexception 
+    BEGIN 
+        # ERROR 
+        set p_return_code = 1; 
+        rollback; 
+    END; 
+    # exit 也可以换成continue 表示发生异常时继续执行
+    DECLARE exit handler for sqlwarning 
+    BEGIN 
+        # WARNING 
+        set p_return_code = 2; 
+        rollback; 
+    END; 
+
+    START TRANSACTION; 
+    update account set money = money - 1000 where id = 1;
+    update account set moneys = money - 1000 where id = 1; # moneys字段导致异常
+    COMMIT; 
+
+    # SUCCESS 
+    set p_return_code = 0; #0代表执行成功
+END //
+delimiter ;
+
+#在mysql中调用存储过程
+set @res=123;
+call p5(@res);
+select @res;
+</code></pre>
+<p>总结:抛开沟通成本,学习成本,存储过程无疑是效率最高的处理方式,面试会问,一些公司也有一些现存的存储过程,重点掌握!</p>
+<h1 id="五.函数">五.函数</h1>
+<p>函数与python中的定义一致,不在啰嗦!</p>
+<h3 id="内置函数">内置函数</h3>
+<p><strong>日期相关:</strong></p>
+<p><img src="./images/数据库-高级部分0.png" alt="image-20181126033243035" /></p>
+<p><strong>字符串相关:</strong></p>
+<p><img src="./images/数据库-高级部分1.png" alt="image-20181126033342402" /></p>
+<p>数字相关:</p>
+<p><img src="./images/数据库-高级部分2.png" alt="image-20181126033419166" /></p>
+<p>其他函数:</p>
+<p><img src="./images/数据库-高级部分3.png" alt="image-20181126033629378" /></p>
+<p>当然也包括之前学习的聚合函数</p>
+<h3 id="自定义函数">自定义函数</h3>
+<p><strong>语法:</strong></p>
+<pre class="mysql"><code>CREATE FUNCTION f_name(paramters)
+returns dataType;
+return value;</code></pre>
+<p><strong>说明:</strong><br />
+paramters 只能是in 输入参数 参数名 类型<br />
+必须有返回值<br />
+不能呢加begin 和end<br />
+returns 后面是返回值的类型 这里不加分号<br />
+return 后面是要返回的值</p>
+<p><strong>案例:</strong><br />
+将两数相加</p>
+<pre class="mysql"><code>create function addfuntion(a int,b int)
+returns int return a + b;
+#执行函数
+select addfuntion(1,1);</code></pre>
+<p><strong>注意:</strong></p>
+<p>函数只能返回一个值<br />
+函数一般不涉及数据的增删改查 就是一个通用的功能<br />
+调用自定义的函数 与调用系统的一致 不需要call 使用select 可获得返回值<br />
+函数中不能使用sql语句<br />
+就像在java中不能识别sql语句一样</p>
+<h1 id="六.数据备份与恢复">六.数据备份与恢复</h1>
+<h3 id="使用mysqldump程序进行备份">使用mysqldump程序进行备份</h3>
+<pre class="mysql"><code>mysqldump -u -p db_name [table_name,,,] &gt; fileName.sql</code></pre>
+<p>可以选择要备份哪些表 如果不指定代表 全部备份</p>
+<pre class="mysql"><code>#示例：
+#单库备份
+mysqldump -uroot -p123 db1 &gt; db1.sql
+mysqldump -uroot -p123 db1 table1 table2 &gt; db1-table1-table2.sql
+
+#多库备份
+mysqldump -uroot -p123 --databases db1 db2 mysql db3 &gt; db1_db2_mysql_db3.sql
+
+#备份所有库
+mysqldump -uroot -p123 --all-databases &gt; all.sql</code></pre>
+<h3 id="使用-mysql-进行恢复">使用 mysql 进行恢复</h3>
+<p>1.退出数据库后</p>
+<p>mysql -u -p &lt; filename.sql;</p>
+<p>2.不用退出数据库</p>
+<p>​ 2.1 创建空数据库</p>
+<p>​ 2.2选择数据库</p>
+<p>​ 2.3然后使用source filename; 来进行还原</p>
+<pre class="mysql"><code>use db1;
+source /root/db1.sql</code></pre>
+<h3 id="数据库迁移">数据库迁移</h3>
+<pre class="mysql"><code>务必保证在相同版本之间迁移
+# mysqldump -h 源IP -uroot -p123 --databases db1 | mysql -h 目标IP -uroot -p456</code></pre>
+<h1 id="七.流程控制了解">七.流程控制(了解)</h1>
+<h3 id="if语句的使用">if语句的使用</h3>
+<p>if 条件 then<br />
+语句;<br />
+end if;<br />
+第二种 if elseif<br />
+if 条件 then<br />
+语句1;<br />
+elseif 条件 then<br />
+语句2;<br />
+else 语句3;<br />
+end if;</p>
+<p>案例:编写过程 实现 输入一个整数type 范围 1 - 2 输出 type=1 or type=2 or type=other;</p>
+<pre class="mysql"><code>create procedure showType(in type int,out result char(20))
+begin
+if type = 1 then 
+set result = &quot;type = 1&quot;;
+elseif type = 2 then 
+set result = &quot;type = 2&quot;;
+else 
+set result = &quot;type = other&quot;;
+end if;
+end</code></pre>
+<h3 id="case-语句">CASE 语句</h3>
+<p>大体意思与Swtich一样的 你给我一个值 我对它进行选择 然后执行匹配上的语句<br />
+语法:</p>
+<pre class="mysql"><code>create procedure caseTest(in type int)
+begin
+CASE type 
+when 1  then select &quot;type = 1&quot;;
+when 2  then select &quot;type = 2&quot;;
+else select &quot;type = other&quot;;
+end case;
+end</code></pre>
+<h3 id="定义变量">定义变量</h3>
+<p>declare 变量名 类型 default 值;<br />
+例如: declare i int default 0;</p>
+<h3 id="while循环">WHILE循环</h3>
+<pre class="mysql"><code>循环输出10次hello mysql
+create procedure showHello()
+begin 
+declare i int default 0;
+while  i &lt; 10 do
+select &quot;hello mysql&quot;;
+set i  = i + 1;
+end while;
+end</code></pre>
+<h3 id="loop循环的">LOOP循环的</h3>
+<p>没有条件 需要自己定义结束语句<br />
+语法:</p>
+<pre class="mysql"><code>输出十次hello mysql;
+create procedure showloop()
+begin 
+declare i int default 0;
+aloop: LOOP
+select &quot;hello loop&quot;;
+set i = i + 1;
+if i &gt; 9 then leave aloop;
+end if;
+end LOOP aloop;
+end</code></pre>
+<h3 id="repeat循环">REPEAT循环</h3>
+<pre class="mysql"><code>#类似do while
+#输出10次hello repeat
+create procedure showRepeat()
+begin
+declare i int default 0;
+repeat
+select &quot;hello repeat&quot;;
+set i = i + 1;
+until i &gt; 9
+end repeat;
+end
+
+#输出0-100之间的奇数
+create procedure showjishu()
+begin
+declare i int default 0;
+aloop: loop
+set i = i + 1;
+if i &gt;= 101 then leave aloop; end if;
+if i % 2 = 0 then iterate aloop; end if;
+select i;
+end loop aloop;
+end</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

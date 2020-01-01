@@ -1,0 +1,867 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修WPF 画一个3D矩形并旋转' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>WPF 画一个3D矩形并旋转</center></div><div class='banquan'>原文出处:本文由博客园博主ARM830提供。<br/>
+原文连接:https://www.cnblogs.com/T-ARF/p/12045857.html</div><br>
+    <p>具体的代码还是线性代数。</p>
+<p>主要是旋转和平移。</p>
+<p>这个例子的中模型是在世界原点建立。所以旋转会以自身轴心旋转。</p>
+<p>如果不在世界原点建立模型，还想以自身为旋转轴旋转。</p>
+<p>则是需要以下步骤:</p>
+<p>模型的中心点为V1（100，100，0）假设中心为轴（平行于Y轴），旋转A度，也就是说自身中心点的Y轴旋转。</p>
+<p>步骤：</p>
+<p>（1）v1平移到世界原点后其他八个顶点的坐标。（中心点坐标的三个参数如果是大于0就是（每个）顶点减去相对应XYZ，如果中心点坐标的三个参数如果是小于0，则是（每个）顶点加上相对应XYZ，或者使用平移矩阵）</p>
+<p>（2）（每个）顶点先是平移到V1在原点时的所在的位置，再使用旋转矩阵经行旋转</p>
+<p>（3） （每个）旋转后的顶点在平移回中心点原先所在位置。</p>
+<p>&nbsp;</p>
+<p>ATP 附加属性类</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">using</span><span style="color: #000000;"> System;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Collections.Generic;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Linq;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Text;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Threading.Tasks;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Windows;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Windows.Controls;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Windows.Data;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Windows.Media;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Windows.Media.Media3D;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Windows.Shapes;
+
+</span><span style="color: #0000ff;">namespace</span><span style="color: #000000;"> ATP
+{
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ATP_Y
+    {
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty P_YProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">P_Y</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(<span style="color: #0000ff;">double</span>), <span style="color: #0000ff;">typeof</span>(ATP.ATP_Y), <span style="color: #0000ff;">new</span> PropertyMetadata(<span style="color: #800080;">0.0</span>, <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnP_YChanged)));
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnP_YChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            PY </span>= (<span style="color: #0000ff;">double</span><span style="color: #000000;">)e.NewValue;
+            Draw(d, X, Y, Z);
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetP_Y(DependencyObject d, <span style="color: #0000ff;">double</span> v) =&gt;<span style="color: #000000;"> d.SetValue(P_YProperty, v);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span> GetP_Y(DependencyObject d) =&gt; (<span style="color: #0000ff;">double</span><span style="color: #000000;">)d.GetValue(P_YProperty);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty P_XProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">P_X</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(<span style="color: #0000ff;">double</span>), <span style="color: #0000ff;">typeof</span>(ATP.ATP_Y), <span style="color: #0000ff;">new</span> PropertyMetadata(<span style="color: #800080;">0.0</span>, <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnP_XChanged)));
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnP_XChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            PX</span>= (<span style="color: #0000ff;">double</span><span style="color: #000000;">)e.NewValue;
+            Draw(d, X, Y, Z);
+        }
+
+     
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetP_X(DependencyObject d, <span style="color: #0000ff;">double</span> v) =&gt;<span style="color: #000000;"> d.SetValue(P_XProperty, v);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span> GetP_X(DependencyObject d) =&gt; (<span style="color: #0000ff;">double</span><span style="color: #000000;">)d.GetValue(P_XProperty);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty P_ZProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">P_Z</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(<span style="color: #0000ff;">double</span>), <span style="color: #0000ff;">typeof</span>(ATP.ATP_Y), <span style="color: #0000ff;">new</span> PropertyMetadata(<span style="color: #800080;">0.0</span>, <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnP_ZChanged)));
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnP_ZChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            PZ </span>= (<span style="color: #0000ff;">double</span><span style="color: #000000;">)e.NewValue;
+            Draw(d, X, Y, Z);
+        }
+
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetP_Z(DependencyObject d, <span style="color: #0000ff;">double</span> v) =&gt;<span style="color: #000000;"> d.SetValue(P_ZProperty, v);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span> GetP_Z(DependencyObject d) =&gt; (<span style="color: #0000ff;">double</span><span style="color: #000000;">)d.GetValue(P_ZProperty);
+
+       
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty ModeDataProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">ModeData</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(Point3D), <span style="color: #0000ff;">typeof</span>(ATP_Y), <span style="color: #0000ff;">new</span> PropertyMetadata(<span style="color: #0000ff;">new</span> Point3D(<span style="color: #800080;">10</span>, <span style="color: #800080;">10</span>, <span style="color: #800080;">10</span>), <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnModeDataChanged)));
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetModeData(DependencyObject d, Point3D v) =&gt;<span style="color: #000000;"> d.SetValue(ModeDataProperty, v);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Point3D GetModeData(DependencyObject d) =&gt;<span style="color: #000000;"> (Point3D)d.GetValue(ModeDataProperty);
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnModeDataChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            </span><span style="color: #0000ff;">var</span> data =<span style="color: #000000;"> (Point3D)e.NewValue;
+            ModeWidth </span>=<span style="color: #000000;"> data.X;
+            ModeHeight </span>=<span style="color: #000000;"> data.Y;
+            ModeZWidth </span>=<span style="color: #000000;"> data.Z;
+            Draw(d,X,Y,Z);
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty YProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">Y</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(<span style="color: #0000ff;">double</span>), <span style="color: #0000ff;">typeof</span>(ATP.ATP_Y), <span style="color: #0000ff;">new</span> PropertyMetadata(-<span style="color: #800080;">1.0</span>, <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnYChanged)));
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetY(DependencyObject d, <span style="color: #0000ff;">double</span> v) =&gt;<span style="color: #000000;"> d.SetValue(YProperty, v);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span> GetY(DependencyObject d) =&gt; (<span style="color: #0000ff;">double</span><span style="color: #000000;">)d.GetValue(YProperty);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty XProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">X</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(<span style="color: #0000ff;">double</span>), <span style="color: #0000ff;">typeof</span>(ATP.ATP_Y), <span style="color: #0000ff;">new</span> PropertyMetadata(-<span style="color: #800080;">1.0</span>, <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnXChanged)));
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnXChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            </span><span style="color: #0000ff;">var</span> deg = Math.PI / <span style="color: #800080;">180</span> * (<span style="color: #0000ff;">double</span><span style="color: #000000;">)e.NewValue;
+            X </span>=<span style="color: #000000;"> deg;
+            Draw(d, deg, Y, Z);
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetX(DependencyObject d, <span style="color: #0000ff;">double</span> v) =&gt;<span style="color: #000000;"> d.SetValue(XProperty, v);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span> GetX(DependencyObject d) =&gt; (<span style="color: #0000ff;">double</span><span style="color: #000000;">)d.GetValue(XProperty);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty ZProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">Z</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(<span style="color: #0000ff;">double</span>), <span style="color: #0000ff;">typeof</span>(ATP.ATP_Y), <span style="color: #0000ff;">new</span> PropertyMetadata(-<span style="color: #800080;">1.0</span>, <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnZChanged)));
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnZChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            </span><span style="color: #0000ff;">var</span> deg = Math.PI / <span style="color: #800080;">180</span> * (<span style="color: #0000ff;">double</span><span style="color: #000000;">)e.NewValue;
+            Z </span>=<span style="color: #000000;"> deg;
+            Draw(d, X, Y, deg);
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetZ(DependencyObject d, <span style="color: #0000ff;">double</span> v) =&gt;<span style="color: #000000;"> d.SetValue(ZProperty, v);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span> GetZ(DependencyObject d) =&gt; (<span style="color: #0000ff;">double</span><span style="color: #000000;">)d.GetValue(ZProperty);
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnYChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            </span><span style="color: #0000ff;">var</span> deg = Math.PI / <span style="color: #800080;">180</span> * (<span style="color: #0000ff;">double</span><span style="color: #000000;">)e.NewValue;
+            Y </span>=<span style="color: #000000;"> deg;
+            Draw(d, X, deg, Z);
+        }
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> PX, PY, PZ;
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> X, Y, Z;
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> ModeHeight, ModeWidth, ModeZWidth;
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Draw(DependencyObject d, <span style="color: #0000ff;">double</span> X, <span style="color: #0000ff;">double</span> Y, <span style="color: #0000ff;">double</span><span style="color: #000000;"> Z)
+        {
+            </span><span style="color: #0000ff;">var</span> ui = d <span style="color: #0000ff;">as</span><span style="color: #000000;"> Grid;
+            ui.Children.Clear();
+            </span><span style="color: #0000ff;">var</span> rect = <span style="color: #0000ff;">new</span> Rect(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Size(ModeWidth,ModeHeight));
+            Group[</span><span style="color: #800080;">0</span>] = <span style="color: #0000ff;">new</span> Point3D(rect.Width / <span style="color: #800080;">2</span>, rect.Height / <span style="color: #800080;">2</span>, -(ModeZWidth/<span style="color: #800080;">2</span><span style="color: #000000;">));
+            Group[</span><span style="color: #800080;">1</span>] = <span style="color: #0000ff;">new</span> Point3D(<span style="color: #800080;">0</span> - (rect.Width / <span style="color: #800080;">2</span>), rect.Height / <span style="color: #800080;">2</span>, -(ModeZWidth / <span style="color: #800080;">2</span><span style="color: #000000;">));
+            Group[</span><span style="color: #800080;">2</span>] = <span style="color: #0000ff;">new</span> Point3D(<span style="color: #800080;">0</span> - (rect.Width / <span style="color: #800080;">2</span>), <span style="color: #800080;">0</span> - (rect.Height / <span style="color: #800080;">2</span>), -(ModeZWidth / <span style="color: #800080;">2</span><span style="color: #000000;">));
+            Group[</span><span style="color: #800080;">3</span>] = <span style="color: #0000ff;">new</span> Point3D((rect.Width / <span style="color: #800080;">2</span>), <span style="color: #800080;">0</span> - (rect.Height / <span style="color: #800080;">2</span>), -(ModeZWidth / <span style="color: #800080;">2</span><span style="color: #000000;">));
+            Group[</span><span style="color: #800080;">4</span>] = <span style="color: #0000ff;">new</span> Point3D(rect.Width / <span style="color: #800080;">2</span>, rect.Height / <span style="color: #800080;">2</span>, (ModeZWidth / <span style="color: #800080;">2</span><span style="color: #000000;">));
+            Group[</span><span style="color: #800080;">5</span>] = <span style="color: #0000ff;">new</span> Point3D(<span style="color: #800080;">0</span> - (rect.Width / <span style="color: #800080;">2</span>), rect.Height / <span style="color: #800080;">2</span>, (ModeZWidth / <span style="color: #800080;">2</span><span style="color: #000000;">));
+            Group[</span><span style="color: #800080;">6</span>] = <span style="color: #0000ff;">new</span> Point3D(<span style="color: #800080;">0</span> - (rect.Width / <span style="color: #800080;">2</span>), <span style="color: #800080;">0</span> - (rect.Height / <span style="color: #800080;">2</span>), (ModeZWidth / <span style="color: #800080;">2</span><span style="color: #000000;">));
+            Group[</span><span style="color: #800080;">7</span>] = <span style="color: #0000ff;">new</span> Point3D((rect.Width / <span style="color: #800080;">2</span>), <span style="color: #800080;">0</span> - (rect.Height / <span style="color: #800080;">2</span>), (ModeZWidth / <span style="color: #800080;">2</span><span style="color: #000000;">));
+
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">var</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+                PP[i] </span>= PSP(ReturnP3D(Y轴转置矩阵(X, Y, Z) * GetMatrixMP(Group[i])), <span style="color: #0000ff;">new</span> Rect(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Size(Math.Max(rect.Height, rect.Width),ModeZWidth)));
+
+
+            Set(</span><span style="color: #800080;">0</span>, <span style="color: #800080;">1</span><span style="color: #000000;">, ui,Colors.Black);
+            Set(</span><span style="color: #800080;">1</span>, <span style="color: #800080;">2</span><span style="color: #000000;">, ui,Colors.Blue);
+            Set(</span><span style="color: #800080;">2</span>, <span style="color: #800080;">3</span><span style="color: #000000;">, ui, Colors.Red);
+            Set(</span><span style="color: #800080;">3</span>, <span style="color: #800080;">0</span><span style="color: #000000;">, ui, Colors.Fuchsia);
+            Set(</span><span style="color: #800080;">4</span>, <span style="color: #800080;">5</span><span style="color: #000000;">, ui, Colors.DarkSlateBlue);
+            Set(</span><span style="color: #800080;">5</span>, <span style="color: #800080;">6</span><span style="color: #000000;">, ui, Colors.Red);
+            Set(</span><span style="color: #800080;">6</span>, <span style="color: #800080;">7</span><span style="color: #000000;">, ui, Colors.Red);
+            Set(</span><span style="color: #800080;">7</span>, <span style="color: #800080;">4</span><span style="color: #000000;">, ui, Colors.Red);
+            Set(</span><span style="color: #800080;">0</span>, <span style="color: #800080;">4</span><span style="color: #000000;">, ui, Colors.Red);
+            Set(</span><span style="color: #800080;">1</span>, <span style="color: #800080;">5</span><span style="color: #000000;">, ui, Colors.Red);
+            Set(</span><span style="color: #800080;">2</span>, <span style="color: #800080;">6</span><span style="color: #000000;">, ui, Colors.Red);
+            Set(</span><span style="color: #800080;">3</span>, <span style="color: #800080;">7</span><span style="color: #000000;">, ui, Colors.Red);
+        }
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Set(<span style="color: #0000ff;">int</span> g1, <span style="color: #0000ff;">int</span><span style="color: #000000;"> g2, Grid g,Color A)
+        {
+            </span><span style="color: #0000ff;">var</span> c1 = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Line();
+            c1.Stroke </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> SolidColorBrush(A);
+            c1.X1 </span>=<span style="color: #000000;"> PP[g1].X;
+            c1.Y1 </span>=<span style="color: #000000;"> PP[g1].Y;
+            c1.X2 </span>=<span style="color: #000000;"> PP[g2].X;
+            c1.Y2 </span>=<span style="color: #000000;"> PP[g2].Y;
+            g.Children.Add(c1);
+        }
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Matrix GetMatrixMP(Point3D MP)
+        {
+            </span><span style="color: #0000ff;">var</span> D = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span>[<span style="color: #800080;">4</span>, <span style="color: #800080;">1</span><span style="color: #000000;">];
+            D[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>] =<span style="color: #000000;"> MP.X;
+            D[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">0</span>] =<span style="color: #000000;"> MP.Y;
+            D[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">0</span>] =<span style="color: #000000;"> MP.Z;
+            D[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(D);
+        }
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Point3D ReturnP3D(Matrix MP) =&gt; <span style="color: #0000ff;">new</span> Point3D(MP[<span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>], MP[<span style="color: #800080;">1</span>, <span style="color: #800080;">0</span>], MP[<span style="color: #800080;">2</span>, <span style="color: #800080;">0</span><span style="color: #000000;">]);
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Point PSP(Point3D ModePoint, Rect rect)
+        {
+            Point3D vp </span>= <span style="color: #0000ff;">new</span> Point3D(PX, PY, Math.Max(rect.Height, rect.Width)+<span style="color: #000000;">PZ);
+            Point p;
+            </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> x, y;
+            x </span>= (<span style="color: #0000ff;">int</span>)(vp.X + (ModePoint.X - vp.X) * vp.Z / (vp.Z - ModePoint.Z + <span style="color: #800080;">0.5</span><span style="color: #000000;">));
+            y </span>= (<span style="color: #0000ff;">int</span>)(vp.Y + (ModePoint.Y - vp.Y) * vp.Z / (vp.Z - ModePoint.Z + <span style="color: #800080;">0.5</span><span style="color: #000000;">));
+            p </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Point(x, y);
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> p;
+        }
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Point3D[] Group = <span style="color: #0000ff;">new</span> Point3D[<span style="color: #800080;">8</span><span style="color: #000000;">];
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Point[] PP = <span style="color: #0000ff;">new</span> Point[<span style="color: #800080;">8</span><span style="color: #000000;">];
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Matrix Y轴转置矩阵(<span style="color: #0000ff;">double</span> DegX, <span style="color: #0000ff;">double</span> DegY, <span style="color: #0000ff;">double</span><span style="color: #000000;"> DegZ)
+        {
+            </span><span style="color: #0000ff;">var</span> A = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span>[<span style="color: #800080;">4</span>, <span style="color: #800080;">4</span><span style="color: #000000;">];
+            A[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">1</span>] =<span style="color: #000000;"> Math.Cos(X);
+            A[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">2</span>] =<span style="color: #000000;"> Math.Sin(X);
+            A[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">0</span> -<span style="color: #000000;"> Math.Sin(X);
+            A[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">2</span>] =<span style="color: #000000;"> Math.Cos(X);
+            A[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            A[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">var</span> B = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span>[<span style="color: #800080;">4</span>, <span style="color: #800080;">4</span><span style="color: #000000;">];
+            B[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>] =<span style="color: #000000;"> Math.Cos(Y);
+            B[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">2</span>] = -<span style="color: #000000;">Math.Sin(Y);
+            B[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">0</span>] =<span style="color: #000000;"> Math.Sin(Y);
+            B[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">2</span>] =<span style="color: #000000;"> Math.Cos(Y);
+            B[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">var</span> C = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span>[<span style="color: #800080;">4</span>, <span style="color: #800080;">4</span><span style="color: #000000;">];
+            C[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>] =<span style="color: #000000;"> Math.Cos(Z);
+            C[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">1</span>] =<span style="color: #000000;"> Math.Sin(Z);
+            C[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">0</span> -<span style="color: #000000;"> Math.Sin(Z);
+            C[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">1</span>] =<span style="color: #000000;"> Math.Cos(Z);
+            C[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">0</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">1</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">2</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">0</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">1</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            B[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">2</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            C[</span><span style="color: #800080;">3</span>, <span style="color: #800080;">3</span>] = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            Matrix MT1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(A);
+            Matrix MT2 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(B);
+            Matrix MT3 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(C);
+            </span><span style="color: #0000ff;">var</span> MT4 = MT1 *<span style="color: #000000;"> MT2;
+            </span><span style="color: #0000ff;">return</span> MT4 *<span style="color: #000000;"> MT3;
+        }
+    }
+}</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>xaml代码</p>
+<p>//其中ModeData的三个参数为矩形的长高宽</p>
+<p>//X,Y,Z为轴的旋转角度</p>
+<div class="cnblogs_code">
+<pre><code>&lt;Window x:Class=<span style="color: #800000;">"</span><span style="color: #800000;">ATP.MainWindow</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        xmlns</span>=<span style="color: #800000;">"</span><span style="color: #800000;">http://schemas.microsoft.com/winfx/2006/xaml/presentation</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        xmlns:x</span>=<span style="color: #800000;">"</span><span style="color: #800000;">http://schemas.microsoft.com/winfx/2006/xaml</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        xmlns:d</span>=<span style="color: #800000;">"</span><span style="color: #800000;">http://schemas.microsoft.com/expression/blend/2008</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        xmlns:mc</span>=<span style="color: #800000;">"</span><span style="color: #800000;">http://schemas.openxmlformats.org/markup-compatibility/2006</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        xmlns:local</span>=<span style="color: #800000;">"</span><span style="color: #800000;">clr-namespace:ATP</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        mc:Ignorable</span>=<span style="color: #800000;">"</span><span style="color: #800000;">d</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        Title</span>=<span style="color: #800000;">"</span><span style="color: #800000;">MainWindow</span><span style="color: #800000;">"</span> Height=<span style="color: #800000;">"</span><span style="color: #800000;">450</span><span style="color: #800000;">"</span> Width=<span style="color: #800000;">"</span><span style="color: #800000;">800</span><span style="color: #800000;">"</span>&gt;
+    &lt;Grid&gt; &lt;Grid.RowDefinitions&gt;
+            &lt;RowDefinition Height=<span style="color: #800000;">"</span><span style="color: #800000;">*</span><span style="color: #800000;">"</span>/&gt;
+            &lt;RowDefinition Height=<span style="color: #800000;">"</span><span style="color: #800000;">auto</span><span style="color: #800000;">"</span>/&gt;
+        &lt;/Grid.RowDefinitions&gt;
+        &lt;Grid x:Name=<span style="color: #800000;">"</span><span style="color: #800000;">G</span><span style="color: #800000;">"</span>  local:ATP_Y.P_Z=<span style="color: #800000;">"</span><span style="color: #800000;">{Binding ElementName=s4,Path=Value}</span><span style="color: #800000;">"</span>  local:ATP_Y.ModeData=<span style="color: #800000;">"</span><span style="color: #800000;">100,100,100</span><span style="color: #800000;">"</span>  HorizontalAlignment=<span style="color: #800000;">"</span><span style="color: #800000;">Center</span><span style="color: #800000;">"</span> VerticalAlignment=<span style="color: #800000;">"</span><span style="color: #800000;">Center</span><span style="color: #800000;">"</span> local:ATP_Y.Y=<span style="color: #800000;">"</span><span style="color: #800000;">{Binding ElementName=s2,Path=Value}</span><span style="color: #800000;">"</span>  local:ATP_Y.X=<span style="color: #800000;">"</span><span style="color: #800000;">{Binding ElementName=s1,Path=Value}</span><span style="color: #800000;">"</span> local:ATP_Y.Z=<span style="color: #800000;">"</span><span style="color: #800000;">{Binding ElementName=s3,Path=Value}</span><span style="color: #800000;">"</span>/&gt;
+        &lt;StackPanel Grid.Row=<span style="color: #800000;">"</span><span style="color: #800000;">1</span><span style="color: #800000;">"</span>&gt;
+            &lt;!--X轴旋转--&gt;
+            &lt;Slider Minimum=<span style="color: #800000;">"</span><span style="color: #800000;">0</span><span style="color: #800000;">"</span>  Maximum=<span style="color: #800000;">"</span><span style="color: #800000;">360</span><span style="color: #800000;">"</span> x:Name=<span style="color: #800000;">"</span><span style="color: #800000;">s1</span><span style="color: #800000;">"</span>/&gt;
+            &lt;!--Y轴旋转--&gt;
+            &lt;Slider Minimum=<span style="color: #800000;">"</span><span style="color: #800000;">0</span><span style="color: #800000;">"</span>  Maximum=<span style="color: #800000;">"</span><span style="color: #800000;">360</span><span style="color: #800000;">"</span> x:Name=<span style="color: #800000;">"</span><span style="color: #800000;">s2</span><span style="color: #800000;">"</span>/&gt;
+            &lt;!--Z轴旋转--&gt;
+            &lt;Slider Minimum=<span style="color: #800000;">"</span><span style="color: #800000;">0</span><span style="color: #800000;">"</span>  Maximum=<span style="color: #800000;">"</span><span style="color: #800000;">360</span><span style="color: #800000;">"</span> x:Name=<span style="color: #800000;">"</span><span style="color: #800000;">s3</span><span style="color: #800000;">"</span>/&gt;
+            &lt;!--视野远近--&gt;
+            &lt;Slider Minimum=<span style="color: #800000;">"</span><span style="color: #800000;">0</span><span style="color: #800000;">"</span>  Maximum=<span style="color: #800000;">"</span><span style="color: #800000;">360</span><span style="color: #800000;">"</span> x:Name=<span style="color: #800000;">"</span><span style="color: #800000;">s4</span><span style="color: #800000;">"</span> /&gt;
+        &lt;/StackPanel&gt;
+    &lt;/Grid&gt;
+&lt;/Window&gt;</pre>
+</div>
+<p>&nbsp;</p>
+<p>矩阵类</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">using</span><span style="color: #000000;"> System;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Collections.Generic;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Linq;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Text;
+</span><span style="color: #0000ff;">using</span><span style="color: #000000;"> System.Threading.Tasks;
+
+</span><span style="color: #0000ff;">namespace</span><span style="color: #000000;"> ATP
+{
+   [Serializable]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Matrix
+        {
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;">[] element;
+            </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> rows = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> cols = <span style="color: #800080;">0</span><span style="color: #000000;">;
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 获取矩阵行数
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> Rows
+            {
+                </span><span style="color: #0000ff;">get</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> rows;
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 获取矩阵列数
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> Cols
+            {
+                </span><span style="color: #0000ff;">get</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cols;
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 获取或设置第i行第j列的元素值
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="i"&gt;</span><span style="color: #008000;">第i行</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="j"&gt;</span><span style="color: #008000;">第j列</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回第i行第j列的元素值</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span> <span style="color: #0000ff;">this</span>[<span style="color: #0000ff;">int</span> i, <span style="color: #0000ff;">int</span><span style="color: #000000;"> j]
+            {
+                </span><span style="color: #0000ff;">get</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">if</span> (i &lt; Rows &amp;&amp; j &lt;<span style="color: #000000;"> Cols)
+                    {
+                        </span><span style="color: #0000ff;">return</span> element[i * cols +<span style="color: #000000;"> j];
+                    }
+                    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                    {
+                        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">索引越界</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                    }
+                }
+                </span><span style="color: #0000ff;">set</span><span style="color: #000000;">
+                {
+                    element[i </span>* cols + j] =<span style="color: #000000;"> value;
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 用二维数组初始化Matrix
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="m"&gt;</span><span style="color: #008000;">二维数组</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #0000ff;">public</span> Matrix(<span style="color: #0000ff;">double</span><span style="color: #000000;">[][] m)
+            {
+                </span><span style="color: #0000ff;">this</span>.rows = m.GetLength(<span style="color: #800080;">0</span><span style="color: #000000;">);
+                </span><span style="color: #0000ff;">this</span>.cols = m.GetLength(<span style="color: #800080;">1</span><span style="color: #000000;">);
+                </span><span style="color: #0000ff;">int</span> count = <span style="color: #800080;">0</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">this</span>.element = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span>[Rows *<span style="color: #000000;"> Cols];
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                    {
+                        element[count</span>++] =<span style="color: #000000;"> m[i][j];
+                    }
+                }
+            }
+            </span><span style="color: #0000ff;">public</span> Matrix(<span style="color: #0000ff;">double</span><span style="color: #000000;">[,] m)
+            {
+                </span><span style="color: #0000ff;">this</span>.rows = m.GetLength(<span style="color: #800080;">0</span><span style="color: #000000;">);
+                </span><span style="color: #0000ff;">this</span>.cols = m.GetLength(<span style="color: #800080;">1</span><span style="color: #000000;">);
+                </span><span style="color: #0000ff;">this</span>.element = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span>[<span style="color: #0000ff;">this</span>.rows * <span style="color: #0000ff;">this</span><span style="color: #000000;">.cols];
+                </span><span style="color: #0000ff;">int</span> count = <span style="color: #800080;">0</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                    {
+                        element[count</span>++] =<span style="color: #000000;"> m[i, j];
+                    }
+                }
+            }
+            </span><span style="color: #0000ff;">public</span> Matrix(List&lt;List&lt;<span style="color: #0000ff;">double</span>&gt;&gt;<span style="color: #000000;"> m)
+            {
+                </span><span style="color: #0000ff;">this</span>.rows =<span style="color: #000000;"> m.Count;
+                </span><span style="color: #0000ff;">this</span>.cols = m[<span style="color: #800080;">0</span><span style="color: #000000;">].Count;
+                </span><span style="color: #0000ff;">this</span>.element = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span>[Rows *<span style="color: #000000;"> Cols];
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">this</span>[i, j] =<span style="color: #000000;"> m[i][j];
+                    }
+                }
+            }
+            </span><span style="color: #0000ff;">#region</span> 矩阵数学运算
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Matrix MAbs(Matrix a)
+            {
+                Matrix _thisCopy </span>=<span style="color: #000000;"> a.DeepCopy();
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                    {
+                        _thisCopy[i, j] </span>=<span style="color: #000000;"> Math.Abs(a[i, j]);
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> _thisCopy;
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 矩阵相加
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="a"&gt;</span><span style="color: #008000;">第一个矩阵,和b矩阵必须同等大小</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="b"&gt;</span><span style="color: #008000;">第二个矩阵</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回矩阵相加后的结果</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Matrix <span style="color: #0000ff;">operator</span> +<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">if</span> (a.cols == b.cols &amp;&amp; a.rows ==<span style="color: #000000;"> b.rows)
+                {
+                    </span><span style="color: #0000ff;">double</span>[,] res = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span><span style="color: #000000;">[a.rows, a.cols];
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                        {
+                            res[i, j] </span>= a[i, j] +<span style="color: #000000;"> b[i, j];
+                        }
+                    }
+                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(res);
+                }
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">两个矩阵行列不相等</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 矩阵相减
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="a"&gt;</span><span style="color: #008000;">第一个矩阵,和b矩阵必须同等大小</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="b"&gt;</span><span style="color: #008000;">第二个矩阵</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回矩阵相减后的结果</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Matrix <span style="color: #0000ff;">operator</span> -<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">if</span> (a.cols == b.cols &amp;&amp; a.rows ==<span style="color: #000000;"> b.rows)
+                {
+                    </span><span style="color: #0000ff;">double</span>[,] res = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span><span style="color: #000000;">[a.rows, a.cols];
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                        {
+                            res[i, j] </span>= a[i, j] -<span style="color: #000000;"> b[i, j];
+                        }
+                    }
+                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(res);
+                }
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">两个矩阵行列不相等</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 对矩阵每个元素取相反数
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="a"&gt;</span><span style="color: #008000;">二维矩阵</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">得到矩阵的相反数</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Matrix <span style="color: #0000ff;">operator</span> -<span style="color: #000000;">(Matrix a)
+            {
+                Matrix res </span>=<span style="color: #000000;"> a;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.cols; j++<span style="color: #000000;">)
+                    {
+                        res.element[i </span>* a.cols + j] = -res.element[i * a.cols +<span style="color: #000000;"> j];
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res;
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 矩阵相乘
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="a"&gt;</span><span style="color: #008000;">第一个矩阵</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="b"&gt;</span><span style="color: #008000;">第二个矩阵,这个矩阵的行要与第一个矩阵的列相等</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回相乘后的一个新的矩阵</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Matrix <span style="color: #0000ff;">operator</span> *<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">if</span> (a.cols ==<span style="color: #000000;"> b.rows)
+                {
+                    </span><span style="color: #0000ff;">double</span>[,] res = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span><span style="color: #000000;">[a.rows, b.cols];
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.rows; i++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; b.cols; j++<span style="color: #000000;">)
+                        {
+                            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> k = <span style="color: #800080;">0</span>; k &lt; a.cols; k++<span style="color: #000000;">)
+                            {
+                                res[i, j] </span>+= a[i, k] *<span style="color: #000000;"> b[k, j];
+                            }
+                        }
+                    }
+                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(res);
+                }
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">两个矩阵行和列不等</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 矩阵与数相乘
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="a"&gt;</span><span style="color: #008000;">第一个矩阵</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="num"&gt;</span><span style="color: #008000;">一个实数</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回相乘后的新的矩阵</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Matrix <span style="color: #0000ff;">operator</span> *(Matrix a, <span style="color: #0000ff;">double</span><span style="color: #000000;"> num)
+            {
+                Matrix res </span>=<span style="color: #000000;"> a;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.cols; j++<span style="color: #000000;">)
+                    {
+                        res.element[i </span>* a.cols + j] *=<span style="color: #000000;"> num;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res;
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 矩阵转置
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回当前矩阵转置后的新矩阵</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span><span style="color: #000000;"> Matrix Transpose()
+            {
+                </span><span style="color: #0000ff;">double</span>[,] res = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span><span style="color: #000000;">[cols, rows];
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; cols; i++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; rows; j++<span style="color: #000000;">)
+                        {
+                            res[i, j] </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">[j, i];
+                        }
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(res);
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 矩阵求逆
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回求逆后的新的矩阵</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span><span style="color: #000000;"> Matrix Inverse()
+            {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">最后原始矩阵并不变，所以需要深拷贝一份</span>
+                Matrix _thisCopy = <span style="color: #0000ff;">this</span><span style="color: #000000;">.DeepCopy();
+                </span><span style="color: #0000ff;">if</span> (cols == rows &amp;&amp; <span style="color: #0000ff;">this</span>.Determinant() != <span style="color: #800080;">0</span><span style="color: #000000;">)
+                {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">初始化一个同等大小的单位阵</span>
+                    Matrix res =<span style="color: #000000;"> _thisCopy.EMatrix();
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">首先找到第i列的绝对值最大的数，并将该行和第i行互换</span>
+                        <span style="color: #0000ff;">int</span> rowMax =<span style="color: #000000;"> i;
+                        </span><span style="color: #0000ff;">double</span> max =<span style="color: #000000;"> Math.Abs(_thisCopy[i, i]);
+                        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = i; j &lt; rows; j++<span style="color: #000000;">)
+                        {
+                            </span><span style="color: #0000ff;">if</span> (Math.Abs(_thisCopy[j, i]) &gt;<span style="color: #000000;"> max)
+                            {
+                                rowMax </span>=<span style="color: #000000;"> j;
+                                max </span>=<span style="color: #000000;"> Math.Abs(_thisCopy[j, i]);
+                            }
+                        }
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">将第i行和找到最大数那一行rowMax交换</span>
+                        <span style="color: #0000ff;">if</span> (rowMax !=<span style="color: #000000;"> i)
+                        {
+                            _thisCopy.Exchange(i, rowMax);
+                            res.Exchange(i, rowMax);
+
+                        }
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">将第i行做初等行变换，将第一个非0元素化为1</span>
+                        <span style="color: #0000ff;">double</span> r = <span style="color: #800080;">1.0</span> /<span style="color: #000000;"> _thisCopy[i, i];
+                        _thisCopy.Exchange(i, </span>-<span style="color: #800080;">1</span><span style="color: #000000;">, r);
+                        res.Exchange(i, </span>-<span style="color: #800080;">1</span><span style="color: #000000;">, r);
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">消元</span>
+                        <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; rows; j++<span style="color: #000000;">)
+                        {
+                            </span><span style="color: #008000;">//</span><span style="color: #008000;">到本行后跳过</span>
+                            <span style="color: #0000ff;">if</span> (j ==<span style="color: #000000;"> i)
+                                </span><span style="color: #0000ff;">continue</span><span style="color: #000000;">;
+                            </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                            {
+                                r </span>= -<span style="color: #000000;">_thisCopy[j, i];
+                                _thisCopy.Exchange(i, j, r);
+                                res.Exchange(i, j, r);
+                            }
+                        }
+                    }
+                    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res;
+                }
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">矩阵不是方阵无法求逆</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                }
+            }
+            </span><span style="color: #0000ff;">#region</span> 重载比较运算符
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">bool</span> <span style="color: #0000ff;">operator</span> &lt;<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">bool</span> issmall = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">if</span> (a[i, j] &gt;= b[i, j]) issmall = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+            }
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">bool</span> <span style="color: #0000ff;">operator</span> &gt;<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">bool</span> issmall = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">if</span> (a[i, j] &lt;= b[i, j]) issmall = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+            }
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">bool</span> <span style="color: #0000ff;">operator</span> &lt;=<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">bool</span> issmall = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">if</span> (a[i, j] &gt; b[i, j]) issmall = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+            }
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">bool</span> <span style="color: #0000ff;">operator</span> &gt;=<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">bool</span> issmall = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">if</span> (a[i, j] &lt; b[i, j]) issmall = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+            }
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">bool</span> <span style="color: #0000ff;">operator</span> !=<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">bool</span> issmall = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                issmall </span>=<span style="color: #000000;"> ReferenceEquals(a, b);
+                </span><span style="color: #0000ff;">if</span> (issmall) <span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">if</span> (a[i, j] == b[i, j]) issmall = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+            }
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">bool</span> <span style="color: #0000ff;">operator</span> ==<span style="color: #000000;">(Matrix a, Matrix b)
+            {
+                </span><span style="color: #0000ff;">bool</span> issmall = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                issmall </span>=<span style="color: #000000;"> ReferenceEquals(a, b);
+                </span><span style="color: #0000ff;">if</span> (issmall) <span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; a.Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; a.Cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">if</span> (a[i, j] != b[i, j]) issmall = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> issmall;
+            }
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">override</span> <span style="color: #0000ff;">bool</span> Equals(<span style="color: #0000ff;">object</span><span style="color: #000000;"> obj)
+            {
+                Matrix b </span>= obj <span style="color: #0000ff;">as</span><span style="color: #000000;"> Matrix;
+                </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span> ==<span style="color: #000000;"> b;
+            }
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">override</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> GetHashCode()
+            {
+                </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">base</span><span style="color: #000000;">.GetHashCode();
+            }
+            </span><span style="color: #0000ff;">#endregion</span>
+            <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> Determinant()
+            {
+                </span><span style="color: #0000ff;">if</span> (cols ==<span style="color: #000000;"> rows)
+                {
+                    Matrix _thisCopy </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">.DeepCopy();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">行列式每次交换行，都需要乘以-1</span>
+                    <span style="color: #0000ff;">double</span> res = <span style="color: #800080;">1</span><span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">首先找到第i列的绝对值最大的数</span>
+                        <span style="color: #0000ff;">int</span> rowMax =<span style="color: #000000;"> i;
+                        </span><span style="color: #0000ff;">double</span> max =<span style="color: #000000;"> Math.Abs(_thisCopy[i, i]);
+                        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = i; j &lt; rows; j++<span style="color: #000000;">)
+                        {
+                            </span><span style="color: #0000ff;">if</span> (Math.Abs(_thisCopy[j, i]) &gt;<span style="color: #000000;"> max)
+                            {
+                                rowMax </span>=<span style="color: #000000;"> j;
+                                max </span>=<span style="color: #000000;"> Math.Abs(_thisCopy[j, i]);
+                            }
+                        }
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">将第i行和找到最大数那一行rowMax交换,同时将单位阵做相同初等变换</span>
+                        <span style="color: #0000ff;">if</span> (rowMax !=<span style="color: #000000;"> i)
+                        {
+                            _thisCopy.Exchange(i, rowMax);
+                            res </span>*= -<span style="color: #800080;">1</span><span style="color: #000000;">;
+                        }
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">消元</span>
+                        <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = i + <span style="color: #800080;">1</span>; j &lt; rows; j++<span style="color: #000000;">)
+                        {
+                            </span><span style="color: #0000ff;">double</span> r = -_thisCopy[j, i] /<span style="color: #000000;"> _thisCopy[i, i];
+                            _thisCopy.Exchange(i, j, r);
+                        }
+                    }
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">计算对角线乘积</span>
+                    <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                    {
+                        res </span>*=<span style="color: #000000;"> _thisCopy[i, i];
+                    }
+                    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res;
+                }
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">不是行列式</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                }
+            }
+            </span><span style="color: #0000ff;">#endregion</span>
+            <span style="color: #0000ff;">#region</span> 初等变换
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 初等变换：交换第r1和第r2行
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="r1"&gt;</span><span style="color: #008000;">第r1行</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="r2"&gt;</span><span style="color: #008000;">第r2行</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回交换两行后的新的矩阵</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> Matrix Exchange(<span style="color: #0000ff;">int</span> r1, <span style="color: #0000ff;">int</span><span style="color: #000000;"> r2)
+            {
+                </span><span style="color: #0000ff;">if</span> (Math.Min(r2, r1) &gt;= <span style="color: #800080;">0</span> &amp;&amp; Math.Max(r1, r2) &lt;<span style="color: #000000;"> rows)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">double</span> temp = <span style="color: #0000ff;">this</span><span style="color: #000000;">[r1, j];
+                        </span><span style="color: #0000ff;">this</span>[r1, j] = <span style="color: #0000ff;">this</span><span style="color: #000000;">[r2, j];
+                        </span><span style="color: #0000ff;">this</span>[r2, j] =<span style="color: #000000;"> temp;
+                    }
+                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+                }
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">超出索引</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 初等变换：将r1行乘以某个数加到r2行
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="r1"&gt;</span><span style="color: #008000;">第r1行乘以num</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="r2"&gt;</span><span style="color: #008000;">加到第r2行，若第r2行为负，则直接将r1乘以num并返回</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="num"&gt;</span><span style="color: #008000;">某行放大的倍数</span><span style="color: #808080;">&lt;/param&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span> Matrix Exchange(<span style="color: #0000ff;">int</span> r1, <span style="color: #0000ff;">int</span> r2, <span style="color: #0000ff;">double</span><span style="color: #000000;"> num)
+            {
+                </span><span style="color: #0000ff;">if</span> (Math.Min(r2, r1) &gt;= <span style="color: #800080;">0</span> &amp;&amp; Math.Max(r1, r2) &lt;<span style="color: #000000;"> rows)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">this</span>[r2, j] += <span style="color: #0000ff;">this</span>[r1, j] *<span style="color: #000000;"> num;
+                    }
+                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+                }
+                </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (r2 &lt; <span style="color: #800080;">0</span><span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">this</span>[r1, j] *=<span style="color: #000000;"> num;
+                    }
+                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+                }
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                {
+                    </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">超出索引</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+                }
+            }
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 得到一个同等大小的单位矩阵
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回一个同等大小的单位矩阵</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span><span style="color: #000000;"> Matrix EMatrix()
+            {
+                </span><span style="color: #0000ff;">if</span> (rows ==<span style="color: #000000;"> cols)
+                {
+                    </span><span style="color: #0000ff;">double</span>[,] res = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span><span style="color: #000000;">[rows, cols];
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                    {
+                        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                        {
+                            </span><span style="color: #0000ff;">if</span> (i ==<span style="color: #000000;"> j)
+                                res[i, j] </span>= <span style="color: #800080;">1</span><span style="color: #000000;">;
+                            </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                                res[i, j] </span>= <span style="color: #800080;">0</span><span style="color: #000000;">;
+                        }
+                    }
+                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(res);
+                }
+                </span><span style="color: #0000ff;">else</span>
+                    <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(<span style="color: #800000;">"</span><span style="color: #800000;">不是方阵，无法得到单位矩阵</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+            }
+            </span><span style="color: #0000ff;">#endregion</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+            <span style="color: #808080;">///</span><span style="color: #008000;"> 深拷贝，仅仅将值拷贝给一个新的对象
+            </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+            <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;</span><span style="color: #008000;">返回深拷贝后的新对象</span><span style="color: #808080;">&lt;/returns&gt;</span>
+            <span style="color: #0000ff;">public</span><span style="color: #000000;"> Matrix DeepCopy()
+            {
+                </span><span style="color: #0000ff;">double</span>[,] ele = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">double</span><span style="color: #000000;">[rows, cols];
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; cols; j++<span style="color: #000000;">)
+                    {
+                        ele[i, j] </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">[i, j];
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Matrix(ele);
+            }
+
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">override</span> <span style="color: #0000ff;">string</span><span style="color: #000000;"> ToString()
+            {
+                </span><span style="color: #0000ff;">string</span> str = <span style="color: #800000;">""</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; Rows; i++<span style="color: #000000;">)
+                {
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; Cols; j++<span style="color: #000000;">)
+                    {
+                        str </span>+= <span style="color: #0000ff;">this</span><span style="color: #000000;">[i, j].ToString();
+                        </span><span style="color: #0000ff;">if</span> (j != Cols - <span style="color: #800080;">1</span><span style="color: #000000;">)
+                            str </span>+= <span style="color: #800000;">"</span> <span style="color: #800000;">"</span><span style="color: #000000;">;
+                        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (i != Rows - <span style="color: #800080;">1</span><span style="color: #000000;">)
+                            str </span>+=<span style="color: #000000;"> Environment.NewLine;
+                    }
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> str;
+            }
+        }
+}</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>截图</p>
+<p><img src="./images/WPF 画一个3D矩形并旋转0.png" alt="" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

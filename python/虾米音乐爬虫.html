@@ -1,0 +1,226 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修虾米音乐爬虫' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>虾米音乐爬虫</center></div><div class='banquan'>原文出处:本文由博客园博主朱春雨提供。<br/>
+原文连接:https://www.cnblogs.com/zhuchunyu/p/11496882.html</div><br>
+    <h3 id="虾米音乐爬虫">虾米音乐爬虫</h3>
+<p><a href="https://www.xiami.com/" class="uri">https://www.xiami.com/</a> 这是本次我爬取的网站</p>
+<p>这是前后端分析的网站，这种类型的web其实很好的，只要找对了API，成功发生请求，那么想要的数据就直接获取到了</p>
+<p>这里就拿绿色这首歌为例子：<a href="https://www.xiami.com/song/mTrNQf7d590，分析她的评论的APi接口" class="uri">https://www.xiami.com/song/mTrNQf7d590，分析她的评论的APi接口</a></p>
+<ol>
+<li><p>请求分析，主要知道APi的地址，请求的参数，请求的方式，还有就是请求头需要携带什么参数。<br />
+<img src="./images/虾米音乐爬虫0.png" /></p>
+<p>这是本次访问携带的参数数据</p>
+<pre><code><code>_q: {&quot;objectId&quot;:&quot;mTrNQf7d590&quot;,&quot;objectType&quot;:&quot;song&quot;,&quot;pagingVO&quot;:{&quot;page&quot;:1,&quot;pageSize&quot;:20}}
+_s: a05126e10a02e9702e790e47c27d2002
+
+开始分析吧(_s的值和你们的不一样，这是正常的)
+_q:一个明文，数据都能找到 objectId就是url中的一个数据，不难拿到，objectType这里是固定为song的，pagingVO就是页数和每一页多少条数据，_q就是很容易的。
+_s:它是一个32为的随机字符串，第一时间应该想到md5生成的32位的数据，_s很有可能就是md5加密过后的，至于加密数据是什么？以后台开发来说，md5它是无法可逆的，后端拿到这个md5加密串不能反解密出来，所以只能根据前端传来的数据，将数据通过md5加密，再和前端传来的md5字符串进行比较，比较成功的说明这次请求是通过web网页来的(理想状况，排除别人知道你的加密方法)。不同的歌曲，不同的评论页数页数_s是不一样的，那么这个md5加密的数据肯定有标识(指不一样的数据)。很多后台会拿时间戳作为加密数据之一，去生成md5加密字符串，不过前端要将这个时间戳传到后台。这里呢，并没有传时间戳到后台，那么猜测加密的数据很有可能就是_q的值</code></pre>
+<p>你单单访问一次：<a href="https://www.xiami.com/song/mTrNQf7d590，是很难找出加密规律的，我们再刷新一次页面，还是找到刚刚评论的api，看看请求的参数有何不同。很确定(前提你没有做其他操作)，找到的请求参数和第一次的请求参数是一样的" class="uri">https://www.xiami.com/song/mTrNQf7d590，是很难找出加密规律的，我们再刷新一次页面，还是找到刚刚评论的api，看看请求的参数有何不同。很确定(前提你没有做其他操作)，找到的请求参数和第一次的请求参数是一样的</a></p>
+<pre><code><code>_q: {&quot;objectId&quot;:&quot;mTrNQf7d590&quot;,&quot;objectType&quot;:&quot;song&quot;,&quot;pagingVO&quot;:{&quot;page&quot;:1,&quot;pageSize&quot;:20}}
+_s: a05126e10a02e9702e790e47c27d2002</code></pre>
+<p>不管你刷新多少次，请求参数是一样的，时间是一直再变的，<code>_s</code>的值依旧没有变化，所以直接排除时间戳作为加密数据的可能，<code>_q</code>的值一直没变，<code>_s</code>的值也没有变化，那么<code>_q</code>的值是<code>_s</code>的加密参数的可能性变大。</p>
+<p>上面我们一直看的是本首歌曲的第一页的评论信息，我们试试看第二页评论的信息，看看请求参数有何变化，翻到页面最下面，点击<strong>更多评论</strong>，我们继续找到评论的接口</p>
+<pre><code><code>_q: {&quot;objectId&quot;:&quot;mTrNQf7d590&quot;,&quot;objectType&quot;:&quot;song&quot;,&quot;pagingVO&quot;:{&quot;page&quot;:2,&quot;pageSize&quot;:20}}
+_s: f82616e410172d3e76b9b48561a0d257</code></pre>
+<p><code>_q</code>的值发生了变化，<code>_s</code>的值相应的发生了变化，我们可以确定的是<code>_q</code>就是<code>_s</code>的加密数据之一(可能还有其他的加密数据)</p></li>
+<li><p><code>_s</code>的加密方式破解</p>
+<p>找js加密的位置是有一定难度的，你访问一个web页面，请求的js文件有很多，单个js文件的内容有大，还有就是js文件又是混淆的，以a,b,c,d,e...这些名字命名，你都不知道代表什么意思。</p>
+<p>我找位置的方式就是：先看本次请求是哪个js文件，js文件的哪个位置发送的，再顺着往上慢慢找。这只是一个思路。<br />
+<img src="./images/虾米音乐爬虫1.png" /></p>
+<p>还有一种就是思路就是，通过search搜索关键字，通过关键字的位置，找到加密位置。<br />
+<img src="./images/虾米音乐爬虫2.png" /></p>
+<p>这里，最终我通过搜索关键字<code>_q</code>,找到了加密位置。位置找到了，通过chrome的开发者工具进行js断点调试。我就讲下这段js大概。</p>
+<pre><code><code>_q的值需要我们自己按照需要自己生成相应的字符串
+_s的指就是这行代码:a.split(&quot;_&quot;)[0] + &quot;_xmMain_&quot; + e._url + &quot;_&quot; + t
+a:就是cookie中xm_sg_tk对应的value值
+e._url：比如评论请求的url地址为 https://www.xiami.com/api/comment/getCommentList
+    那么e._url就是/api/comment/getCommentList
+t:就是_q的值
+最终将它他们拼接成字符串，最终通过md5的方式加密，这就是_s的值</code></pre>
+<p>注意:</p>
+<p>​ 关于上面的a，也就是cookie是xm_sg_tk的value的获取。在你发送Api请求之前，先去请求下主页，拿到对应cookie的值。</p>
+<p>​ <code>_q</code>很明显就是json字符串，通过json.dumps字典生成，但是注意，字典是无序的，json.dumps出来的字符串顺序会不一样。</p></li>
+<li><p>成功请求之后，就会拿到响应的数据<br />
+<img src="./images/虾米音乐爬虫3.png" /></p></li>
+</ol>
+<p>这里我就分析了评论这一个APi，其他Api的加密方式也是一样。只是<code>_q</code>的值和对应的url地址不一样。需要爬取其他数据相应改下就是。</p>
+<pre class="python"><code>import requests, pprint
+from fake_useragent import UserAgent
+from hashlib import md5
+
+
+class XiaMi:
+    ua = UserAgent()
+    DOMAIN = &quot;https://www.xiami.com&quot;
+
+    # 各个API接口地址
+    # 每日音乐推荐
+    APIDailySongs = &quot;/api/recommend/getDailySongs&quot;
+    # 排行榜音乐
+    APIBillboardDetail = &quot;/api/billboard/getBillboardDetail&quot;
+    # 所有排行榜
+    APIBillboardALL = &quot;/api/billboard/getBillboards&quot;
+    # 歌曲详情信息
+    APISongDetails = &quot;/api/song/getPlayInfo&quot;
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.headers = {
+            &quot;user-agent&quot;: self.ua.random
+        }
+        self.session.get(self.DOMAIN)
+
+    def _get_api_url(self, api):
+        return self.DOMAIN + api
+
+    # 获取每日推荐的30首歌曲
+    def get_daily_songs(self):
+        url = self._get_api_url(self.APIDailySongs)
+        params = {
+            &quot;_s&quot;: self._get_params__s(self.APIDailySongs)
+        }
+        result = self.session.get(url=url, params=params).json()
+        self._dispose(result)
+
+    # 获取虾米音乐的音乐排行榜
+    def get_billboard_song(self, billboard_id: int = 0):
+        &#39;&#39;&#39;
+        :param billboard_id: 各类型的排行榜
+        :return: 排行榜音乐数据
+        &#39;&#39;&#39;
+        if not hasattr(self, &quot;billboard_dict&quot;):
+            self._get_billboard_dict_map()
+
+        assert hasattr(self, &quot;billboard_dict&quot;), &quot;billboard_dict获取失败&quot;
+        pprint.pprint(self.billboard_dict)
+        if billboard_id == 0:
+            billboard_id = input(&quot;输入对应ID，获取排行榜信息&quot;)
+        assert billboard_id in self.billboard_dict, &quot;billboard_id错误&quot;
+
+        url = self._get_api_url(self.APIBillboardDetail)
+        _q = &#39;{\&quot;billboardId\&quot;:\&quot;%s\&quot;}&#39; % billboard_id
+        params = {
+            &quot;_q&quot;: _q,
+            &quot;_s&quot;: self._get_params__s(self.APIBillboardDetail, _q)
+        }
+        result = self.session.get(url=url, params=params).json()
+        self._dispose(result)
+
+    # 生成一个排行榜对应的字典映射
+    def _get_billboard_dict_map(self):
+        billboard_dict = {}
+        billboards_info = self.get_billboard_all()
+        try:
+            if billboards_info[&quot;code&quot;] == &quot;SUCCESS&quot;:
+                xiamiBillboards_list = billboards_info[&quot;result&quot;][&quot;data&quot;][&quot;xiamiBillboards&quot;]
+                for xiamiBillboards in xiamiBillboards_list:
+                    for xiamiBillboard in xiamiBillboards:
+                        id = xiamiBillboard[&quot;billboardId&quot;]
+                        name = xiamiBillboard[&quot;name&quot;]
+                        billboard_dict[id] = name
+                self.billboard_dict = billboard_dict
+        except Exception:
+            pass
+
+    # 获取所有的排行榜信息
+    def get_billboard_all(self):
+        url = self._get_api_url(self.APIBillboardALL)
+        params = {
+            &quot;_s&quot;: self._get_params__s(self.APIBillboardALL)
+        }
+        result = self.session.get(url=url, params=params).json()
+        self._dispose(result)
+
+    # 获取歌曲详情信息
+    def get_song_details(self, *song_ids) -&gt; dict:
+        &#39;&#39;&#39;
+        :param song_ids: 歌曲的id，可以为多个
+        :return: 歌曲的详情信息
+        &#39;&#39;&#39;
+        assert len(song_ids) != 0, &quot;参数不能为空&quot;
+
+        for song_id in song_ids:
+            if not isinstance(song_id, int):
+                raise Exception(&quot;每个参数必须为整型&quot;)
+
+        url = self._get_api_url(self.APISongDetails)
+        _q = &quot;{\&quot;songIds\&quot;:%s}&quot; % list(song_ids)
+        params = {
+            &quot;_q&quot;: _q,
+            &quot;_s&quot;: self._get_params__s(self.APISongDetails, _q)
+        }
+        result = self.session.get(url=url, params=params).json()
+        return self._dispose(result)
+
+    # 获取歌曲的下载地址
+    def get_song_download_url(self, *song_ids):
+        download_url_dict = {}
+        song_details = self.get_song_details(*song_ids)
+        songPlayInfos = song_details[&quot;result&quot;][&quot;data&quot;][&quot;songPlayInfos&quot;]
+        for songPlayInfo in songPlayInfos:
+            song_download_url = songPlayInfo[&quot;playInfos&quot;][0][&quot;listenFile&quot;] or songPlayInfo[&quot;playInfos&quot;][1][&quot;listenFile&quot;]
+            song_id = songPlayInfo[&quot;songId&quot;]
+            download_url_dict[song_id] = song_download_url
+
+        print(&quot;歌曲下载地址为:&quot;, download_url_dict)
+
+    # 处理爬虫获取到的数据，这里我就输出值
+    def _dispose(self, data):
+        pprint.pprint(data)
+        return data
+
+    # 获取加密字符串_s
+    def _get_params__s(self, api: str, _q: str = &quot;&quot;) -&gt; str:
+        &#39;&#39;&#39;
+        :param api: URL的地址
+        :param _q:  需要加密的参数
+        :return: 加密字符串
+        &#39;&#39;&#39;
+        xm_sg_tk = self._get_xm_sg_tk()
+        data = xm_sg_tk + &quot;_xmMain_&quot; + api + &quot;_&quot; + _q
+        return md5(bytes(data, encoding=&quot;utf-8&quot;)).hexdigest()
+
+    # 获取xm_sg_tk的值，用于对数据加密的参数
+    def _get_xm_sg_tk(self) -&gt; str:
+        xm_sg_tk = self.session.cookies.get(&quot;xm_sg_tk&quot;, None)
+        assert xm_sg_tk is not None, &quot;xm_sg_tk获取失败&quot;
+        return xm_sg_tk.split(&quot;_&quot;)[0]
+
+    def test(self):
+        # self.get_daily_songs()
+        # self._get_xm_sg_tk()
+        # self.get_billboard_song(332)
+        # self.get_billboard_all()
+        # self.get_song_details(1813243760)
+        # self.get_song_download_url(1813243760)
+
+        pass
+
+
+if __name__ == &#39;__main__&#39;:
+    xm = XiaMi()
+    xm.test()
+</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

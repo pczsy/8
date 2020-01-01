@@ -1,0 +1,289 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修网络编程小结' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>网络编程小结</center></div><div class='banquan'>原文出处:本文由博客园博主SetCreed提供。<br/>
+原文连接:https://www.cnblogs.com/setcreed/p/11748688.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#软件开发架构">软件开发架构</a><ul>
+        <li><a href="#cs架构">C/S架构</a></li>
+        <li><a href="#bs架构">B/S架构</a></li>
+        </ul></li>
+        <li><a href="#互联网osi七层协议">互联网OSI七层协议</a><ul>
+        <li><a href="#物理层">物理层</a></li>
+        <li><a href="#数据链路层">数据链路层</a></li>
+        <li><a href="#网络层">网络层</a></li>
+        <li><a href="#传输层">传输层</a><ul>
+        <li><a href="#tcp协议">TCP协议</a></li>
+        <li><a href="#udp协议">UDP协议</a></li>
+        </ul></li>
+        <li><a href="#应用层">应用层</a></li>
+        </ul></li>
+        <li><a href="#socket套接字">socket套接字</a></li>
+        <li><a href="#socket套接字模板">socket套接字模板</a></li>
+        <li><a href="#subprocess">subprocess</a></li>
+        <li><a href="#粘包问题">粘包问题</a><ul>
+        <li><a href="#struct解决粘包问题">struct解决粘包问题</a></li>
+        </ul></li>
+        <li><a href="#socketserver">socketserver</a></li>
+        </ul>
+    </div>
+</div>
+<h1 id="软件开发架构">软件开发架构</h1>
+<h2 id="cs架构">C/S架构</h2>
+<p>client：客户端</p>
+<p>server：服务端</p>
+<p>优点：软件的使用稳定，网络资源占用少</p>
+<p>缺点：</p>
+<ul>
+<li>若需要使用多个软件，需要下载多个客户端</li>
+<li>服务端更新后，用户也需要跟着下载更新</li>
+</ul>
+<h2 id="bs架构">B/S架构</h2>
+<p>browser：浏览器</p>
+<p>server：服务端</p>
+<p>优点：以浏览器充当客户端，服务端更新不需要用户更新下载</p>
+<p>缺点: 占用网络资源大，网络不好时，体验差</p>
+<h1 id="互联网osi七层协议">互联网OSI七层协议</h1>
+<p>从下往上分为：</p>
+<p>物理层--&gt; 数据链路层--&gt; 网络层--&gt; 传输层--&gt; 会话层--&gt; 表示层--&gt; 应用层</p>
+<h2 id="物理层">物理层</h2>
+<p>传输电信号 0100011</p>
+<h2 id="数据链路层">数据链路层</h2>
+<ol>
+<li><p>规定好电信号的分组方式</p></li>
+<li><p>必须要由一块网卡</p></li>
+<li><p>mac地址：12位唯一的16进制数</p>
+<p>​ 前6位是厂商号</p>
+<p>​ 后6位是流水号</p></li>
+<li><p>以太网协议：</p>
+<ul>
+<li>在同一个局域网内通信
+<ul>
+<li>单播 1对1吼</li>
+<li>广播 多对多吼</li>
+<li>会有广播风暴， 不能对局域网通信</li>
+</ul></li>
+</ul></li>
+</ol>
+<h2 id="网络层">网络层</h2>
+<p>ip：定位局域网位置</p>
+<p>port： 端口，唯一标识一台计算机上的一个程序</p>
+<p>arp协议：将mac地址获取，并解析成ipi地址</p>
+<h2 id="传输层">传输层</h2>
+<h3 id="tcp协议">TCP协议</h3>
+<p>TCP协议称之为流式协议</p>
+<p>若想要通信，必须建立连接，并建立双向通道</p>
+<p>三次握手，四次挥手：</p>
+<ul>
+<li>三次握手建立连接
+<ul>
+<li>客户端往服务端发送建立通道</li>
+<li>服务端要确认客户端的请求，并往客户端也发送请求建立通道</li>
+<li>客户端接收到服务端建立连接的请求，并返回确认</li>
+<li>建立双向通道</li>
+</ul></li>
+<li>双向通道
+<ul>
+<li>反馈机制</li>
+<li>客户端往服务端发送请求获取数据，服务端务必返回数据，客户端确认收到，否则会反复发送，一直到某个时间段内，会停止发送</li>
+</ul></li>
+<li>四次挥手断连接
+<ul>
+<li>客户端往服务端发送断开连接请求，服务端返回确认收到</li>
+<li>服务端需要再次发送断开连接请求</li>
+<li>客户端返回确认收到</li>
+<li>最终确认断开来连接</li>
+</ul></li>
+</ul>
+<h3 id="udp协议">UDP协议</h3>
+<ol>
+<li>数据不安全</li>
+<li>不需要建立双向通道</li>
+<li>传输速度快</li>
+<li>不会由粘包问题</li>
+<li>客户端发送数据，不需要服务端确认收到</li>
+</ol>
+<h2 id="应用层">应用层</h2>
+<p>ftp、http</p>
+<h1 id="socket套接字">socket套接字</h1>
+<p>socket用来写套接字客户端与服务端的模块，内部帮我们封装好了7层协议需要做的事情.</p>
+<h1 id="socket套接字模板">socket套接字模板</h1>
+<pre><code><code># 服务端
+import socket
+
+server = socket.socket()
+server.bind(
+    (&#39;127.0.0.1&#39;, 9527)
+)
+
+server.listen(5)
+
+while True:
+    conn, addr = server.accept()
+    print(addr)
+
+    while True:
+        try:
+            data = conn.recv(1024)
+            if len(data) == 0:
+                continue
+
+            print(data.decode(&#39;utf-8&#39;))
+            conn.send(data)
+
+        except Exception as e:
+            print(e)
+            break
+
+    conn.close()
+   
+
+# 客户端
+import socket
+
+client = socket.socket()
+client.connect(
+    (&#39;127.0.0.1&#39;, 9527)
+)
+
+while True:
+    send_msg = input(&#39;客户端：&#39;)
+    client.send(send_msg.encode(&#39;utf-8&#39;))
+    data = client.recv(1024)
+    print(data.decode(&#39;utf-8&#39;))</code></pre>
+<h1 id="subprocess">subprocess</h1>
+<p>用来通过代码往cmd创建一个管道，并且发送命令和接收cmd返回的结果</p>
+<pre><code><code># 伪代码：
+import subprocess
+obj = subprocess.Popen(
+    &#39;命令&#39;,
+    shell=True,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE
+)
+msg = obj.stdout.read() + obj.stderr.read()
+</code></pre>
+<h1 id="粘包问题">粘包问题</h1>
+<ol>
+<li>不能确定对方发送数据的大小</li>
+<li>在短时间内，间隔时间短，并且数据量小的情况下，默认将这些数据打包成一个多次发送的数据，然后一次性发送</li>
+</ol>
+<h2 id="struct解决粘包问题">struct解决粘包问题</h2>
+<pre><code><code>可以将一个数据的长度打包成一个固定长度的报头.
+struct.pack(&#39;模式i&#39;, &#39;源数据长度&#39;)
+data = &#39;gagawagwaga&#39;
+# 打包成报头
+headers = struct.pack(&#39;i&#39;, len(data))
+
+# 解包获取数据真实长度
+data = struct.unpack(&#39;i&#39;, headers)[0]</code></pre>
+<pre><code><code># 服务端
+import socket
+import subprocess
+import struct
+
+server = socket.socket()
+server.bind(
+    (&#39;127.0.0.1&#39;, 9527)
+)
+
+server.listen(5)
+
+while True:
+    conn, addr = server.accept()
+    print(addr)
+
+    while True:
+        try:
+            cmd = conn.recv(1024).decode(&#39;utf-8&#39;)
+            if len(cmd) == 0:
+                continue
+
+            obj = subprocess.Popen(
+                cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            res = obj.stdout.read() + obj.stderr.read()
+
+            headers = struct.pack(&#39;i&#39;, len(res))
+            conn.send(headers)
+            conn.send(res)
+
+
+        except Exception as e:
+            print(e)
+            break
+
+    conn.close()
+    
+    
+# 客户端
+import socket
+import struct
+
+
+client = socket.socket()
+client.connect(
+    (&#39;127.0.0.1&#39;, 9527)
+)
+
+while True:
+    cmd = input(&#39;客户端输入命令：&#39;)
+    client.send(cmd.encode(&#39;utf-8&#39;))
+
+    headers = client.recv(4)
+    data_len = struct.unpack(&#39;i&#39;, headers)[0]
+    data= client.recv(data_len)
+    print(data.decode(&#39;gbk&#39;))
+</code></pre>
+<p>升级版： 先将数据存放到字典中，将字典打包发送过去</p>
+<p>字典的好处：真实数据长度；文件的描述信息；发送的数据更小</p>
+<h1 id="socketserver">socketserver</h1>
+<pre><code><code># 服务端
+import socketserver
+class MyTCPServer(socketserver.BaseRequestHandler):
+
+    def handle(self):
+        print(self.client_address)
+
+        while True:
+            try:
+                data = self.request.recv(1024).decode(&#39;utf-8&#39;)
+                send_msg = data.upper()
+                self.request.send(send_msg.encode(&#39;utf-8&#39;))
+
+            except Exception as e:
+                print(e)
+                break
+
+if __name__ == &#39;__main__&#39;:
+    server = socketserver.ThreadingTCPServer(
+        (&#39;127.0.0.1&#39;, 9527), MyTCPServer
+    )
+    server.serve_forever()</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

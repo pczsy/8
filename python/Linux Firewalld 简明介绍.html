@@ -1,0 +1,222 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Linux Firewalld 简明介绍' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Linux Firewalld 简明介绍</center></div><div class='banquan'>原文出处:本文由博客园博主以终为始提供。<br/>
+原文连接:https://www.cnblogs.com/michael9/p/12092020.html</div><br>
+    <p>防火墙作为保护服务器不受外部网络流量影响的一种方式。可以让用户定义一系列规则来控制外部网络中流入的流量，从而达到允许或阻塞的效果。<code>firewalld</code> 是防火墙服务的一个守护程序，实现了动态修改拥有 <code>D-Bus</code> 接口基于主机的防火墙，也就是说在不需要重启防火墙程序的基础上，就可以实现对防火墙规则，增、删、改的操作。</p>
+<p><code>firewalld</code> 提供了域(Zone)和服务(Services)的概念，来简化流量的管理操作。在本篇文章中，会依次介绍这些概念，并记录一些常见防火墙的操作方法。</p>
+<p>在阅读后，应该掌握如下的概念：</p>
+<ul>
+<li>理解 Zone 概念，熟悉 Zone 中不同的 target 行为</li>
+<li>理解 services 概念，明白和直接操作端口之间的区别</li>
+<li>常见操作防火墙的方法</li>
+</ul>
+<h2 id="防火墙中的-zone">防火墙中的 Zone</h2>
+<p>其实 Zone 就是为了方便预先定义好的一组规则，让用户根据当前服务器所在网络中的位置(内网，公网)的受信任程度来选取不同 Zone 默认规则。但需要注意的是，<strong>一个网络连接只能被一个 zone 处理，但一个 zone 可以用于多个网络连接。</strong></p>
+<p>预先定义的 zone 规则被放在 <code>/usr/lib/firewalld/zones/</code> 目录下。当修改 zone 的规则时，这些 zone 会被拷贝到 <code>/etc/firewalld/zones/</code> 目录下，实际生效的防火墙会在该目录下的文件。</p>
+<p>对于每一个 zone 都有一个默认的行为(target)，来处理流入的流量。每个 target 会有四个选项：<code>default</code>, <code>ACCEPT</code>, <code>REJECT</code> 和 <code>DROP</code>.</p>
+<p><code>ACCEPT</code> 除了被明确写好的规则，会接受所有流入的数据包。</p>
+<p><code>REJECT</code> 除了被明确写好允许的规则，会拒绝所有流入的数据包, 会给发起连接的机器回复被拒绝的消息。</p>
+<p><code>DROP</code> 除了被明确写好允许的规则，会拒绝所有流入的数据包, 不会给发起连接的机器回复任何消息。</p>
+<p>下面是对常见 Zone 的一些描述：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Zone 名称</th>
+<th style="text-align: left;">Zone 描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">block</td>
+<td style="text-align: left;">所有进入的网络连接都会被拒绝。对于 IPV4，回复 icmp-host-prohibited 消息。对于 IPV6，回复 icmp6-adm-prohibited 消息。只有由内部发起的网络连接可以通行。</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">dmz</td>
+<td style="text-align: left;">对于在非军事区域的服务器，外部网络可以在受限制的情况下进入内网，只有特定的网络连接请求被接受。</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">drop</td>
+<td style="text-align: left;">所有的进入的网络包都会被丢掉，并且没有任何的回应。只有向发起的连接请求可以被放行。</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">external</td>
+<td style="text-align: left;">用于开始伪装的外部网络，特别是作为路由器。任务外部的网络会损坏你的计算机，只有特定的网络连接请求被接受。</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">home</td>
+<td style="text-align: left;">在家使用，信任网络上的大多数计算机。只有特定的网络连接请求被接受。</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">internal</td>
+<td style="text-align: left;">在内部网络使用，信任当前网络下其他的计算机。只有特定的网络连接请求被接受。</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">public</td>
+<td style="text-align: left;">在公共网络使用，不信任网络上的其他计算机。只有特定的网络连接请求被接受。</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">trusted</td>
+<td style="text-align: left;">所有的网络连接都会被接受。</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">work</td>
+<td style="text-align: left;">在工作网络中使用，信任网络上的其他计算机。只有特定的网络连接请求被接受。</td>
+</tr>
+</tbody>
+</table>
+<p>简单看一下配置的具体内容，把上面 target 和 zone 的概念联在一起：</p>
+<p><img src="./images/Linux Firewalld 简明介绍0.png" /></p>
+<p>target 表示当发来的数据包，没有匹配到任何的规则（比如端口号，服务等），采取的默认行为。</p>
+<p>short 表示对 zone 的一个简短描述名字。</p>
+<p>description 表示对 zone 的一段详细描述。</p>
+<h3 id="有关-zone-的操作">有关 zone 的操作</h3>
+<pre><code><code># 获取默认域
+(base) [root@localhost zones]# firewall-cmd --get-default-zone
+public
+
+# 查询存在的所有域
+(base) [root@localhost zones]# firewall-cmd --get-zones
+block dmz drop external home internal public trusted work
+
+# 设置默认域
+(base) [root@localhost zones]# firewall-cmd --set-default-zone=public 
+
+# 查询某个域下的配置
+(base) [root@localhost zones]# firewall-cmd --zone=public --list-all
+
+# 查询指定网卡的域
+(base) [root@localhost zones]# firewall-cmd --get-zone-of-interface=ens192
+public
+
+# 为某个网卡指定域
+(base) [root@localhost zones]# firewall-cmd --zone=public --add-interface=ens33
+
+# 修改网卡的域
+(base) [root@localhost zones]# firewall-cmd --zone=block --change-interface=ens37
+
+# 删除指定网卡的域
+(base) [root@localhost zones]# firewall-cmd --zone=block --remove-interface=ens37
+
+# 查询系统中正在使用的域
+firewall-cmd --get-active-zones</code></pre>
+<h2 id="关于预定义-services-的概念">关于预定义 Services 的概念</h2>
+<p>Services 在网络通信时，需要使用一个或者多个端口，地址。防火墙会基于端口来对通信的内容进行过滤。如果一个服务想要允许网络的流量进入，必须打开端口。<code>firewalld</code> 会默认的阻断所有未被显式打开的端口。换成自己的理解来说，在服务器提供的一些服务，常常需要打开很多端口，并且会限制一些源和目的 IP 甚至一些协议的访问，如果把这些同时都定义在 zone 中，会造成最后的 zone 配置文件很大，提取成 services 相当于是解耦的概念，有利于后期的维护。</p>
+<p>和 zone 类似，在 <code>/usr/lib/firewalld/services/</code> 目录中存放着一些默认的 services 配置，在 services 被修改或者添加时，这里的文件会被作为参考。目前正被使用的 services 配置会在 <code>/etc/firewalld/services/</code> 目录。</p>
+<pre><code><code># 查看正在使用的服务:
+(base) [root@localhost firewalld]# firewall-cmd --list-services
+ssh dhcpv6-client http https
+
+# 查看服务的被使用情况，可以看到 zone 文件中引入了 services：
+(base) [root@localhost firewalld]# cat zones/public.xml
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;zone&gt;
+  &lt;short&gt;Public&lt;/short&gt;
+  &lt;description&gt;For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.&lt;/description&gt;
+  &lt;service name=&quot;ssh&quot;/&gt;
+  &lt;service name=&quot;dhcpv6-client&quot;/&gt;
+  &lt;service name=&quot;http&quot;/&gt;
+  &lt;service name=&quot;https&quot;/&gt;
+  &lt;port protocol=&quot;tcp&quot; port=&quot;8080&quot;/&gt;
+  &lt;port protocol=&quot;tcp&quot; port=&quot;3306&quot;/&gt;
+&lt;/zone&gt;
+
+# 使用 service:
+firewall-cmd --add-service=http --permanent
+
+# 查看预先定义的 services:
+firewall-cmd --get-services
+
+# 增加一个空 services:
+firewall-cmd  --permanent --new-service=service-name.xml
+
+# 增加和某个 services 相同的配置:
+firewall-cmd --permanent  --new-service-from-file=/etc/firewalld/services/service-name.xml --name service-name1.xml
+
+# 修改 services 配置:
+firewall-cmd --permanent --service=myservice --set-description=description
+firewall-cmd --permanent --service=myservice --set-short=description
+firewall-cmd --permanent --service=myservice --add-port=portid[-portid]/protocol
+firewall-cmd --permanent --service=myservice --add-protocol=protocol
+firewall-cmd --permanent --service=myservice --add-source-port=portid[-portid]/protocol
+firewall-cmd --permanent --service=myservice --add-module=module
+firewall-cmd --permanent --service=myservice --set-destination=ipv:address[/mask]</code></pre>
+<p>打开端口的方式，除了使用上面的 services ，也可以使用 port 直接添加：</p>
+<pre><code><code># 端口操作，直接在 zone 的级别进行更改
+# 查看并没有 http 端口
+sudo firewall-cmd --list-ports
+
+# 增加 80 端口
+sudo firewall-cmd --add-port=80/tcp
+
+# 永久增加 80 端口
+firewall-cmd  --add-port=80/tcp --permanent
+
+# 删除端口
+firewall-cmd --zone=public --remove-port=8080/tcp
+
+# 将修改后的某些配置持久化保存:
+firewall-cmd --runtime-to-permanent
+
+# 其他查询端口的一些方式
+netstat -ap | grep 8080
+lsof -i:6800
+
+# centos 7
+ss -ant
+
+# centos 7 before
+netstat -ant</code></pre>
+<h2 id="常见防火墙的操作">常见防火墙的操作</h2>
+<p>防火墙的运行相关操作：</p>
+<pre class="python"><code># 查询防火墙状态
+systemctl status firewalld
+
+# 打开防火墙
+systemctl start firewalld
+
+# 在修改配置后，重载防火墙
+firewall-cmd --reload
+
+# 添加直接规则，例如 Keepalived。这里需要注意的是，当使用 zone 和 services 都无法满足要求时，再采用直接添加的方案。
+firewall-cmd --direct --permanent --add-rule ipv4 filter OUTPUT 0 --out-interface ens192 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
+firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 0 --in-interface ens192 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
+
+# 查询配置的规则
+firewall-cmd --direct --get-all-chains
+firewall-cmd --direct --get-all-rules</code></pre>
+<p>遇到紧急情况的操作：</p>
+<pre><code><code># 在遇到服务器正在被攻击时，切断所有网络连接
+firewall-cmd --panic-on
+
+# 恢复至正常的防火墙设置
+firewall-cmd --panic-off
+
+# 查询  panic mode 是否开启
+firewall-cmd --query-panic</code></pre>
+<h2 id="参考">参考</h2>
+<p><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/sec-controlling_traffic">redhat-add-service</a></p>
+<p><a href="https://firewalld.org/documentation/man-pages/firewalld.zone.html">firewalld-zone</a></p>
+<p><a href="https://linux.cn/article-8098-1.html">FirewallD-概述</a></p>
+<p><a href="https://firewalld.org/documentation/howto/add-a-service.html">firewalld-add-service</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

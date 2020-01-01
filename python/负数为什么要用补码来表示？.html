@@ -1,0 +1,64 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修负数为什么要用补码来表示？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>负数为什么要用补码来表示？</center></div><div class='banquan'>原文出处:本文由博客园博主烟雨星空提供。<br/>
+原文连接:https://www.cnblogs.com/starry-skys/p/11997091.html</div><br>
+    <p>上篇文章讲了“负数在计算机中是怎么存储的”。看完之后，应该对原码，反码，补码有了基本的了解了。</p>
+<p>今天，我们深入探讨一下，为什么计算机中要用补码来表示负数？</p>
+<p>首先，我们应该清楚，原码是方便给人看的。看到一个数的原码，我们就能根据符号位和后边的二进制位，计算出这个数的实际值。为了简单起见，我以一个字节8位来举例，如</p>
+<pre><code><code>// 1 的原码 ，最高位0代表正数
+0000 0001
+// -1 的原码， 最高位1代表负数
+1000 0001</code></pre>
+<p>可以看到，1和 -1 的原码只有符号位不同。然后，思考一个问题，1 - 1 = ？</p>
+<p>是的，我们可以直接通过减法去计算，得出1-1=0 。但是，做减法运算时，可能会遇到不够减而需要借位的情况，这显然是比较麻烦的。我们换一种思路。 1-1 在数学中等同于 1+(-1)。这样，把减法转换为加法就简单的多了，只需要考虑进位就可以了。（其实，计算机中只有加法器，没有减法器，因此减法是通过加法器来计算的。）</p>
+<p>于是，我们看下，把1和-1的原码相加等于多少（需要让符号位也参与运算）</p>
+<pre><code><code>  0000 0001
++ 1000 0001
+  1000 0010</code></pre>
+<p>结果是 -2 ，这显然不符合我们的预期。</p>
+<p>为了解决原码减法的问题，于是，出现了反码。使用反码，再来计算一下。</p>
+<pre><code><code>// 1的反码，同原码
+0000 0001
+// -1的反码，符号位不变，其他取反
+1111 1110</code></pre>
+<p>相加之后，得 1111 1111 ，这是反码，转为原码为 1000 0000 ，即为 -0 。</p>
+<p>但是，这又有问题了，在数学中0就是0，怎么到这还有 -0，+0之分。按照原码的概念来算，+0的原码为0000 0000 ， -0 的原码为 1000 0000 。问题就出在这了，如果遇到0的计算，是应该用 +0 还是用 -0 计算呢，这就会产生分歧。于是，补码出现了，解决了0的符号问题 。</p>
+<pre><code><code>// 1的补码，同原码
+0000 0001
+// -1的补码，反码 +1
+1111 1111</code></pre>
+<p>相加得 1 0000 0000 ，最高位进位之后，超过了8位，于是舍去，即为0000 0000。此为补码，转为原码也是0000 0000 ，这不就是0 吗。</p>
+<p>这样一来，用补码0000 0000来表示0，就解决了+0和-0在原码上的分歧，统一了0的二进制表示方法。</p>
+<p>那，又有疑问了，-0跑哪去了呢？ 其实，-0即1000 0000在这用来表示 -128。但是，注意表示的是 -128的补码，因此 -128没有原码和反码。</p>
+<p>那为什么用 1000 0000表示 -128呢 ？</p>
+<p>先看下 -127 的原码、反码和补码：<br />
+原码: 1111 1111<br />
+反码: 1000 0000<br />
+补码: 1000 0001</p>
+<p>我们知道数学中 -127 -1 = -128 ，所以 -127的补码 -1 也应该等于 -128的补码，即<br />
+1000 0001 -1 = 1000 0000。因此1000 0000就是 -128的补码。</p>
+<p>在一个字节8位中，如果用原码来表示值的大小范围，只能是 1111 1111 ~ 0111 1111，即-127~127 。但是，如果用补码就可以表示 -128~127，正好是2^8，256个数。</p>
+<p>因此，-0可以表示一个最低数。在8位二进制中它是1000 0000 ，在32位中，它就是 1000 0000 0000 0000 0000 0000 0000 0000 ，int的最小值。（32位数值大小范围为 -2^31 ~ 2^31 -1）</p>
+<p>总结：补码的存在解决了0的符号问题，同时统一了计算机的加减法运算。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

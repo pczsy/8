@@ -1,0 +1,186 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修对比 C++ 和 Python，谈谈指针与引用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>对比 C++ 和 Python，谈谈指针与引用</center></div><div class='banquan'>原文出处:本文由博客园博主豌豆花下猫提供。<br/>
+原文连接:https://www.cnblogs.com/pythonista/p/11178705.html</div><br>
+    <p>花下猫语：本文是学习群内 <strong>樱雨楼</strong> 小姐姐的投稿。之前已发布过她的一篇作品《<a href="https://mp.weixin.qq.com/s/Be4tHnR0BY-C__xoPPBjhQ">当谈论迭代器时，我谈些什么？</a>》，大受好评。本文依然是对比 C++ 与 Python，来探讨编程语言中极其重要的概念。祝大家读有所获，学有所成！</p>
+<p><img src="./images/对比 C++ 和 Python，谈谈指针与引用0.png" /></p>
+<p>樱雨楼 | <strong>原创作者</strong></p>
+<p>豌豆花下猫 | <strong>编辑润色</strong></p>
+<p>本文原创并首发于公众号【<strong>Python猫</strong>】，未经授权，请勿转载。</p>
+<p>原文地址：<a href="https://mp.weixin.qq.com/s/k0VNL6uyvBHT7PWdzEPROQ" class="uri">https://mp.weixin.qq.com/s/k0VNL6uyvBHT7PWdzEPROQ</a></p>
+<h2 id="引言">0 引言</h2>
+<p>指针（Pointer）是 C、C++ 以及 Java、Go 等语言的一个非常核心且重要的概念，而引用（Reference）是在指针的基础上构建出的一个同样重要的概念。</p>
+<p>指针对于任何一个编程语言而言都是必须且重要的，虽然 Python 对指针这一概念进行了刻意的模糊与限制，但指针对于 Python 而言依然是一个必须进行深入讨论的话题。</p>
+<p>本文基于 C++ 与 Python，讨论了 Python 中与指针及引用相关的一些行为。</p>
+<p><img src="./images/对比 C++ 和 Python，谈谈指针与引用1.png" /></p>
+<h2 id="什么是指针为什么需要指针">1 什么是指针？为什么需要指针？</h2>
+<p>指针有两重含义：</p>
+<p>（1）指代某种数据类型的指针类型，如整形指针类型、指针指针类型</p>
+<p>（2）指代一类存放有内存地址的变量，即指针变量</p>
+<p>指针的这两重含义是紧密联系的：作为一种变量，通过指针可以获取某个内存地址，从而为访问此地址上的值做好了准备；作为一种类型，其决定了内存地址的正确偏移长度，其应等于当前类型的单位内存大小。</p>
+<p>如果一个指针缺少指针类型，即 void *，则显然，其虽然保存了内存地址，但这仅仅是一个起点地址，指针会因为无法获知从起点向后进行的偏移量，从而拒绝解指针操作；而如果一个指针缺少地址，即 nullptr，则其根本无法读取特定位置的内存。</p>
+<p>指针存在的意义主要有以下几点：</p>
+<ul>
+<li>承载通过 malloc、new、allocator 等获取的动态内存</li>
+<li>使得 pass-by-pointer 成为可能</li>
+</ul>
+<p>pass-by-pointer 的好处包括但不限于：</p>
+<ul>
+<li>避免对实参无意义的值拷贝，大幅提高效率</li>
+<li>使得对某个变量的修改能力不局限于变量自身的作用域</li>
+<li>使得 swap、移动构造函数、移动赋值运算等操作可以仅针对数据结构内部的指针进行操作，从而避免了对临时对象、移后源等对象的整体内存操作</li>
+</ul>
+<p>由此可见，<strong>与指针相关的各操作对于编程而言都是必须的或十分重要的。</strong></p>
+<p><img src="./images/对比 C++ 和 Python，谈谈指针与引用2.png" /></p>
+<h2 id="c中的引用">2 C++中的引用</h2>
+<p>在 C++ 中，引用具有与指针相似的性质，但更加隐形与严格。C++ 的引用分为以下两种：</p>
+<h3 id="左值引用">2.1 左值引用</h3>
+<p>左值引用于其初始化阶段绑定到左值，且不存在重新绑定。</p>
+<p>左值引用具有与被绑定左值几乎一样的性质，其唯一的区别在于 decltype 声明：</p>
+<pre><code><code>int numA = 0, &amp;lrefA = numA;  // Binding an lvalue
+cout &lt;&lt; ++lrefA &lt;&lt; endl;      // Use the lvalue reference as lvalue &amp; rvalue
+decltype(lrefA) numB = 1;     // Error!</code></pre>
+<p>左值引用常用于 pass-by-reference：</p>
+<pre><code><code>void swap(int &amp;numA, int &amp;numB)
+{
+    int tmpNum = numA;
+    numA = numB;
+    numB = tmpNum;
+}
+
+int main()
+{
+    int numA = 1, numB = 2;
+    swap(numA, numB);
+    cout &lt;&lt; numA &lt;&lt; endl &lt;&lt; numB &lt;&lt; endl;  // 2 1
+}</code></pre>
+<h3 id="右值引用">2.2 右值引用</h3>
+<p>右值引用于其初始化阶段绑定到右值，其常用于移动构造函数和移动赋值操作。在这些场合中，移动构造函数和移动赋值操作通过右值引用接管被移动对象。</p>
+<p>右值引用与本文内容无关，故这里不再详述。</p>
+<h2 id="python中的引用">3 Python中的引用</h2>
+<h3 id="python不存在引用">3.1 Python不存在引用</h3>
+<p>由上文讨论可知，虽然“引用”对于 Python 而言是一个非常常用的术语，但这显然是不准确的——由于 Python 不存在对左/右值的绑定操作，故不存在左值引用，更不存在右值引用。</p>
+<h3 id="python的指针操作">3.2 Python的指针操作</h3>
+<p>不难发现，虽然 Python 没有引用，但其变量的行为和指针的行为具有高度的相似性，这主要体现在以下方面：</p>
+<ul>
+<li>在任何情况下（包括赋值、实参传递等）均不存在显式值拷贝，当此种情况发生时，只增加了一次引用计数</li>
+<li>变量可以进行重绑定（对应于一个不含顶层 const（top-level const）的指针）</li>
+<li>在某些情况下（下文将对此问题进行详细讨论），可通过函数实参修改原值</li>
+</ul>
+<p>由此可见，<strong>Python 变量更类似于（某种残缺的）指针变量，而不是引用变量。</strong></p>
+<p><img src="./images/对比 C++ 和 Python，谈谈指针与引用3.png" /></p>
+<h3 id="构造函数返回指针">3.2.1 构造函数返回指针</h3>
+<p>对于 Python 的描述，有一句非常常见的话：“一切皆对象”。</p>
+<p>但在这句话中，有一个很重要的事实常常被人们忽略：对象是一个值，不是一个指针或引用。</p>
+<p>所以，这句话的准确描述应该更正为：“一切皆（某种残缺的）指针”。虽然修改后的描述很抽象，但这是更准确的。</p>
+<p>而由于对象从构造函数而来，至此我们可知：<strong>Python 的构造函数将构造匿名对象，且返回此对象的一个指针。</strong></p>
+<p>这是 Python 与指针的第一个重要联系。</p>
+<p>用代码描述，对于Python代码：</p>
+<pre class="python"><code>sampleNum = 0</code></pre>
+<p>其不类似于 C++ 代码：</p>
+<pre><code><code>int sampleNum = 0;</code></pre>
+<p>而更类似于：</p>
+<pre><code><code>int __tmpNum = 0, *sampleNum = &amp;__tmpNum;
+
+// 或者：
+shared_ptr&lt;int&gt; sampleNum(new int(0));</code></pre>
+<h3 id="setitems__操作将隐式解指针">3.2.2 __setitems__操作将隐式解指针</h3>
+<p>Python 与指针的另一个重要联系在于 Python 的<strong>隐式解指针行为。</strong></p>
+<p>虽然 Python 不存在显式解指针操作，但（有且仅有）__setitems__操作将进行隐式解指针，通过此方法对变量进行修改等同于通过解指针操作修改变量原值。</p>
+<p>此种性质意味着：</p>
+<ol>
+<li>任何不涉及__setitems__的操作都将成为指针重绑定。</li>
+</ol>
+<p>对于Python代码：</p>
+<pre><code><code>numList = [None] * 10
+
+# Rebinding
+numList = [None] * 5</code></pre>
+<p>其相当于：</p>
+<pre><code><code>int *numList = new int[10];
+
+// Rebinding
+delete[] numList;
+numList = new int[5];
+delete[] numList;</code></pre>
+<p>由此可见，对 numList 的非__setitems__操作，导致 numList 被绑定到了一个新指针上。</p>
+<ol>
+<li>任何涉及__setitems__的操作都将成为解指针操作。</li>
+</ol>
+<p>由于 Python 对哈希表的高度依赖，“涉及__setitems__的操作”在 Python 中实际上是一个非常广泛的行为，这主要包括：</p>
+<ul>
+<li>对数组的索引操作</li>
+<li>对哈希表的查找操作</li>
+<li>涉及__setattr__的操作（由于 Python 将 attribute 存储在哈希表中，所以__setattr__操作最终将是某种__setitems__操作）</li>
+</ul>
+<p>我们用一个稍复杂的例子说明这一点：</p>
+<p>对于以下Python代码：</p>
+<pre class="python"><code>class Complex(object):
+    def __init__(self, real = 0., imag = 0.):
+        self.real = real
+        self.imag = imag
+
+    def __repr__(self):
+        return &#39;(%.2f, %.2f)&#39; % (self.real, self.imag)
+
+def main():
+    complexObj = Complex(1., 2.)
+    complexObj.real += 1
+    complexObj.imag += 1
+    # (2.00, 3.00)
+    print(complexObj)
+
+if __name__ == &#39;__main__&#39;:
+    main()</code></pre>
+<p><img src="./images/对比 C++ 和 Python，谈谈指针与引用4.png" /></p>
+<p>其相当于：</p>
+<pre><code><code>class Complex
+{
+public:
+    double real, imag;
+    Complex(double _real = 0., double _imag = 0.): real(_real), imag(_imag) {}
+};
+
+ostream &amp;operator&lt;&lt;(ostream &amp;os, const Complex &amp;complexObj)
+{
+    return os &lt;&lt; &quot;(&quot; &lt;&lt; complexObj.real &lt;&lt; &quot;, &quot; &lt;&lt; complexObj.imag &lt;&lt; &quot;)&quot;;
+}
+
+int main()
+{
+    Complex *complexObj = new Complex(1., 2.);
+    complexObj-&gt;real++;
+    complexObj-&gt;imag++;
+    cout &lt;&lt; *complexObj &lt;&lt; endl;
+    delete complexObj;
+    return 0;
+}</code></pre>
+<p>由此可见，无论是 int、float 这种简单的 Python 类型，还是我们自定义的类，其构造行为都类似使用 new 构造对象并返回指针。</p>
+<p>且在 Python 中任何涉及“.”和“[]”的操作，都类似于对指针的“-&gt;”或“*”解指针操作。</p>
+<h2 id="后记">4 后记</h2>
+<p>本文探讨了 Python 变量与指针、引用两大概念之间的关系，主要论证了“<strong>Python 不存在引用</strong> ”以及“<strong>Python 变量的行为类似于某种残缺的指针</strong> ”两个论点。</p>
+<p>所有论点均系作者个人观点，如有错误，恭迎指正。</p>
+<p><img src="./images/对比 C++ 和 Python，谈谈指针与引用5.png" /></p>
+<p>公众号【<strong>Python猫</strong>】， 本号连载优质的系列文章，有喵星哲学猫系列、Python进阶系列、好书推荐系列、技术写作、优质英文推荐与翻译等等，欢迎关注哦。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

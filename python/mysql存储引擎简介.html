@@ -1,0 +1,148 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修mysql存储引擎简介' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>mysql存储引擎简介</center></div><div class='banquan'>原文出处:本文由博客园博主浪潮之巅、提供。<br/>
+原文连接:https://www.cnblogs.com/JackSparrow-/p/12039043.html</div><br>
+    <h3 id="mysql存储引擎简介">mysql存储引擎简介</h3>
+<h4 id="什么是存储引擎">什么是存储引擎</h4>
+<p>   mysql存储引擎是数据库如何存储数据、怎样建立索引以及如何查询更新数据等技术的实现方法，数据通过使用不同的技术存储在文件中，使用不同的存储机制、索引方式来提供不同的功能。在mysql这种关系型数据中心来说，数据是以表的方式来存储的，因此，简单点来说，存储引擎就是存储和操作此表的类型。<br />
+mysql中有多种存储引擎，使用命令:show engines 可以查看当前版本支持的存储引擎。</p>
+<pre><code><code>mysql&gt; show engines;
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+| Engine             | Support | Comment                                                        | Transactions | XA   | Savepoints |
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+| InnoDB             | DEFAULT | Supports transactions, row-level locking, and foreign keys     | YES          | YES  | YES        |
+| MRG_MYISAM         | YES     | Collection of identical MyISAM tables                          | NO           | NO   | NO         |
+| MEMORY             | YES     | Hash based, stored in memory, useful for temporary tables      | NO           | NO   | NO         |
+| BLACKHOLE          | YES     | /dev/null storage engine (anything you write to it disappears) | NO           | NO   | NO         |
+| MyISAM             | YES     | MyISAM storage engine                                          | NO           | NO   | NO         |
+| CSV                | YES     | CSV storage engine                                             | NO           | NO   | NO         |
+| ARCHIVE            | YES     | Archive storage engine                                         | NO           | NO   | NO         |
+| PERFORMANCE_SCHEMA | YES     | Performance Schema                                             | NO           | NO   | NO         |
+| FEDERATED          | NO      | Federated MySQL storage engine                                 | NULL         | NULL | NULL       |
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+9 rows in set (0.00 sec)
+</code></pre>
+<p>   从结果来看，我们可以看到只有InnoDB是支持事务的，并且是mysql 的默认存储引擎。下面分别介绍几种常见的存储引擎。</p>
+<h4 id="存储引擎的种类">存储引擎的种类</h4>
+<h5 id="innodb">InnoDB</h5>
+<p>InnoDB是MySQL5.5版本及以上的默认存储引擎，也是最重要，使用最广泛的存储引擎，它主要有以下几种特点：</p>
+<ul>
+<li>是mysql存贮引擎中唯一支持事务的，采用MVCC支持高并发，并且实现了四个标准的隔离级别，默认级别为REPEATABLE READ(可重复读)。</li>
+<li>表基于聚簇索引建立</li>
+<li>支持外键</li>
+<li>支持行锁，不过要基于索引，如果是全表扫描的话，仍然是表锁</li>
+</ul>
+<p>InnoDB文件结构：<br />
+.frm与表相关的元数据信息都存放在frm文件，包括表结构的定义信息等；<br />
+.ibd文件和.ibdata文件；</p>
+<p>   独享表空间存储方式使用.ibd文件，并且每个表一个ibd文件；共享表空间存储方式使用.ibdata文件，所有表共同使用一个ibdata文件；<br />
+   InnoDB使用B+Tree的方式存储索引，Innodb的一个表可能包含多个索引，每个索引都使用B+树来存储。而索引包括聚集索引和非聚集索引（二级索引），聚集索引使用表的主键作为索引键，包含表的所有字段。非聚集索引只包含索引键和聚集索引键（主键）的内容，不包括其他字段。每一个索引都是一棵B+树，每棵B+树由很多页面组成，而每个页面大小一般为16K。<br />
+我们通过下图看下表聚集索引和非聚集索引的差别：</p>
+<p>聚集索引将索引和数据行保存在同一个B-Tree中，查询通过聚集索引可以直接获取数据<br />
+                                                <img src="./images/mysql存储引擎简介0.png" /></p>
+<p>   非聚集索引的叶子节点中保存的不是指向行的物理指针，而是行的主键值。当通过聚集索引查找行，存储引擎需要在聚集索引中找到相应的叶子节点，获得行的主键值，然后使用主键去聚簇索引中查找数据行，这需要两次B-Tree查找。<br />
+                                                <img src="./images/mysql存储引擎简介1.png" /></p>
+<h5 id="myisam">MyISAM</h5>
+<p>MyISAM提供了大量的特性，包括全文索引、压缩、空间函数等，主要有以下特点：</p>
+<ul>
+<li>不支持事务，不支持行锁，支持表锁，读取时会对需要读取到的所有表加共享锁，写入时则对表加排他锁。</li>
+<li>奔溃后无法安全修复，可以手工或者自动检查和修复，但是可能导致一些数据的丢失，并且修复工作非常慢。</li>
+<li>MyISAM会将表存储在两个文件中，数据文件和索引文件，分别以 <em>.MYD</em>和 <em>.MYI</em>为扩展名</li>
+<li>支持全文索引，即使是BOLB或者TEXT等长字段，也可以基于前500个字符创建索引。</li>
+</ul>
+<p>每个MyISAM在磁盘上存储成三个文件：</p>
+<p>.frm文件：与表相关的元数据信息都存放在frm文件，包括表结构的定义信息等。<br />
+.myd文件：用于存储myisam表的数据<br />
+.myi文件：，用于存储myisam表的索引相关信息</p>
+<p>   MyISAM索引文件<code>.MYI (MYIndex)</code>和数据文件<code>.MYD (MYData)</code>是分离的，索引文件仅保存记录所在页的指针（物理位置），通过这些地址来读取页，进而读取被索引的行。<br />
+主键索引跟非主键索引的结构是一样：</p>
+<p>                                                <img src="./images/mysql存储引擎简介2.png" /></p>
+<p>   树中叶子保存的是对应行的物理位置。通过该值，存储引擎能顺利地进行回表查询，得到一行完整记录。同时，每个叶子页也保存了指向下一个叶子页的指针。从而方便叶子节点的范围遍历。</p>
+<ul>
+<li>MyISAM引擎适用的生产业务场景：</li>
+<li>不需要事务支持的业务</li>
+<li>一般为读数据比较多的应用，读写都频繁场景不适合</li>
+<li>读写并发访问都相对较低的业务</li>
+<li>对数据一致性要求不是很高的业务。</li>
+<li>中小型的网站部分业务会用。</li>
+</ul>
+<h5 id="csv引擎">CSV引擎</h5>
+<p>   CSV存储引擎可以将csv文件作为mysql的表进行处理。存储格式就是普通的csv文件，数据以文本方式存储在文件中，所有的列必须都是不能为NULL的，不支持索引，可以直接对文件进行编辑。<br />
+在mysql中新建一张表，以CSV为存储引擎,插入一条数据：</p>
+<pre><code><code>mysql&gt; insert into csvtest (id,name) values (1,&quot;mike&quot;);
+</code></pre>
+<p>使用命令查看文件存储位置：</p>
+<pre><code><code>mysql&gt; show global variables like &quot;%datadir%&quot;;
++---------------+-----------------+
+| Variable_name | Value           |
++---------------+-----------------+
+| datadir       | /var/lib/mysql/ |
++---------------+-----------------+
+1 row in set (0.01 sec)
+</code></pre>
+<p>打开存储文件，查看csv文件</p>
+<pre><code><code>[root@localhost shoes]# cat csvtest.CSV
+1,&quot;mike&quot;
+</code></pre>
+<p>csv文件可以直接修改，我们向表中插入几条记录</p>
+<pre><code><code>[root@localhost shoes]# vi csvtest.CSV
+1,&quot;mike&quot;
+2,&quot;jack&quot;
+3,&quot;Daniel&quot;</code></pre>
+<p>刷新表，然后查看数据</p>
+<pre><code><code>mysql&gt; flush tables;
+Query OK, 0 rows affected (0.51 sec)
+
+mysql&gt; select * from csvtest;
++----+--------+
+| id | name   |
++----+--------+
+|  1 | mike   |
+|  2 | jack   |
+|  3 | Daniel |
++----+--------+
+3 rows in set (0.00 sec)
+</code></pre>
+<p>   根据CSV的特性，可以在数据库运行时复制或者到导出文件，可以将Excel等电子表格中的数据存储为CSV文件，然后复制到MySQL的目录下面，就能在MySQL中打开使用。外部程序也可以从表的数据文件中读取CSV格式的数据，因此CSV引擎可以作为数据交换的一种机制。</p>
+<h5 id="memory">Memory</h5>
+<p>   Memory存储引擎使用存在于内存中的内容来创建表，Memory表至少比MyISAM表要快一个数量级，因为所有的数据都保存在内存中，不需要进行磁盘I/O,Meomory表的结构在重启后还会保留，但是数据会丢失。Memory表支持Hash索引，是表级锁，因此并发写入的时候性能较低，并且不支持BLOB和TEXT类型的列，每行长度固定，即使指定了varchar类型，但是实际存储的时候仍然会转换成char。<br />
+Memory适用于下几种场景：</p>
+<ul>
+<li>用于查找或者映射表</li>
+<li>用于缓存周期性聚合的数据，内容变化不频繁的数据</li>
+<li>用于保存数据分析中产生的中间数据</li>
+</ul>
+<h4 id="innodb和myisam的比较">InnoDB和MyISAM的比较</h4>
+<ol>
+<li>InnoDB支持事务，MyISAM不支持事务</li>
+<li>InnoDB支持行锁，表锁，MyISAM只支持表锁，因此MyISAM不会发生死锁，但是InnoDB会。</li>
+<li>接上面一点，由于锁级别的问题，MyISAM并发效率比InnoDB低</li>
+<li>InnoDB支持外键，而MyISAM不支持</li>
+<li>索引结构有区别，InnoDB有聚簇索引和非聚簇索引，聚簇索引的叶子节点保存了数据，MyISAM是非聚簇索 引，索引和数据文件是分离的，索引保存的是数据文件的指针。</li>
+<li>Innodb存储文件有frm、ibd，而Myisam是frm、MYD、MYI。</li>
+<li>还有一个区别是查询总数，InnoDB不保存表的具体行数，select count(*)的时候需要全表扫描，而 MyISAM用一个变量保存了整个表的行数，执行上述语句时只需要读出该变量即可，速度很快</li>
+</ol>
+<h3 id="总结选择合适的引擎">总结：选择合适的引擎</h3>
+<p>   MySQL有多种引擎，怎么基于业务规则与数据特点去选择呢？大部分情况下，InnoDB都是比较合适的选择，否则也不会是默认的存储引擎了。因此，除非是需要用到InnoDB不具备的特性并且没有其他办法替代，否则都应该优先选择InnoDB，像需要支持事务，在线热备份、奔溃恢复等使用InnoDB都是非常正确的选择。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

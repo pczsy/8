@@ -1,0 +1,103 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修django_视图相关' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>django_视图相关</center></div><div class='banquan'>原文出处:本文由博客园博主呼兰河畔提供。<br/>
+原文连接:https://www.cnblogs.com/snow-l/p/11239402.html</div><br>
+    <p><span style="font-size: 16px;"><strong>使用通用视图（返回静态页面）</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.conf.urls.defaults <span style="color: #0000ff;">import</span> *
+<span style="color: #0000ff;">from</span> django.views.generic.simple <span style="color: #0000ff;">import</span><span style="color: #000000;"> direct_to_template
+
+urlpatterns </span>= patterns(<span style="color: #800000;">''</span>,(r<span style="color: #800000;">'</span><span style="color: #800000;">^about/$</span><span style="color: #800000;">'</span>, direct_to_template, {<span style="color: #800000;">'</span><span style="color: #800000;">template</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">about.html</span><span style="color: #800000;">'</span>})</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 16px;">无法捕捉没有该模板的错误，支持重写</span></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.http <span style="color: #0000ff;">import</span><span style="color: #000000;"> Http404
+</span><span style="color: #0000ff;">from</span> django.template <span style="color: #0000ff;">import</span><span style="color: #000000;"> TemplateDoesNotExist
+</span><span style="color: #0000ff;">from</span> django.views.generic.simple <span style="color: #0000ff;">import</span><span style="color: #000000;"> direct_to_template
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> about_pages(request, page):
+　　</span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+　　　　</span><span style="color: #0000ff;">return</span> direct_to_template(request, template=<span style="color: #800000;">"</span><span style="color: #800000;">about/%s.html</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> page)
+　　</span><span style="color: #0000ff;">except</span><span style="color: #000000;"> TemplateDoesNotExist:
+　　　　</span><span style="color: #0000ff;">raise</span> Http404()</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 16px;">对象的通用视图</span></strong></p>
+<p><br /><strong><span style="font-size: 16px;">帮助你很容易 地生成对象的列表和明细视图，当然还需要编写一个模板。 我们可以通过在额外参数字典中包含一个template_name键来显式地告诉object_list视图使用哪个模板</span></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.conf.urls.defaults <span style="color: #0000ff;">import</span> *
+<span style="color: #0000ff;">from</span> django.views.generic <span style="color: #0000ff;">import</span><span style="color: #000000;"> list_detail
+</span><span style="color: #0000ff;">from</span> mysite.books.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> Publisher
+
+publisher_info </span>=<span style="color: #000000;"> {
+</span><span style="color: #800000;">'</span><span style="color: #800000;">queryset</span><span style="color: #800000;">'</span><span style="color: #000000;">: Publisher.objects.all(),
+</span><span style="color: #800000;">'</span><span style="color: #800000;">template_name</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">publisher_list_page.html</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+}
+
+urlpatterns </span>= patterns(<span style="color: #800000;">''</span><span style="color: #000000;">,
+(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^publishers/$</span><span style="color: #800000;">'</span><span style="color: #000000;">, list_detail.object_list, publisher_info)
+）</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 16px;">更改变量名</span></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.conf.urls.defaults <span style="color: #0000ff;">import</span> *
+<span style="color: #0000ff;">from</span> django.views.generic <span style="color: #0000ff;">import</span><span style="color: #000000;"> list_detail
+</span><span style="color: #0000ff;">from</span> mysite.books.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> Publisher
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 添加额外的Context</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 在模板中，通用视图会通过在template_object_name后追加一个_list的方式来创建一个表示列表项目的变量名。</span>
+<span style="color: #000000;">
+publisher_info </span>=<span style="color: #000000;"> {
+</span><span style="color: #800000;">'</span><span style="color: #800000;">queryset</span><span style="color: #800000;">'</span><span style="color: #000000;">: Publisher.objects.all(),
+</span><span style="color: #800000;">'</span><span style="color: #800000;">template_object_name</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">publisher</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+</span><span style="color: #800000;">'</span><span style="color: #800000;">extra_context</span><span style="color: #800000;">'</span>: {<span style="color: #800000;">'</span><span style="color: #800000;">book_list</span><span style="color: #800000;">'</span><span style="color: #000000;">: Book.objects.all}
+}
+
+urlpatterns</span>=patterns(<span style="color: #800000;">''</span>,(r<span style="color: #800000;">'</span><span style="color: #800000;">^publishers/$</span><span style="color: #800000;">'</span>,list_detail.object_list,publisher_info))</pre>
+</div>
+<p>&nbsp;</p>
+<p><br /><strong><span style="font-size: 16px;">用函数包装来处理复杂的数据过滤</span></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.shortcuts <span style="color: #0000ff;">import</span><span style="color: #000000;"> get_object_or_404
+</span><span style="color: #0000ff;">from</span> django.views.generic <span style="color: #0000ff;">import</span><span style="color: #000000;"> list_detail
+</span><span style="color: #0000ff;">from</span> mysite.books.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> Book, Publisher
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> books_by_publisher(request, name):
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Look up the publisher (and raise a 404 if it can't be found).</span>
+publisher = get_object_or_404(Publisher, name__iexact=<span style="color: #000000;">name)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Use the object_list view for the heavy lifting.</span>
+<span style="color: #0000ff;">return</span><span style="color: #000000;"> list_detail.object_list(
+request,
+queryset </span>= Book.objects.filter(publisher=<span style="color: #000000;">publisher),
+template_name </span>= <span style="color: #800000;">'</span><span style="color: #800000;">books/books_by_publisher.html</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+template_object_name </span>= <span style="color: #800000;">'</span><span style="color: #800000;">book</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+extra_context </span>= {<span style="color: #800000;">'</span><span style="color: #800000;">publisher</span><span style="color: #800000;">'</span><span style="color: #000000;">: publisher}
+)</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

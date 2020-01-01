@@ -1,0 +1,109 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修drf框架中认证与权限工作原理及设置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>drf框架中认证与权限工作原理及设置</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11492877.html</div><br>
+    <h1 id="自我总结">0909自我总结</h1>
+<h1 id="drf框架中认证与权限工作原理及设置">drf框架中认证与权限工作原理及设置</h1>
+<h2 id="一.概述">一.概述</h2>
+<h3 id="认证">1.认证</h3>
+<p><code>工作原理</code></p>
+<ul>
+<li>返回None =&gt; 游客</li>
+<li>返回user,auth =&gt; 登录用户</li>
+<li>抛出异常 =&gt; 非法用户</li>
+</ul>
+<p><code>前台对于用户信息进行的判断</code></p>
+<p>1）如果前台没有携带认证信息，直接定义为游客</p>
+<p>2）如果前台携带了认证信息并认证通过，定位为登录用户，将登录的用户user对象保存在 requset.user 中</p>
+<p>3）如果前台携带了认证信息但没有认证通过，一般都定义为游客</p>
+<p>4 ) 可以自定义为非法用户，抛出 认证失败 异常，但是<code>不建议直接操作</code>，可以交给权限组件进一步处理rest_framework.exceptions 的 AuthenticationFailed</p>
+<p><code>参数</code></p>
+<ul>
+<li><p>BasicAuthentication : 基本认证</p></li>
+<li><p>SessionAuthentication : session认证</p></li>
+</ul>
+<h3 id="权限">2.权限</h3>
+<p><code>工作原理</code></p>
+<ul>
+<li>返回False =&gt; 没有权限，将信息返回给前台</li>
+<li>返回True =&gt; 拥有权限，进行下一步认证(频率认证)</li>
+</ul>
+<p><code>相关设置</code></p>
+<ul>
+<li>AllowAny：允许所有用户</li>
+<li>IsAuthenticated：只允许登录用户
+<ul>
+<li>必须request.user和request.user.is_authenticated都通过</li>
+</ul></li>
+<li>IsAuthenticatedOrReadOnly：游客只读，登录用户无限制
+<ul>
+<li>get、option、head 请求无限制</li>
+<li>前台请求必须校验 request.user和request.user.is_authenticated</li>
+</ul></li>
+<li>IsAdminUser：是否是后台用户
+<ul>
+<li>校验 request.user和request.user.is_staff is_staff(可以登录后台管理系统的用户)</li>
+</ul></li>
+</ul>
+<h2 id="二.局部设置">二.局部设置</h2>
+<p>即在我们自定义的<code>视图类开头</code>设置</p>
+<pre><code><code># 认证 下面不一定是[],也可以()就是需要在数组当中,多个类用,隔开
+# 局部取消认证组件：authentication_classes = []
+# 区别启用认证组件：authentication_classes = [认证类们] 
+# 填写的参数BasicAuthentication,SessionAuthentication 
+
+
+# 权限
+# 局部取消权限组件：permission_classes = []
+# 区别启用权限组件：permission_classes = [权限类们]
+# 填写的参数AllowAny</code></pre>
+<p>如</p>
+<pre><code><code>from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+ 
+class 类名(APIView):
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    permission_classes = [IsAuthenticated,]
+    ...........</code></pre>
+<h2 id="三.全局设置">三.全局设置</h2>
+<p>在<code>setting</code>中设置</p>
+<pre><code><code>REST_FRAMEWORK = {
+    &#39;DEFAULT_AUTHENTICATION_CLASSES&#39;: [
+        # django默认session校验：校验规则 游客 及 登录用户
+        &#39;rest_framework.authentication.SessionAuthentication&#39;,
+        &#39;rest_framework.authentication.BasicAuthentication&#39;,
+    ],
+    &#39;DEFAULT_PERMISSION_CLASSES&#39;: [
+        # &#39;rest_framework.permissions.AllowAny&#39;,
+        # 全局配置：一站式网站（所有操作都需要登录后才能访问）
+        # &#39;rest_framework.permissions.IsAuthenticated&#39;,
+    ],
+}</code></pre>
+<h2 id="四.失败返回的内容">四.失败返回的内容</h2>
+<ul>
+<li>401 Unauthorized 未认证</li>
+<li>403 Permission Denied 权限被禁止</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,158 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修AQS系列（六）- Semaphore的使用及原理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>AQS系列（六）- Semaphore的使用及原理</center></div><div class='banquan'>原文出处:本文由博客园博主张曾经提供。<br/>
+原文连接:https://www.cnblogs.com/zzq6032010/p/12076687.html</div><br>
+    <p><span style="font-size: 18px; background-color: #c0c0c0;"><strong>前言</strong></span></p>
+<p>&nbsp; &nbsp; Semaphore也是JUC包中一个用于并发控制的工具类，举个常用场景的例子：有三台电脑五个人，每个人都要用电脑注册一个自己的账户，这时最开始只能同时有三个人操作电脑注册账户，这三个人中有人操作完了剩下的两个人才能占用电脑注册自己的账户。这就是Semaphore的经典使用场景，跟并发加锁有点像，只是我们的并发加锁同一时间只让有一个线程执行，而Semaphore的加锁控制是允许同一时间有指定数量的线程同时执行，超过这个数量就加锁控制。</p>
+<p><span style="background-color: #c0c0c0; font-size: 18px;"><strong>一、使用样例</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 2</span>         Semaphore semaphore = <span style="color: #0000ff;">new</span> Semaphore(3<span style="color: #000000;">); // 对比上面例子中的3台电脑
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 5; i++<span style="color: #000000;">) { // 对比上面例子中的5个人
+</span><span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">new</span> Thread(() -&gt;<span style="color: #000000;"> {
+</span><span style="color: #008080;"> 5</span>                 <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 6</span>                     semaphore.acquire(1<span style="color: #000000;">); // 注意acquire中的值可以传任意值&gt;=0的整数
+</span><span style="color: #008080;"> 7</span>                 } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">                    e.printStackTrace();
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">10</span>                 System.out.println(Thread.currentThread().getName() + " acquire 1"<span style="color: #000000;">);
+</span><span style="color: #008080;">11</span>                 <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">12</span>                     Thread.sleep(2000<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span>                 } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">                    e.printStackTrace();
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">16</span>                 System.out.println(Thread.currentThread().getName() + "release 1"<span style="color: #000000;">);
+</span><span style="color: #008080;">17</span>                 semaphore.release(1<span style="color: #000000;">);
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">            }).start();
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">20</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; 执行结果为：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> Thread-0 acquire 1
+<span style="color: #008080;"> 2</span> Thread-2 acquire 1
+<span style="color: #008080;"> 3</span> Thread-1 acquire 1
+<span style="color: #008080;"> 4</span> Thread-1release 1
+<span style="color: #008080;"> 5</span> Thread-2release 1
+<span style="color: #008080;"> 6</span> Thread-0release 1
+<span style="color: #008080;"> 7</span> Thread-4 acquire 1
+<span style="color: #008080;"> 8</span> Thread-3 acquire 1
+<span style="color: #008080;"> 9</span> Thread-4release 1
+<span style="color: #008080;">10</span> Thread-3release 1</pre>
+</div>
+<p>&nbsp; &nbsp; 可以看到同一时间只有三个线程获取到了锁，这三个执行完释放了之后，剩下两个菜获取锁执行。下面看看源码是如何实现的。</p>
+<p><span style="font-size: 18px;"><strong><span style="background-color: #c0c0c0;">二、源码实现</span></strong></span></p>
+<p><strong>1、Semaphore构造器</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>     <span style="color: #0000ff;">public</span> Semaphore(<span style="color: #0000ff;">int</span><span style="color: #000000;"> permits) {
+</span><span style="color: #008080;">2</span>         sync = <span style="color: #0000ff;">new</span><span style="color: #000000;"> NonfairSync(permits);
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">4</span> 
+<span style="color: #008080;">5</span>     <span style="color: #0000ff;">public</span> Semaphore(<span style="color: #0000ff;">int</span> permits, <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> fair) {
+</span><span style="color: #008080;">6</span>         sync = fair ? <span style="color: #0000ff;">new</span> FairSync(permits) : <span style="color: #0000ff;">new</span><span style="color: #000000;"> NonfairSync(permits);
+</span><span style="color: #008080;">7</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; 可以看到，Semaphore有两个构造器，一个是只传数值默认非公平锁，另一个可指定用公平锁还是非公平锁。permits最终还是赋值给了AQS中的state变量。</p>
+<p><strong>2、acquire(1)方法</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> acquire(<span style="color: #0000ff;">int</span> permits) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> InterruptedException {
+</span><span style="color: #008080;">2</span>         <span style="color: #0000ff;">if</span> (permits &lt; 0) <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> IllegalArgumentException();
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">        sync.acquireSharedInterruptibly(permits);
+</span><span style="color: #008080;">4</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; 此方法同样调用了AQS中的模板方法：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">void</span> acquireSharedInterruptibly(<span style="color: #0000ff;">int</span><span style="color: #000000;"> arg)
+</span><span style="color: #008080;">2</span>             <span style="color: #0000ff;">throws</span><span style="color: #000000;"> InterruptedException {
+</span><span style="color: #008080;">3</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (Thread.interrupted())
+</span><span style="color: #008080;">4</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> InterruptedException();
+</span><span style="color: #008080;">5</span>         <span style="color: #0000ff;">if</span> (tryAcquireShared(arg) &lt; 0<span style="color: #000000;">)
+</span><span style="color: #008080;">6</span> <span style="color: #000000;">            doAcquireSharedInterruptibly(arg);
+</span><span style="color: #008080;">7</span>     }</pre>
+</div>
+<p><strong>1)、查看tryAcquireShared的实现方法</strong></p>
+<p>&nbsp; &nbsp; 先看非公平锁的获取：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> nonfairTryAcquireShared(<span style="color: #0000ff;">int</span><span style="color: #000000;"> acquires) {
+</span><span style="color: #008080;">2</span>             <span style="color: #0000ff;">for</span><span style="color: #000000;"> (;;) {
+</span><span style="color: #008080;">3</span>                 <span style="color: #0000ff;">int</span> available =<span style="color: #000000;"> getState();
+</span><span style="color: #008080;">4</span>                 <span style="color: #0000ff;">int</span> remaining = available -<span style="color: #000000;"> acquires; // 如果remaining是负的，说明当前剩余的信号量不够了，需要阻塞
+</span><span style="color: #008080;">5</span>                 <span style="color: #0000ff;">if</span> (remaining &lt; 0 ||
+<span style="color: #008080;">6</span> <span style="color: #000000;">                    compareAndSetState(available, remaining)) // 如果remaining&lt;0则直接return，不会走CAS；如果大于0，说明信号量还够，可走CAS将信号量减掉，成功则返回大于0的remaining
+</span><span style="color: #008080;">7</span>                     <span style="color: #0000ff;">return</span><span style="color: #000000;"> remaining;
+</span><span style="color: #008080;">8</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">9</span>         }</pre>
+</div>
+<p>&nbsp; &nbsp; 再看公平锁的获取：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">int</span> tryAcquireShared(<span style="color: #0000ff;">int</span><span style="color: #000000;"> acquires) {
+</span><span style="color: #008080;"> 2</span>             <span style="color: #0000ff;">for</span><span style="color: #000000;"> (;;) {
+</span><span style="color: #008080;"> 3</span>                 <span style="color: #0000ff;">if</span><span style="color: #000000;"> (hasQueuedPredecessors()) // 判断是不是在队首，不是的话直接返回-1
+</span><span style="color: #008080;"> 4</span>                     <span style="color: #0000ff;">return</span> -1<span style="color: #000000;">;
+</span><span style="color: #008080;"> 5</span>                 <span style="color: #0000ff;">int</span> available =<span style="color: #000000;"> getState(); // 后面逻辑通非公平锁的获取逻辑
+</span><span style="color: #008080;"> 6</span>                 <span style="color: #0000ff;">int</span> remaining = available -<span style="color: #000000;"> acquires;
+</span><span style="color: #008080;"> 7</span>                 <span style="color: #0000ff;">if</span> (remaining &lt; 0 ||
+<span style="color: #008080;"> 8</span> <span style="color: #000000;">                    compareAndSetState(available, remaining))
+</span><span style="color: #008080;"> 9</span>                     <span style="color: #0000ff;">return</span><span style="color: #000000;"> remaining;
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">11</span>         }</pre>
+</div>
+<p>&nbsp; &nbsp; 可以看到，不管非公平锁和公平锁，加锁时都是先判断当前state够不够减的，如果减出负数返回获取锁失败，是正数才走CAS将原信号量扣掉，返回获取锁成功。加锁时一个减state的过程。</p>
+<p><strong>2）、doAcquireSharedInterruptibly</strong></p>
+<p>&nbsp; &nbsp; 此方法还是AQS中的实现，逻辑重复，就不再说明了。</p>
+<p><strong>3、release(1)方法</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> release(<span style="color: #0000ff;">int</span><span style="color: #000000;"> permits) {
+</span><span style="color: #008080;">2</span>         <span style="color: #0000ff;">if</span> (permits &lt; 0) <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> IllegalArgumentException();
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">        sync.releaseShared(permits);
+</span><span style="color: #008080;">4</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; 同样调用了AQS中的模板方法releaseShared：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> releaseShared(<span style="color: #0000ff;">int</span><span style="color: #000000;"> arg) {
+</span><span style="color: #008080;">2</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (tryReleaseShared(arg)) {
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">            doReleaseShared();
+</span><span style="color: #008080;">4</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">5</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">6</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">7</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; 其中tryReleaseShared的实现在Semaphore类的Sync中，如下所示：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> tryReleaseShared(<span style="color: #0000ff;">int</span><span style="color: #000000;"> releases) {
+</span><span style="color: #008080;"> 2</span>             <span style="color: #0000ff;">for</span><span style="color: #000000;"> (;;) {
+</span><span style="color: #008080;"> 3</span>                 <span style="color: #0000ff;">int</span> current =<span style="color: #000000;"> getState();
+</span><span style="color: #008080;"> 4</span>                 <span style="color: #0000ff;">int</span> next = current +<span style="color: #000000;"> releases; // 用当前state加上要释放的releases
+</span><span style="color: #008080;"> 5</span>                 <span style="color: #0000ff;">if</span> (next &lt; current) <span style="color: #008000;">//</span><span style="color: #008000;"> overflow</span>
+<span style="color: #008080;"> 6</span>                     <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Error("Maximum permit count exceeded"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>                 <span style="color: #0000ff;">if</span><span style="color: #000000;"> (compareAndSetState(current, next)) // 用CAS将state加上
+</span><span style="color: #008080;"> 8</span>                     <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">10</span>         }</pre>
+</div>
+<p>&nbsp; &nbsp; 另一个方法doReleaseShared之前看过，此处就不赘述了。</p>
+<p><span style="background-color: #c0c0c0; font-size: 18px;"><strong>三、小结</strong></span></p>
+<p>&nbsp; &nbsp; Semaphore信号量类基于AQS的共享锁实现，有公平锁和非公平锁两个版本。它的加锁与释放锁的不同之处在于和普通的加锁释放锁反着，ReentrantLock和ReentrantReadWriteLock中都是加锁时state+1，释放锁时state-1，而Semaphore中是加锁时state减，释放锁时state加。</p>
+<p>&nbsp; &nbsp; 另外，如果它还可以acquire(2) 、release(1)，即获取的和释放的信号量可以不一致，只是需要注意别释放的信号量太少导致后续任务获取不到足够的量而永久阻塞。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

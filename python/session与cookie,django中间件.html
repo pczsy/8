@@ -1,0 +1,218 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修session与cookie,django中间件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>session与cookie,django中间件</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11379084.html</div><br>
+    <h1 id="自我总结">0819自我总结</h1>
+<h2 id="一.session与cookie">一.session与cookie</h2>
+<h3 id="django设置session">1.django设置session</h3>
+<pre><code><code>request.session[&#39;name&#39;] = username
+request.session[&#39;age&#39;] = 13
+会自动生成一个sessionid为key:{&quot;name&quot;:&#39;username&#39;, &#39;age&#39;:12}为值的key,在django中后面值部分会进行加密
+    </code></pre>
+<h3 id="获取session">2.获取session</h3>
+<pre><code><code>request.session.get(&#39;name&#39;)</code></pre>
+<h3 id="django中五种session设置">3.django中五种session设置</h3>
+<h4 id="数据库session">1.数据库session</h4>
+<pre><code><code>
+a. 配置 settings.py
+ 
+    SESSION_ENGINE = &#39;django.contrib.sessions.backends.db&#39;   # 引擎（默认）
+     
+    SESSION_COOKIE_NAME ＝ &quot;sessionid&quot;  # Session的cookie保存在浏览器上时的key，即：sessionid＝随机字符串（默认）
+    SESSION_COOKIE_PATH ＝ &quot;/&quot;   # Session的cookie保存的路径（默认）
+    SESSION_COOKIE_DOMAIN = None    # Session的cookie保存的域名（默认）
+    SESSION_COOKIE_SECURE = False    # 是否Https传输cookie（默认）
+    SESSION_COOKIE_HTTPONLY = True   # 是否Session的cookie只支持http传输（默认）
+    SESSION_COOKIE_AGE = 1209600  # Session的cookie失效日期（2周）（默认）
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 是否关闭浏览器使得Session过期（默认）
+    SESSION_SAVE_EVERY_REQUEST = False  # 是否每次请求都保存Session，默认修改之后才保存（默认）
+ 
+ 
+ 
+b. 使用
+ 
+    def index(request):
+        # 获取、设置、删除Session中数据
+        request.session[&#39;k1&#39;]
+        request.session.get(&#39;k1&#39;,None)
+        request.session[&#39;k1&#39;] = 123
+        request.session.setdefault(&#39;k1&#39;,123) # 存在则不设置
+        del request.session[&#39;k1&#39;]
+ 
+        # 所有 键、值、键值对
+        request.session.keys()
+        request.session.values()
+        request.session.items()
+        request.session.iterkeys()
+        request.session.itervalues()
+        request.session.iteritems()
+ 
+ 
+        # 用户session的随机字符串
+        request.session.session_key
+ 
+        # 将所有Session失效日期小于当前日期的数据删除
+        request.session.clear_expired()
+ 
+        # 检查 用户session的随机字符串 在数据库中是否
+        request.session.exists(&quot;session_key&quot;)
+ 
+        # 删除当前用户的所有Session数据
+        request.session.delete(&quot;session_key&quot;)
+ 
+        request.session.set_expiry(value)
+            * 如果value是个整数，session会在些秒数后失效。
+            * 如果value是个datatime或timedelta，session就会在这个时间后失效。
+            * 如果value是0,用户关闭浏览器session就会失效。
+            * 如果value是None,session会依赖全局session失效策略。</code></pre>
+<h4 id="缓存session">2.缓存session</h4>
+<pre><code><code>a.配置 settings.py
+ 
+    SESSION_ENGINE = &#39;django.contrib.sessions.backends.cache&#39;  # 引擎
+    SESSION_CACHE_ALIAS = &#39;default&#39; # 使用的缓存别名（默认内存缓存，也可以是memcache），此处别名依赖缓存的设置
+ 
+ 
+    SESSION_COOKIE_NAME ＝ &quot;sessionid&quot;  # Session的cookie保存在浏览器上时的key，即：sessionid＝随机字符串
+    SESSION_COOKIE_PATH ＝ &quot;/&quot;  # Session的cookie保存的路径
+    SESSION_COOKIE_DOMAIN = None      # Session的cookie保存的域名
+    SESSION_COOKIE_SECURE = False     # 是否Https传输cookie
+    SESSION_COOKIE_HTTPONLY = True    # 是否Session的cookie只支持http传输
+    SESSION_COOKIE_AGE = 1209600      # Session的cookie失效日期（2周）
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False     # 是否关闭浏览器使得Session过期
+    SESSION_SAVE_EVERY_REQUEST = False      # 是否每次请求都保存Session，默认修改之后才保存
+ 
+ 
+ 
+b. 使用
+ 
+    同上</code></pre>
+<h4 id="文件session">3.文件session</h4>
+<pre><code><code>a. 配置 settings.py
+ 
+    SESSION_ENGINE = &#39;django.contrib.sessions.backends.file&#39;    # 引擎
+    SESSION_FILE_PATH = None  # 缓存文件路径，如果为None，则使用tempfile模块获取一个临时地址tempfile.gettempdir()                                                            # 如：/var/folders/d3/j9tj0gz93dg06bmwxmhh6_xm0000gn/T
+ 
+ 
+    SESSION_COOKIE_NAME ＝ &quot;sessionid&quot;   # Session的cookie保存在浏览器上时的key，即：sessionid＝随机字符串
+    SESSION_COOKIE_PATH ＝ &quot;/&quot;   # Session的cookie保存的路径
+    SESSION_COOKIE_DOMAIN = None   # Session的cookie保存的域名
+    SESSION_COOKIE_SECURE = False    # 是否Https传输cookie
+    SESSION_COOKIE_HTTPONLY = True     # 是否Session的cookie只支持http传输
+    SESSION_COOKIE_AGE = 1209600       # Session的cookie失效日期（2周）
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False   # 是否关闭浏览器使得Session过期
+    SESSION_SAVE_EVERY_REQUEST = False   # 是否每次请求都保存Session，默认修改之后才保存
+ 
+b. 使用
+ 
+    同上</code></pre>
+<h4 id="缓存数据库session">4.缓存+数据库Session</h4>
+<pre><code><code>
+a. 配置 settings.py
+ 
+    SESSION_ENGINE = &#39;django.contrib.sessions.backends.cached_db&#39;        # 引擎
+ 
+b. 使用
+ 
+    同上</code></pre>
+<p>5.加密cookie session</p>
+<pre><code><code>a. 配置 settings.py
+     
+    SESSION_ENGINE = &#39;django.contrib.sessions.backends.signed_cookies&#39;   # 引擎
+ 
+b. 使用
+ 
+    同上</code></pre>
+<h3 id="session与cookie之间的关系">4.session与cookie之间的关系</h3>
+<h4 id="cookie">1、cookie：</h4>
+<p>在网站中，http请求是无状态的。也就是说即使第一次和服务器连接后并且登录成功后，第二次请求服务器依然不能知道当前请求是哪个用户。cookie的出现就是为了解决这个问题，第一次登录后服务器返回一些数据（cookie）给浏览器，然后浏览器保存在本地，当该用户发送第二次请求的时候，就会自动的把上次请求存储的cookie数据自动的携带给服务器，服务器通过浏览器携带的数据就能判断当前用户是哪个了。cookie存储的数据量有限，不同的浏览器有不同的存储大小，但一般不超过4KB。因此使用cookie只能存储一些小量的数据。</p>
+<h4 id="session">2、session:</h4>
+<p>session和cookie的作用有点类似，都是为了存储用户相关的信息。不同的是，cookie是存储在<code>本地浏览器</code>，而session存储在<code>服务器</code>。存储在服务器的数据会更加的安全，不容易被窃取。但存储在服务器也有一定的弊端，就是会占用服务器的资源，但现在服务器已经发展至今，一些session信息还是绰绰有余的。</p>
+<h4 id="两者传输的关系">3.两者传输的关系</h4>
+<p><strong>1.客户端第一请求，服务端会发送登陆页面过去</strong></p>
+<p><strong>2.客户第二次请求并提交用户名和密码后，服务端会向客户端回写一个cookie值</strong></p>
+<p><strong>3.如果我们设置了session，则会向客户端回写一个 {sessionid : 'lr3gmj3vpt0ytf7locqnb21p0cg63iek'}，它会保存在客户端</strong></p>
+<p><strong>4.服务端会将客户的隐私信息保存在了服务端的数据库中， 也就是session保存在了数据库中，默认放在django_session表中：{&quot;dsjnalndjskanjdksa&quot; : {&quot;name&quot;:'jojo', 'age':12, 'addr':'dsabdsa'}}，也就是以session值：用户信息的形式存储</strong></p>
+<p><strong>5.我们可以理解为cookie的value值就是session的key，当我们再次向服务端发起请求时，服务端会通过sessionid来比对信息，然后返回用户信息</strong></p>
+<pre><code><code>def login(request):
+    if request.method == &#39;GET&#39;:
+        return render(request, &#39;login.html&#39;)
+    else:
+        username = request.POST.get(&#39;username&#39;)
+        pwd = request.POST.get(&#39;pwd&#39;)
+
+        if username == &#39;jojo&#39; and pwd == &#39;123&#39;:
+            # 设置cookie
+            obj = redirect(&#39;/test/&#39;)
+            obj.set_cookie(&#39;k1&#39;, &#39;abd&#39;)
+            ### 向客户端回写一个cookie值
+            &#39;&#39;&#39;
+                1. 向客户端回写一个 {sessionid : &#39;lr3gmj3vpt0ytf7locqnb21p0cg63iek&#39;}
+                2. 将客户的隐私信息保存在了服务端的数据库中， 也就是session保存在了数据库中
+                    默认放在django_session表中
+                    {&quot;dsjnalndjskanjdksa&quot; : {&quot;name&quot;:&#39;jojo&#39;, &#39;age&#39;:12, &#39;addr&#39;:&#39;dsabdsa&#39;}}
+            &#39;&#39;&#39;
+            # 设置session
+            request.session[&#39;name&#39;] = username
+            request.session[&#39;age&#39;] = 13
+            
+            # 获取session
+            request.session.get(&#39;name&#39;)
+            
+            return redirect(&#39;/test/&#39;)
+        else:
+            return render(request, &#39;login.html&#39;)</code></pre>
+<h2 id="二.中间件">二.中间件</h2>
+<h4 id="原理图总">原理图总</h4>
+<p><img src="./images/session与cookie,django中间件0.png" /></p>
+<h4 id="自定制中间件">自定制中间件</h4>
+<p>中间件可以定义五个方法，分别是：（主要的是process_request和process_response）</p>
+<ul>
+<li>process_request(self,request)</li>
+<li>process_view(self, request, view_func, view_args, view_kwargs)</li>
+<li>process_response(self, request, response)</li>
+</ul>
+<p>以上方法的返回值可以是None或一个HttpResponse对象，如果是None，则继续按照django定义的规则向后继续执行，如果是HttpResponse对象，则直接将该对象返回给用户。</p>
+<h4 id="process_request">process_request</h4>
+<p>process_request有一个参数，就是request，这个request和视图函数中的request是一样的(在交给Django后面的路由之前，对这个request对象可以进行一系列的操作)。</p>
+<p>由于request对象是一样的，所以我们可以对request对象进行一系列的操作，包括request.变量名=变量值,这样的操作，我们可以在后续的视图函数中通过相同的方式即可获取到我们在中间件中设置的值。</p>
+<p>它的返回值可以是None也可以是HttpResponse对象。返回值是None的话，按正常流程继续走，交给下一个中间件处理，如果是HttpResponse对象，Django将不执行视图函数，而将相应对象返回给浏览器。</p>
+<h4 id="process_response">process_response</h4>
+<p>多个中间件中的process_response方法是按照MIDDLEWARE中的注册顺序倒序执行的，也就是说第一个中间件的process_request方法首先执行，而它的process_response方法最后执行，最后一个中间件的process_request方法最后一个执行，它的process_response方法是最先执行。</p>
+<h4 id="process_view">process_view</h4>
+<p>process_view(self, request, view_func, view_args, view_kwargs)</p>
+<p>该方法有四个参数</p>
+<ul>
+<li>request是HttpRequest对象。</li>
+<li>view_func是Django即将使用的视图函数。 （它是实际的函数对象，而不是函数的名称作为字符串。）</li>
+<li>view_args是将传递给视图的位置参数的列表.</li>
+<li>view_kwargs是将传递给视图的关键字参数的字典。 view_args和view_kwargs都不包含第一个视图参数（request）。</li>
+</ul>
+<p>Django会在调用视图函数之前调用process_view方法。</p>
+<p>它应该返回None或一个HttpResponse对象。 如果返回None，Django将继续处理这个请求，执行任何其他中间件的process_view方法，然后在执行相应的视图。 如果它返回一个HttpResponse对象，那么将不会执行Django的视图函数，而是直接在中间件中掉头，倒叙执行一个个process_response方法，最后返回给浏览器</p>
+<h4 id="中间件执行流程">中间件执行流程</h4>
+<p>请求到达中间件之后，先按照正序执行每个注册中间件的process_request方法，process_request方法返回的值是None，就依次执行，如果返回的值是HttpResponse对象，不再执行后面的process_request方法，而是执行当前对应中间件的process_response方法(注意不是掉头执行所有的process_response方法)，将HttpResponse对象返回给浏览器。也就是说：如果MIDDLEWARE中注册了6个中间件，执行过程中，第3个中间件返回了一个HttpResponse对象，那么第4,5,6中间件的process_request和process_response方法都不执行，顺序执行3,2,1中间件的process_response方法。</p>
+<p><img src="./images/session与cookie,django中间件1.png" alt="ZOZRu4.png" /></p>
+<p>process_request方法都执行完后，匹配路由，找到要执行的视图函数，先不执行视图函数，先执行中间件中的process_view方法，process_view方法返回None，继续按顺序执行，所有process_view方法执行完后执行视图函数。假如中间件3 的process_view方法返回了HttpResponse对象，则4,5,6的process_view以及视图函数都不执行，直接从最后一个中间件，也就是中间件6的process_response方法开始倒序执行。</p>
+<p><img src="./images/session与cookie,django中间件2.png" alt="ZOZWDJ.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

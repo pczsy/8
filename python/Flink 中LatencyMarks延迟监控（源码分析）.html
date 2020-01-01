@@ -1,0 +1,58 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Flink 中LatencyMarks延迟监控（源码分析）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Flink 中LatencyMarks延迟监控（源码分析）</center></div><div class='banquan'>原文出处:本文由博客园博主末日布孤单提供。<br/>
+原文连接:https://www.cnblogs.com/ljygz/p/12036297.html</div><br>
+    <p><span style="font-size: 18px;">流式计算中处理延迟是一个非常重要的监控metric</span></p>
+<p><span style="font-size: 18px;">flink中通过开启配置&nbsp; &nbsp;metrics.latency.interval&nbsp; 来开启latency后就可以在metric中看到askManagerJobMetricGroup/operator_id/operator_subtask_index/latency指标了</span></p>
+<p><span style="font-size: 18px;">如果每一条数据都打上时间监控 输出时间- 输入时间，会大量的消耗性能</span></p>
+<p><span style="font-size: 18px;">来看一下flink自带的延迟监控是怎么做的</span></p>
+<p><span style="font-size: 18px;"><img src="./images/Flink 中LatencyMarks延迟监控（源码分析）0.png" alt="" /></span></p>
+<p><span style="font-size: 18px;">其实也可以想到原理很简单，就是在source周期性的插入一条特殊的数据LatencyMarker</span></p>
+<p><span style="font-size: 18px;">LatencyMarker初始化的时候会带上它产生时的时间</span></p>
+<p><span style="font-size: 18px;">每次当task接收到的数据是LatencyMarker的时候他就用 当前时间 -&nbsp;LatencyMarker时间 = lateTime 并发送到指标收集系统</span></p>
+<p><span style="font-size: 18px;">接着继续把这个LatencyMarker往下游emit</span></p>
+<p><span style="font-size: 18px;">来看一下源码是如何实现的</span></p>
+<p><span style="font-size: 18px;">因为是从source加入LatencyMarker先看StreamSource.java</span></p>
+<p><span style="font-size: 18px;">在StreamSource的run 方法中</span></p>
+<p><span style="font-size: 18px;"><img src="./images/Flink 中LatencyMarks延迟监控（源码分析）1.png" alt="" /></span></p>
+<p><span style="font-size: 18px;">&nbsp;初始化了一个LatencyMarksEmitter</span></p>
+<p><span style="font-size: 18px;"><img src="./images/Flink 中LatencyMarks延迟监控（源码分析）2.png" alt="" /></span></p>
+<p>&nbsp;<span style="font-size: 18px;">其实就是在processTimeServera中周期性（我们设置的metrics.latency.interval 时长）去向下游emit&nbsp; 当前时间的LatencyMarker</span></p>
+<p><span style="font-size: 18px;">接着来到task接收数据的地方</span></p>
+<p><span style="font-size: 18px;">StreamInputProcessor的processInput方法中</span></p>
+<p><span style="font-size: 18px;"><img src="./images/Flink 中LatencyMarks延迟监控（源码分析）3.png" alt="" /></span></p>
+<p><span style="font-size: 18px;"><img src="./images/Flink 中LatencyMarks延迟监控（源码分析）4.png" alt="" /></span></p>
+<p><span style="font-size: 18px;"><img src="./images/Flink 中LatencyMarks延迟监控（源码分析）5.png" alt="" /></span></p>
+<p><span style="font-size: 18px;">可以看到就是用当前时间 -&nbsp;LatencyMarker，然后就往report发送了，然后emit</span></p>
+<p><span style="font-size: 18px;">而sink算子的唯一区别就是</span></p>
+<p><span style="font-size: 18px;"><img src="./images/Flink 中LatencyMarks延迟监控（源码分析）6.png" alt="" /></span></p>
+<p><span style="font-size: 18px;">区别就是sink没有emit&nbsp;&nbsp;LatencyMarker 因为是最后一个算子了嘛</span></p>
+<p><span style="font-size: 18px;">这里就讲完了</span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">注意的点是：</span></p>
+<p><span style="font-size: 18px;">　　　其实可以看到flink中的LatencyMarker是没有走用户代码逻辑的，也就是说统计出来的延迟时间并不是端到端的，而是除了用户逻辑处理外的延迟，</span></p>
+<p><span style="font-size: 18px;">　　　因为LatencyMarker和数据的处理是同步处理的，虽然监控延迟中没有过用户逻辑代码（正常数据接收以后用户代码处理然后emit,LatencyMarker接收后直接emit）</span></p>
+<p><span style="font-size: 18px;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;但是就像马路一样，整个马路拥塞了延迟高了，那还是会使这个指标值越来越大,结论就是这个延迟大致等于端到端延迟</span></p>
+<p><span style="font-size: 18px;">　　　可能这样的设计是考虑到LatencyMarker如果也走用户处理逻辑的话会消耗过多的性能吧，特别是采集频繁的时候</span></p>
+<p><span style="font-size: 18px;">&nbsp;</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

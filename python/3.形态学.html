@@ -1,0 +1,135 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修3.形态学' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>3.形态学</center></div><div class='banquan'>原文出处:本文由博客园博主刘文华提供。<br/>
+原文连接:https://www.cnblogs.com/liuwenhua/p/11506398.html</div><br>
+    <p>#导入工具包</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> imutils <span style="color: #0000ff;">import</span> *</pre>
+</div>
+<p>&nbsp;<span style="font-size: 14pt;">Erosion腐蚀</span><br />其原理是在原图的小区域内取局部最小值,其函数是cv2.erode()。这个核也叫结构元素，因为形态学操作其实也是应用卷积来实现的,结构元素可以是矩形/椭圆/十字形，可以用cv2.getStructuringElement()来生成不同形状的结构元素，比如：</p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;"># 矩形
+kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+print(kernel1)
+</pre>
+</div>
+<p>&nbsp;</p>
+<pre><code>[[1 1 1 1 1]
+ [1 1 1 1 1]
+ [1 1 1 1 1]
+ [1 1 1 1 1]
+ [1 1 1 1 1]]</pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 椭圆</span>
+kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5<span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(kernel2)</pre>
+</div>
+<pre><code>[[0 0 1 0 0]
+ [1 1 1 1 1]
+ [1 1 1 1 1]
+ [1 1 1 1 1]
+ [0 0 1 0 0]]</pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 十字形</span>
+kernel3 = cv2.getStructuringElement(cv2.MORPH_CROSS, (5,5<span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(kernel3)</pre>
+</div>
+<div class="cnblogs_code">
+<pre><code>image = imread(<span style="color: #800000;">'</span><span style="color: #800000;">image.jpg</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+show(image)</span></pre>
+</div>
+<p><img src="./images/3.形态学0.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> erosion =<span style="color: #000000;"> cv2.erode(image, kernel1)
+</span><span style="color: #008080;">2</span> show(erosion)</pre>
+</div>
+<p><img src="./images/3.形态学1.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(3<span style="color: #000000;">):
+</span><span style="color: #008080;">2</span>     erosion = cv2.erode(image, kernel1, iterations=i+1<span style="color: #000000;">)
+</span><span style="color: #008080;">3</span>     show(erosion)</pre>
+</div>
+<p><img src="./images/3.形态学2.png" alt="" /><img src="./images/3.形态学3.png" alt="" /><img src="./images/3.形态学4.png" alt="" /></p>
+<p><span style="font-size: 14pt;">Dilation膨胀</span><br />膨胀与腐蚀相反，取的是局部最大值。cv2.dilate()</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> dilation =<span style="color: #000000;"> cv2.dilate(image, kernel)
+</span><span style="color: #008080;">2</span> show(dilation)</pre>
+</div>
+<p><img src="./images/3.形态学5.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(3<span style="color: #000000;">):
+</span><span style="color: #008080;">2</span>     dilation = cv2.dilate(image, kernel1, iterations=i+1<span style="color: #000000;">)
+</span><span style="color: #008080;">3</span>     show(dilation)</pre>
+</div>
+<p><img src="./images/3.形态学6.png" alt="" /><img src="./images/3.形态学7.png" alt="" /><img src="./images/3.形态学8.png" alt="" /></p>
+<p><span style="font-size: 14pt;">Opening开运算</span></p>
+<p>先腐蚀后膨胀叫开运算，其作用是消除小白点。这类形态学操作用cv2.morphologyEx()函数实现</p>
+<p>#读入图片</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> image2 = imread(<span style="color: #800000;">'</span><span style="color: #800000;">image2.jpg</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">2</span> show(image2)</pre>
+</div>
+<p><img src="./images/3.形态学9.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 去除白点</span>
+<span style="color: #008080;">2</span> opening =<span style="color: #000000;"> cv2.morphologyEx(image2, cv2.MORPH_OPEN, kernel1)
+</span><span style="color: #008080;">3</span> show(opening)</pre>
+</div>
+<p><img src="./images/3.形态学10.png" alt="" /></p>
+<p><span style="font-size: 14pt;">&nbsp;Closing闭运算</span><br />闭运算则相反：先膨胀后腐蚀。其作用是消除小黑点。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 去除黑点</span>
+<span style="color: #008080;">2</span> closing =<span style="color: #000000;"> cv2.morphologyEx(image2, cv2.MORPH_CLOSE, kernel1)
+</span><span style="color: #008080;">3</span> show(closing)</pre>
+</div>
+<p><img src="./images/3.形态学11.png" alt="" /></p>
+<p># 先开运算再闭运算</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> opening =<span style="color: #000000;"> cv2.morphologyEx(image2, cv2.MORPH_OPEN, kernel1)
+</span><span style="color: #008080;">2</span> closing =<span style="color: #000000;"> cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel1)
+</span><span style="color: #008080;">3</span> show(closing)</pre>
+</div>
+<p><img src="./images/3.形态学12.png" alt="" /></p>
+<p><span style="font-size: 14pt;">&nbsp;Gradient形态学梯度</span><br />膨胀图减去腐蚀图，dilation - erosion，得到物体的轮廓</p>
+<div class="cnblogs_code">
+<pre><code>gradient =<span style="color: #000000;"> cv2.morphologyEx(image, cv2.MORPH_GRADIENT, kernel1)
+show(gradient)</span></pre>
+</div>
+<p><img src="./images/3.形态学13.png" alt="" /></p>
+<p><span style="font-size: 14pt;">&nbsp;Top Hat顶帽/White Hat白帽</span><br />原图减去开运算后的图：src - opening</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> tophat =<span style="color: #000000;"> cv2.morphologyEx(image2, cv2.MORPH_TOPHAT, kernel1)
+</span><span style="color: #008080;">2</span> show(tophat)</pre>
+</div>
+<p><img src="./images/3.形态学14.png" alt="" /></p>
+<p><span style="font-size: 14pt;">Black Hat黑帽</span><br />闭运算后的图减去原图：closing - src</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> blackhat =<span style="color: #000000;"> cv2.morphologyEx(image2, cv2.MORPH_BLACKHAT, kernel1)
+</span><span style="color: #008080;">2</span> show(blackhat)</pre>
+</div>
+<p><img src="./images/3.形态学15.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

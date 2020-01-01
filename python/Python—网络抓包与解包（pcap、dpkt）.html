@@ -1,0 +1,116 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python—网络抓包与解包（pcap、dpkt）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python—网络抓包与解包（pcap、dpkt）</center></div><div class='banquan'>原文出处:本文由博客园博主刘_love_田提供。<br/>
+原文连接:https://www.cnblogs.com/liuhaidon/p/11725532.html</div><br>
+    <p><strong>pcap安装</strong></p>
+<div class="cnblogs_Highlighter">
+<pre><code>[root@localhost ~]# pip install pypcap</pre>
+</div>
+<p><strong>抓包与解包</strong></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;"># -*- coding:utf-8 -*-
+import pcap, dpkt
+import re, threading, requests
+ 
+__black_ip = ['103.224.249.123', '203.66.1.212']
+
+# 抓包：param1 eth_name 网卡名，如：eth0,eth3。 param2 p_type 日志捕获类型 1：sdk日志用例分析 2：目标域名过滤输出 3：原始数据包
+def catch_pack(eth_name="enp5s0", packet_type=None):
+    sniffer = pcap.pcap(eth_name)
+    sniffer.setfilter("tcp")            # 只抓取TCP包
+    # sniffer.setfilter('tcp port 80')  # 设置监听过滤器
+    if sniffer:
+        for packet_time, packet_data in sniffer:  # packet_time为收到的时间，packet_data为收到的数据
+            th = threading.Thread(target=check_pack, args=(packet_time, packet_data, packet_type))
+            th.setDaemon(True)
+            th.start()
+ 
+# 解包
+def check_pack(packet_time, packet_data, packet_type):
+    packet = dpkt.ethernet.Ethernet(packet_data)
+    # 判断是否HTTP协议javascript:;
+    try:
+        m_tips = packet.data.data.data[:3]
+    except:
+        return False
+    if m_tips != 'GET' and m_tips != 'POS': return False
+ 
+    # 取回头信息
+    tmp = get_header(packet, packet_time)
+    if not tmp: return False
+    print "tmp===&gt;", tmp
+    # self.input_database(tmp)
+ 
+# 取header数据
+def get_header(packet, packet_time):
+    if not packet: return False
+    tmp = {}
+ 
+    # 获取基础头信息
+    tmp['dst'] = "%d.%d.%d.%d" % tuple(map(ord, list(packet.data.dst)))
+    if tmp['dst'] in __black_ip: return False
+    tmp['src'] = "%d.%d.%d.%d" % tuple(map(ord, list(packet.data.src)))
+    tmp['time'] = packet_time
+    tmp['dport'] = packet.data.data.dport
+    tmp['sport'] = packet.data.data.sport
+    # if not self.ip_exists(tmp['dst']): self.input_ip(tmp['dst'])
+ 
+    # 截取前1024个字符
+    t = packet.data.data.data[:1024]
+ 
+    # 获取host,uri,referer,method
+    o = re.search('(GET|POST)\s+(.+)\s+HTTP(.|\n)+Host:\s+(.+)\r(.|\n)+Referer:\s+(.+)\r', t)
+    if not o: return False
+    o1 = o.groups()
+    if len(o1) &lt; 6: return False
+    tmp['method'] = o1[0]
+    tmp['host'] = o1[3]
+    tmp['uri'] = o1[1]
+    tmp['referer'] = o1[5]
+    # if self.is_exists(tmp['host'],tmp['dport']): return False
+    return tmp
+ 
+if __name__ == "__main__":
+    catch_pack("eth0", 1)
+</pre>
+</div>
+<p><strong>解析pcap文件</strong></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;">try:
+    import scapy.all as scapy
+except ImportError:
+    import scapy
+from scapy.utils import PcapReader
+
+packets = scapy.rdpcap('test.pcap')
+for data in packets:
+    if 'UDP' in data:
+        s = repr(data)
+        print(data['UDP'].sport)
+        break
+</pre>
+</div>
+<p>&nbsp;</p>
+<p><a href="https://www.cnblogs.com/guanfuchang/p/6495533.html">https://www.cnblogs.com/guanfuchang/p/6495533.html</a></p>
+<p><a href="https://www.cnblogs.com/KevinGeorge/p/8088915.html">https://www.cnblogs.com/KevinGeorge/p/8088915.html</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

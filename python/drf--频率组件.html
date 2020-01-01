@@ -1,0 +1,267 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修drf--频率组件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>drf--频率组件</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11715973.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#频率组件简介">频率组件简介</a></li>
+        <li><a href="#自定义频率类">自定义频率类</a></li>
+        <li><a href="#内置频率类及局部使用">内置频率类及局部使用</a></li>
+        <li><a href="#全局使用">全局使用</a></li>
+        <li><a href="#源码分析">源码分析</a><ul>
+        <li><a href="#simpleratethrottle源码分析">SimpleRateThrottle源码分析</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="频率组件简介">频率组件简介</h1>
+<p>主要是为了限制用户访问的次数，比如某一个接口（发送验证码）同一个手机号一分钟内只能访问一次。</p>
+<h1 id="自定义频率类">自定义频率类</h1>
+<p>规则：</p>
+<ul>
+<li>用户对某个url请求的频率，一分钟以内只能访问三次</li>
+</ul>
+<p>思路：</p>
+<ol>
+<li>回去访问者IP</li>
+<li>判断当前IP是否在访问字典里面，不在就添加进去，并且返回True，表示第一次访问</li>
+<li>循环判断当前IP的列表，有值，并且当前时间减去列表的最后一个时间大于60秒，把这种数据pop掉，这样列表中只存在60秒之内的访问时间</li>
+<li>然后判断列表的长度，如果小于3，表示一分钟之内访问不足三次，把当前时间插入到列表第一个位置，返回True，顺利通过</li>
+<li>当大于等于3，说明一分钟内访问超过三次，返回False验证失败</li>
+</ol>
+<p><strong>第一种：手撸频率类</strong></p>
+<pre><code><code>import time
+
+
+class MyThrottles():
+    VISIT_RECORD = {}
+    
+    def __init__(self):
+        self.history=None
+        
+    def allow_request(self,request, view):
+        #（1）取出访问者ip
+        # print(request.META)
+        ip=request.META.get(&#39;REMOTE_ADDR&#39;)
+        ctime=time.time()
+        
+        # （2）判断当前ip不在访问字典里，添加进去，并且直接返回True,表示第一次访问
+        if ip not in self.VISIT_RECORD:
+            self.VISIT_RECORD[ip]=[ctime,]
+            return True
+        self.history=self.VISIT_RECORD.get(ip)
+        
+        # （3）循环判断当前ip的列表，有值，并且当前时间减去列表的最后一个时间大于60s，把这种数据pop掉，这样列表中只有60s以内的访问时间，
+        while self.history and ctime-self.history[-1]&gt;60:
+            self.history.pop()
+            
+        # （4）判断，当列表小于3，说明一分钟以内访问不足三次，把当前时间插入到列表第一个位置，返回True，顺利通过
+        # （5）当大于等于3，说明一分钟内访问超过三次，返回False验证失败
+        if len(self.history)&lt;3:
+            self.history.insert(0,ctime)
+            return True
+        else:
+            return False
+        
+    def wait(self):
+        ctime=time.time()
+        return 60-(ctime-self.history[-1])</code></pre>
+<p><strong>第二种：继承SimpleRateThrottle</strong></p>
+<pre><code><code>from rest_framework.throttling import SimpleRateThrottle
+
+class VisitThrottle(SimpleRateThrottle):
+    scope = &#39;luffy&#39;
+    def get_cache_key(self, request, view):
+        return self.get_ident(request)
+    
+&quot;&quot;&quot;
+在settings.py中配置访问频率
+
+REST_FRAMEWORK = {
+    &#39;DEFAULT_THROTTLE_RATES&#39;:{
+        &#39;luffy&#39;:&#39;3/m&#39;
+    }
+}
+&quot;&quot;&quot;</code></pre>
+<h1 id="内置频率类及局部使用">内置频率类及局部使用</h1>
+<ul>
+<li><p><code>BaseThrottle</code>：是所有类的基类</p>
+<p>方法：<code>def get_ident(self, request)</code>获取标识，其实就是获取ip，自定义的需要继承它；</p></li>
+<li><p><code>AnonRateThrottle</code>：未登录用户ip限制，需要配合auth模块用；</p></li>
+<li><p><code>SimpleRateThrottle</code>：重写此方法，可以实现频率限制，不需要咱们手写上面自定义的逻辑；</p></li>
+<li><p><code>UserRateThrottle</code>：登录用户频率限制，这个也需要配合auth模块来用；</p></li>
+<li><p><code>ScopedRateThrottle</code>：应用在局部视图上的（忽略）</p></li>
+</ul>
+<p><strong>在视图类里使用: </strong></p>
+<pre><code><code>throttle_classes = [MyThrottles,]</code></pre>
+<p><strong>错误信息的中文提示:</strong></p>
+<pre><code><code>class Course(APIView):
+    authentication_classes = [TokenAuth, ]
+    permission_classes = [UserPermission, ]
+    throttle_classes = [MyThrottles,]
+
+    def get(self, request):
+        return HttpResponse(&#39;get&#39;)
+
+    def post(self, request):
+        return HttpResponse(&#39;post&#39;)
+    
+    def throttled(self, request, wait):
+        from rest_framework.exceptions import Throttled
+        class MyThrottled(Throttled):
+            default_detail = &#39;傻逼啊&#39;
+            extra_detail_singular = &#39;还有 {wait} second.&#39;
+            extra_detail_plural = &#39;出了 {wait} seconds.&#39;
+        raise MyThrottled(wait)</code></pre>
+<h1 id="全局使用">全局使用</h1>
+<pre><code><code># 在settings.py中进行配置
+
+REST_FRAMEWORK = {
+    &#39;DEFAULT_THROTTLE_CLASSES&#39;:[&#39;app01.utils.VisitThrottle&#39;,],
+    &#39;DEFAULT_THROTTLE_RATES&#39;:{
+        &#39;luffy&#39;:&#39;3/m&#39;
+    }
+}</code></pre>
+<h1 id="源码分析">源码分析</h1>
+<pre><code><code>def check_throttles(self, request):
+    for throttle in self.get_throttles():
+        if not throttle.allow_request(request, self):
+            self.throttled(request, throttle.wait())
+            
+def throttled(self, request, wait):
+    #抛异常，可以自定义异常，实现错误信息的中文显示
+    raise exceptions.Throttled(wait)</code></pre>
+<h3 id="simpleratethrottle源码分析">SimpleRateThrottle源码分析</h3>
+<pre><code><code>class SimpleRateThrottle(BaseThrottle):
+    # 我们自己写的放在了全局变量，他的在django的缓存中
+    cache = default_cache
+    # 获取当前时间，跟咱写的一样
+    timer = time.time
+    # 做了一个字符串格式化，
+    cache_format = &#39;throttle_%(scope)s_%(ident)s&#39;
+    scope = None
+    # 从配置文件中取DEFAULT_THROTTLE_RATES，所以咱配置文件中应该配置，否则报错
+    THROTTLE_RATES = api_settings.DEFAULT_THROTTLE_RATES
+
+    def __init__(self):
+        if not getattr(self, &#39;rate&#39;, None):
+            # 从配置文件中找出scope配置的名字对应的值，比如咱写的‘3/m’,他取出来
+            self.rate = self.get_rate()
+        #     解析&#39;3/m&#39;,解析成 3      m
+        self.num_requests, self.duration = self.parse_rate(self.rate)
+        
+    # 这个方法需要重写
+    def get_cache_key(self, request, view):
+        &quot;&quot;&quot;
+        Should return a unique cache-key which can be used for throttling.
+        Must be overridden.
+
+        May return `None` if the request should not be throttled.
+        &quot;&quot;&quot;
+        raise NotImplementedError(&#39;.get_cache_key() must be overridden&#39;)
+    
+    def get_rate(self):
+        if not getattr(self, &#39;scope&#39;, None):
+            msg = (&quot;You must set either `.scope` or `.rate` for &#39;%s&#39; throttle&quot; %
+                   self.__class__.__name__)
+            raise ImproperlyConfigured(msg)
+
+        try:
+            # 获取在setting里配置的字典中的之，self.scope是 咱写的luffy
+            return self.THROTTLE_RATES[self.scope]
+        except KeyError:
+            msg = &quot;No default throttle rate set for &#39;%s&#39; scope&quot; % self.scope
+            raise ImproperlyConfigured(msg)
+            
+    # 解析 3/m这种传参
+    def parse_rate(self, rate):
+        &quot;&quot;&quot;
+        Given the request rate string, return a two tuple of:
+        &lt;allowed number of requests&gt;, &lt;period of time in seconds&gt;
+        &quot;&quot;&quot;
+        if rate is None:
+            return (None, None)
+        num, period = rate.split(&#39;/&#39;)
+        num_requests = int(num)
+        # 只取了第一位，也就是 3/mimmmmmmm也是代表一分钟
+        duration = {&#39;s&#39;: 1, &#39;m&#39;: 60, &#39;h&#39;: 3600, &#39;d&#39;: 86400}[period[0]]
+        return (num_requests, duration)
+    
+    # 逻辑跟咱自定义的相同
+    def allow_request(self, request, view):
+        &quot;&quot;&quot;
+        Implement the check to see if the request should be throttled.
+
+        On success calls `throttle_success`.
+        On failure calls `throttle_failure`.
+        &quot;&quot;&quot;
+        if self.rate is None:
+            return True
+
+        self.key = self.get_cache_key(request, view)
+        if self.key is None:
+            return True
+
+        self.history = self.cache.get(self.key, [])
+        self.now = self.timer()
+
+        # Drop any requests from the history which have now passed the
+        # throttle duration
+        while self.history and self.history[-1] &lt;= self.now - self.duration:
+            self.history.pop()
+        if len(self.history) &gt;= self.num_requests:
+            return self.throttle_failure()
+        return self.throttle_success()
+    # 成功返回true，并且插入到缓存中
+    def throttle_success(self):
+        &quot;&quot;&quot;
+        Inserts the current request&#39;s timestamp along with the key
+        into the cache.
+        &quot;&quot;&quot;
+        self.history.insert(0, self.now)
+        self.cache.set(self.key, self.history, self.duration)
+        return True
+    # 失败返回false
+    def throttle_failure(self):
+        &quot;&quot;&quot;
+        Called when a request to the API has failed due to throttling.
+        &quot;&quot;&quot;
+        return False
+
+    def wait(self):
+        &quot;&quot;&quot;
+        Returns the recommended next request time in seconds.
+        &quot;&quot;&quot;
+        if self.history:
+            remaining_duration = self.duration - (self.now - self.history[-1])
+        else:
+            remaining_duration = self.duration
+
+        available_requests = self.num_requests - len(self.history) + 1
+        if available_requests &lt;= 0:
+            return None
+
+        return remaining_duration / float(available_requests)</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

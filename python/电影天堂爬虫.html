@@ -1,0 +1,113 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修电影天堂爬虫' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>电影天堂爬虫</center></div><div class='banquan'>原文出处:本文由博客园博主Dragon、提供。<br/>
+原文连接:https://www.cnblogs.com/cxiaolong/p/11223243.html</div><br>
+    <div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 电影天堂爬虫</span>
+
+**今日目标**<span style="color: #000000;">
+
+爬取电影天堂前30页最新电影以及下载地址
+```python
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 1. 打印程序执行时间</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 2. 数据爬下来后做处理(字符串),定义成字典</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 3. 一条龙: 获取 -&gt; 调用解析 -&gt; 数据处理</span>
+
+<span style="color: #0000ff;">from</span> urllib <span style="color: #0000ff;">import</span><span style="color: #000000;"> request
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pymysql
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> random
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> MaoyanSpider(object):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self):
+        self.url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">https://maoyan.com/board/4?offset={}</span><span style="color: #800000;">'</span><span style="color: #000000;">
+        self.headers</span>={<span style="color: #800000;">'</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">Mozilla/5.0</span><span style="color: #800000;">'</span><span style="color: #000000;">}
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用于记录页数</span>
+        self.page = 1
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 创建数据库连接对象和游标对象</span>
+        self.db =<span style="color: #000000;"> pymysql.connect(
+            </span><span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">maoyandb</span><span style="color: #800000;">'</span>,charset=<span style="color: #800000;">'</span><span style="color: #800000;">utf8</span><span style="color: #800000;">'</span><span style="color: #000000;">
+        )
+        self.cursor </span>=<span style="color: #000000;"> self.db.cursor()
+
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取网页</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_page(self,url):
+        req </span>=<span style="color: #000000;"> request.Request(
+            url</span>=<span style="color: #000000;">url,
+            headers</span>=<span style="color: #000000;">self.headers
+        )
+        res </span>=<span style="color: #000000;"> request.urlopen(req)
+        html </span>= res.read().decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 直接调用解析函数</span>
+<span style="color: #000000;">        self.parse_page(html)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 解析网页</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> parse_page(self,html):
+        pattren </span>= re.compile(<span style="color: #800000;">'</span><span style="color: #800000;">&lt;div class="movie-item-info"&gt;.*?title="(.*?)".*?class="star"&gt;(.*?)&lt;/p&gt;.*?releasetime"&gt;(.*?)&lt;/p&gt;</span><span style="color: #800000;">'</span><span style="color: #000000;">,re.S)
+        r_list </span>=<span style="color: #000000;"> pattren.findall(html)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(r_list)
+        self.write_page(r_list)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 存入mysql数据库(executemany([ [],[],[] ]))</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> write_page(self,r_list):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义空列表</span>
+        film_list =<span style="color: #000000;"> []
+        ins </span>= <span style="color: #800000;">'</span><span style="color: #800000;">insert into filmtab values(%s,%s,%s)</span><span style="color: #800000;">'</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 处理数据,放到大列表film_list中</span>
+        <span style="color: #0000ff;">for</span> rt <span style="color: #0000ff;">in</span><span style="color: #000000;"> r_list:
+            one_film </span>=<span style="color: #000000;"> [
+                rt[0],rt[</span>1].strip(),rt[2].strip()[5:15<span style="color: #000000;">]
+            ]
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 添加到大列表中</span>
+<span style="color: #000000;">            film_list.append(one_film)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 一次数据库IO把1页数据存入</span>
+<span style="color: #000000;">        self.cursor.executemany(ins,film_list)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 提交到数据库执行</span>
+<span style="color: #000000;">        self.db.commit()
+
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> main(self):
+        </span><span style="color: #0000ff;">for</span> offset <span style="color: #0000ff;">in</span> range(0,31,10<span style="color: #000000;">):
+            url </span>=<span style="color: #000000;"> self.url.format(offset)
+            self.get_page(url)
+            time.sleep(random.randint(</span>1,3<span style="color: #000000;">))
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">第%d页爬取完成</span><span style="color: #800000;">'</span> %<span style="color: #000000;"> self.page)
+            self.page </span>+= 1
+
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 断开数据库(所有页爬完之后)</span>
+<span style="color: #000000;">        self.cursor.close()
+        self.db.close()
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    start </span>=<span style="color: #000000;"> time.time()
+    spider </span>=<span style="color: #000000;"> MaoyanSpider()
+    spider.main()
+    end </span>=<span style="color: #000000;"> time.time()
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行时间: %.2f</span><span style="color: #800000;">'</span> % (end-<span style="color: #000000;">start))
+```</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

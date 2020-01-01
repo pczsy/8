@@ -1,0 +1,451 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修docker  创建.netcore2.2 api容器  以及连接mysql容器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>docker  创建.netcore2.2 api容器  以及连接mysql容器</center></div><div class='banquan'>原文出处:本文由博客园博主楚景然提供。<br/>
+原文连接:https://www.cnblogs.com/1439107348s/p/12066160.html</div><br>
+    <h2 class="h_top">1】环境说明</h2>
+<p>操作系统:Window 10 专业版</p>
+<p>开发工具 Vs2019专业版</p>
+<p>Docker：&nbsp; Docker for Windows&nbsp;<img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>docker在windows上安装完毕之后可以看到</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 class="h_top">2】拉取mysql镜像以及创建容器</h2>
+<p>1：首先 以管理员方式打开PowerShell&nbsp;</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器2.png" alt="" /></p>
+<p>docker运行成功会显示</p>
+<p>&nbsp;<img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器3.png" alt="" /><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>2：拉取mysql5.7镜像 ，在powershell输入下面命令，然后回车</p>
+<div class="cnblogs_code">
+<pre><code>docker pull mysql:<span style="color: #800080;">5.7</span></pre>
+</div>
+<p>然后可以看到镜像</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>3：创建mysql容器</p>
+<p>建议下面代码先写好，然后合并成一行，再执行</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">docker run 
+</span>--<span style="color: #000000;">name mysql57 
+</span>-p <span style="color: #800080;">3306</span>:<span style="color: #800080;">3306</span> 
+-e MYSQL_USER=<span style="color: #000000;">qy       
+ </span>-e MYSQL_PASSWORD=<span style="color: #800080;">123</span>  
+-e MYSQL_ROOT_PASSWORD=<span style="color: #800080;">123</span>
+ -d mysql:<span style="color: #800080;">5.7</span> 
+--character-<span style="color: #0000ff;">set</span>-server=utf8  --collation-server=utf8_general_ci</pre>
+</div>
+<p>下面是上面代码的注释</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">docker run 
+</span>--<span style="color: #000000;">name mysql57     #容器名称
+</span>-p <span style="color: #800080;">3306</span>:<span style="color: #800080;">3306</span>       #端口映射  前面3306是mysql的访问端口，后面是本身的访问端口  如果设置成3307:<span style="color: #800080;">3306</span><span style="color: #000000;">  那么数据库建立之后，通过外部(比如navicat)访问就只能通过3307访问mysql
+</span>-e MYSQL_USER=<span style="color: #000000;">qy    #创建账号
+ </span>-e MYSQL_PASSWORD=<span style="color: #800080;">123</span><span style="color: #000000;">   #创建账号的密码
+</span>-e MYSQL_ROOT_PASSWORD=<span style="color: #800080;">123</span><span style="color: #000000;">   #重置root的密码
+ </span>-d mysql:<span style="color: #800080;">5.7</span><span style="color: #000000;">                 #镜像名称(从那个镜像上面创建容器)
+</span>--character-<span style="color: #0000ff;">set</span>-server=utf8  --collation-server=utf8_general_ci   #设置utf-<span style="color: #800080;">8</span>  这样mysql就可以加入中文字符</pre>
+</div>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;在STATUS中如果显示up则表示改容器正在运行，mysql容器到此一段落</p>
+<h2 class="h_top">3】创建api项目</h2>
+<p><span style="font-size: 14pt;"><strong>1：创建项目</strong></span></p>
+<p>选择模板</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>勾选.netCore2.2同时选择api项目</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">&nbsp;2：nuegt包下载</span></strong></p>
+<p>由于是连接mysql 所以在nuget中安装以下包</p>
+<p>MySql.Data.EntityFrameworkCore&nbsp; &nbsp; &nbsp; =》安装的是最新版本8.0.18</p>
+<p>Microsoft.EntityFrameworkCore.Tools&nbsp; &nbsp; &nbsp;=》由于使用的.netCore2.2 所以安装 2.2.0</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器9.png" alt="" /></p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器10.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">3创建一个实体 以及上下文</span></strong></p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code>  <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User
+    {
+        [Key]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Id { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+    }</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestContext : DbContext
+    {
+        </span><span style="color: #0000ff;">public</span> TestContext (DbContextOptions&lt;TestContext &gt;<span style="color: #000000;"> options)
+            : </span><span style="color: #0000ff;">base</span><span style="color: #000000;">(options)
+        {
+        }
+
+        </span><span style="color: #0000ff;">public</span> DbSet&lt;User&gt; User { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+    }</span></pre>
+</div>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器11.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">4配置文件</span></strong></p>
+<p>appsettings.json中添加数据库连接语句[注意server后面跟的是mysql的容器名称]</p>
+<div class="cnblogs_code">
+<pre><code>  <span style="color: #800000;">"</span><span style="color: #800000;">AllowedHosts</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">*</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+  </span><span style="color: #800000;">"</span><span style="color: #800000;">ConnectionStrings</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">MysqlUser</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">server=mysqlTS;port=3306;database=beta_user;userid=root;password=Ee123</span><span style="color: #800000;">"</span><span style="color: #000000;">
+  }</span></pre>
+</div>
+<p>连接好了之后。在&nbsp; &nbsp; Startup.cs-&gt;ConfigureServices中添加以下文件[注意放在services.addMvc&nbsp; 的后面]</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器12.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>问了方便再创建的数据库中看到数据。所以在&nbsp;ValuesController.cs添加以下内容&nbsp; []</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('a9aa0955-115a-4399-a724-da99ecbba985')"><img id="code_img_closed_a9aa0955-115a-4399-a724-da99ecbba985" class="code_img_closed" src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器13.png" alt="" /><img id="code_img_opened_a9aa0955-115a-4399-a724-da99ecbba985" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('a9aa0955-115a-4399-a724-da99ecbba985',event)" src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器14.png" alt="" />
+<div id="cnblogs_code_open_a9aa0955-115a-4399-a724-da99ecbba985" class="cnblogs_code_hide">
+<pre><code>        <span style="color: #0000ff;">#region</span> MyRegion
+        <span style="color: #0000ff;">private</span><span style="color: #000000;"> TestContext _testContext;
+
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ValuesController(TestContext estContext)
+        {
+            _testContext </span>=<span style="color: #000000;"> estContext;
+        }
+
+        [HttpGet]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span><span style="color: #000000;"> Get()
+        {
+            </span><span style="color: #0000ff;">string</span> reMsg = <span style="color: #800000;">"</span><span style="color: #800000;">无数据</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">1先保存一个数据</span>
+            <span style="color: #0000ff;">int</span> num = <span style="color: #800080;">1</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">var</span> getall = _testContext.User.Where(c =&gt; <span style="color: #0000ff;">true</span>).OrderByDescending(c =&gt;<span style="color: #000000;"> c.Id).FirstOrDefault();
+            </span><span style="color: #0000ff;">if</span> (getall != <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            {
+                num </span>= getall.Id + <span style="color: #800080;">1</span><span style="color: #000000;">;
+            }
+            _testContext.User.Add(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> Models.User
+            {
+                Id </span>=<span style="color: #000000;"> num,
+                Name </span>= <span style="color: #800000;">"</span><span style="color: #800000;">测试</span><span style="color: #800000;">"</span> +<span style="color: #000000;"> num,
+                Age </span>= <span style="color: #800000;">"</span><span style="color: #800000;">2</span><span style="color: #800000;">"</span> +<span style="color: #000000;"> num
+            });
+            _testContext.SaveChanges(); 
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">2获取一个数据，然后返回</span>
+            <span style="color: #0000ff;">if</span> (getall != <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            {
+                </span><span style="color: #0000ff;">var</span> <span style="color: #0000ff;">get</span> = _testContext.User.SingleOrDefault(c =&gt; c.Id == <span style="color: #800080;">1</span><span style="color: #000000;">);
+                reMsg </span>= <span style="color: #0000ff;">get</span>.Id + <span style="color: #0000ff;">get</span><span style="color: #000000;">.Name;
+            }
+          
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> (reMsg);
+        }
+        </span><span style="color: #0000ff;">#endregion</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>&nbsp;</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器15.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>然后打开 程序包管理器空值台 输入代码迁移数据库</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器16.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;在控制台输入以下代码【注意执行这段命令之前。先把 appsettings.json中连接数据库的 server=mysql&nbsp; 改成 server=localhost&nbsp; &nbsp; &nbsp;因为mysql是项目发布到docker中使用。而localhost是在本地使用&nbsp; &nbsp;如果这里不该。程序将连接不上数据库】</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">#程序包管理器控制台
+Add</span>-Migration Init/<span style="color: #000000;">[自定义名称]
+Update</span>-Database</pre>
+</div>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器17.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;（update-database 代码太多，就不截全了）</p>
+<p>执行完毕之后可以看到数据库已经生成【本地通过navicat看】</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器18.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 class="h_top">4】将创建的项目制作成镜像并且弄成容器运行</h2>
+<p><strong><span style="font-size: 14pt;">1创建dockerfile文件并且发布项目</span></strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;由于使用的是vs编辑器。建议在vs上生成dockerfile</p>
+<p>右键项目，添加docker支持。然后弹出框中选择linux。将dockerfile文件修改好之后修改属性为 【始终支持】 然后发布项目</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器19.png" alt="" /><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器20.png" alt="" /><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器21.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;dockerfile代码</p>
+<div class="cnblogs_code">
+<pre><code>#See https:<span style="color: #008000;">//</span><span style="color: #008000;">aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.</span>
+<span style="color: #000000;">
+#FROM mcr.microsoft.com</span>/dotnet/core/aspnet:<span style="color: #800080;">2.2</span>-stretch-slim AS <span style="color: #0000ff;">base</span><span style="color: #000000;">
+#WORKDIR </span>/<span style="color: #000000;">app
+#EXPOSE </span><span style="color: #800080;">80</span><span style="color: #000000;">
+#EXPOSE </span><span style="color: #800080;">443</span><span style="color: #000000;">
+#
+#FROM mcr.microsoft.com</span>/dotnet/core/sdk:<span style="color: #800080;">2.2</span>-<span style="color: #000000;">stretch AS build
+#WORKDIR </span>/<span style="color: #000000;">src
+#COPY [</span><span style="color: #800000;">"</span><span style="color: #800000;">dockerTs/dockerTs.csproj</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">dockerTs/</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+#RUN dotnet restore </span><span style="color: #800000;">"</span><span style="color: #800000;">dockerTs/dockerTs.csproj</span><span style="color: #800000;">"</span><span style="color: #000000;">
+#COPY . .
+#WORKDIR </span><span style="color: #800000;">"</span><span style="color: #800000;">/src/dockerTs</span><span style="color: #800000;">"</span><span style="color: #000000;">
+#RUN dotnet build </span><span style="color: #800000;">"</span><span style="color: #800000;">dockerTs.csproj</span><span style="color: #800000;">"</span> -c Release -o /app/<span style="color: #000000;">build
+#
+#FROM build AS publish
+#RUN dotnet publish </span><span style="color: #800000;">"</span><span style="color: #800000;">dockerTs.csproj</span><span style="color: #800000;">"</span> -c Release -o /app/<span style="color: #000000;">publish
+#
+#FROM </span><span style="color: #0000ff;">base</span><span style="color: #000000;"> AS final
+#WORKDIR </span>/<span style="color: #000000;">app
+#COPY </span>--<span style="color: #0000ff;">from</span>=publish /app/<span style="color: #000000;">publish .
+#ENTRYPOINT [</span><span style="color: #800000;">"</span><span style="color: #800000;">dotnet</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">dockerTs.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+
+
+FROM mcr.microsoft.com</span>/dotnet/core/aspnet:<span style="color: #800080;">2.2</span>-stretch-slim AS <span style="color: #0000ff;">base</span><span style="color: #000000;">
+WORKDIR </span>/<span style="color: #000000;">app 
+COPY . .
+EXPOSE </span><span style="color: #800080;">80</span><span style="color: #000000;">
+EXPOSE </span><span style="color: #800080;">443</span><span style="color: #000000;"> 
+ENTRYPOINT [</span><span style="color: #800000;">"</span><span style="color: #800000;">dotnet</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">WebApplication1.dll</span><span style="color: #800000;">"</span>]</pre>
+</div>
+<p>项目发布注意选择 【文件夹】格式&nbsp; &nbsp; =》注意 发布的时候&nbsp;&nbsp;appsettings.json中连接数据库的&nbsp;server=localhost&nbsp; 改成&nbsp;server=mysql &nbsp;因为mysql是项目发布到docker中使用</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器22.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">&nbsp;2将项目文件制作成镜像</span></strong></p>
+<p>&nbsp;打开windowsPowerShell。cd到项目的发布文件地址</p>
+<p>然后创建镜像&nbsp; 运行下列代码</p>
+<div class="cnblogs_code">
+<pre><code>docker build -t dockersample .</pre>
+</div>
+<p>【docker&nbsp; build -t 镜像名称:版本号&nbsp; &nbsp;.&nbsp; &nbsp; 】&nbsp; 注意.不要漏掉了</p>
+<p>【docker&nbsp; build -t 镜像名称&nbsp; &nbsp;.&nbsp; &nbsp; 】&nbsp; 注意.不要漏掉了</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器23.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">3使用network方式创建容器连接</span></strong></p>
+<p>在docker的容器中有link和network两种方式连接。考虑到link被docker放弃。这里就使用network</p>
+<p>3.1首先创建一个network</p>
+<div class="cnblogs_code">
+<pre><code>docker network create -<span style="color: #000000;">d bridge Mybridge
+# docker network create </span>-d bridge   名称</pre>
+</div>
+<p>&nbsp;</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器24.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>3.2 network创建完毕之后。就来创建容器(发布的.netCore项目)</p>
+<div class="cnblogs_code">
+<pre><code>docker run -d -p <span style="color: #800080;">8002</span>:<span style="color: #800080;">80</span>   --net Mybridge  --<span style="color: #000000;">name  dockersampleRQ dockersample
+docker run </span>-d -p 访问端口:程序设置带你看   --net network名称  --name  创建的容器名称 镜像名称</pre>
+</div>
+<p>3.3network桥接mysql容器</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">docker network connect Mybridge  mysql      
+docker network connect   network Bridge方式创建的名称   要连接的数据库容器  </span></pre>
+</div>
+<p>3.4修改mysql名称</p>
+<p>因为之前发布的.netCore项目中appsettings.josn中连接的名称是 mysqlTS而mysql容器的名称是mysql所以，想让程序运行。需要修改一下mysql容器名称</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">docker rename mysql mysqlTS   
+
+docker rename mysql容器名称    修改后名称</span></pre>
+</div>
+<p>访问8002端口就可以看见正常方位</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器25.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>当然不能每次都去修改容器名称</p>
+<p>这里提供另外种方法就是通过vim去修改appsettings.josn文件</p>
+<p><span style="font-size: 14pt;"><strong>4通过vim修改appsettings.josn文件</strong></span></p>
+<p>4.1首先进入需要修改的容器</p>
+<div class="cnblogs_code">
+<pre><code>docker exec -<span style="color: #000000;">it  dockersampleRQ bash  
+docker exec </span>-it  容器名称 bash  </pre>
+</div>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器26.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;4.2安装vim</p>
+<p>依次输入</p>
+<div class="cnblogs_code">
+<pre><code>apt-<span style="color: #0000ff;">get</span><span style="color: #000000;"> update      
+回车
+ apt</span>-<span style="color: #0000ff;">get</span> install -<span style="color: #000000;">y vim
+回车</span></pre>
+</div>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器27.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;vim安装完毕之后，进入appsettings.josn文件</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">vim  appsettings.json
+vim  文件名.后缀</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器28.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>回车之后看见页面如图</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器29.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>进入编辑状态需要进行以下操作</p>
+<div class="cnblogs_code">
+<pre><code>先按ESC  然后按 i</pre>
+</div>
+<p>就可以进行编辑了</p>
+<p>编辑完毕之后</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">先按ESC   
+冒号键&nbsp;按&nbsp;w&nbsp;&nbsp;按&nbsp;q&nbsp;&nbsp;按&nbsp;enter&nbsp;键
+
+
+esc&nbsp;&nbsp;&nbsp;:wq</span></pre>
+</div>
+<p>保存完毕之后，看看文件修改效果</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器30.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;然后把项目的容器重启</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器31.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;打开网页查看效果</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器32.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 class="h_top">5】拓展 使用docker-compose.yml （2019-11-22更新）</h2>
+<p>上面demo中使用的就两个容器，需要一个个部署生成，然后使用network桥接。比较麻烦。所以考虑使用docker-compose.yml取代上面手写一个个生成容器的办法。</p>
+<p>【docker-compose.yml建议使用vscode编辑器编写。】</p>
+<p><strong><span style="font-size: 14pt;">1准备阶段</span></strong></p>
+<p>首先再docker准备需要的mysql镜像。我这里使用的是mysql5.7</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器33.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;创建文件docker-compose.yml&nbsp; 【被注释的部分是磁盘映射，就是本机物理磁盘映射到docker上的位置。但是本机再设置docker&nbsp; 的shared drives时候一直失败，所以先跳过。正式发布文件就删除这个】</p>
+<div class="cnblogs_code">
+<pre><code>version: <span style="color: #800000;">'</span><span style="color: #800000;">3</span><span style="color: #800000;">'</span><span style="color: #000000;">
+
+services:
+ db:
+  image: mysql:</span><span style="color: #800080;">5.7</span><span style="color: #000000;">
+  container_name: mysqlYml
+  command: mysqld </span>--character-<span style="color: #0000ff;">set</span>-server=utf8  --collation-server=<span style="color: #000000;">utf8_general_ci
+  restart: always
+  ports:
+   </span>- <span style="color: #800000;">'</span><span style="color: #800000;">3306:3306</span><span style="color: #800000;">'</span><span style="color: #000000;">
+  environment:
+    MYSQL_USER: qy       
+    MYSQL_PASSWORD: Ee123  
+    MYSQL_ROOT_PASSWORD: Ee123<br /></span></pre>
+<p><br />  # volumes:<br />  #   -/K/docker/beta/mysql-init:/docker-entrypoint-initdb.d</p>
+<pre><code><span style="color: #000000;">
+ web:
+  build: .
+  container_name: </span><span style="color: #800000;">'</span><span style="color: #800000;">aspnetcore</span><span style="color: #800000;">'</span><span style="color: #000000;">
+  ports:
+    </span>- <span style="color: #800000;">"</span><span style="color: #800000;">8003:80</span><span style="color: #800000;">"</span><span style="color: #000000;">
+  depends_on:
+    </span>- db</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器34.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;同时注意appsettings.josn的连接名也需要修改</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器35.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt;"><strong>&nbsp;2开始创建容器</strong></span></p>
+<p>首先cd到文件路径下</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器36.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;2执行</p>
+<div class="cnblogs_code">
+<pre><code>#1创建<br />docker-compose build</pre>
+<p>&nbsp; #2启动</p>
+<p>&nbsp; docker-compose up</p>
+</div>
+<p>&nbsp;<img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器37.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;当所有执行完毕之后。查看镜像和容器</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器38.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;这个时候访问8003依旧无法访问。原因是项目用的是codefirs。还么有进行数据迁移。而mysql也没有数据库</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器39.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器40.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>3迁移数据库</p>
+<p>&nbsp;<img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器41.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>通过navicat查看</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器42.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;最后刷新网页</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器43.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 class="h_top">6】.netCore3.1codefirst 跟新</h2>
+<p>.netCore 3.1</p>
+<p>mysql 8.0</p>
+<p>需要安装以下插件</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">Pomelo.EntityFrameworkCore.MySql
+Microsoft.EntityFrameworkCore.Tools</span></pre>
+</div>
+<p>同时注意修改appsettings.json中的数据库连接方式</p>
+<div class="cnblogs_code">
+<pre><code>  <span style="color: #800000;">"</span><span style="color: #800000;">ConnectionStrings</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">MysqlUser</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">server=localhost,3306;database=core3;userid=root;password=Ee123</span><span style="color: #800000;">"</span><span style="color: #000000;">
+  }</span></pre>
+</div>
+<p>最后注意Startup.cs&nbsp; =》ConfigureServices</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #0000ff;">var</span> connection = Configuration.GetConnectionString(<span style="color: #800000;">"</span><span style="color: #800000;">MysqlUser</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+            services.AddDbContext</span>&lt;MyDbContext&gt;(options =&gt; options.UseMySql(connection));</pre>
+</div>
+<p>&nbsp;</p>
+<p><img src="./images/docker  创建.netcore2.2 api容器  以及连接mysql容器44.png" alt="" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

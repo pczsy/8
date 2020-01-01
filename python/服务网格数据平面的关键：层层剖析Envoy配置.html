@@ -1,0 +1,377 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修服务网格数据平面的关键：层层剖析Envoy配置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>服务网格数据平面的关键：层层剖析Envoy配置</center></div><div class='banquan'>原文出处:本文由博客园博主RancherLabs提供。<br/>
+原文连接:https://www.cnblogs.com/rancherlabs/p/12058642.html</div><br>
+    <p>Envoy是一种高性能C++分布式代理，专为单个服务和应用程序设计。作为Service Mesh中的重要组件，充分理解其配置就显得尤为重要。本文列出了使用Envoy而不用其他代理的原因。并给出了Envoy及其服务的配置，然后对其进行详细解读，帮助读者理解其配置，从而掌握Envoy。</p>
+<p><img src="./images/服务网格数据平面的关键：层层剖析Envoy配置0.png" /></p>
+<hr />
+<p>服务网格是微服务设置中的通信层，也就是说往返于每个服务的所有请求都通过网格。服务网格在微服务设置中也成为基础架构层，它能够让服务之间的通信变得安全可靠。关于Service Mesh的基础内容，我们已经在<a href="http://mp.weixin.qq.com/s?__biz=MzIyMTUwMDMyOQ==&amp;mid=2247492135&amp;idx=1&amp;sn=4694fb4e9d4f2b8186752d0259d0a168&amp;chksm=e83964e1df4eedf706bf0d4509a1d37f2a4ed35ad619734089a4f5c80b30e885742d7c3d7f5b&amp;scene=21#wechat_redirect">这篇文章</a>中详细介绍过。</p>
+<p>每一个服务都有自己的代理服务（sidecars），然后所有代理服务一起形成服务网格。Sidecars处理服务之间的通信，也就是说所有的流量都会通过网格并且该透明层可以控制服务之间如何交互。</p>
+<p>服务网格通过由API控制的组件提供可观察性、服务发现以及负载均衡等。</p>
+<p>实际上，如果一个服务要调用另一个服务，它不会直接调用目标服务。而是先将请求路由到本地代理，然后代理再将该请求路由到目标服务。这一过程意味着服务实例不会和其他服务直接接触，仅与本地代理进行通信。</p>
+<p><img src="./images/服务网格数据平面的关键：层层剖析Envoy配置1.png" /></p>
+<p>根据ThoughtWorks Technology Radar（这是一份半年度的文档，用于评估现有技术和新生技术的风险和收益）指出，“服务网格提供一致的发现、安全性、跟踪（tracing）、监控以及故障处理，而无需共享资源（如API网关或ESB）。一个十分典型的用例是轻量的反向代理进程会与每个服务进程或单独的容器一起部署。”</p>
+<p>当谈到服务网格时，不可避免谈到的是“sidecar”——可用于每个服务实例的代理。每个sidecar负责管理一个服务的一个实例。我们将在本文中进一步详细讨论sidecar。</p>
+<h1 id="服务网格可以交付什么">服务网格可以交付什么？</h1>
+<p><img src="./images/服务网格数据平面的关键：层层剖析Envoy配置2.png" /></p>
+<p>当前，越来越多的企业和组织开始转向微服务架构。这样的企业需要服务网格所提供的上述功能。解耦库的使用或自定义代码的方法无疑是赢家。</p>
+<h1 id="为什么使用envoy">为什么使用Envoy？</h1>
+<p>Envoy不是构建一个服务网格的唯一选择，市面上还有其他的代理如Nginx、Traefik等。我之所以选择Envoy，这个用C++编写的高性能代理，是因为我更喜欢Envoy的轻量、强大的路由，及其提供的可观察性和可扩展性。</p>
+<p>让我们首先构建1个包含3个服务的服务网格设置，这是我们正在尝试构建的架构：</p>
+<p><img src="./images/服务网格数据平面的关键：层层剖析Envoy配置3.png" /></p>
+<h1 id="front-envoy">Front Envoy</h1>
+<p>在我们的设置中Front Envoy是一个边缘代理，我们通常在其中执行TLS终止、身份验证、生成请求头等操作。</p>
+<p>我们来看看Front Envoy配置：</p>
+<pre><code><code>---
+admin:
+  access_log_path: &quot;/tmp/admin_access.log&quot;
+  address: 
+    socket_address: 
+      address: &quot;127.0.0.1&quot;
+      port_value: 9901
+static_resources: 
+  listeners:
+    - 
+      name: &quot;http_listener&quot;
+      address: 
+        socket_address: 
+          address: &quot;0.0.0.0&quot;
+          port_value: 80
+      filter_chains:
+          filters: 
+            - 
+              name: &quot;envoy.http_connection_manager&quot;
+              config:
+                stat_prefix: &quot;ingress&quot;
+                route_config: 
+                  name: &quot;local_route&quot;
+                  virtual_hosts: 
+                    - 
+                      name: &quot;http-route&quot;
+                      domains: 
+                        - &quot;*&quot;
+                      routes: 
+                        - 
+                          match: 
+                            prefix: &quot;/&quot;
+                          route:
+                            cluster: &quot;service_a&quot;
+                http_filters:
+                  - 
+                    name: &quot;envoy.router&quot;
+  clusters:
+    - 
+      name: &quot;service_a&quot;
+      connect_timeout: &quot;0.25s&quot;
+      type: &quot;strict_dns&quot;
+      lb_policy: &quot;ROUND_ROBIN&quot;
+      hosts:
+        - 
+          socket_address: 
+            address: &quot;service_a_envoy&quot;
+            port_value: 8786</code></pre>
+<p>Envoy配置主要由以下部分组成：</p>
+<p>1、 监听器（Listener）</p>
+<p>2、 路由</p>
+<p>3、 集群</p>
+<p>4、 端点</p>
+<h1 id="监听器">监听器</h1>
+<p>一个或多个监听器可以在单个Envoy实例中运行。在以上9到36行的代码提到了当前监听器的地址和端口。每个监听器也可以有一个或多个网络过滤器。这些过滤器可以启用路由、tls终止、流量转移等活动。除了<code>envoy.http_connection_manager</code>使用的是内置过滤器之外，Envoy还有其他几个过滤器。</p>
+<h1 id="路-由">路 由</h1>
+<p>22行到34行代码为过滤器配置了路由规范，同时它也指定了我们所接受请求的域以及路由匹配器。路由匹配器可以根据配置的规则匹配每个请求，并将请求转发到适当的集群。</p>
+<h1 id="集-群">集 群</h1>
+<p>集群是Envoy将流量路由到的上游服务规范。41行到48行代码定义了“Service A”，这是Front Envoy要通信的唯一上游。“connect_timeout”是在返回503之前建立与上游服务的连接的时间限制。</p>
+<p>通常情况下，有多个“Serivce A”实例，并且Envoy支持多种负载均衡算法来路由流量。在本例中，我们使用了一个简单的循环算法。</p>
+<h1 id="端-点">端 点</h1>
+<p>“host”指定我们要将流量路由到的Service A的实例。在本例中，我们只有1个实例。</p>
+<p>第47行代码没有直接与Service A进行通信，而是与Service A的Envoy代理实例进行通信，该代理将路由到本地Service A实例。</p>
+<p>我们还可以利用返回Service A的所有实例的服务名称（如Kubernetes中的headless服务），来执行客户端负载均衡。Envoy缓存Service A的所有host，并每5秒刷新一次host列表。</p>
+<p>此外，Envoy还支持主动和被动的健康检查。因此，如果我们要进行主动健康检查，我们需要在集群配置部分对其进行配置。</p>
+<h1 id="其-他">其 他</h1>
+<p>第2行到第7行配置了管理服务器，它能够帮助查看配置、更改日志级别、查看统计信息等。</p>
+<p>第8行的“static_resources”可以手动加载所有配置。我们将在下文讨论如何动态地执行此操作。</p>
+<p>虽然这里描述了许多其他配置，但是我们的目标不是全面介绍所有配置，而是以最少的配置开始。</p>
+<h1 id="service-a">Service A</h1>
+<p>这是Service A的Envoy配置：</p>
+<pre><code><code>
+admin:
+  access_log_path: &quot;/tmp/admin_access.log&quot;
+  address: 
+    socket_address: 
+      address: &quot;127.0.0.1&quot;
+      port_value: 9901
+static_resources:
+  listeners:
+
+    -
+      name: &quot;service-a-svc-http-listener&quot;
+      address:
+        socket_address:
+          address: &quot;0.0.0.0&quot;
+          port_value: 8786
+      filter_chains:
+        -
+          filters:
+            -
+              name: &quot;envoy.http_connection_manager&quot;
+              config:
+                stat_prefix: &quot;ingress&quot;
+                codec_type: &quot;AUTO&quot;
+                route_config:
+                  name: &quot;service-a-svc-http-route&quot;
+                  virtual_hosts:
+                    -
+                      name: &quot;service-a-svc-http-route&quot;
+                      domains:
+                        - &quot;*&quot;
+                      routes:
+                        -
+                          match:
+                            prefix: &quot;/&quot;
+                          route:
+                            cluster: &quot;service_a&quot;
+                http_filters:
+                  -
+                    name: &quot;envoy.router&quot;
+    -
+      name: &quot;service-b-svc-http-listener&quot;
+      address:
+        socket_address:
+          address: &quot;0.0.0.0&quot;
+          port_value: 8788
+      filter_chains:
+        -
+          filters:
+            -
+              name: &quot;envoy.http_connection_manager&quot;
+              config:
+                stat_prefix: &quot;egress&quot;
+                codec_type: &quot;AUTO&quot;
+                route_config:
+                  name: &quot;service-b-svc-http-route&quot;
+                  virtual_hosts:
+                    -
+                      name: &quot;service-b-svc-http-route&quot;
+                      domains:
+                        - &quot;*&quot;
+                      routes:
+                        -
+                          match:
+                            prefix: &quot;/&quot;
+                          route:
+                            cluster: &quot;service_b&quot;
+                http_filters:
+                  -
+                    name: &quot;envoy.router&quot;
+
+    -
+      name: &quot;service-c-svc-http-listener&quot;
+      address:
+        socket_address:
+          address: &quot;0.0.0.0&quot;
+          port_value: 8791
+      filter_chains:
+        -
+          filters:
+            -
+              name: &quot;envoy.http_connection_manager&quot;
+              config:
+                stat_prefix: &quot;egress&quot;
+                codec_type: &quot;AUTO&quot;
+                route_config:
+                  name: &quot;service-b-svc-http-route&quot;
+                  virtual_hosts:
+                    -
+                      name: &quot;service-b-svc-http-route&quot;
+                      domains:
+                        - &quot;*&quot;
+                      routes:
+                        -
+                          match:
+                            prefix: &quot;/&quot;
+                          route:
+                            cluster: &quot;service_c&quot;
+                http_filters:
+                  -
+                    name: &quot;envoy.router&quot;                                
+  clusters:
+      -
+        name: &quot;service_a&quot;
+        connect_timeout: &quot;0.25s&quot;
+        type: &quot;strict_dns&quot;
+        lb_policy: &quot;ROUND_ROBIN&quot;
+        hosts:
+          -
+            socket_address:
+              address: &quot;service_a&quot;
+              port_value: 8081  
+      -
+        name: &quot;service_b&quot;
+        connect_timeout: &quot;0.25s&quot;
+        type: &quot;strict_dns&quot;
+        lb_policy: &quot;ROUND_ROBIN&quot;
+        hosts:
+          -
+            socket_address:
+              address: &quot;service_b_envoy&quot;
+              port_value: 8789
+
+      -
+        name: &quot;service_c&quot;
+        connect_timeout: &quot;0.25s&quot;
+        type: &quot;strict_dns&quot;
+        lb_policy: &quot;ROUND_ROBIN&quot;
+        hosts:
+          -
+            socket_address:
+              address: &quot;service_c_envoy&quot;
+              port_value: 8790</code></pre>
+<p>11行到39行定义了一个监听器来路由流量到实际的Service A实例。在103行到111行中找到<code>service_a</code>实例的相应集群定义。</p>
+<p>Service A与Service B和Service C进行通信，它指向了两个以上的监听器以及集群。在本例中，我们为每个上游（localhost、Service B和Service C）分离了监听器。另一种方法是使用单个监听器，并根据URL或请求头路由到任意上游。</p>
+<h1 id="service-b-和-service-c">Service B 和 Service C</h1>
+<p>Service B和Service C处于叶级，除了本地主机服务实例外，不与任何其他上游通信。因此其配置十分简单。</p>
+<p>而让事情变得复杂的是上述配置中的单个监听器和单个集群。</p>
+<p>配置完成后，我们将此设置部署到Kubernetes或使用docker-compose对其进行测试。你可以运行<code>docker-compose build</code>和<code>docker-compose up</code>并点击localhost:8080，以查看请求是否成功通过所有服务和Envoy代理。我们可以使用日志对其进行验证。</p>
+<h1 id="envoy-xds">Envoy xDS</h1>
+<p>我们为每个sidecar提供了配置，并且根据不同的服务，服务之间的配置也有所不同。虽然我们可以手动制作和管理sidecar配置，但最初至少要提供2或3个服务，并且随着服务数量的增加，配置会变得十分复杂。此外，每次sidecar配置更改时，你都必须重新启动Envoy实例，以使更改生效。</p>
+<p>正如上文所讨论的，我们可以通过使用API server来避免手动配置并加载所有组件：集群（CDS）、端点（EDS）、监听器（LDS）以及路由（RDS）。所以每个sidecar将与API server通信并接收配置。当新配置更新到API server时，它将自动反映在Envoy实例中，从而避免了重新启动。</p>
+<p>你可以在以下链接中了解关于动态配置的信息：</p>
+<p><a href="https://www.envoyproxy.io/docs/envoy/latest/configuration/overview/v2_overview#dynamic" class="uri">https://www.envoyproxy.io/docs/envoy/latest/configuration/overview/v2_overview#dynamic</a></p>
+<p>这有一个简单的xDS server：</p>
+<p><a href="https://github.com/tak2siva/Envoy-Pilot" class="uri">https://github.com/tak2siva/Envoy-Pilot</a></p>
+<h1 id="如何在kubernetes中实现">如何在Kubernetes中实现</h1>
+<p>本部分将讨论如果我们要在Kubernetes中实现所讨论的设置该怎么办。以下是架构图：</p>
+<p>因此，将需要更改：</p>
+<ul>
+<li><p>Pod</p></li>
+<li><p>服务</p></li>
+</ul>
+<p><strong>部署Pod</strong></p>
+<p>尽管Pod规范中仅定义了一个容器——按照定义，一个Pod可以容纳一个或多个容器。为了对每个服务实例运行sidecar代理，我们将Envoy容器添加到每个Pod中。为了与外界通信，服务容器将通过localhost与Envoy容器进行对话。</p>
+<p>部署文件如下所示：</p>
+<pre><code><code>
+admin:
+  access_log_path: &quot;/tmp/admin_access.log&quot;
+  address: 
+    socket_address: 
+      address: &quot;127.0.0.1&quot;
+      port_value: 9901
+static_resources:
+  listeners:
+
+    -
+      name: &quot;service-b-svc-http-listener&quot;
+      address:
+        socket_address:
+          address: &quot;0.0.0.0&quot;
+          port_value: 8789
+      filter_chains:
+        -
+          filters:
+            -
+              name: &quot;envoy.http_connection_manager&quot;
+              config:
+                stat_prefix: &quot;ingress&quot;
+                codec_type: &quot;AUTO&quot;
+                route_config:
+                  name: &quot;service-b-svc-http-route&quot;
+                  virtual_hosts:
+                    -
+                      name: &quot;service-b-svc-http-route&quot;
+                      domains:
+                        - &quot;*&quot;
+                      routes:
+                        -
+                          match:
+                            prefix: &quot;/&quot;
+                          route:
+                            cluster: &quot;service_b&quot;
+                http_filters:
+                  -
+                    name: &quot;envoy.router&quot;
+    
+  clusters:
+      -
+        name: &quot;service_b&quot;
+        connect_timeout: &quot;0.25s&quot;
+        type: &quot;strict_dns&quot;
+        lb_policy: &quot;ROUND_ROBIN&quot;
+        hosts:
+          -
+            socket_address:
+              address: &quot;service_b&quot;
+              port_value: 8082</code></pre>
+<p>在容器部分添加了Envoy sidecar，并且在33到39行的configmap中我们挂载了我们的Envoy配置文件。</p>
+<h1 id="更改服务">更改服务</h1>
+<p>Kubernetes服务负责维护Pod端点列表，该列表可以路由流量。尽管kube-proxy通常处理Pod端点之间的负载均衡，但在本例中，我们将执行客户端负载均衡，并且我们不希望kube-proxy进行负载均衡。此外，我们想要提取Pod端点列表并对其进行负载均衡。为此，我们需要使用“headless服务“来返回端点列表。</p>
+<p>如下所示：</p>
+<pre><code><code>
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: servicea
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: servicea
+    spec:
+      containers:
+      - name: servicea
+        image: dnivra26/servicea:0.6
+        ports:
+        - containerPort: 8081
+          name: svc-port
+          protocol: TCP
+      - name: envoy
+        image: envoyproxy/envoy:latest
+        ports:
+          - containerPort: 9901
+            protocol: TCP
+            name: envoy-admin
+          - containerPort: 8786
+            protocol: TCP
+            name: envoy-web
+        volumeMounts:
+          - name: envoy-config-volume
+            mountPath: /etc/envoy-config/
+        command: [&quot;/usr/local/bin/envoy&quot;]
+        args: [&quot;-c&quot;, &quot;/etc/envoy-config/config.yaml&quot;, &quot;--v2-config-only&quot;, &quot;-l&quot;, &quot;info&quot;,&quot;--service-cluster&quot;,&quot;servicea&quot;,&quot;--service-node&quot;,&quot;servicea&quot;, &quot;--log-format&quot;, &quot;[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v&quot;]
+      volumes:
+        - name: envoy-config-volume
+          configMap:
+            name: sidecar-config
+            items:
+              - key: envoy-config
+                path: config.yaml</code></pre>
+<p>有两件事需要注意。一是第6行使服务变成headless，二是我们不是将Kubernetes服务端口映射到应用程序的服务端口，而是映射到Envoy监听器端口。这意味着，流量首先通向Envoy。即便如此，Kubernetes也可以完美运行。</p>
+<p>在本文中，我们看到了如何使用Envoy代理构建服务网格。其中，我们设置了所有通信都将通过网格。因此，现在网格不仅有大量有关流量的数据，而且还具有控制权。</p>
+<p>以下链接中你可以获取我们所讨论的配置和代码：</p>
+<p><a href="https://github.com/dnivra26/envoy_servicemesh" class="uri">https://github.com/dnivra26/envoy_servicemesh</a></p>
+<blockquote>
+<p>原文链接：</p>
+<p><a href="https://www.thoughtworks.com/insights/blog/building-service-mesh-envoy-0" class="uri">https://www.thoughtworks.com/insights/blog/building-service-mesh-envoy-0</a></p>
+</blockquote>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

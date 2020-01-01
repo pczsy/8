@@ -1,0 +1,95 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修为什么需要动态SQL' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>为什么需要动态SQL</center></div><div class='banquan'>原文出处:本文由博客园博主.NET骚操作提供。<br/>
+原文连接:https://www.cnblogs.com/sdflysha/p/20191221-why-dynamic-sql.html</div><br>
+    <h1 id="为什么需要动态sql">为什么需要动态SQL</h1>
+<p>在使用<code>EF</code>或者写<code>SQL</code>语句时，查询条件往往是这样一种非常常见的逻辑：如果客户填了查询信息，则查询该条件；如果客户没填，则返回所有数据。</p>
+<p>我常常看到很多人解决这类问题时使用了错误的静态<code>SQL</code>的解决办法，使得数据库无法利用索引，导致性能急剧下降。</p>
+<h2 id="介绍数据">介绍数据</h2>
+<p>这次我将使用我的某客户的<strong>真实数据</strong>来演示（已确认不涉及信息安全😎），有一个订单表<code>FoodOrder</code>，结构如下：<br />
+<img src="./images/为什么需要动态SQL0.png" /></p>
+<p>我在<code>Id</code>、<code>FoodMenuId</code>、<code>OrderUserId</code>上创建了非聚集索引，在<code>OrderTime</code>上创建了聚集索引。该表有<code>51652</code>条数据。</p>
+<h2 id="静态sql">静态SQL</h2>
+<p>在这种逻辑中如果想用一条<code>SQL</code>语句搞定所有查询，那么代码可能长这个样子：</p>
+<pre><code><code>set statistics io on 
+
+declare @userId int = 506
+declare @menuId int = 3176
+
+select * from FoodOrder where 
+    (@userId is null or OrderUserId = @userId) AND 
+    (@menuId is null or FoodMenuId = @menuId)</code></pre>
+<p>这种写法虽然方便，但基于其<code>SQL</code>过于“复杂”，甚至还使用了<code>IS NULL</code>和<code>OR</code>，导致语句完全无法使用索引，运行<code>SET STATISTICS IO ON</code>后，显示信息如下：</p>
+<pre><code><code>(3 行受影响)
+Table &#39;FoodOrder&#39;. Scan count 1, logical reads 337, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.</code></pre>
+<p>显示其进行了一次表扫描，并进行了<code>337</code>次逻辑读，输出数据只有<code>3</code>行。</p>
+<p>然后看看实际的执行计划：<br />
+<img src="./images/为什么需要动态SQL1.png" /></p>
+<p>如图，显示了一个极其简单的执行计划，确实进行了一次表扫描，读取了<code>51652</code>行数据，并且完全没有走索引。</p>
+<h2 id="动态sql">动态SQL</h2>
+<p>而动态<code>SQL</code>，就是将查询条件中的判断语句，提前在代码中判断完成，而放到数据库（如<code>SQL Server</code>）中执行时就是简单的、可利用索引的<code>SQL</code>语句了，在这个例子中，判断<code>@userId</code>和<code>@menuId</code>是否为<code>null</code>的代码，可能会长这个样子（如果是<code>Dapper</code>）：</p>
+<pre class="csharp"><code>var sql = new StringBuilder();
+sql.Append(&quot;SELECT * FROM FoodOrder WHERE 1=1 &quot;);
+
+if (userId != null) 
+{
+    sql.AppendLine(&quot;AND OrderUserId = @userId&quot;);
+}
+
+if (menuId != null)
+{
+    sql.AppendLine(&quot;AND FoodMenuId = @menuId&quot;);
+}
+// ...</code></pre>
+<p>如果是<code>EF</code>，代码可能是这个样子：</p>
+<pre class="csharp"><code>IQueryable&lt;FoodOrder&gt; query = db.FoodOrders;
+
+if (userId != null)
+{
+    query = query.Where(x =&gt; x.OrderUserId == userId);
+}
+
+if (menuId != null)
+{
+    query = query.Where(x =&gt; x.FoodMenuId = menuId);
+}
+// ...</code></pre>
+<p>这样一来，最终在数据中执行的<code>SQL</code>语句就比较简单了，如果客户确实传了<code>userId</code>和<code>menuId</code>两个参数，<code>SQL</code>就应该长这个样子：</p>
+<pre><code><code>select * from FoodOrder where 
+    OrderUserId = @userId AND 
+    FoodMenuId = @menuId</code></pre>
+<p>运行的<code>set statistics io on</code>结果如下：</p>
+<pre><code><code>(3 行受影响)
+Table &#39;FoodOrder&#39;. Scan count 2, logical reads 11, physical reads 0, page server reads 0, read-ahead reads 0, page server read-ahead reads 0, lob logical reads 0, lob physical reads 0, lob page server reads 0, lob read-ahead reads 0, lob page server read-ahead reads 0.</code></pre>
+<p>显然仅进行了<code>11</code>次逻辑读（相比静态<code>SQL</code>的<code>337</code>次），然后执行计划如下：<br />
+<img src="./images/为什么需要动态SQL2.png" /></p>
+<p>显示进行了两次<code>Index Seek</code>，显然是走了索引，显示查询开销只占<code>5%</code>，而之前的开销占<code>95%</code>，性能区别高达<code>20</code>倍以上。</p>
+<h1 id="总结">总结</h1>
+<p>据说上次博客园出现性能问题，就是因为<code>EF Core 3.0</code>有这个<code>bug</code>，会生成多余的<code>IS NOT NULL</code>（链接：<a href="https://www.cnblogs.com/dudu/p/11512171.html">EF Core 3.0 Preview 9 的2个小坑</a>），这个<code>bug</code>已经确认最新的<code>EF Core 3.1</code>中解决。</p>
+<p>就像文中所说的动态<code>SQL</code>，我认为理解数据库、对写出高性能的应用程序至关重要——这显而易见，但其实又很容易忽略。忽略的原因不仅是因为新手，很多老手有时因为“互联网”思维和“设计模式”等原因，也会有意忽略数据库的理解。</p>
+<p>现在很多“互联网”应用思维认为，数据库就是一个仓库，它应该只负责其最“擅长”的增删改查功能即可，其它的应该都交由缓存来解决。有句话说得好，就是<em>命名和缓存失效，是编程界最困难的两个问题</em>。缓存有缓存的问题，不好好理解数据库，就必须花大量时间好好理解缓存。设计一个正确的缓存往往又比花大量时间设计数据库要复杂得多。</p>
+<p>另外现在流行的“领域驱动设计”（<code>DDD</code>）也主张应用应该先从业务逻辑开始抽象，数据库和性能往往成为他们首先忽略的对象，最后可能也得加个“缓存”来解决，导致原来简单的系统急剧膨胀，复杂不堪。这种过度设计、人云亦云的做法值得深思。</p>
+<p>喜欢的朋友 请关注我的微信公众号：【DotNet骚操作】</p>
+<p><img src="./images/为什么需要动态SQL3.png" alt="DotNet骚操作" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

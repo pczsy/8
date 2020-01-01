@@ -1,0 +1,75 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python 使用 PyMysql、DBUtils 创建连接池，提升性能' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python 使用 PyMysql、DBUtils 创建连接池，提升性能</center></div><div class='banquan'>原文出处:本文由博客园博主feiquan提供。<br/>
+原文连接:https://www.cnblogs.com/feiquan/p/11350374.html</div><br>
+    <div class="article-header-box">
+<div class="article-header">
+<div class="article-title-box">
+<h1 class="title-article"><span style="font-size: 18px;">转自：<a href="https://blog.csdn.net/weixin_41287692/article/details/83413775">https://blog.csdn.net/weixin_41287692/article/details/83413775</a></span></h1>
+</div>
+</div>
+</div>
+<div id="article_content" class="article_content clearfix">
+<div id="content_views" class="markdown_views prism-atom-one-dark">
+<p>Python 编程中可以使用 PyMysql 进行数据库的连接及诸如查询/插入/更新等操作，但是每次连接 MySQL 数据库请求时，都是独立的去请求访问，相当浪费资源，而且访问数量达到一定数量时，对 mysql 的性能会产生较大的影响。因此，实际使用中，通常会使用数据库的连接池技术，来访问数据库达到资源复用的目的。<a style="font-size: 1.5em; background-color: #ffffff;" name="t1"></a></p>
+<h2><span style="font-size: 18px;">解决方案：DBUtils</span></h2>
+<p>DBUtils 是一套 Python 数据库连接池包，并允许对非线程安全的数据库接口进行线程安全包装。DBUtils 来自 Webware for Python 。</p>
+<p>原理：<br /><img src="./images/Python 使用 PyMysql、DBUtils 创建连接池，提升性能0.png" alt="在这里插入图片描述" /></p>
+<ol>
+<li>在程序创建连接的时候，可以从一个空闲的连接中获取，不需要重新初始化连接，提升获取连接的速度</li>
+<li>关闭连接的时候，把连接放回连接池，而不是真正的关闭，所以可以减少频繁地打开和关闭连接<a style="font-size: 1.5em; background-color: #ffffff;" name="t2"></a></li>
+</ol>
+<h2><span style="font-size: 18px;">例子</span></h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> pymysql
+</span><span style="color: #0000ff;">from</span> DBUtils.PooledDB <span style="color: #0000ff;">import</span><span style="color: #000000;"> PooledDB
+
+pool </span>= PooledDB(pymysql,5,host=<span style="color: #800000;">'</span><span style="color: #800000;">ip</span><span style="color: #800000;">'</span>,user=<span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span>,passwd=<span style="color: #800000;">'</span><span style="color: #800000;">passwd</span><span style="color: #800000;">'</span>,db=<span style="color: #800000;">'</span><span style="color: #800000;">db</span><span style="color: #800000;">'</span>,port=3306,setsession=[<span style="color: #800000;">'</span><span style="color: #800000;">SET AUTOCOMMIT = 1</span><span style="color: #800000;">'</span>]) <span style="color: #008000;">#</span><span style="color: #008000;"> 5为连接池里的最少连接数，setsession=['SET AUTOCOMMIT = 1']是用来设置线程池是否打开自动更新的配置，0为False，1为True</span>
+<span style="color: #000000;">
+conn </span>= pool.connection()  <span style="color: #008000;">#</span><span style="color: #008000;">以后每次需要数据库连接就是用connection（）函数获取连接就好了</span>
+<span style="color: #000000;">
+cur</span>=<span style="color: #000000;">conn.cursor()
+
+SQL</span>=<span style="color: #800000;">"</span><span style="color: #800000;">select * from table</span><span style="color: #800000;">"</span><span style="color: #000000;">
+
+count</span>=<span style="color: #000000;">cur.execute(SQL)
+
+results</span>=<span style="color: #000000;">cur.fetchall()
+
+cur.close()
+
+conn.close()</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>PooledDB 的参数：</p>
+<p>POOL = PooledDB(<br />creator=pymysql, # 使用链接数据库的模块<br />maxconnections=6, # 连接池允许的最大连接数，0和None表示不限制连接数<br />mincached=2, # 初始化时，链接池中至少创建的空闲的链接，0表示不创建<br />maxcached=5, # 链接池中最多闲置的链接，0和None不限制<br />maxshared=1, # 链接池中最多共享的链接数量，0和None表示全部共享。PS: 无用，因为pymysql和MySQLdb等模块的 threadsafety都为1，所有值无论设置为多少，_maxcached永远为0，所以永远是所有链接都共享。<br />blocking=True, # 连接池中如果没有可用连接后，是否阻塞等待。True，等待；False，不等待然后报错<br />maxusage=None, # 一个链接最多被重复使用的次数，None表示无限制<br />setsession=[], # 开始会话前执行的命令列表。如：[&ldquo;set datestyle to &hellip;&rdquo;, &ldquo;set time zone &hellip;&rdquo;]<br />ping=0,<br /># ping MySQL服务端，检查是否服务可用。<br /># 如：0 = None = never,<br /># 1 = default = whenever it is requested,<br /># 2 = when a cursor is created,<br /># 4 = when a query is executed,<br /># 7 = always<br />host=&lsquo;127.0.0.1&rsquo;,<br />port=3306,<br />user=&lsquo;root&rsquo;,<br />password=&rsquo;&rsquo;,<br />database=&lsquo;ziji&rsquo;,<br />charset=&lsquo;utf8&rsquo;<br />)</p>
+<p>在 uwsgi 中，每个 http 请求都会分发给一个进程，连接池中配置的连接数都是一个进程为单位的（即上面的最大连接数，都是在一个进程中的连接数），而如果业务中，一个 http 请求中需要的 sql 连接数不是很多的话（其实大多数都只需要创建一个连接），配置的连接数配置都不需要太大。</p>
+<p>连接池对性能的提升表现在：</p>
+<ol>
+<li>在程序创建连接的时候，可以从一个空闲的连接中获取，不需要重新初始化连接，提升获取连接的速度</li>
+<li>关闭连接的时候，把连接放回连接池，而不是真正的关闭，所以可以减少频繁地打开和关闭连接</li>
+
+</ol></div>
+
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

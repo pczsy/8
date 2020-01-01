@@ -1,0 +1,129 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修7、pytest -- 捕获标准输出和标准错误输出' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>7、pytest -- 捕获标准输出和标准错误输出</center></div><div class='banquan'>原文出处:本文由博客园博主luizyao提供。<br/>
+原文连接:https://www.cnblogs.com/luizyao/p/11759571.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#标准输出标准错误输出标准输入的默认捕获行为">1. 标准输出/标准错误输出/标准输入的默认捕获行为</a></li>
+        <li><a href="#修改和去使能捕获行为">2. 修改和去使能捕获行为</a><ul>
+        <li><a href="#文件描述符级别的捕获行为默认">2.1. 文件描述符级别的捕获行为（默认）</a></li>
+        <li><a href="#sys级别的捕获行为">2.2. <code>sys</code>级别的捕获行为</a></li>
+        <li><a href="#去使能捕获行为">2.3. 去使能捕获行为</a></li>
+        </ul></li>
+        <li><a href="#使用print函数调试用例">3. 使用<code>print()</code>函数调试用例</a></li>
+        <li><a href="#在测试用例中访问捕获到的信息">4. 在测试用例中访问捕获到的信息</a></li>
+        </ul>
+    </div>
+</div>
+<h2 id="标准输出标准错误输出标准输入的默认捕获行为">1. 标准输出/标准错误输出/标准输入的默认捕获行为</h2>
+<p>在测试执行期间，任何标准输出和标准错误输出都将会被捕获；如果测试失败或者发生异常，异常信息的堆栈也将一同显示，你可以通过<code>--show-capture</code>命令行选项来自定义这些行为；</p>
+<blockquote>
+<p><code>--show-capture</code>的配置项可以为：<code>no,stdout,stderr,log,all</code>，默认是<code>all</code>；</p>
+</blockquote>
+<p>另外，标准输入被设置为一个<code>&quot;null&quot;</code>对象。因为在自动化测试中，很少需要使用到交互输入的场景；</p>
+<blockquote>
+<p>实际上，当我们想要使用标准输入时，会得到一个错误：<code>OSError: reading from stdin while output is captured</code>；</p>
+</blockquote>
+<p>通常情况下，捕获行为是通过拦截对低级别文件描述符的写入操作来实现的。这就使得我们可以捕获简单的<code>print()</code>语句以及测试中子程序的输出行为；</p>
+<h2 id="修改和去使能捕获行为">2. 修改和去使能捕获行为</h2>
+<p><code>pytest</code>有两种捕获行为，可以通过<code>--capture</code>命令行选项来指定；</p>
+<h3 id="文件描述符级别的捕获行为默认">2.1. 文件描述符级别的捕获行为（默认）</h3>
+<p>所有向操作系统的文件描述符1（标准输入）和2（标准错误输入）的写入行为都会被捕获，这个也是<code>pytest</code>的默认捕获行为，也可以通过<code>--capture=fd</code>来指定；</p>
+<blockquote>
+<p>文件描述符是与当前进程打开的文件相对应的小整数。例如，标准输入的文件描述符通常是0，标准输出的是1，标准错误的是2，之后被进程打开的文件的描述符依次指定为3、4、5等。</p>
+</blockquote>
+<h3 id="sys级别的捕获行为">2.2. <code>sys</code>级别的捕获行为</h3>
+<p>只有向<code>Python</code>的<code>sys.stdout</code>和<code>sys.stderr</code>的写入行为会被捕获，不执行对文件描述符的写入的捕获，通过<code>--capture=sys</code>来指定；</p>
+<h3 id="去使能捕获行为">2.3. 去使能捕获行为</h3>
+<p>通过<code>--capture=no</code>可以去使能<code>pytest</code>的捕获行为；</p>
+<p>也可以通过<code>-s</code>命令行选项实现相同的效果，它只是<code>--capture=no</code>的一个快捷方式，本质上是一样的；</p>
+<h2 id="使用print函数调试用例">3. 使用<code>print()</code>函数调试用例</h2>
+<p>默认的捕获行为带来的一个主要的好处是，就是可以使用<code>print()</code>函数帮助调试用例；</p>
+<p>我们来看下面这个例子：</p>
+<pre><code><code># src/chapter-7/test_module.py
+
+def setup_function(function):
+    print(&quot;setting up&quot;, function)
+
+
+def test_func1():
+    assert True
+
+
+def test_func2():
+    assert False</code></pre>
+<p><code>setup_function(function)</code>函数会在每个测试用例开始之前执行，做一些初始化的操作；</p>
+<p>现在，我们来执行这个模块：</p>
+<pre class="bash"><code>λ pipenv run pytest -q src/chapter-7/test_module.py
+.F                                                      [100%] 
+========================== FAILURES ========================== 
+_________________________ test_func2 _________________________
+
+    def test_func2():
+&gt;       assert False
+E       assert False
+
+src\chapter-7\test_module.py:32: AssertionError
+------------------- Captured stdout setup -------------------- 
+setting up &lt;function test_func2 at 0x000001F35E76C158&gt;
+1 failed, 1 passed in 0.05s</code></pre>
+<p>可以看到，<code>pytest</code>会把失败的用例信息精确的打印出来，并且会忽略其他的用例；</p>
+<h2 id="在测试用例中访问捕获到的信息">4. 在测试用例中访问捕获到的信息</h2>
+<p>我们可以通过<code>capsys</code>、<code>capsysbinary</code>、<code>capfd</code>和<code>capfdbinary fixtures</code>来访问测试执行过程中产生的输出信息；</p>
+<p>下面这个例子用于检查测试中的输出信息：</p>
+<pre><code><code># src/chapter-7/test_output.py
+
+import sys
+
+
+def test_output(capsys):
+    print(&#39;hello&#39;)
+    print(&#39;world&#39;, file=sys.stderr, end=&#39;&amp;&#39;)  # 标准错误输出，修改结束符
+    captured = capsys.readouterr()
+    assert captured.out == &#39;hello\n&#39;  # print() 默认的结束符是换行符
+    assert captured.err == &#39;world&amp;&#39;
+    print(&#39;next&#39;)
+    captured = capsys.readouterr()
+    assert captured.out == &#39;next\n&#39;</code></pre>
+<p><code>readouterr()</code>方法会返回一个命名元组（包含<code>out</code>和<code>err</code>属性），表示到目前为止所有的标准输出和标准错误输出，然后<strong>重置缓存区</strong>；</p>
+<p>如果你想访问文件描述符级别的测试输出，可以使用<code>capfd fixture</code>，它提供了完全相同的接口；</p>
+<p>如果想访问的是非文本型的数据，可以使用<code>capsysbinary fixture</code>，它的<code>readouterr()</code>方法返回的是字节流，参考下面的例子：</p>
+<pre><code><code># src/chapter-7/test_output.py
+
+def test_binary_output(capsysbinary):
+    print(&#39;hello&#39;)
+    captured = capsysbinary.readouterr()
+    assert captured.out == b&#39;hello\n&#39;</code></pre>
+<p>如果你想临时的去使能捕获行为，可以使用<code>capsys.disabled()</code>方法，它作为一个上下文管理器来使用，可以禁止<code>with</code>作用域中的捕获行为，参考下面的例子：</p>
+<pre><code><code># src/chapter-7/test_output.py
+
+def test_disabling_capturing(capsys):
+    print(&quot;hello&quot;)
+    with capsys.disabled():
+        print(&quot;world&quot;)
+    captured = capsys.readouterr()
+    assert captured.out == &quot;hello\n&quot;</code></pre>
+<p>GitHub仓库地址：<a href="https://github.com/luizyao/pytest-chinese-doc" class="uri">https://github.com/luizyao/pytest-chinese-doc</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

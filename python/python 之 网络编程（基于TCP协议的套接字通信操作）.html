@@ -1,0 +1,195 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python 之 网络编程（基于TCP协议的套接字通信操作）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python 之 网络编程（基于TCP协议的套接字通信操作）</center></div><div class='banquan'>原文出处:本文由博客园博主small_white-提供。<br/>
+原文连接:https://www.cnblogs.com/mylu/p/11173059.html</div><br>
+    <h2 class="md-end-block md-heading"><span class="md-plain">第八章网络编程</span></h2>
+<h3 class="md-end-block md-heading"><span class="md-plain">8.1 基于TCP协议的套接字通信</span></h3>
+<p class="md-end-block md-p"><span><strong>服务端套接字函数</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">s.bind()    绑定(主机,端口号)到套接字
+s.listen()  开始TCP监听
+s.accept()  被动接受TCP客户的连接,(阻塞式)等待连接的到来</span></pre>
+</div>
+<p class="md-end-block md-p"><span><strong>客户端套接字函数</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">s.connect()     主动初始化TCP服务器连接
+s.connect_ex()  connect()函数的扩展版本,出错时返回出错码,而不是抛出异常</span></pre>
+</div>
+<p class="md-end-block md-p"><span><strong>公共用途的套接字函数</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">s.recv()            接收TCP数据
+s.send()            发送TCP数据(send在待发送数据量大于己端缓存区剩余空间时,数据丢失,不会发完)
+s.sendall()         发送完整的TCP数据(本质就是循环调用send,sendall在待发送数据量大于己端缓存区剩余空间时,数据不丢失,循环调用send直到发完)
+s.recvfrom()        接收UDP数据
+s.sendto()          发送UDP数据
+s.getpeername()     连接到当前套接字的远端的地址
+s.getsockname()     当前套接字的地址
+s.getsockopt()      返回指定套接字的参数
+s.setsockopt()      设置指定套接字的参数
+s.close()           关闭套接字</span></pre>
+</div>
+<p class="md-end-block md-p"><span><strong>面向锁的套接字方法</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">s.setblocking()     设置套接字的阻塞与非阻塞模式
+s.settimeout()      设置阻塞套接字操作的超时时间
+s.gettimeout()      得到阻塞套接字操作的超时时间</span></pre>
+</div>
+<p class="md-end-block md-p"><span><strong>面向文件的套接字的函数</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">s.fileno()          套接字的文件描述符
+s.makefile()        创建一个与该套接字相关的文件</span></pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">8.2 客户端与服务端操作( 基于TCP )</span></h3>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain">tcp是基于链接的，必须先启动服务端，然后再启动客户端去链接服务端</span></span></p>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain">socket是位于应用层与传输层之间的一个抽象层,专门把传输层以下的协议封装成接口提供给应用层使用,应用只需要调用socket的接口或者说按照socket的标准编写程序，写出的程序自然是遵循TCP/IP协议</span></span></p>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain">tcp的协议数据不会丢，没有收完包，下次接收，会继续上次继续接收，己端总是在收到ack时才会清除缓冲区内容。数据是可靠的，但是会粘包</span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">客户端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+                  </span><span style="color: #008000;">#</span><span style="color: #008000;">地址家族，基于网络    TCP协议</span>
+phone=socket.socket(socket.AF_INET,socket.SOCK_STREAM)    <span style="color: #008000;">#</span><span style="color: #008000;"> 创建客户套接字</span>
+phone.connect((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))<span style="color: #008000;">#</span><span style="color: #008000;">服务端ip和端口    # 尝试连接服务器</span>
+<span style="color: #000000;">​
+phone.send(</span><span style="color: #800000;">'</span><span style="color: #800000;">你好</span><span style="color: #800000;">'</span>.encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>))                       <span style="color: #008000;">#</span><span style="color: #008000;"> 发消息b'hello'</span>
+data=phone.recv(1024)                                   <span style="color: #008000;">#</span><span style="color: #008000;">收消息</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">print</span>(data.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+​
+phone.close()                                          </span><span style="color: #008000;">#</span><span style="color: #008000;"> 关闭客户套接字</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">服务端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+​
+phone</span>=socket.socket(socket.AF_INET,socket.SOCK_STREAM) <span style="color: #008000;">#</span><span style="color: #008000;"> 创建服务器套接字</span>
+phone.bind((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080)                        <span style="color: #008000;">#</span><span style="color: #008000;">地址绑定到套接字（0-65535） 0-1024给系统用的</span>
+phone.listen(5)                                     <span style="color: #008000;">#</span><span style="color: #008000;"> 监听链接</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">start...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+conn,client_addr</span>=phone.accept()         <span style="color: #008000;">#</span><span style="color: #008000;"> 接受客户端链接</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">连接来了：</span><span style="color: #800000;">'</span>,conn,client_addr)     <span style="color: #008000;">#</span><span style="color: #008000;">conn: 连接对象   client_addr: 客户端的ip和端口 </span>
+<span style="color: #000000;">​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 收发消息</span>
+msg=conn.recv(1024)                    <span style="color: #008000;">#</span><span style="color: #008000;">收消息，1024是一个最大的限制</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">客户端的消息: </span><span style="color: #800000;">'</span><span style="color: #000000;">,msg)
+conn.send(msg</span>+b<span style="color: #800000;">'</span><span style="color: #800000;">SB</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 挂电话</span>
+conn.close()    <span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端套接字</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 关机</span>
+phone.close()   <span style="color: #008000;">#</span><span style="color: #008000;">关闭服务器套接字(可选)</span></pre>
+</div>
+<h4 class="md-end-block md-heading"><span class="md-plain">8.21 加上通信循环与连接循环</span></h4>
+<p class="md-end-block md-p"><span class="md-plain">服务端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+​
+phone</span>=<span style="color: #000000;">socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+phone.bind((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8081<span style="color: #000000;">))
+phone.listen(</span>5<span style="color: #000000;">)
+​
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">start...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">while</span> True:                         <span style="color: #008000;">#</span><span style="color: #008000;"> 连接循环</span>
+    conn,client_addr=<span style="color: #000000;">phone.accept()
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">客户端 </span><span style="color: #800000;">'</span><span style="color: #000000;">,client_addr)
+​
+    </span><span style="color: #0000ff;">while</span> True:                      <span style="color: #008000;">#</span><span style="color: #008000;"> 通信循环</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            msg</span>=conn.recv(1024<span style="color: #000000;">)
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">客户端的消息: </span><span style="color: #800000;">'</span><span style="color: #000000;">,msg)
+            conn.send(msg</span>+b<span style="color: #800000;">'</span><span style="color: #800000;">SB</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">except</span> ConnectionResetError:   <span style="color: #008000;">#</span><span style="color: #008000;">只有在当前客户端停止向服务端发送信息时，下一个客户端才能发送</span>
+            <span style="color: #0000ff;">break</span><span style="color: #000000;">                   
+    conn.close()
+phone.close()</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">客户端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+​
+phone</span>=socket.socket(socket.AF_INET,socket.SOCK_STREAM) <span style="color: #008000;">#</span><span style="color: #008000;"> 买电话</span>
+phone.connect((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8081)) <span style="color: #008000;">#</span><span style="color: #008000;"> 尝试连接服务器 地址为服务端的ip和端口</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+    msg</span>=input(<span style="color: #800000;">'</span><span style="color: #800000;">&gt;&gt;&gt;: </span><span style="color: #800000;">'</span><span style="color: #000000;">).strip()
+    phone.send(msg.encode(</span><span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>)) <span style="color: #008000;">#</span><span style="color: #008000;"> 发消息b'hello'</span>
+    data=phone.recv(1024) <span style="color: #008000;">#</span><span style="color: #008000;">收消息</span>
+    <span style="color: #0000ff;">print</span>(data.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+​
+phone.close()</span></pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">8.3 远程执行命令的程序</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">注意：</span></p>
+<div class="cnblogs_code">
+<pre><code>res=subprocess.Popen(cmd.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+shell</span>=<span style="color: #000000;">True,
+stderr</span>=<span style="color: #000000;">subprocess.PIPE,
+stdout</span>=subprocess.PIPE)</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">的结果的编码是以当前所在的系统为准的，如果是windows，那么res.stdout.read()读出的就是GBK编码的，在接收端需要用GBK解码,且只能从管道里读一次结果</span></p>
+<p class="md-end-block md-p"><span class="md-plain">客户端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> socket <span style="color: #0000ff;">import</span> *<span style="color: #000000;">
+client</span>=<span style="color: #000000;">socket(AF_INET,SOCK_STREAM)
+client.connect((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+​
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+    cmd</span>=input(<span style="color: #800000;">'</span><span style="color: #800000;">&gt;&gt;&gt;: </span><span style="color: #800000;">'</span><span style="color: #000000;">).strip()
+    </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> cmd:
+        </span><span style="color: #0000ff;">continue</span><span style="color: #000000;">
+    client.send(cmd.encode(</span><span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    res</span>=client.recv(14744<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(res.decode(<span style="color: #800000;">'</span><span style="color: #800000;">gbk</span><span style="color: #800000;">'</span>))<span style="color: #008000;">#</span><span style="color: #008000;">subprocess返回byte类型，需要gbk解码</span>
+client.close()</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">服务端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> socket <span style="color: #0000ff;">import</span> *
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> subprocess
+​
+server</span>=<span style="color: #000000;">socket(AF_INET,SOCK_STREAM)
+server.bind((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+server.listen(</span>5<span style="color: #000000;">)
+​
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+    conn,client_addr</span>=server.accept() <span style="color: #008000;">#</span><span style="color: #008000;">(连接对象，客户端的ip和端口)</span>
+    <span style="color: #0000ff;">print</span><span style="color: #000000;">(client_addr)
+    </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            cmd</span>=conn.recv(1024<span style="color: #000000;">)
+            obj</span>=subprocess.Popen(cmd.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>),<span style="color: #008000;">#</span><span style="color: #008000;">subprocess返回byte类型,可直接传输但需要gbk解码</span>
+                                 shell=<span style="color: #000000;">True,
+                                 stdout</span>=<span style="color: #000000;">subprocess.PIPE,
+                                 stderr</span>=<span style="color: #000000;">subprocess.PIPE
+                                 )
+            stdout</span>=<span style="color: #000000;">obj.stdout.read()
+            stderr</span>=<span style="color: #000000;">obj.stderr.read()
+        
+            total</span>=stdout + stderr<span style="color: #008000;">#</span><span style="color: #008000;"> 发送真实的数据</span>
+<span style="color: #000000;">            conn.send(total)
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> ConnectionResetError:
+            </span><span style="color: #0000ff;">break</span><span style="color: #000000;">
+    conn.close()
+server.close()</span></pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

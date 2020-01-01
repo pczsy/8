@@ -1,0 +1,107 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动</center></div><div class='banquan'>原文出处:本文由博客园博主痞子衡提供。<br/>
+原文连接:https://www.cnblogs.com/henjay724/p/12006043.html</div><br>
+    <hr />
+<p>　　大家好，我是痞子衡，是正经搞技术的痞子。今天痞子衡给大家介绍的是<strong>恩智浦i.MX RTxxx系列MCU的1-bit SPI NOR恢复启动</strong>。</p>
+<p>　　在前几篇里痞子衡介绍的Boot Device都属于主动启动的Master Boot Device（Serial(Multi-IO) NOR, SD/eMMC），试想一下如果遇到这样的情况，你选择启动的某个Master Boot Device正常工作一段时间后某次开机突然因为某种未知原因无法启动了，此时系统无法正常工作，但如果你希望系统能够有一定的容错/鲁棒能力，即使这种场合下也能够保证基本工作，那应该怎么做？别担心，i.MXRTxxx BootROM提供了一种解决方案，即Recovery Boot机制，BootROM支持Serial NOR作为Recovery Boot Device，你只需要将备份application事先放进Recovery Boot Device即可，任何主动启动的Master Boot Device启动失败，BootROM会自动启动Recovery Boot Device中的备份application保证系统能正常工作，是不是觉得recovery boot很贴心？今天痞子衡就为大家介绍Recovery Boot：</p>
+<h3 id="一支持的serial-nor">一、支持的Serial NOR</h3>
+<p>　　<font color="Blue">i.MXRTxxx支持加载恢复启动的主要是1-bit SPI接口（其实Multi-IO也行，只要支持1bit read/normal read模式）的NOR Flash。</font>Serial NOR厂商非常多，对应Serial NOR芯片型号也很多，如果你在选型时不确定到底该为i.MXRTxxx选择哪一款Serial NOR时，可选用下面三款芯片，痞子衡均实测过：</p>
+<pre><code><code>Adesto AT25SF641-SUB-T          （NOR Flash, Multiple I/O, 104MHz,     256B Page/4-32-64KB Sector/64Mb Device）
+Micron MT25QL128ABA1ESE-OSIT    （NOR Flash, Multiple I/O, 133MHz-STR, 64B Page/4-32-64KB Sector/128Mb Device）
+Spansion S25FL129P              （NOR Flash, Multiple I/O, 80MHz,      256B Page/4-8-64-256KB Sector/128Mb Device）</code></pre>
+<blockquote>
+<p>Note1: BootROM固定使用SPI Mode(0,0)（即CPOL=0, CPHA=0），<font color="Green">24MHz SPI Clk</font>去访问外部NOR。<br />
+Note2: 在BootROM的Device Boot模式下想要启动NOR不需要知道任何Flash属性参数（如Sector/Page Size），因此<font color="Green">Device Boot模式下仅需要指定SPI Port连接即可</font>。<br />
+Note3: 在BootROM的Serial ISP模式下擦写NOR时需要知道其Sector/Page Size，ROM支持两种方式获取Sector/Page Size，一是手工填写参数，另一个是利用SFDP。<br />
+Note4: BootROM主要支持3bytes（存储范围为1Mb - 128Mb）地址的外部NOR，其实市面上3bytes地址位的EEPROM也可以用作Recovery Boot Device（不过BootROM仅能在Device Boot模式下启动(读)EEPROM，但不支持Serial ISP模式下擦写EEPROM）。</p>
+</blockquote>
+<h3 id="二serial-nor硬件连接">二、Serial NOR硬件连接</h3>
+<p>　　确定了Serial NOR芯片选型后，底下便进入Serial NOR硬件电路设计及与i.MXRTxxx的信号连接环节：</p>
+<p>　　i.MXRTxxx对于Serial NOR的底层接口支持是通过内部Flexcomm SPI这个IP实现的，i.MXRTxxx内部一共有8个Flexcomm SPI，BootROM对这8组Flexcomm SPI都支持，具体pinmux如下（适用RT600）：</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动0.png" style="zoom:100%" /></p>
+<p>　　如下是典型的QSPI NOR硬件连接设计，示例NOR芯片是AT25SF641-SUB-T，该NOR芯片为Multiple I/O，数据线为DQ[3:0]，当用作1-bit SPI模式时，仅需连接DQ[1:0]：</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动1.png" style="zoom:100%" /></p>
+<blockquote>
+<p><font color="Red">Note: 当使用QSPI Flash作为1bit SPI Flash使用时，空置的引脚IO[3:2]必须上拉，否则Flash无法正常访问。</font></p>
+</blockquote>
+<h3 id="三serial-nor加载启动过程">三、Serial NOR加载启动过程</h3>
+<p>　　确保Serial NOR硬件相关设计无误之后，底下便是下载更新Bootable Image进Serial NOR以供BootROM加载启动了，在下载Bootable image之前有必要先了解Serial NOR的加载启动过程：</p>
+<p>　　痞子衡在启动系列文章的第五篇 <a href="">Bootable image格式与加载(elftosb/.json)</a> 里的最后已经介绍过Non-XIP image加载启动过程，这个过程其实已经充分地描述了Serial NOR的加载启动过程。<br />
+　　有了Non-XIP image加载启动的背景知识，Serial NOR的加载启动过程便是上电之后，在主动选择的Master Boot Device启动失败之后，BootROM会从Serial NOR偏移0x1000地址处读取image header数据（一共64个字节），找到其中的imageLength和imageLoadAddress，这样就知道了Application加载起始地址以及总长度，然后再将Application全部拷贝到相应SRAM里去启动，其过程如下图所示：</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动2.png" style="zoom:100%" /></p>
+<h3 id="四下载application进serial-nor">四、下载Application进Serial NOR</h3>
+<p>　　理解了Serial NOR加载启动过程，我们便可以开始使用BootROM的Serial ISP模式去下载Application进Serial NOR芯片中：</p>
+<p>　　痞子衡在启动系列文章的第三篇 <a href="https://www.cnblogs.com/henjay724/p/11992494.html">Serial ISP模式(blhost))</a> 和第五篇 <a href="">Bootable image格式与加载(elftosb/.json)</a> 里分别介绍了Serial ISP模式的使用以及如何将你的Application制作成Bootable image，后续内容假定你已经制作好一个Bootable image并且使用blhost工具与BootROM的Serial ISP模式建立了基本通信，正要开始将Bootable image下载进Serial NOR。</p>
+<p>　　跟Master Boot Device不同的是，Serial NOR不支持configuration block，configuration block结构原型是下面的spi_mem_config_t，下文提及的简化option block其实就是用来设置这个configuration block的。</p>
+<pre class="c"><code>//! @brief Serial NOR Config block structure
+typedef struct
+{
+    uint8_t tag;
+    uint8_t memoryType;
+    uint8_t blockEraseAvailable;
+    uint8_t sfdpTableAvailable;
+    uint8_t sectorEraseCmd;
+    uint8_t blockEraseCmd;
+    uint8_t chipEraseCmd;
+    uint8_t addressBits;
+    uint32_t pageSizeInBytes;
+    uint32_t sectorSizeInBytes;
+    uint32_t blockSizeInBytes;
+    uint32_t memorySizeInBytes;
+} spi_mem_config_t;</code></pre>
+<p>　　前面扯了些没用的，那么到底怎么样将Bootable image数据下载进Serial NOR中呢？当然还是靠Serial ISP模式，我们只需要提供简化的4byte配置数据即可。下面是一种Application下载更新示例（该示例适用于 Serial NOR芯片AT25SF641-SUB-T）：</p>
+<pre><code><code>// 在SRAM里临时存储1bit SPI NOR配置数据
+blhost -p COMx -- fill-memory 0x1C000 0x4 0xC0100000 // Flexcomm SPI1, Default NOR Flash
+
+// 使用1bit SPI NOR配置数据去配置Flexcomm SPI接口
+blhost -p COMx -- configure-memory 0x110 0x1C000</code></pre>
+<p>　　在上述示例里痞子衡首先使用了fill-memory命令在0x1C000地址处暂存了4byte配置数据，然后通过config-memory将这4byte数据里的信息配置到Serial NOR接口中，实际上这2个命令成功执行后，你就可以开始使用Serial ISP命令下载Bootable image了。那么这4byte配置数据到底是怎么组织的？详见下表：</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动3.png" style="zoom:100%" /></p>
+<p>　　从上表我们可以知道，其实这4byte数据提供的配置信息主要是SPI连接以及NOR Device属性配置。configure-memory命令执行成功之后，底下image的下载很简单，只需要将Bootable image从Serial NOR起始地址开始下载即可，具体步骤如下：</p>
+<pre><code><code>// 擦除1bit SPI NOR并将image下载进1bit SPI NOR
+blhost -p COMx -- flash-erase-region 0x0 0x20000 0x110
+blhost -p COMx -- write-memory 0x1000 bt_image.bin 0x110</code></pre>
+<p>　　Bootable image下载成功之后，我们可以试着用read-memory从Serial NOR芯片里读回Application确认一下，Bootable image起始地址在0x1000，痞子衡下载的是一个长度为13516byte，从0x80000处开始链接的Non-XIP image，这从读回的image header解析里可以证实：</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动4.png" style="zoom:100%" /></p>
+<p>　　至此，Application的下载工作便结束了。</p>
+<h3 id="五进入serial-nor备份启动模式">五、进入Serial NOR备份启动模式</h3>
+<p>　　Application已经被成功下载进Serial NOR芯片之后，此时我们便可以开始设置芯片从Serial NOR启动：</p>
+<p>　　痞子衡在前面的文章 <a href="https://www.cnblogs.com/henjay724/p/11990219.html">Boot配置(ISP Pin/OTP)</a> 介绍过Boot行为模式有两种选择方式（通过OTP或ISP pin）。<font color="Green">在OTP里，如果设置PRIMARY_BOOT_SRC[3:0]为SPI_FLASH_BOOT（即4b'0111），则芯片直接从1bit SPI NOR启动，不再需要先经过Master Boot Device，这相当于将1bit SPI NOR地位提升到Master Boot Device。</font><br />
+　　不过1bit SPI NOR启动最常用的Boot行为模式配置不是上面那种，而是真的用作Recovery Boot Device，这才是它的最大意义所在，如下表所示，共有6种不同的配置（橘色框里）均能使能备份启动模式（适用RT600）。</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动5.png" style="zoom:100%" /></p>
+<h3 id="六配置otp启动serial-nor">六、配置OTP启动Serial NOR</h3>
+<p>　　设置好芯片启动模式是从Serial NOR备份启动之后，我们还需要最后关注一下与Serial NOR相关的具体特性配置：</p>
+<p>　　Serial NOR的Device配置非常简单，只需要在OTP里指定SPI index即可（在BOOT_CFG[0]里的REDUNDANT_SPI_PORT里），痞子衡在文章第一节的Note2里就备注过，在BootROM的Device Boot模式下想要启动1bit SPI NOR不需要知道任何Flash属性参数（如Sector/Page Size），因此只要指定是哪个SPI Port就行了。</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RTxxx系列MCU启动那些事（8）- 从Serial(1-bit SPI) NOR恢复启动6.png" style="zoom:100%" /></p>
+<h3 id="七几个注意事项">七、几个注意事项</h3>
+<blockquote>
+<ol>
+<li>市面上基本大于64KB的QSPI NOR均支持1bit read/normal read模式。</li>
+<li>虽然从Serial NOR启动的设计目的是用于recovery boot，但如果你硬要将Serial NOR作为系统里的唯一Boot Device，也并不是不可以（假设Recovery Boot没有升级为Master Boot），你需要在板级设计时考虑与Master Boot Device连接的i.MXRTxxx相关引脚在上电时的电平转换（BootROM总是会尝试先启动Master Boot Device）的影响。</li>
+</ol>
+</blockquote>
+<p>　　上述所有步骤全部完成之后，复位芯片你就应该能看到你放在Serial NOR里的Application已经正常地启动了。</p>
+<p>　　至此，恩智浦i.MX RTxxx系列MCU的1-bit SPI NOR恢复启动痞子衡便介绍完毕了，掌声在哪里~~~</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

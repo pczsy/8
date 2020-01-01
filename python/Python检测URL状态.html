@@ -1,0 +1,102 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python检测URL状态' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python检测URL状态</center></div><div class='banquan'>原文出处:本文由博客园博主白天的影子提供。<br/>
+原文连接:https://www.cnblogs.com/x00479/p/11275208.html</div><br>
+    <p>需求：Python检测URL状态，并追加保存200的URL</p>
+<p>代码一：</p>
+<div class="cnblogs_code">
+<pre><code>#! /usr/bin/env python
+#coding=utf-8
+import sys
+import requests
+def getHttpStatusCode(url):
+    try:
+        request = requests.get(url)
+        httpStatusCode = request.status_code
+        return httpStatusCode
+    except requests.exceptions.HTTPError as e:
+        return e
+ 
+if __name__ == "__main__":
+    with open('1.txt', 'r') as f:
+        for line in f:
+            try:
+                status = getHttpStatusCode(line.strip('\n'))#换行符
+                if status == 200:
+                    with open('200.txt','a') as f:
+                        f.write(line + '\n')
+                        print line
+                else:
+                    print 'no 200 code'
+            except Exception as e:
+                print e</pre>
+</div>
+<p>代码二：</p>
+<div class="cnblogs_code">
+<pre><code>#! /usr/bin/env python
+# -*--coding:utf-8*-
+
+import requests
+
+def request_status(line):
+    conn = requests.get(line)
+    if conn.status_code == 200:
+        with open('url_200.txt', 'a') as f:
+            f.write(line + '\n')
+        return line13     else:
+        return None
+
+
+if __name__ == '__main__':
+    with open('/1.txt', 'rb') as f:
+        for line in f:
+            try:
+                purge_url = request_status(line.strip('\n'))
+            except Exception as e:
+                pass</pre>
+</div>
+<p>代码三：</p>
+<div class="cnblogs_code">
+<pre><code>#! /usr/bin/env python
+#coding:utf-8
+import os,urllib,linecache
+import sys
+result = list()
+
+for x in linecache.updatecache(r'1.txt'):
+    try:
+       a = urllib.urlopen(x.replace('/n','')).getcode()
+       #print x,a
+    except Exception,e:
+        print e
+    if a == 200:
+        #result.append(x)                             #保存
+        #result.sort()                                       #排序结果
+        #open('2.txt', 'w').write('%s' % '\n'.join(result)) #保存入结果文件
+        with open ('200urllib.txt','a') as f: ## r只读，w可写，a追加
+            f.write(x + '\n')
+    else:
+        print 'error'</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

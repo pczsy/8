@@ -1,0 +1,681 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python之路【第十二篇】Python面向对象高级' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python之路【第十二篇】Python面向对象高级</center></div><div class='banquan'>原文出处:本文由博客园博主Simon92提供。<br/>
+原文连接:https://www.cnblogs.com/hackerer/p/11279702.html</div><br>
+    <h2>一、反射</h2>
+<h3><strong>1 什么是反射</strong></h3>
+<p>反射的概念是由Smith在1982年首次提出的，主要是指程序可以访问、检测和修改它本身状态或行为的一种能力（自省）。这一概念的提出很快引发了计算机科学领域关于应用反射性的研究。它首先被程序语言的设计领域所采用,并在Lisp和面向对象方面取得了成绩。</p>
+<p>&nbsp;</p>
+<h3><strong>2 python面向对象中的反射：通过字符串的形式操作对象相关的属性。python中的一切事物都是对象（都可以使用反射）</strong></h3>
+<p>四个可以实现自省的函数</p>
+<p>下列方法适用于类和对象（一切皆对象，类本身也是一个对象）</p>
+<p>导入其他模块，利用反射查找该模块是否存在某个方法</p>
+<p>四种方法使用效果展示：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> BlackMedium:
+    feature</span>=<span style="color: #800000;">'</span><span style="color: #800000;">Ugly</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,addr):
+        self.name</span>=<span style="color: #000000;">name
+        self.addr</span>=<span style="color: #000000;">addr
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> sell_house(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s 黑中介卖房子啦,傻逼才买呢,但是谁能证明自己不傻逼</span><span style="color: #800000;">'</span> %<span style="color: #000000;">self.name)
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> rent_house(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s 黑中介租房子啦,傻逼才租呢</span><span style="color: #800000;">'</span> %<span style="color: #000000;">self.name)
+
+b1</span>=BlackMedium(<span style="color: #800000;">'</span><span style="color: #800000;">万成置地</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">回龙观天露园</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">检测是否含有某属性</span>
+<span style="color: #0000ff;">print</span>(hasattr(b1,<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(hasattr(b1,<span style="color: #800000;">'</span><span style="color: #800000;">sell_house</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">获取属性</span>
+n=getattr(b1,<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(n)
+func</span>=getattr(b1,<span style="color: #800000;">'</span><span style="color: #800000;">rent_house</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+func()
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> getattr(b1,'aaaaaaaa') #报错</span>
+<span style="color: #0000ff;">print</span>(getattr(b1,<span style="color: #800000;">'</span><span style="color: #800000;">aaaaaaaa</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">不存在啊</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">设置属性</span>
+setattr(b1,<span style="color: #800000;">'</span><span style="color: #800000;">sb</span><span style="color: #800000;">'</span><span style="color: #000000;">,True)
+setattr(b1,</span><span style="color: #800000;">'</span><span style="color: #800000;">show_name</span><span style="color: #800000;">'</span>,<span style="color: #0000ff;">lambda</span> self:self.name+<span style="color: #800000;">'</span><span style="color: #800000;">sb</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(b1.<span style="color: #800080;">__dict__</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(b1.show_name(b1))
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">删除属性</span>
+delattr(b1,<span style="color: #800000;">'</span><span style="color: #800000;">addr</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+delattr(b1,</span><span style="color: #800000;">'</span><span style="color: #800000;">show_name</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+delattr(b1,</span><span style="color: #800000;">'</span><span style="color: #800000;">show_name111</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">不存在,则报错</span>
+
+<span style="color: #0000ff;">print</span>(b1.<span style="color: #800080;">__dict__</span>)</pre>
+</div>
+<h3><strong>3 为什么用反射之反射的好处</strong></h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">有俩程序员，一个simon，一个是zhurui，simon在写程序的时候需要用到zhurui所写的类，但是zhurui去跟女朋友度蜜月去了，还没有完成他写的类，simon想到了反射，使用了反射机制simon可以继续完成自己的代码，等zhurui度蜜月回来后再继续完成类的定义并且去实现simon想要的功能。
+
+总之反射的好处就是，可以事先定义好接口，接口只有在被完成后才会真正执行，这实现了即插即用，这其实是一种&lsquo;后期绑定&rsquo;，什么意思？即你可以事先把主要的逻辑写好（只定义接口），然后后期再去实现接口的功能</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> FtpClient:
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">ftp客户端,但是还么有实现具体的功能</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,addr):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">正在连接服务器[%s]</span><span style="color: #800000;">'</span> %<span style="color: #000000;">addr)
+        self.addr</span>=addr</pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">from module import FtpClient</span>
+f1=FtpClient(<span style="color: #800000;">'</span><span style="color: #800000;">192.168.1.1</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">if</span> hasattr(f1,<span style="color: #800000;">'</span><span style="color: #800000;">get</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    func_get</span>=getattr(f1,<span style="color: #800000;">'</span><span style="color: #800000;">get</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    func_get()
+</span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">----&gt;不存在此方法</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">处理其他的逻辑</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>好处二：动态导入模块（基于反射当前模块成员）</p>
+<p><img src="./images/Python之路【第十二篇】Python面向对象高级0.png" alt="" /></p>
+<h2>二、 __setattr__,__delattr__,__getattr__</h2>
+<p>三者用法展示：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">#getattr<br /><br /></span><span style="color: #008000;">
+#</span><span style="color: #008000;"> class Foo:</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     x=1</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     def __init__(self,y):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         self.y=y</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     def __getattr__(self, item):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         print('执行__getattr__')</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> f1=Foo(10)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(f1.y)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(getattr(f1,'y')) #len(str) ------&gt;str.__len__()</span>
+
+<span style="color: #008000;">##delattr</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> class Foo:</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     x=1</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     def __init__(self,y):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         self.y=y</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     def __delattr__(self, item):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         print('删除操作__delattr__')</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> f1=Foo(10)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> del f1.y</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(f1.x)</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;">#setattr 添加/修改属性会触发</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    x</span>=1
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,y):
+        self.y</span>=<span style="color: #000000;">y
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__setattr__</span><span style="color: #000000;">(self,key,value):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">__setattr__执行</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> self.key=value</span>
+        self.<span style="color: #800080;">__dict__</span>[key]=<span style="color: #000000;">value
+
+f1</span>=Foo(10<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__dict__</span><span style="color: #000000;">)
+f1.z</span>=2
+<span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__dict__</span>)</pre>
+</div>
+<h3>三、包装标准类型</h3>
+<p>包装：python为大家提供了标准数据类型，以及丰富的内置方法，其实在很多场景下我们都需要基于标准数据类型来定制我们自己的数据类型，新增/改写方法，这就用到了我们刚学的继承/派生知识 其他的标准类型均可以通过下面的方式进行二次加工</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> List(list):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> append(self,p_object):
+        </span><span style="color: #0000ff;">if</span> type(p_object) <span style="color: #0000ff;">is</span><span style="color: #000000;"> str:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> self.append(p_object)</span>
+<span style="color: #000000;">            super().append(p_object)
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">只能添加字符串类型</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> show_middle(self):
+        mid_index</span>=int(len(self)/2<span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self[mid_index]
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> l2=List('hello world')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(l2,type(l2))</span>
+<span style="color: #000000;">
+l1</span>=List(<span style="color: #800000;">'</span><span style="color: #800000;">helloworld</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> print(l1,type(l1))</span>
+l1.append(123456<span style="color: #000000;">)
+l1.append(</span><span style="color: #800000;">'</span><span style="color: #800000;">sb</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(l1)</pre>
+</div>
+<p>&nbsp;</p>
+<h2>四、isinstance(obj,cls)和issubclass(sub,super)</h2>
+<p><strong>isinstance(obj,cls)检查是否obj是否是cls的对象</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo(object):
+      </span><span style="color: #0000ff;">pass</span><span style="color: #000000;">
+
+obj  </span>=<span style="color: #000000;"> Foo()
+
+isinstance(obj,  Foo)</span></pre>
+</div>
+<p><strong>issubclass(sub, super)检查sub类是否是 super 类的派生类</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">pass</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Bar(Foo):
+    </span><span style="color: #0000ff;">pass</span><span style="color: #000000;">
+f1</span>=<span style="color: #000000;">Foo()
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(isinstance(f1,Foo))
+</span><span style="color: #0000ff;">print</span>(issubclass(Bar,Foo))</pre>
+</div>
+<h2>五、__getattribute__</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,x):
+        self.x</span>=<span style="color: #000000;">x
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__getattr__</span><span style="color: #000000;">(self, item):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行的是getattr</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__getattribute__</span><span style="color: #000000;">(self, item):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行的是getattribute</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">raise</span> AttributeError(<span style="color: #800000;">'</span><span style="color: #800000;">抛出异常了</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+f1</span>=Foo(11<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> f1.x</span>
+f1.xxxxxx  <span style="color: #008000;">#</span><span style="color: #008000;">不存在的属性访问，触发__getattr__</span></pre>
+</div>
+<h2>六、__setitem__,__getitem__,__delitem__</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__getitem__</span><span style="color: #000000;">(self, item):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">getitem</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> retun self.__dict__</span>
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__setitem__</span><span style="color: #000000;">(self, key, value):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">setitem</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.</span><span style="color: #800080;">__dict__</span>[key]=<span style="color: #000000;">value
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__delitem__</span><span style="color: #000000;">(self, key):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">delitem</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.</span><span style="color: #800080;">__dict__</span><span style="color: #000000;">.pop(key)
+
+
+f1</span>=<span style="color: #000000;">Foo()
+</span><span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__dict__</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> f1.name='simon'</span>
+f1[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>]=<span style="color: #800000;">'</span><span style="color: #800000;">simon</span><span style="color: #800000;">'</span><span style="color: #000000;">
+f1[</span><span style="color: #800000;">'</span><span style="color: #800000;">age</span><span style="color: #800000;">'</span>]=28
+
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">===========&gt;</span><span style="color: #800000;">'</span>,f1.<span style="color: #800080;">__dict__</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> del f1.name</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(f1.__dict__)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(f1.age)</span>
+<span style="color: #0000ff;">del</span> f1[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span><span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__dict__</span>)</pre>
+</div>
+<h2>七、__str__,__repr__</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">####str#######</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,age):
+        self.name</span>=<span style="color: #000000;">name
+        self.age</span>=<span style="color: #000000;">age
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__str__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">名字是【%s】 年龄是【%s】</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(self.name,self.age)
+f1</span>=Foo(<span style="color: #800000;">'</span><span style="color: #800000;">simon</span><span style="color: #800000;">'</span>,18<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(f1) <span style="color: #008000;">#</span><span style="color: #008000;">--str(f1)--&gt;f1.__str__()</span>
+x=<span style="color: #000000;">str(f1)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(x)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">#####repr######## ,当str与repr共存是，优先使用str</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,age):
+        self.name</span>=<span style="color: #000000;">name
+        self.age</span>=<span style="color: #000000;">age
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> def __str__(self):</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     return '这是str'</span>
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__repr__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">名字是【%s】 年龄是【%s】</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(self.name,self.age)
+f1</span>=Foo(<span style="color: #800000;">'</span><span style="color: #800000;">simon</span><span style="color: #800000;">'</span>,20<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">repr(f1) -----&gt;f1.__repr__()</span>
+<span style="color: #0000ff;">print</span>(f1) <span style="color: #008000;">#</span><span style="color: #008000;">str(f1) ----&gt;&gt; f1.__str__() ------&gt;f1.__repr__()</span></pre>
+</div>
+<p>备注：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #800000;">'''</span><span style="color: #800000;">
+str函数或者print函数---&gt;obj.__str__()
+repr或者交互式解释器---&gt;obj.__repr__()
+如果__str__没有被定义,那么就会使用__repr__来代替输出
+注意:这俩方法的返回值必须是字符串,否则抛出异常
+</span><span style="color: #800000;">'''</span></pre>
+</div>
+<h2>八、__format__</h2>
+<div class="cnblogs_code">
+<pre><code>format_dic=<span style="color: #000000;">{
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">ymd</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">{0.year}{0.mon}{0.day}</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">m-d-y</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">{0.mon}-{0.day}-{0.year}</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">y:m:d</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">{0.year}:{0.mon}:{0.day}</span><span style="color: #800000;">'</span><span style="color: #000000;">
+
+}
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Date:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,year,mon,day):
+        self.year</span>=<span style="color: #000000;">year
+        self.mon</span>=<span style="color: #000000;">mon
+        self.day</span>=<span style="color: #000000;">day
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__format__</span><span style="color: #000000;">(self, format_spec):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">我要执行啦</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">-------&gt;</span><span style="color: #800000;">'</span><span style="color: #000000;">,format_spec)
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> format_spec <span style="color: #0000ff;">or</span> format_spec <span style="color: #0000ff;">not</span> <span style="color: #0000ff;">in</span><span style="color: #000000;"> format_dic:
+            format_spec</span>=<span style="color: #800000;">'</span><span style="color: #800000;">ymd</span><span style="color: #800000;">'</span><span style="color: #000000;">
+        fm </span>=<span style="color: #000000;"> format_dic[format_spec]
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> fm.format(self)
+d1</span>=Date(2018,12,30<span style="color: #000000;">)
+format(d1) </span><span style="color: #008000;">#</span><span style="color: #008000;">d1.__format__()</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(format(d1))
+</span><span style="color: #0000ff;">print</span>(format(d1,<span style="color: #800000;">'</span><span style="color: #800000;">ymd</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(format(d1,<span style="color: #800000;">'</span><span style="color: #800000;">y:m:d</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(format(d1,<span style="color: #800000;">'</span><span style="color: #800000;">m-d-y</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(format(d1,<span style="color: #800000;">'</span><span style="color: #800000;">fsdrerewr</span><span style="color: #800000;">'</span>))</pre>
+</div>
+<h2>九、__slots__</h2>
+<div class="cnblogs_code">
+<pre><code>1.<span style="color: #800080;">__slots__是什么</span><span style="color: #000000;">:是一个类变量,变量值可以是列表,元祖,或者可迭代对象,也可以是一个字符串(意味着所有实例只有一个数据属性)
+</span>2<span style="color: #000000;">.引子:使用点来访问属性本质就是在访问类或者对象的__dict__属性字典(类的字典是共享的,而每个实例的是独立的)
+</span>3<span style="color: #000000;">.为何使用__slots__:字典会占用大量内存,如果你有一个属性很少的类,但是有很多实例,为了节省内存可以使用__slots__取代实例的__dict__
+当你定义__slots__后,</span><span style="color: #800080;">__slots__就会为实例使用一种更加紧凑的内部表示</span><span style="color: #000000;">。实例通过一个很小的固定大小的数组来构建,而不是为每个实例定义一个
+字典,这跟元组或列表很类似。在__slots__中列出的属性名在内部被映射到这个数组的指定小标上。使用__slots__一个不好的地方就是我们不能再给
+实例添加新的属性了,只能使用在__slots__中定义的那些属性名。
+</span>4.注意事项:<span style="color: #800080;">__slots__的很多特性都依赖于普通的基于字典的实现</span><span style="color: #000000;">。另外,定义了__slots__后的类不再 支持一些普通类特性了,比如多继承。大多数情况下,你应该
+只在那些经常被使用到 的用作数据结构的类上定义__slots__比如在程序中需要创建某个类的几百万个实例对象 。
+关于__slots__的一个常见误区是它可以作为一个封装工具来防止用户给实例增加新的属性。尽管使用__slots__可以达到这样的目的,但是这个并不是它的初衷。           更多的是用来作为一个内存优化工具。</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #800080;">__slots__</span>=[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">age</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+
+f1</span>=<span style="color: #000000;">Foo()
+f1.name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">alex</span><span style="color: #800000;">'</span><span style="color: #000000;">
+f1.age</span>=18
+<span style="color: #0000ff;">print</span>(f1.<span style="color: #800080;">__slots__</span><span style="color: #000000;">)
+
+f2</span>=<span style="color: #000000;">Foo()
+f2.name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span><span style="color: #000000;">
+f2.age</span>=19
+<span style="color: #0000ff;">print</span>(f2.<span style="color: #800080;">__slots__</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">print</span>(Foo.<span style="color: #800080;">__dict__</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">f1与f2都没有属性字典__dict__了,统一归__slots__管,节省内存</span></pre>
+</div>
+<h2>十、__doc__</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">我是描述信息</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">pass</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Bar(Foo):
+    </span><span style="color: #0000ff;">pass</span>
+<span style="color: #008000;">#</span><span style="color: #008000;"> print(Foo.__doc__) #该属性无法继承给子类</span>
+
+<span style="color: #0000ff;">print</span>(Bar.<span style="color: #800080;">__dict__</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Bar.<span style="color: #800080;">__doc__</span>) <span style="color: #008000;">#</span><span style="color: #008000;">该属性无法继承给子类</span></pre>
+</div>
+<h2>十一、__module__和__class__</h2>
+<p>__module__表示当前操作的对象在哪个模块</p>
+<p>&mdash;class__ 表示当前操作的对象的类是什么</p>
+<p>lib/simon.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">！/usr/bin/env python</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> _*_ coding:utf-8 _*_</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> C:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self):
+        self.name </span>= <span style="color: #800000;">'</span><span style="color: #800000;">simon</span><span style="color: #800000;">'</span>
+        </pre>
+</div>
+<p>aa.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> lib.simon <span style="color: #0000ff;">import</span><span style="color: #000000;"> C
+
+obj</span>=<span style="color: #000000;">C()
+</span><span style="color: #0000ff;">print</span>(obj.<span style="color: #800080;">__module__</span>) <span style="color: #008000;">#</span><span style="color: #008000;">输出 lib.simon,即：输出模块</span>
+<span style="color: #0000ff;">print</span>(obj.<span style="color: #800080;">__class__</span>)  <span style="color: #008000;">#</span><span style="color: #008000;">输出lib.simon.C,即：输出类</span></pre>
+</div>
+<h2>十二、__del__</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name):
+        self.name</span>=<span style="color: #000000;">name
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__del__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">我执行啦</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+f1</span>=Foo(<span style="color: #800000;">'</span><span style="color: #800000;">simon</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> del f1    #删除实例会触发__del__</span>
+<span style="color: #0000ff;">del</span> f1.name <span style="color: #008000;">#</span><span style="color: #008000;">删除实例的属性不会触发__del__</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">---------------------&gt;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">程序运行完毕会自动回收内存，触发__del__</span></pre>
+</div>
+<h2>十三、__call__</h2>
+<p>对象后面加括号，触发执行。</p>
+<p>注：构造方法的执行是由创建对象触发的，即：对象 = 类名() ；而对于 __call__ 方法的执行是由对象后加括号触发的，即：对象() 或者 类()()</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(self, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">实例执行啦　ｏｂｊ（）</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+f1</span>=<span style="color: #000000;">Foo()
+
+f1() </span><span style="color: #008000;">#</span><span style="color: #008000;">f1的类Foo 下的__call__</span>
+<span style="color: #000000;">
+Foo() </span><span style="color: #008000;">#</span><span style="color: #008000;">Foo的类 xxx下的__call__</span></pre>
+</div>
+<h2>十四、__next__和__iter__实现迭代器协议</h2>
+<p>1、迭代器协议是指：对象必须提供一个Next方法，执行该方法要么返回迭代中的下一项，要么就引起一个StopIteration异常，以终止迭代(只能往后走不能往前退)</p>
+<p>2、可迭代对象:实现了迭代器协议的对象（如何实现：对象内部定义一个__iter__()方法）</p>
+<p>3、协议是一种约定，可迭代对象实现了迭代器协议，python内部工具（如for循环，sum,min,max函数等）使用迭代器协议访问对象。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,n):
+        self.n</span>=<span style="color: #000000;">n
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__iter__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__next__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">if</span> self.n == 13<span style="color: #000000;">:
+            </span><span style="color: #0000ff;">raise</span> StopIteration(<span style="color: #800000;">'</span><span style="color: #800000;">终止了</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.n</span>+=1
+        <span style="color: #0000ff;">return</span><span style="color: #000000;"> self.n
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> l=list('simon')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> for i in l:</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(i)</span>
+<span style="color: #000000;">
+f1</span>=Foo(10<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> print(f1.__next__())</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(f1.__next__())</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> print(f1.__next__())</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> f1: <span style="color: #008000;">#</span><span style="color: #008000;">iter(f1)------------&gt;f1.__iter__()</span>
+    <span style="color: #0000ff;">print</span>(i)</pre>
+</div>
+<p>斐波那契数列：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Fib:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self):
+        self._a</span>=1<span style="color: #000000;">
+        self._b</span>=1
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__iter__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__next__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">if</span> self._a &gt; 100<span style="color: #000000;">:
+            </span><span style="color: #0000ff;">raise</span> StopIteration(<span style="color: #800000;">'</span><span style="color: #800000;">终止了</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self._a,self._b</span>=self._b,self._a +<span style="color: #000000;"> self._b
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self._a
+
+f1</span>=<span style="color: #000000;">Fib()
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(next(f1))
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(next(f1))
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(next(f1))
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(next(f1))
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(next(f1))
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">============================</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> f1:
+    </span><span style="color: #0000ff;">print</span>(i)</pre>
+</div>
+<h2>十五、描述符(_get_,_set_,_delete_)</h2>
+<h3>1、什么是描述符</h3>
+<p>描述符本质就是一个新式类，在这个新式类中，至少实现了__get__(),__set__(),__delete__()中的一个，这也被称为描述符协议</p>
+<p>__get__():调用一个属性时，触发</p>
+<p>__set__():为一个属性赋值时，触发</p>
+<p>__delete__():采用del删除属性时，触发</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__get__</span><span style="color: #000000;">(self, instance, owner):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">=====&gt;get方法</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__set__</span><span style="color: #000000;">(self, instance, value):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">=====&gt;set方法</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__delete__</span><span style="color: #000000;">(self, instance):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">=====&gt;delete方法</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Bar:
+    x</span>=Foo()  <span style="color: #008000;">#</span><span style="color: #008000;">在何地？</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">在何时</span>
+b1=<span style="color: #000000;">Bar()
+b1.x
+
+b1.x</span>=1
+
+<span style="color: #0000ff;">del</span><span style="color: #000000;"> b1.x
+f1</span>=<span style="color: #000000;">Foo()
+f1.name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">simon</span><span style="color: #800000;">'</span>
+<span style="color: #0000ff;">print</span>(f1.name)</pre>
+</div>
+<div class="cnblogs_code">
+<pre><code></pre>
+<pre><code><span>类属性&gt;数据描述符</span></pre>
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">描述符Str</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Str:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__get__</span><span style="color: #000000;">(self, instance, owner):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Str调用</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__set__</span><span style="color: #000000;">(self, instance, value):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Str设置...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__delete__</span><span style="color: #000000;">(self, instance):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Str删除...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> People:
+    name</span>=<span style="color: #000000;">Str()
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(self,name,age): <span style="color: #008000;">#</span><span style="color: #008000;">name被Str类代理,age被Int类代理,</span>
+        self.name=<span style="color: #000000;">name
+        self.age</span>=<span style="color: #000000;">age
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">基于上面的演示,我们已经知道,在一个类中定义描述符它就是一个类属性,存在于类的属性字典中,而不是实例的属性字典</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">那既然描述符被定义成了一个类属性,直接通过类名也一定可以调用吧,没错</span>
+People.name <span style="color: #008000;">#</span><span style="color: #008000;">恩,调用类属性name,本质就是在调用描述符Str,触发了__get__()</span>
+<span style="color: #000000;">
+People.name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span> <span style="color: #008000;">#</span><span style="color: #008000;">那赋值呢,我去,并没有触发__set__()</span>
+<span style="color: #0000ff;">del</span> People.name <span style="color: #008000;">#</span><span style="color: #008000;">赶紧试试del,我去,也没有触发__delete__()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">结论:描述符对类没有作用--------&gt;傻逼到家的结论</span>
+
+<span style="color: #800000;">'''</span><span style="color: #800000;">
+原因:描述符在使用时被定义成另外一个类的类属性,因而类属性比二次加工的描述符伪装而来的类属性有更高的优先级
+People.name #恩,调用类属性name,找不到就去找描述符伪装的类属性name,触发了__get__()
+
+People.name='egon' #那赋值呢,直接赋值了一个类属性,它拥有更高的优先级,相当于覆盖了描述符,肯定不会触发描述符的__set__()
+del People.name #同上
+</span><span style="color: #800000;">'''</span><span style="color: #000000;">
+<br /></span></pre>
+</div>
+<p>数据描述符&gt;实例属性</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">描述符Str</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Str:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__get__</span><span style="color: #000000;">(self, instance, owner):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Str调用</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__set__</span><span style="color: #000000;">(self, instance, value):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Str设置...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__delete__</span><span style="color: #000000;">(self, instance):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Str删除...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> People:
+    name</span>=<span style="color: #000000;">Str()
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(self,name,age): <span style="color: #008000;">#</span><span style="color: #008000;">name被Str类代理,age被Int类代理,</span>
+        self.name=<span style="color: #000000;">name
+        self.age</span>=<span style="color: #000000;">age
+
+
+p1</span>=People(<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span>,18<span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">如果描述符是一个数据描述符(即有__get__又有__set__),那么p1.name的调用与赋值都是触发描述符的操作,于p1本身无关了,相当于覆盖了实例的属性</span>
+p1.name=<span style="color: #800000;">'</span><span style="color: #800000;">egonnnnnn</span><span style="color: #800000;">'</span><span style="color: #000000;">
+p1.name
+</span><span style="color: #0000ff;">print</span>(p1.<span style="color: #800080;">__dict__</span>)<span style="color: #008000;">#</span><span style="color: #008000;">实例的属性字典中没有name,因为name是一个数据描述符,优先级高于实例属性,查看/赋值/删除都是跟描述符有关,与实例无关了</span>
+<span style="color: #0000ff;">del</span> p1.name</pre>
+</div>
+<p>实例属性&gt;非数据描述符</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> func(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">我胡汉三又回来了</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+f1</span>=<span style="color: #000000;">Foo()
+f1.func() </span><span style="color: #008000;">#</span><span style="color: #008000;">调用类的方法,也可以说是调用非数据描述符</span><span style="color: #008000;">
+#</span><span style="color: #008000;">函数是一个非数据描述符对象(一切皆对象么)</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(dir(Foo.func))
+</span><span style="color: #0000ff;">print</span>(hasattr(Foo.func,<span style="color: #800000;">'</span><span style="color: #800000;">__set__</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(hasattr(Foo.func,<span style="color: #800000;">'</span><span style="color: #800000;">__get__</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #0000ff;">print</span>(hasattr(Foo.func,<span style="color: #800000;">'</span><span style="color: #800000;">__delete__</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;">有人可能会问,描述符不都是类么,函数怎么算也应该是一个对象啊,怎么就是描述符了</span><span style="color: #008000;">
+#</span><span style="color: #008000;">笨蛋哥,描述符是类没问题,描述符在应用的时候不都是实例化成一个类属性么</span><span style="color: #008000;">
+#</span><span style="color: #008000;">函数就是一个由非描述符类实例化得到的对象</span><span style="color: #008000;">
+#</span><span style="color: #008000;">没错，字符串也一样</span>
+<span style="color: #000000;">
+
+f1.func</span>=<span style="color: #800000;">'</span><span style="color: #800000;">这是实例属性啊</span><span style="color: #800000;">'</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(f1.func)
+
+</span><span style="color: #0000ff;">del</span> f1.func <span style="color: #008000;">#</span><span style="color: #008000;">删掉了非数据</span>
+f1.func()</pre>
+</div>
+<p>再次验证：实例属性&gt;非数据描述符</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__set__</span><span style="color: #000000;">(self, instance, value):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">set</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__get__</span><span style="color: #000000;">(self, instance, owner):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">get</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Room:
+    name</span>=<span style="color: #000000;">Foo()
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,width,length):
+        self.name</span>=<span style="color: #000000;">name
+        self.width</span>=<span style="color: #000000;">width
+        self.length</span>=<span style="color: #000000;">length
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">name是一个数据描述符,因为name=Foo()而Foo实现了get和set方法,因而比实例属性有更高的优先级</span><span style="color: #008000;">
+#</span><span style="color: #008000;">对实例的属性操作,触发的都是描述符的</span>
+r1=Room(<span style="color: #800000;">'</span><span style="color: #800000;">厕所</span><span style="color: #800000;">'</span>,1,1<span style="color: #000000;">)
+r1.name
+r1.name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">厨房</span><span style="color: #800000;">'</span>
+
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__get__</span><span style="color: #000000;">(self, instance, owner):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">get</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Room:
+    name</span>=<span style="color: #000000;">Foo()
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,width,length):
+        self.name</span>=<span style="color: #000000;">name
+        self.width</span>=<span style="color: #000000;">width
+        self.length</span>=<span style="color: #000000;">length
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">name是一个非数据描述符,因为name=Foo()而Foo没有实现set方法,因而比实例属性有更低的优先级</span><span style="color: #008000;">
+#</span><span style="color: #008000;">对实例的属性操作,触发的都是实例自己的</span>
+r1=Room(<span style="color: #800000;">'</span><span style="color: #800000;">厕所</span><span style="color: #800000;">'</span>,1,1<span style="color: #000000;">)
+r1.name
+r1.name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">厨房</span><span style="color: #800000;">'</span></pre>
+</div>
+<p><strong>&nbsp;总结：</strong></p>
+<p><strong>1、描述符本身应该定义成新式类，被代理的类也应该是新式类</strong></p>
+<p><strong>2、必须把描述符定义成这个类的代理，不能为定义到构造函数中</strong></p>
+<p><strong>3、要严格遵循优先级，优先级由高到低分别</strong></p>
+<p>&nbsp;</p>
+<h2>十六、__enter__和__exit__</h2>
+<p>操作文件对象的时候：</p>
+<div class="cnblogs_code">
+<pre><code>with open(<span style="color: #800000;">'</span><span style="color: #800000;">text.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">代码块</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>上述叫做上下文管理协议，即with语句，为了让一个对象兼容with语句，必须在这个对象的类中声明__enter__和__exit__方法</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name):
+        self.name</span>=<span style="color: #000000;">name
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__enter__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行enter</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__exit__</span><span style="color: #000000;">(self, exc_type, exc_val, exc_tb):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行exit</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> f=Open('a.txt')</span>
+with Foo(<span style="color: #800000;">'</span><span style="color: #800000;">a.txt</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(f)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(f.name)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">00000000000000000000</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>上述代码分析：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Foo:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name):
+        self.name</span>=<span style="color: #000000;">name
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__enter__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行enter</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__exit__</span><span style="color: #000000;">(self, exc_type, exc_val, exc_tb):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行exit</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(exc_type)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(exc_val)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(exc_tb)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> True
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> f=Open('a.txt')</span>
+with Foo(<span style="color: #800000;">'</span><span style="color: #800000;">a.txt</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(f)
+    </span><span style="color: #0000ff;">print</span>(asfdreevergewafa)  <span style="color: #008000;">#</span><span style="color: #008000;">触发__exit__</span>
+    <span style="color: #0000ff;">print</span><span style="color: #000000;">(f.name)
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">00000000000000000000</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">with obj as f:</span>
+    <span style="color: #800000;">'</span><span style="color: #800000;">代码块</span><span style="color: #800000;">'</span>
+
+1、with obj ----&gt;&gt;触发obj.<span style="color: #800080;">__enter__</span><span style="color: #000000;">(),拿到返回值
+</span>2、as f---------&gt;f=<span style="color: #000000;">返回值、
+</span>3、with obj as f 等同于  f=obj.<span style="color: #800080;">__enter__</span><span style="color: #000000;">()
+</span>4<span style="color: #000000;">、执行代码块
+一：没有异常的情况下，整个代码块运行完毕后去触发__exit__,它的三个参数都为None
+二：有异常的情况下，从异常出现的位置直接触发__exit__
+    a: 如果__exit__的返回值为True，代表吞掉了异常
+    b: 如果__exit__的返回值不为True，代表了吐出了异常
+    c: </span><span style="color: #800080;">__exit__的运行完毕就代表了整个with语句的执行完毕</span></pre>
+</div>
+<p><strong>总结：</strong></p>
+<p>1.使用with语句的目的就是把代码块放入with中执行，with结束后，自动完成清理工作，无须手动干预</p>
+<p>2.在需要管理一些资源比如文件，网络连接和锁的编程环境中，可以在__exit__中定制自动释放资源的机制，你无须再去关系这个问题，这将大有用处</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

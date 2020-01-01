@@ -1,0 +1,89 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python光标图片获取' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python光标图片获取</center></div><div class='banquan'>原文出处:本文由博客园博主墨水熊提供。<br/>
+原文连接:https://www.cnblogs.com/moshuixiong/p/11543257.html</div><br>
+    <div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*- coding:utf-8 -*-</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;">  win32api
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> win32gui,win32ui
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+
+
+
+
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True :
+    time.sleep(</span>1)<span style="color: #008000;">#</span><span style="color: #008000;">等待一秒</span>
+    ci = win32gui.GetCursorInfo() <span style="color: #008000;">#</span><span style="color: #008000;">获取光标信息</span>
+
+    <span style="color: #0000ff;">print</span> <span style="color: #800000;">'</span><span style="color: #800000;">包含光标类型，句柄，坐标</span><span style="color: #800000;">'</span>+str(ci) <span style="color: #008000;">#</span><span style="color: #008000;">包含光标类型，句柄，坐标</span>
+    <span style="color: #0000ff;">print</span> <span style="color: #800000;">'</span><span style="color: #800000;">GetCursor获取的句柄</span><span style="color: #800000;">'</span>+str(win32gui.GetCursor())<span style="color: #008000;">#</span><span style="color: #008000;">win32gui.GetCursor()也为获取光标句柄 但和GetCursorInfo获取的句柄并不相同，不清楚为什么?</span>
+
+    <span style="color: #0000ff;">if</span>(ci [1]==0):<span style="color: #008000;">#</span><span style="color: #008000;">在某些时候光标会被游戏或程序隐藏，因此报错</span>
+        <span style="color: #0000ff;">print</span> <span style="color: #800000;">"</span><span style="color: #800000;">光标消失</span><span style="color: #800000;">"</span>
+        <span style="color: #0000ff;">continue</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;">-----------------------------------------------作废</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">e=win32gui.SetCursor(ci[1])#更改光标 返回旧光标句柄类型</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">print type(e)</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">if (e == 0):</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">print "光标消失"</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">continue</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">---------------------------------------------作废</span>
+    ii=win32gui.GetIconInfo(ci[1])<span style="color: #008000;">#</span><span style="color: #008000;">返回光标的图像信息，注意：参数不可为win32gui.GetCursor()得到的句柄，不然热点读取出错，why？</span>
+    <span style="color: #0000ff;">print</span> <span style="color: #800000;">'</span><span style="color: #800000;">光标参数</span><span style="color: #800000;">'</span>+str(ii) <span style="color: #008000;">#</span><span style="color: #008000;">光标类型，热点坐标x，y，黑白位图，彩色位图</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">我想用彩色位图导出bmp图片并不成功，在c++将位图放入Cimg.Attach里很轻松就能save搞定</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">然后我并不清楚python内是否有可以使用的方法，pil里面是没找到</span>
+    bm = win32gui.GetObject(ii[3])<span style="color: #008000;">#</span><span style="color: #008000;">返回PyBITMAP类型 可以获得光标尺寸，注意，这里最好放入黑白位图来获取，放入彩色位图可能导致单色光标报错</span>
+    <span style="color: #0000ff;">print</span> <span style="color: #800000;">'</span><span style="color: #800000;">高</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> str(bm.bmHeight)
+    </span><span style="color: #0000ff;">print</span> <span style="color: #800000;">'</span><span style="color: #800000;">宽</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> str(bm.bmWidth)
+
+    gdc</span>=win32gui.GetDC(0)<span style="color: #008000;">#</span><span style="color: #008000;">使指定上下文0中提取出一个句柄，记得释放 0也应该表示整个屏幕</span>
+    hdc = win32ui.CreateDCFromHandle(gdc)<span style="color: #008000;">#</span><span style="color: #008000;">依据其句柄创造出一个DC对象</span>
+    hbmp = win32ui.CreateBitmap()<span style="color: #008000;">#</span><span style="color: #008000;">创建一个新位图</span>
+    hbmp.CreateCompatibleBitmap(hdc,bm.bmWidth, bm.bmHeight)<span style="color: #008000;">#</span><span style="color: #008000;">设置位图 使其与上下文兼容以及图片的大小</span>
+    hdc = hdc.CreateCompatibleDC()<span style="color: #008000;">#</span><span style="color: #008000;">建立一个与屏幕兼容的DC</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> CreateCompatibleDC相当于在内存开辟一块地方，将屏幕或窗口复制进来，再对其操作，待操作完成后</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">再复制回屏幕，完成对屏幕的刷新</span>
+    hdc.SelectObject(hbmp)<span style="color: #008000;">#</span><span style="color: #008000;">将位图放入上下文中，就可以对位图进行编辑了</span>
+<span style="color: #000000;">
+    win32gui.DrawIconEx(hdc.GetHandleOutput(), 0, 0, ci[</span>1], bm.bmWidth, bm.bmHeight, 0, None,2)<span style="color: #008000;">#</span><span style="color: #008000;">图标大小</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">DrawIconEx 绘制位图放入到指定的上下文中</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">hdc.GetHandleOutput()返回上下文句柄</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">参数（需要放入的上下文句柄，x坐标，y坐标，需要放入的光标句柄，光标的高，光标的宽，动画光标取第几帧，背景画笔（可以是空），绘图类型int）</span>
+    bitmapbits = hbmp.GetBitmapBits(True)<span style="color: #008000;">#</span><span style="color: #008000;">将该图片转换为字符串</span>
+
+    <span style="color: #0000ff;">print</span><span style="color: #000000;"> bitmapbits
+    hbmp.SaveBitmapFile(hdc, </span><span style="color: #800000;">'</span><span style="color: #800000;">scre99t.bmp</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">将位图保存为图片，注意这里只能放dc</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;">资源释放</span>
+    win32gui.ReleaseDC(0, gdc)<span style="color: #008000;">#</span><span style="color: #008000;">释放上下文 参数（窗口句柄，上下文句柄）</span>
+<span style="color: #000000;">    hdc.DeleteDC()
+    win32gui.DeleteObject(hbmp.GetHandle())</span></pre>
+</div>
+<p>&nbsp;</p>
+<pre><code><br /><br /><br />真累 python还是不适合做c++的活 而且pywin32在网上例子太少，还是去国外翻出个例子，模模糊糊的算是了解了上下文，句柄的关系了</pre>
+<p>但是这里还有几点疑问</p>
+<p>1，win32gui.GetIconInfo包含黑白位图与彩色位图 ，他们为什么在不停地变化？</p>
+<p>2，win32gui.GetCursor()和GetCursorInfo()获取的句柄为啥不一样，且GetCursor()的句柄无法显示出热点</p>
+<p>3，win32gui.GetIconInfo的位图是否可以直接保存为bmp，在c++中就有方法，可python并没有找到</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

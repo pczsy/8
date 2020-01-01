@@ -1,0 +1,99 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【Python3爬虫】当爬虫碰到表单提交，有点意思' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【Python3爬虫】当爬虫碰到表单提交，有点意思</center></div><div class='banquan'>原文出处:本文由博客园博主TM0831提供。<br/>
+原文连接:https://www.cnblogs.com/TM0831/p/11273050.html</div><br>
+    <h2>一、写在前面</h2>
+<p>　　我写爬虫已经写了一段时间了，对于那些使用GET请求或者POST请求的网页，爬取的时候都还算得心应手。不过最近遇到了一个有趣的网站，虽然爬取的难度不大，不过因为表单提交的存在，所以一开始还是有点摸不着头脑。至于最后怎么解决的，请慢慢往下看。</p>
+<p>&nbsp;</p>
+<h2>二、页面分析</h2>
+<p>　　这次爬取的网站是：<a href="https://www.ctic.org/crm?tdsourcetag=s_pctim_aiomsg">https://www.ctic.org/crm?tdsourcetag=s_pctim_aiomsg</a>，该网站提供了美国的一些农田管理的数据。要查看具体的数据，需要选择年份、单位、地区、作物种类等，如下图：</p>
+<p><img src="./images/【Python3爬虫】当爬虫碰到表单提交，有点意思0.png" alt="" /></p>
+<p>　　根据以往的经验，这种表单提交都是通过ajax来完成的，所以熟练地按F12打开开发者工具，选择XHR选项，然后点击&ldquo;View Summary&rdquo;，结果却什么都没有......</p>
+<p><img src="./images/【Python3爬虫】当爬虫碰到表单提交，有点意思1.png" alt="" /></p>
+<p>　　这是怎么回事？不急，切换到All看一下有没有什么可疑的东西。果然就找到了下面这个，可以看到在Form Data中包含了很多参数，而且可以很明显看出来是一些年份、地区等信息，这就是表单提交的内容:</p>
+<p><img src="./images/【Python3爬虫】当爬虫碰到表单提交，有点意思2.png" alt="" /></p>
+<p>　　可以注意到在这些参数中有一个_csrf，很明显是一个加密参数，那么要怎么得到这个参数呢？返回填写表单的网页，在开发者工具中切换到Elements，然后搜索_csrf看看，很快就找到了如下信息：</p>
+<p><img src="./images/【Python3爬虫】当爬虫碰到表单提交，有点意思3.png" alt="" /></p>
+<p>　　其余参数都是表单中所选择的内容，只要对应填写就行了。不过这个请求返回的状态码是302，为什么会是302呢？302状态码的使用场景是请求的资源暂时驻留在不同的URI下，因此还需要继续寻找。</p>
+<p><img src="./images/【Python3爬虫】当爬虫碰到表单提交，有点意思4.png" alt="" /></p>
+<p>　　通过进一步查找可知，最终的URL是：https://www.ctic.org/crm/?action=result。</p>
+<p>　　</p>
+<h2>三、主要步骤&nbsp;</h2>
+<h3>1.爬取郡县信息</h3>
+<p>　　可以看到表单中包含了地区、州、郡县选项，在填写表单的时候，这一部分都是通过JS来实现的。打开开发者工具，然后在页面上点选County，选择Region和State，就能在开发者工具中找到相应的请求。主要有两个请求，如下：</p>
+<blockquote>
+<p><span style="font-size: 16px;">https://www.ctic.org/admin/custom/crm/getstates/</span></p>
+<p><span style="font-size: 16px;">https://www.ctic.org/admin/custom/crm/getcounties/</span></p>
+</blockquote>
+<p>　　这两个请求返回的结果格式如下图：</p>
+<p><img src="./images/【Python3爬虫】当爬虫碰到表单提交，有点意思5.png" alt="" /></p>
+<p>　　这里可以使用正则匹配，也可以使用lxml来解析，我选择使用后者。示例代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">from</span> lxml <span style="color: #0000ff;">import</span><span style="color: #000000;"> etree
+</span><span style="color: #008080;">2</span> 
+<span style="color: #008080;">3</span> 
+<span style="color: #008080;">4</span> html = <span style="color: #800000;">'</span><span style="color: #800000;">"&lt;option  value=\"Autauga\"&gt;Autauga&lt;\/option&gt;&lt;option  value=\"Baldwin\"&gt;Baldwin&lt;\/option&gt;&lt;option  value=\"Barbour\"&gt;Barbour&lt;\/option&gt;&lt;option  value=\"Bibb\"&gt;Bibb&lt;\/option&gt;&lt;option  value=\"Blount\"&gt;Blount&lt;\/option&gt;&lt;option  value=\"Bullock\"&gt;Bullock&lt;\/option&gt;&lt;option  value=\"Butler\"&gt;Butler&lt;\/option&gt;&lt;option  value=\"Calhoun\"&gt;Calhoun&lt;\/option&gt;&lt;option  value=\"Chambers\"&gt;Chambers&lt;\/option&gt;&lt;option  value=\"Cherokee\"&gt;Cherokee&lt;\/option&gt;&lt;option  value=\"Chilton\"&gt;Chilton&lt;\/option&gt;&lt;option  value=\"Choctaw\"&gt;Choctaw&lt;\/option&gt;&lt;option  value=\"Clarke\"&gt;Clarke&lt;\/option&gt;&lt;option  value=\"Clay\"&gt;Clay&lt;\/option&gt;&lt;option  value=\"Cleburne\"&gt;Cleburne&lt;\/option&gt;&lt;option  value=\"Coffee\"&gt;Coffee&lt;\/option&gt;&lt;option  value=\"Colbert\"&gt;Colbert&lt;\/option&gt;&lt;option  value=\"Conecuh\"&gt;Conecuh&lt;\/option&gt;&lt;option  value=\"Coosa\"&gt;Coosa&lt;\/option&gt;&lt;option  value=\"Covington\"&gt;Covington&lt;\/option&gt;&lt;option  value=\"Crenshaw\"&gt;Crenshaw&lt;\/option&gt;&lt;option  value=\"Cullman\"&gt;Cullman&lt;\/option&gt;&lt;option  value=\"Dale\"&gt;Dale&lt;\/option&gt;&lt;option  value=\"Dallas\"&gt;Dallas&lt;\/option&gt;&lt;option  value=\"Dekalb\"&gt;Dekalb&lt;\/option&gt;&lt;option  value=\"Elmore\"&gt;Elmore&lt;\/option&gt;&lt;option  value=\"Escambia\"&gt;Escambia&lt;\/option&gt;&lt;option  value=\"Etowah\"&gt;Etowah&lt;\/option&gt;&lt;option  value=\"Fayette\"&gt;Fayette&lt;\/option&gt;&lt;option  value=\"Franklin\"&gt;Franklin&lt;\/option&gt;&lt;option  value=\"Geneva\"&gt;Geneva&lt;\/option&gt;&lt;option  value=\"Greene\"&gt;Greene&lt;\/option&gt;&lt;option  value=\"Hale\"&gt;Hale&lt;\/option&gt;&lt;option  value=\"Henry\"&gt;Henry&lt;\/option&gt;&lt;option  value=\"Houston\"&gt;Houston&lt;\/option&gt;&lt;option  value=\"Jackson\"&gt;Jackson&lt;\/option&gt;&lt;option  value=\"Jefferson\"&gt;Jefferson&lt;\/option&gt;&lt;option  value=\"Lamar\"&gt;Lamar&lt;\/option&gt;&lt;option  value=\"Lauderdale\"&gt;Lauderdale&lt;\/option&gt;&lt;option  value=\"Lawrence\"&gt;Lawrence&lt;\/option&gt;&lt;option  value=\"Lee\"&gt;Lee&lt;\/option&gt;&lt;option  value=\"Limestone\"&gt;Limestone&lt;\/option&gt;&lt;option  value=\"Lowndes\"&gt;Lowndes&lt;\/option&gt;&lt;option  value=\"Macon\"&gt;Macon&lt;\/option&gt;&lt;option  value=\"Madison\"&gt;Madison&lt;\/option&gt;&lt;option  value=\"Marengo\"&gt;Marengo&lt;\/option&gt;&lt;option  value=\"Marion\"&gt;Marion&lt;\/option&gt;&lt;option  value=\"Marshall\"&gt;Marshall&lt;\/option&gt;&lt;option  value=\"Mobile\"&gt;Mobile&lt;\/option&gt;&lt;option  value=\"Monroe\"&gt;Monroe&lt;\/option&gt;&lt;option  value=\"Montgomery\"&gt;Montgomery&lt;\/option&gt;&lt;option  value=\"Morgan\"&gt;Morgan&lt;\/option&gt;&lt;option  value=\"Perry\"&gt;Perry&lt;\/option&gt;&lt;option  value=\"Pickens\"&gt;Pickens&lt;\/option&gt;&lt;option  value=\"Pike\"&gt;Pike&lt;\/option&gt;&lt;option  value=\"Randolph\"&gt;Randolph&lt;\/option&gt;&lt;option  value=\"Russell\"&gt;Russell&lt;\/option&gt;&lt;option  value=\"Shelby\"&gt;Shelby&lt;\/option&gt;&lt;option  value=\"St Clair\"&gt;St Clair&lt;\/option&gt;&lt;option  value=\"Sumter\"&gt;Sumter&lt;\/option&gt;&lt;option  value=\"Talladega\"&gt;Talladega&lt;\/option&gt;&lt;option  value=\"Tallapoosa\"&gt;Tallapoosa&lt;\/option&gt;&lt;option  value=\"Tuscaloosa\"&gt;Tuscaloosa&lt;\/option&gt;&lt;option  value=\"Walker\"&gt;Walker&lt;\/option&gt;&lt;option  value=\"Washington\"&gt;Washington&lt;\/option&gt;&lt;option  value=\"Wilcox\"&gt;Wilcox&lt;\/option&gt;&lt;option  value=\"Winston\"&gt;Winston&lt;\/option&gt;"</span><span style="color: #800000;">'</span>
+<span style="color: #008080;">5</span> et =<span style="color: #000000;"> etree.HTML(html)
+</span><span style="color: #008080;">6</span> result = et.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//option/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">7</span> result = [i.rstrip(<span style="color: #800000;">'</span><span style="color: #800000;">"</span><span style="color: #800000;">'</span>) <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> result]
+</span><span style="color: #008080;">8</span> <span style="color: #0000ff;">print</span>(result)</pre>
+</div>
+<p>　　上面代码输出的结果为：</p>
+<blockquote>
+<p><span style="font-size: 16px;">['Autauga', 'Baldwin', 'Barbour', 'Bibb', 'Blount', 'Bullock', 'Butler', 'Calhoun', 'Chambers', 'Cherokee', 'Chilton', 'Choctaw', 'Clarke', 'Clay', 'Cleburne', 'Coffee', 'Colbert', 'Conecuh', 'Coosa', 'Covington', 'Crenshaw', 'Cullman', 'Dale', 'Dallas', 'Dekalb', 'Elmore', 'Escambia', 'Etowah', 'Fayette', 'Franklin', 'Geneva', 'Greene', 'Hale', 'Henry', 'Houston', 'Jackson', 'Jefferson', 'Lamar', 'Lauderdale', 'Lawrence', 'Lee', 'Limestone', 'Lowndes', 'Macon', 'Madison', 'Marengo', 'Marion', 'Marshall', 'Mobile', 'Monroe', 'Montgomery', 'Morgan', 'Perry', 'Pickens', 'Pike', 'Randolph', 'Russell', 'Shelby', 'St Clair', 'Sumter', 'Talladega', 'Tallapoosa', 'Tuscaloosa', 'Walker', 'Washington', 'Wilcox', 'Winston']</span></p>
+</blockquote>
+<p>　　获取所有郡县信息的思路为分别选择四个地区，然后遍历每个地区下面的州，再遍历每个州所包含的郡县，最终得到所有郡县信息。</p>
+<h3>2.爬取农田数据</h3>
+<p>&nbsp;　　在得到郡县信息之后，就可以构造获取农田数据的请求所需要的参数了。在获取农田数据之前，需要向服务器发送一个提交表单的请求，不然是得不到数据的。在我测试的时候，发送提交表单的请求的时候，返回的状态码并不是302，不过这并不影响之后的操作，所以可以忽略掉。</p>
+<p>　　需要注意的是，参数中是有一个年份信息的，前面我一直是默认用的2011，不过要爬取更多信息的话，还需要改变这个年份信息。而通过选择页面元素可以知道，这个网站提供了16个年份的农田数据信息，这16个年份为：</p>
+<blockquote>
+<pre><code><span style="font-size: 16px;">[1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,2002,2004,2006,2007,2008,2011]</span></pre>
+</blockquote>
+<p>　　得到这些年份信息之后，就可以和前面的郡县信息进行排列组合得到所有提交表单的请求所需要的参数。说道排列组合，一般会用for循环来实现，不过这里推荐一种方法，就是使用itertools.product，使用示例如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">from</span> itertools <span style="color: #0000ff;">import</span><span style="color: #000000;"> product
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> a = [1, 2, 3<span style="color: #000000;">]
+</span><span style="color: #008080;"> 4</span> b = [2, 4<span style="color: #000000;">]
+</span><span style="color: #008080;"> 5</span> result =<span style="color: #000000;"> product(a, b)
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> result:
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">print</span>(i, end=<span style="color: #800000;">"</span> <span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> <span style="color: #008000;">#</span><span style="color: #008000;"> (1, 2) (1, 4) (2, 2) (2, 4) (3, 2) (3, 4) </span></pre>
+</div>
+<p>　　下面是农田数据的部分截图，其中包含了很多种类的作物，还有对应的耕地面积信息，不过在这个表中有些我们不需要的信息，比如耕地面积总量信息，还有空白行，这都是干扰数据，在解析的时候要清洗掉。</p>
+<p><img src="./images/【Python3爬虫】当爬虫碰到表单提交，有点意思6.png" alt="" /></p>
+<p>　　解析农田数据部分的代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;">1</span> et =<span style="color: #000000;"> etree.HTML(html)
+</span><span style="color: #008080;">2</span> crop_list = et.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//*[@id="crm_results_eight"]/tbody/tr/td[1]/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)  # 作物名称
+</span><span style="color: #008080;">3</span> area_list = et.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//*[@id="crm_results_eight"]/tbody/tr/td[2]/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)  # 耕地面积
+</span><span style="color: #008080;">4</span> conservation_list = et.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//*[@id="crm_results_eight"]/tbody/tr/td[6]/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)  # 受保护耕地面积
+</span><span style="color: #008080;">5</span> crop_list = crop_list[:-3<span style="color: #000000;">]
+</span><span style="color: #008080;">6</span> area_list = area_list[:-3<span style="color: #000000;">]
+</span><span style="color: #008080;">7</span> conservation_list = conservation_list[:-3]</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt;">&nbsp;完整代码已上传到<a href="https://github.com/TM0831/Spiders/tree/master/CRMSpider" target="_blank">GitHub</a>！</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

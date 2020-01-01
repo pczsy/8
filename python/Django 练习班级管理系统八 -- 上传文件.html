@@ -1,0 +1,290 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django 练习班级管理系统八 -- 上传文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django 练习班级管理系统八 -- 上传文件</center></div><div class='banquan'>原文出处:本文由博客园博主klvchen提供。<br/>
+原文连接:https://www.cnblogs.com/klvchen/p/11169565.html</div><br>
+    <h1 id="form表单上传文件">Form表单上传文件</h1>
+<p>修改 views.py</p>
+<pre><code><code>import os
+
+
+def upload(request):
+    if request.method == &#39;GET&#39;:
+        img_list = models.Img.objects.all()
+        return render(request, &#39;upload.html&#39;, {&#39;img_list&#39;: img_list})
+    elif request.method == &#39;POST&#39;:
+        name = request.POST.get(&#39;user&#39;)
+        obj = request.FILES.get(&#39;fafafa&#39;)
+
+        # 保存上传的文件
+        file_path = os.path.join(&#39;static&#39;, &#39;upload&#39;, obj.name)
+        f = open(file_path, &#39;wb&#39;)
+        for chunk in obj.chunks():
+            f.write(chunk)
+        f.close()
+
+        models.Img.objects.create(path=file_path)
+
+        # 返回并刷新页面
+        return redirect(&#39;upload.html&#39;)
+</code></pre>
+<p>修改 models.py</p>
+<pre><code><code>class Img(models.Model):
+    path = models.CharField(max_length=128)</code></pre>
+<p>在 templates 下添加 upload.html 文件，内容如下</p>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;form method=&quot;post&quot; action=&quot;/upload.html&quot; enctype=&quot;multipart/form-data&quot;&gt;
+        &lt;input type=&quot;text&quot; name=&quot;user&quot; /&gt;
+        &lt;input type=&quot;file&quot; name=&quot;fafafa&quot; /&gt;
+        &lt;input type=&quot;submit&quot; value=&quot;提交&quot; /&gt;
+    &lt;/form&gt;
+
+    &lt;div&gt;
+        {% for item in img_list %}
+            &lt;img style=&quot;height: 200px; width: 200px;&quot; src=&quot;/{{ item.path }}&quot;&gt;
+        {% endfor %}
+    &lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>修改 urls.py</p>
+<pre><code><code># 添加 
+re_path(&#39;upload.html&#39;, views.upload),</code></pre>
+<p>重新生成数据库</p>
+<pre><code><code>python manage.py makemigrations
+python manage.py migrate</code></pre>
+<p><img src="./images/Django 练习班级管理系统八 -- 上传文件0.png" /><br />
+<img src="./images/Django 练习班级管理系统八 -- 上传文件1.png" /></p>
+<h1 id="ajax-上传文件">Ajax 上传文件</h1>
+<p>修改 upload.html 文件</p>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        .container img{
+            width: 200px;
+            height: 200px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;container&quot; id=&quot;imgs&quot;&gt;
+        {% for img in img_list %}
+            &lt;img src=&quot;/{{ img.path }}&quot;&gt;
+        {% endfor %}
+
+    &lt;/div&gt;
+    &lt;input type=&quot;file&quot; id=&quot;img&quot; /&gt;
+    &lt;input type=&quot;button&quot; value=&quot;提交XML&quot; onclick=&quot;UploadXML()&quot; /&gt;
+    &lt;input type=&quot;button&quot; value=&quot;提交JQ&quot; onclick=&quot;Uploadjq()&quot; /&gt;
+
+&lt;script src=&quot;/static/jquery.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+    function UploadXML() {
+        var dic = new FormData();             // 通过FormData构造函数创建一个空对象
+        dic.append(&#39;user&#39;, &#39;v1&#39;);             // 通过append()方法在末尾追加 key 为 user 值为 v1 的数据
+        dic.append(&#39;fafafa&#39;, document.getElementById(&#39;img&#39;).files[0]);
+
+        var xml = new XMLHttpRequest();
+        xml.open(&#39;post&#39;, &#39;/upload.html&#39;, true); // 参数说明: 请求方式；请求路径；是否异步处理，true为异步
+        xml.onreadystatechange = function () {  // readyState 改变时触发
+            if(xml.readyState == 4){            // xml.readyState: XMLHttpRequest对象的状态，等于4表示数据已经接收完毕。
+                var obj = JSON.parse(xml.responseText);   // responseText 服务器接收到的响应体（不包括头部）
+                if(obj.status){
+                    var img = document.createElement(&#39;img&#39;);  // 创建一个元素
+                    img.src = &quot;/&quot;+obj.path;
+                    document.getElementById(&#39;imgs&#39;).appendChild(img);
+                }
+            }
+
+        };
+        xml.send(dic);  // 发送 HTTP 请求，使用传递给 open() 方法的参数，以及传递给该方法的可选请求体。
+    }
+
+    function Uploadjq() {
+        var dic = new FormData();
+        dic.append(&#39;user&#39;, &#39;v1&#39;);
+        dic.append(&#39;fafafa&#39;, document.getElementById(&#39;img&#39;).files[0]);
+        
+        $.ajax({
+            url: &#39;upload.html&#39;,
+            type: &#39;POST&#39;,
+            data: dic,
+            processData: false,            // jQuery不要去处理发送的数据
+            contentType: false,            // jQuery不要去设置Content-Type请求头
+            dataType: &#39;JSON&#39;,
+            success: function (arg) {   // 响应的数据是 arg
+                if(arg.status){
+                    var img = document.createElement(&#39;img&#39;);
+                    img.src = &quot;/&quot; + arg.path;
+                    $(&#39;#imgs&#39;).append(img);
+                }
+            }
+        })
+
+    }
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>修改 views.py 文件</p>
+<pre><code><code>import os
+import json
+
+
+def upload(request):
+    if request.method == &#39;GET&#39;:
+        img_list = models.Img.objects.all()
+        return render(request, &#39;upload.html&#39;, {&#39;img_list&#39;: img_list})
+    elif request.method == &#39;POST&#39;:
+        user = request.POST.get(&#39;user&#39;)
+        obj = request.FILES.get(&#39;fafafa&#39;)
+
+        file_path = os.path.join(&#39;static&#39;, &#39;upload&#39;, obj.name)
+        f = open(file_path, &#39;wb&#39;)
+        for chunk in obj.chunks():
+            f.write(chunk)
+        f.close()
+
+        models.Img.objects.create(path=file_path)
+        ret = {&#39;status&#39;: True, &#39;path&#39;: file_path}             # 返回响应数据是字典
+
+        return HttpResponse(json.dumps(ret))
+</code></pre>
+<p><img src="./images/Django 练习班级管理系统八 -- 上传文件2.png" /></p>
+<h1 id="基于iframe实现form上传文件">基于iframe实现form上传文件</h1>
+<p>修改 upload.html</p>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        .container img{
+            width: 200px;
+            height: 200px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!--
+    &lt;h1&gt;测试Iframe功能&lt;/h1&gt;
+    &lt;input type=&quot;text&quot; id=&quot;url&quot; /&gt;
+    &lt;input type=&quot;button&quot; value=&quot;点我&quot; onclick=&quot;iframeChange();&quot; /&gt;
+    &lt;iframe id=&quot;ifr&quot; src=&quot;&quot;&gt;&lt;/iframe&gt;
+    &lt;hr/&gt;
+    --&gt;
+    &lt;h1&gt;基于iframe实现form提交&lt;/h1&gt;
+    &lt;!-- 表单提交的 target 为 iframe_2 --&gt;
+    &lt;form action=&quot;/upload.html&quot; method=&quot;post&quot; target=&quot;iframe_2&quot; enctype=&quot;multipart/form-data&quot;&gt;
+        &lt;!-- onload 事件的用处: 当页面载入完毕后执行Javascript代码 --&gt;
+        &lt;iframe style=&quot;display: none&quot; id=&quot;iframe_1&quot; name=&quot;iframe_2&quot; src=&quot;&quot; onload=&quot;loadIframe();&quot;&gt;&lt;/iframe&gt;
+        &lt;input type=&quot;text&quot; name=&quot;user&quot; /&gt;
+        &lt;input type=&quot;file&quot; name=&quot;fafafa&quot; /&gt;
+        &lt;input type=&quot;submit&quot; /&gt;
+    &lt;/form&gt;
+
+    &lt;div class=&quot;container&quot; id=&quot;imgs&quot;&gt;
+        {% for img in img_list %}
+            &lt;img src=&quot;/{{ img.path }}&quot;&gt;
+        {% endfor %}
+
+    &lt;/div&gt;
+    &lt;input type=&quot;file&quot; id=&quot;img&quot; /&gt;
+    &lt;input type=&quot;button&quot; value=&quot;提交XML&quot; onclick=&quot;UploadXML()&quot; /&gt;
+    &lt;input type=&quot;button&quot; value=&quot;提交JQ&quot; onclick=&quot;Uploadjq()&quot; /&gt;
+
+&lt;script src=&quot;/static/jquery.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+    function UploadXML() {
+        var dic = new FormData();
+        dic.append(&#39;user&#39;, &#39;v1&#39;);
+        dic.append(&#39;fafafa&#39;, document.getElementById(&#39;img&#39;).files[0]);
+
+        var xml = new XMLHttpRequest();
+        xml.open(&#39;post&#39;, &#39;/upload.html&#39;, true);
+        xml.onreadystatechange = function () {
+            if(xml.readyState == 4){
+                var obj = JSON.parse(xml.responseText);
+                if(obj.status){
+                    var img = document.createElement(&#39;img&#39;);
+                    img.src = &quot;/&quot;+obj.path;
+                    document.getElementById(&#39;imgs&#39;).appendChild(img);
+                }
+            }
+
+        };
+        xml.send(dic);
+    }
+    
+    function Uploadjq() {
+        var dic = new FormData();
+        dic.append(&#39;user&#39;, &#39;v1&#39;);
+        dic.append(&#39;fafafa&#39;, document.getElementById(&#39;img&#39;).files[0]);
+        
+        $.ajax({
+            url: &#39;upload.html&#39;,
+            type: &#39;POST&#39;,
+            data: dic,
+            processData: false,
+            contentType: false,
+            dataType: &#39;JSON&#39;,
+            success: function (arg) {
+                if(arg.status){
+                    var img = document.createElement(&#39;img&#39;);
+                    img.src = &quot;/&quot; + arg.path;
+                    $(&#39;#imgs&#39;).append(img);
+                }
+            }
+        })
+
+    }
+    
+    function iframeChange() {
+        var url = $(&#39;#url&#39;).val();
+        $(&#39;#ifr&#39;).attr(&#39;src&#39;, url);
+    }
+
+    function loadIframe() {
+        var str_json = $(&#39;#iframe_1&#39;).contents().find(&#39;body&#39;).text(); //根据view.py 的定义，服务端返回的内容为：{&quot;status&quot;: true, &quot;path&quot;: &quot;static\\upload\\1.png&quot;}
+        var obj = JSON.parse(str_json);
+        if (obj.status){
+            var img = document.createElement(&#39;img&#39;);
+            img.src = &quot;/&quot; + obj.path;
+            $(&#39;#imgs&#39;).append(img);
+        }
+    }
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p><img src="./images/Django 练习班级管理系统八 -- 上传文件3.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

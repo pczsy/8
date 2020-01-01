@@ -1,0 +1,323 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看</center></div><div class='banquan'>原文出处:本文由博客园博主北京-宏哥提供。<br/>
+原文连接:https://www.cnblogs.com/du-hong/p/12058673.html</div><br>
+    <h3>1. 简介</h3>
+<p>&nbsp;　　上一篇介绍了自动化框架的架构，今天宏哥就带领小伙伴或者童鞋们开始开工往这个框架里开始添砖加瓦。主要是介绍一个框架unittest单元测试框架和一种设计思想POM。</p>
+<h3 class="title-article">2. unittest单元测试框架</h3>
+<p>前面文章已经简单介绍了一些关于自动化测试框架的介绍，知道了什么是自动化测试框架，主要有哪些特点，基本组成部分等。在继续介绍框架设计之前，我们先来学习一个工具，叫unittest。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unittest是一个单元测试框架，是Python编程的单元测试框架。有时候，也做叫做&ldquo;PyUnit&rdquo;,是Junit的Python语言版本。这里了解下,Junit是Java语言的单元测试框架，Java还有一个很好用的单元测试框架叫TestNG,本系列只学习Python，所以只需要unittest是</p>
+<p>Python里的一个单元测试框架就可以了。</p>
+<p>&nbsp; &nbsp; &nbsp; unittest支持测试自动化，共享测试用例中的初始化和关闭退出代码，在unittest中最小单元是test，也就是一个测试用例。要了解unittest单元测试框架，先来了解以下几个重要的概念。</p>
+<h4>2.1 测试固件（test fixture）</h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 一个测试固件包括两部分，执行测试代码之前的准备部分和测试结束之后的清扫代码。这两部分一般用函数setUp()和tearDown()表示。这里举例以下，例如要测试百度搜索selenium这个场景，我们的测试固件可以这样写，setUp()里写打开浏览器，浏览器最大</p>
+<p>化，和打开百度首页等脚本代码；在tearDown（）里写结束搜索后，退出并关闭浏览器的代码。</p>
+<h4>2.2 测试用例（test case）</h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unittest中管理的最小单元是测试用例，一个测试用例，包括测试固件，和具体测试业务的函数或者方法。一个测试用例中，测试固件可以不写，但是至少有一个已test开头的函数。unittest会自动化识别test开头的函数是测试代码，如果你写的函数不是test开头，</p>
+<p>unittest是不会执行这个函数里面的脚本的，这个千万要记住，所有的测试函数都要test开头，记住是小写的哦。</p>
+<h4>2.3 测试套件 （test suite）</h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 很简单，就是很多测试用例的集合，叫测试套件，一个测试套件可以随意管理多个测试用例。如果测试用例比作单个学生，测试套件就是好像是班级的概念。</p>
+<h4>2.4 测试执行器 （test runner）</h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; test runner是一个用来执行加载测试用例，并执行用例，且提供测试输出的一个组建。test runner可以加载test case或者test suite进行执行测试任务。</p>
+<p>我们举例来，练习一下test fixture和test case的使用，学习unittest的简单用法：</p>
+<h4>2.5&nbsp;设计思路</h4>
+<p>1. 新建一个testbaidu.py的文件</p>
+<p>2. 导入unittest模块</p>
+<p>3. 当前测试类继承unittest.TestCase，相当于当前利用unittest创建了一个test case，这个test case是能够被unittest直接识别。</p>
+<p>4. 写setUP(),主要是打开浏览器和打开站点</p>
+<p>5. 写一个test_search（）用例写搜索的代码</p>
+<p>6. 写tearDown(),主要是浏览器退出操作</p>
+<p>相关脚本代码如下：</p>
+<h5>2.5.1 代码实现：</h5>
+<p><img src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看0.png" alt="" /></p>
+<h5>2.5.2 参考代码：</h5>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> coding=utf-8🔥</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 1.先设置编码，utf-8可支持中英文，如上，一般放在第一行</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 2.注释：包括记录创建时间，创建人，项目名称。</span>
+<span style="color: #800000;">'''</span><span style="color: #800000;">
+Created on 2019-12-18
+@author: 北京-宏哥   QQ交流群：705269076
+Project: 《《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看别后悔，过时不候
+</span><span style="color: #800000;">'''</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 3.导入模块</span>
+
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> unittest
+</span><span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> BaiduSearch(unittest.TestCase):
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> setUp(self):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        测试固件的setUp()的代码，主要是测试的前提准备工作
+        :return:
+        </span><span style="color: #800000;">"""</span><span style="color: #000000;">
+        self.driver </span>=<span style="color: #000000;"> webdriver.Chrome()
+        self.driver.maximize_window()
+        self.driver.implicitly_wait(</span>8<span style="color: #000000;">)
+        self.driver.get(</span><span style="color: #800000;">"</span><span style="color: #800000;">https://www.baidu.com</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> tearDown(self):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        测试结束后的操作，这里基本上都是关闭浏览器
+        :return:
+        </span><span style="color: #800000;">"""</span><span style="color: #000000;">
+        self.driver.implicitly_wait(</span>8<span style="color: #000000;">)
+        self.driver.quit()
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> test_baidu_search(self):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        这里一定要test开头，把测试逻辑代码封装到一个test开头的方法里。
+        :return:
+        </span><span style="color: #800000;">"""</span><span style="color: #000000;">
+        self.driver.find_element_by_id(</span><span style="color: #800000;">'</span><span style="color: #800000;">kw</span><span style="color: #800000;">'</span>).send_keys(<span style="color: #800000;">'</span><span style="color: #800000;">selenium</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        time.sleep(</span>1<span style="color: #000000;">)
+        self.driver.find_element_by_id(</span><span style="color: #800000;">'</span><span style="color: #800000;">su</span><span style="color: #800000;">'</span><span style="color: #000000;">).click()
+        time.sleep(</span>3<span style="color: #000000;">)
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">assert</span> <span style="color: #800000;">'</span><span style="color: #800000;">selenium</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">in</span><span style="color: #000000;"> self.driver.title
+            </span><span style="color: #0000ff;">print</span> (<span style="color: #800000;">'</span><span style="color: #800000;">Test Pass.</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> Exception as e:
+            </span><span style="color: #0000ff;">print</span> (<span style="color: #800000;">'</span><span style="color: #800000;">Test Fail.</span><span style="color: #800000;">'</span><span style="color: #000000;">, format(e))
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    unittest.main()</span></pre>
+</div>
+<h5>2.5.3 运行结果：</h5>
+<p>运行代码后，控制台打印如下图的结果</p>
+<p><img src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看1.png" alt="" /></p>
+<p>解释：<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 最后结尾处的unittest.main(),添加这个是支持在cmd，里面，cd到这个脚本文件所在的目录，然后python 脚本名.py执行，如果不添加这一段，是无法执行cmd里面运行脚本的，在PyCharm中，不添加最后一段，也可以通过，右键 Run "unittest xxx"，来达到执行效果。</p>
+<h3 class="title-article">3. 什么是POM（Page Object Model）</h3>
+<p>　　前面我们介绍了Python中的单元测试框架unittest，以后我们所有的测试类文件，都采用unittest来辅助我们进行debug和脚本开发。搞定了debug机制和确定了unittest来进行创建和管理我们的自动化测试脚本，接下来我们来考虑下，框架设计中一种很普遍的设计</p>
+<p>思想-POM（Page Object Model）。</p>
+<div>
+<div>
+<h4>3.1 POM是什么</h4>
+<p>
+Page Object Model (POM) 直译为&ldquo;页面对象模型&rdquo;，这种设计模式旨在为每个待测试的页面创建一个页面对象(class)，将那些繁琐的定位操作封装到这个页面对象中，只对外提供必要的操作接口。</p>
+<h4>3.2 POM 有什么好处</h4>
+<p>
+POM 将页面定位和业务操作分开，分离了测试对象和测试脚本，如果UI更改页面，测试脚本不需要更改，只需要更改页面对象中的某些代码就可以，提高了可维护性。</p>
+
+
+</div>
+
+
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; POM，中文字母意思是，页面对象模型，POM是一种最近几年非常流行的自动化测试模型，或者思想，POM不是一个框架，就是一个解决问题的思想。采用POM的目的，是为了解决前端中UI变化频繁，从而造成测试自动化脚本维护的成本越来越大。下图，形</p>
+<p>象描述了POM的好处。</p>
+<p>&nbsp;<img src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看2.png" alt="" /></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 从上图看出，采取了POM设计思路和不采取的区别，左侧把测试代码和页面元素都写在一个类文件，如果需要更改页面，那么就要修改页面元素定位，从而要修改这个类中测试代码，这个看起来和混乱。右侧，采取POM后，主要的区别就是，把页面元素和业务</p>
+<p>逻辑和测试脚本分离出来到两个不同类文件。ClassA只写页面元素定位，和业务逻辑代码操作的封装，ClassB只写测试脚本，不关心如何元素定位，只写调用ClassA的代码去覆盖不同的测试场景。如果前端页面发生变化，只需要修改ClassA的元素定位，而不需要去</p>
+<p>修改ClassB中的测试脚本代码。</p>
+<p>POM主要有以下优点：</p>
+<p>1. 把web ui对象仓库从测试脚本分离，业务代码和测试脚本分离。</p>
+<p>2. 每一个页面对应一个页面类，页面的元素写到这个页面类中。</p>
+<p>3. 页面类主要包括该页面的元素定位，和和这些元素相关的业务操作代码封装的方法。</p>
+<p>4. 代码复用，从而减少测试脚本代码量。</p>
+<p>5. 层次清晰，同时支持多个编写自动化脚本开发，例如每个人写哪几个页面，不影响他人。</p>
+<p>6. 建议页面类和业务逻辑方法都给一个有意义的名称，方便他人快速编写脚本和维护脚本。</p>
+<h4>3.3 牛刀小试</h4>
+<div>
+<div>
+<p>比如测试一个登陆页面：<a href="https://links.jianshu.com/go?to=https%3A%2F%2Fweibo.com%2F" rel="nofollow" target="_blank">新浪微博</a> ，执行测试的人员传递不同的数据到帐号、密码框就可以了，而不应该去顾虑：页面是否已经加载完成？怎样定位到帐号输入框？怎样定位到登陆按钮等等问题。</p>
+<p>这些问题全部交由登陆页面的&ldquo;页面对象&rdquo;去解决并封装起来，只提供给测试人员三个接口方法：1.帐号输入接口、2.密码输入接口、3.提交接口。</p>
+<p>首先定义一个基本页面 BasePage类 ，定义基本的页面操作，提供给其他页面去继承，basePage.py 内容如下：</p>
+
+</div>
+<h5>3.3.1 代码实现：</h5>
+<p><img src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看3.png" alt="" /></p>
+<h5>3.3.2 参考代码：</h5>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> coding=utf-8🔥</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 1.先设置编码，utf-8可支持中英文，如上，一般放在第一行</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 2.注释：包括记录创建时间，创建人，项目名称。</span>
+<span style="color: #800000;">'''</span><span style="color: #800000;">
+Created on 2019-12-18
+@author: 北京-宏哥   QQ交流群：705269076
+Project: 《《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看别后悔，过时不候
+</span><span style="color: #800000;">'''</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 3.导入模块</span>
+<span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+</span><span style="color: #0000ff;">from</span> selenium.webdriver.support.wait <span style="color: #0000ff;">import</span><span style="color: #000000;"> WebDriverWait
+</span><span style="color: #0000ff;">from</span> selenium.webdriver.support <span style="color: #0000ff;">import</span><span style="color: #000000;"> expected_conditions as EC
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> BasePage(object):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+     基础页面，提供给其他页面继承
+     </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, driver, base_url, title):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+       初始化
+       </span><span style="color: #800000;">"""</span><span style="color: #000000;">
+        self.driver </span>=<span style="color: #000000;"> driver
+        self.base_url </span>=<span style="color: #000000;"> base_url
+        self.title </span>=<span style="color: #000000;"> title
+
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> _open(self, url):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        私有方法，打开url参数指定的页面,
+        并检查打开是否正确
+        </span><span style="color: #800000;">"""</span><span style="color: #000000;">
+        self.driver.get(url)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 显式等待10秒，如果打开页title与预期不符或者超时，抛出异常</span>
+        WebDriverWait(self.driver, 10<span style="color: #000000;">).until(EC.title_is(self.title))
+
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> open(self):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        公共方法，调用私有方法_open()打开链接
+        </span><span style="color: #800000;">"""</span><span style="color: #000000;">
+        self._open(self.base_url)
+
+
+    </span><span style="color: #0000ff;">def</span> find_element(self, *<span style="color: #000000;">loc):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        定位指定元素
+        </span><span style="color: #800000;">"""</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 显式等待元素，超过10秒未找到则抛出超时异常(TimeoutException)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> presence_of_element_located： 不关心元素是否可见，只关心元素是否存在在页面中</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> visibility_of_element_located： 不仅找到元素，并且该元素必须可见</span>
+        WebDriverWait(self.driver, 15<span style="color: #000000;">).until(EC.visibility_of_element_located(loc))
+        </span><span style="color: #0000ff;">return</span> self.driver.find_element(*<span style="color: #000000;">loc)
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    driver </span>=<span style="color: #000000;"> webdriver.Chrome()
+    driver.maximize_window()
+    page </span>= BasePage(driver, <span style="color: #800000;">'</span><span style="color: #800000;">https://www.baidu.com/</span><span style="color: #800000;">','百度一下，你就知道'</span><span style="color: #000000;">)
+    page.open()
+    driver.quit()</span></pre>
+</div>
+<h5>3.3.3 运行结果：</h5>
+<p>运行代码后，控制台打印如下图的结果</p>
+<img src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看4.png" alt="" /><br /><br />再定义一个&nbsp;LoginPage类&nbsp;继承&nbsp;BasePage类&nbsp;，向外提供测登陆方法。文件命名为&nbsp;xl_login.py&nbsp;，内容如下：</div>
+<div>
+<h5>3.3.4 代码实现：</h5>
+<p><img src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看5.png" alt="" /></p>
+<h5>3.3.5 参考代码：</h5>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> coding=utf-8🔥</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 1.先设置编码，utf-8可支持中英文，如上，一般放在第一行</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 2.注释：包括记录创建时间，创建人，项目名称。</span>
+<span style="color: #800000;">'''</span><span style="color: #800000;">
+Created on 2019-12-18
+@author: 北京-宏哥   QQ交流群：705269076
+Project: 《《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看别后悔，过时不候
+</span><span style="color: #800000;">'''</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 3.导入模块</span>
+
+<span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+</span><span style="color: #0000ff;">from</span> selenium.webdriver.common.by <span style="color: #0000ff;">import</span><span style="color: #000000;"> By
+</span><span style="color: #0000ff;">from</span> basePage <span style="color: #0000ff;">import</span><span style="color: #000000;"> BasePage
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> LoginPage(BasePage):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    新浪微薄登陆页面
+    继承自基础页面BasePage
+   </span><span style="color: #800000;">"""</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 定位帐号输入框</span>
+    username_loc = (By.ID, <span style="color: #800000;">'</span><span style="color: #800000;">loginname</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定位密码输入框</span>
+    password_loc = (By.NAME, <span style="color: #800000;">'</span><span style="color: #800000;">password</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定位登陆按钮</span>
+    submit_loc = (By.XPATH, <span style="color: #800000;">'</span><span style="color: #800000;">.//*[@id="pl_login_form"]/div/div[3]/div[6]/a</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定位提示信息，如：请输入验证码</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 不要迷信开发者工具提供的Xpath，</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 比如这里提供的Xpath：//*[@id="layer_15582553868501"]/div/p/span[2]，</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> id是动态的，无法使用，需自行推到Xpath</span>
+    message_loc = (By.XPATH, <span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="content layer_mini_info"]/p/span[2]</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 输入用户名操作</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> type_username(self, username):
+        self.find_element(</span>*<span style="color: #000000;">self.username_loc).send_keys(username)
+
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 输入密码操作</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> type_password(self, password):
+        self.find_element(</span>*<span style="color: #000000;">self.password_loc).send_keys(password)
+
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 点击登陆按钮操作</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> submit(self):
+        self.find_element(</span>*<span style="color: #000000;">self.submit_loc).click()
+
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取提示信息</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_message(self):
+        </span><span style="color: #0000ff;">return</span> self.find_element(*<span style="color: #000000;">self.message_loc).text
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span>:  <span style="color: #008000;">#</span><span style="color: #008000;"> 测试登陆</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 预打开页面</span>
+    base_url = <span style="color: #800000;">'</span><span style="color: #800000;">https://weibo.com/</span><span style="color: #800000;">'</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 页面title</span>
+    title = <span style="color: #800000;">'</span><span style="color: #800000;">微博-随时随地发现新鲜事</span><span style="color: #800000;">'</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 准备好待输入的用户名和密码</span>
+    username = <span style="color: #800000;">'</span><span style="color: #800000;">haha</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    password </span>= <span style="color: #800000;">'</span><span style="color: #800000;">hehe</span><span style="color: #800000;">'</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 打开Chrome浏览器</span>
+    driver =<span style="color: #000000;"> webdriver.Chrome()
+    driver.maximize_window()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 登陆页面初始化</span>
+    login =<span style="color: #000000;"> LoginPage(driver, base_url, title)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 打开新浪微博页</span>
+<span style="color: #000000;">    login.open()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 输入用户名</span>
+<span style="color: #000000;">    login.type_username(username)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 输入密码</span>
+<span style="color: #000000;">    login.type_password(password)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 点击登陆</span>
+<span style="color: #000000;">    login.submit()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 打印提示信息</span>
+    <span style="color: #0000ff;">print</span>(login.get_message())</pre>
+</div>
+<h5>3.3.6 运行结果：</h5>
+<p>运行代码后，控制台打印如下图的结果</p>
+<p><img src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看6.png" alt="" /></p>
+</div>
+<h3>4.小结</h3>
+<p>好了，今天的分享就到这里吧！！！谢谢各位的耐心阅读。有问题加群交流讨论</p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><span style="font-size: 14pt;">您的肯定就是我进步的动力。如果你感觉还不错，就请鼓励一下吧！记得随手点波<strong>&nbsp;<span style="font-size: 18pt; color: #ff0000;">推荐</span>&nbsp;不</strong>要忘记哦！！！</span></p>
+<p style="text-align: center;"><span style="font-size: 14pt;">别忘了点<strong><span style="font-size: 18pt; color: #ff0000;">推荐</span></strong>留下您来过的痕迹</span></p>
+<p style="text-align: center;"><span style="font-size: 14pt;">&nbsp;</span></p>
+<p><span style="font-size: 14pt;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/《一头扎进》系列之Python+Selenium框架设计篇2- 价值好几K的框架，不看白不看，看了还想看7.png" alt="" /></span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

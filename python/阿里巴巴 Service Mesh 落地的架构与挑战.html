@@ -1,0 +1,93 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修阿里巴巴 Service Mesh 落地的架构与挑战' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>阿里巴巴 Service Mesh 落地的架构与挑战</center></div><div class='banquan'>原文出处:本文由博客园博主阿里巴巴云原生提供。<br/>
+原文连接:https://www.cnblogs.com/alisystemsoftware/p/12021171.html</div><br>
+    <p><a href="https://developer.aliyun.com/article/728327">点击下载《不一样的 双11 技术：阿里巴巴经济体云原生实践》</a><br />
+<a href="https://developer.aliyun.com/article/728327?spm=a2c6h.12873581.0.dArticle728327.58dd3523BQjqaU&amp;groupCode=alisoftwaretech"><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战0.png" alt="ban.jpg" /></a><br />
+<strong>本文节选自《不一样的 双11 技术：阿里巴巴经济体云原生实践》一书，点击上方图片即可下载！</strong></p>
+<p>作者 | 方克明（溪翁）阿里云中间件技术部技术专家</p>
+<blockquote>
+<p><strong>导读</strong>：云原生已成为整个阿里巴巴经济体构建面向未来的技术基础设施，Service Mesh 作为云原生的关键技术之一，顺利完成在 双11 核心应用严苛而复杂场景下的落地验证。本文作者将与大家分享在完成这一目标过程中我们所面临和克服的挑战。</p>
+</blockquote>
+<h1 id="部署架构">部署架构</h1>
+<p>切入主题前，需要交代一下在 双11 核心应用上落地的部署架构，如下图所示。在这篇文章中，我们主要聚焦于 Service A 和 Service B 之间 RPC 协议的 Mesh 化。</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战1.png" alt="1.png" /></p>
+<p>图中示例说明了 Service Mesh 所包含的三大平面：即数据平面（Data Plane）、控制平面（Control Plane）和运维平面（Operation Plane）。数据平面我们采用的是开源的 Envoy（上图中的 Sidecar，请读者注意这两个词在本文中可以互换使用），控制平面采用的是开源的 Istio（目前只使用了其中的 Pilot 组件），运维平面则完全自研。</p>
+<p>与半年前落地时不同，这次 双11 核心应用上落地我们采用了 Pilot 集群化部署的模式，即 Pilot 不再与 Envoy 一起部署到业务容器中，而是搭建了一个独立的集群。这一变化使得控制平面的部署方式演进到了 Service Mesh 应有的终态。</p>
+<h1 id="挑战">挑战</h1>
+<p>落地所选择的 双11 核心应用都是采用 Java 编程语言实现的，在落地的过程中我们面临了以下挑战。</p>
+<h2 id="在-sdk-无法升级的情形下如何实现应用的-mesh-化">1. 在 SDK 无法升级的情形下如何实现应用的 Mesh 化</h2>
+<p>在决定要在 双11 的核心应用上落地 Mesh 时，Java 应用依赖的 RPC SDK 版本已经定稿，为了 Mesh 化完全没有时间去开发一个适用于 Mesh 的 RPC SDK 并做升级。那时，摆在团队面前的技术问题是：如何在不升级 SDK 的情形下，实现 RPC 协议的 Mesh 化？</p>
+<p>熟悉 Istio 的读者想必清楚，Istio 是通过 iptables 的 NAT 表去做流量透明拦截的，通过流量透明拦截可在应用无感的情形下将流量劫持到 Envoy 中从而实现 Mesh 化。但很不幸，NAT 表所使用到的 nf_contrack 内核模块因为效率很低，在阿里巴巴的线上生产机器中被去除了，因此无法直接使用社区的方案。好在年初开始不久我们与阿里巴巴 OS 团队达成了合作共建，由他们负责承担 Service Mesh 所需的流量透明拦截和网络加速这两块基础能力的建设。经过两个团队的紧密合作，OS 团队探索了通过基于 userid 和 mark 标识流量的透明拦截方案，基于 iptables 的 mangle 表实现了一个全新的透明拦截组件。</p>
+<p>下图示例说明了存在透明拦截组件的情形下，RPC 服务调用的流量走向。其中，Inbound 流量是指调进来的流量（流量的接受者是 Provider 角色），而 Outbound 是指调出去的流量（流量的发出者是 Consumer 角色）。通常一个应用会同时承担两个角色，所以有 Inbound 和 Outbound 两股流量并存。</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战2.png" alt="2.png" /></p>
+<p>有了透明拦截组件之后，应用的 Mesh 化完全能做到无感，这将极大地改善 Mesh 落地的便利性。当然，由于 RPC 的 SDK 仍存在以前的服务发现和路由逻辑，而该流量被劫持到 Envoy 之后又会再做一次，这将导致 Outbound 的流量会因为存在两次服务发现和路由而增加 RT，这在后面的数据部分也将有所体现。显然，以终态落地 Service Mesh 时，需要去除 RPC SDK 中的服务发现与路由逻辑，将相应的 CPU 和内存开销给节约下来。</p>
+<h2 id="短时间内支持电商业务复杂的服务治理功能">2.短时间内支持电商业务复杂的服务治理功能</h2>
+<h3 id="路由">路由</h3>
+<p>在阿里巴巴电商业务场景下的路由特性丰富多样，除了要支持单元化、环境隔离等路由策略，还得根据 RPC 请求的方法名、调用参数、应用名等完成服务路由。阿里巴巴内部的 Java RPC 框架是通过嵌入 Groovy 脚本来支持这些路由策略的，业务方在运维控制台上配置 Groovy 路由模板，SDK 发起调用时会执行该脚本完成路由策略的运用。</p>
+<p>未来的 Service Mesh 并不打算提供 Groovy 脚本那么灵活的路由策略定制方案，避免因为过于灵活而给 Service Mesh 自身的演进带去掣肘。因此，我们决定借 Mesh 化的机会去除 Groovy 脚本。通过落地应用所使用 Groovy 脚本的场景分析，我们抽象出了一套符合云原生的解决方案：扩展 Istio 原生的 CRD 中的 VirtualService 和 DestinationRule，增加 RPC 协议所需的路由配置段去表达路由策略。</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战3.png" alt="3.png" /></p>
+<p>目前阿里巴巴环境下的单元化、环境隔离等策略都是在 Istio/Envoy 的标准路由模块内做了定制开发，不可避免地存在一些 hack 逻辑。未来计划在 Istio/Envoy 的标准路由策略之外，设计一套基于 Wasm 的路由插件方案，让那些简单的路由策略以插件的形式存在。如此一来，既减少了对标准路由模块的侵入，也在一定程度上满足了业务方对服务路由定制的需要。设想的架构如下图所示：</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战4.png" alt="4.png" /></p>
+<h3 id="限流">限流</h3>
+<p>出于性能考虑，阿里巴巴内部落地的 Service Mesh 方案并没有采用 Istio 中的 Mixer 组件，限流这块功能借助阿里巴巴内部广泛使用的 <a href="https://github.com/alibaba/Sentinel">Sentinel 组件</a>来实现，不仅可以与已经开源的 Sentinel 形成合力，还可以减少阿里巴巴内部用户的迁移成本（直接兼容业务的现有配置来限流）。为了方便 Mesh 集成，内部多个团队合作开发了 Sentinel 的 <a href="https://github.com/alibaba/sentinel-cpp">C++版本</a>，整个限流的功能是通过 Envoy 的 Filter 机制来实现的，我们在 Dubbo 协议之上构建了相应的 Filter（Envoy 中的术语，代表处理请求的一个独立功能模块），每个请求都会经过 Sentinel Filter 做处理。限流所需的配置信息则是通过 Pilot 从 Nacos 中获取，并通过 xDS 协议下发到 Envoy 中。</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战5.png" alt="5.png" /></p>
+<h2 id="envoy-的资源开销过大">3. Envoy 的资源开销过大</h2>
+<p>Envoy 诞生之初要解决的一个核心问题就是服务的可观测性，因此 Envoy 一开始就内置了大量的 stats（即统计信息），以便更好地对服务进行观测。</p>
+<p>Envoy 的 stats 粒度很细，甚至细到整个集群的 IP 级别，在阿里巴巴环境下，某些电商应用的 Consumer 和 Provider 服务加起来达到了几十万之多的 IP（每个 IP 在不同的服务下携带的元信息不同，所以不同的服务下的相同 IP 是各自独立的）。如此一来，Envoy 在这块的内存开销甚是巨大。为此，我们给 Envoy 增加了 stats 开关，用于关闭或打开 IP 级别的 stats，关闭 IP 级别的 stats 直接带来了内存节约 30% 成果。下一步我们将跟进社区的 stats symbol table 的方案来解决 stats 指标字符串重复的问题，那时的内存开销将进一步减少。</p>
+<h2 id="解耦业务与基础设施实现基础设施升级对业务无感">4. 解耦业务与基础设施，实现基础设施升级对业务无感</h2>
+<p>Service Mesh 落地的一项核心价值就是让基础设施与业务逻辑完全解耦，两者可以独立演进。为了实现这个核心价值，Sidecar 需要具备热升级能力，以便升级时不会造成业务流量中断，这对方案设计和技术实现的挑战还是蛮大的。</p>
+<p>我们的热升级采用双进程方案，先拉起新的 Sidecar 容器，由它与旧的 Sidecar 进行运行时数据交接，在新的 Sidecar 准备发接管流量后，让旧的 Sidecar 等待一定时间后退出，最终实现业务流量无损。核心技术主要是运用了 <a href="https://en.wikipedia.org/wiki/Unix_domain_socket">Unix Domain Socket</a> 和 RPC 的节点优雅下线功能。下图大致示例了关键过程。</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战6.png" alt="6.png" /></p>
+<h1 id="数据表现">数据表现</h1>
+<p>公布性能数据一不小心就会引发争议和误解，因为性能数据的场景存在很多变量。比如，并发度、QPS、payload 大小等对最终的数据表现将产生关键影响。也正因如此，Envoy 官方从来没有提供过本文所列出的这些数据，背后的原因正是其作者 Matt Klein 担心引发误解。值得强调的是，在时间非常紧迫的情形下，我们所落地的 Service Mesh 并非处于最优状态，甚至不是最终方案（比如 Consumer 侧存在两次路由的问题）。我们之所以选择分享出来，是希望让更多的同行了解我们的进展和状态。</p>
+<p>本文只列出了 双11 所上线核心应用中某一个的数据。从单机 RT 抽样的角度，部署了 Service Mesh 的某台机器，其 Provider 侧的 RT 均值是 5.6ms，Consumer 侧的是 10.36ms。该机器在 双11 零点附近的 RT 表现如下图所示：</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战7.png" alt="7.jpeg" /></p>
+<p>没有部署 Service Mesh 的某台机器，Provider 侧的均值为 5.34ms，Consumer 侧的则是 9.31ms。下图示例了该机器在 双11 零点附件的 RT 表现。</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战8.png" alt="8.jpeg" /></p>
+<p>相比之下，Provider 侧的 RT 在 Mesh 化前后增加了 0.26ms，Consumer 侧则增加了 1.05ms。注意，这个 RT 差是包含了业务应用到 Sidecar，以及 Sidecar 处理的所有时间在内的，下图示例说明了带来时延增加的链路。</p>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战9.png" alt="9.png" /></p>
+<p>整体上，该核心应用所有上线了 Service Mesh 的机器和没有上线 Service Mesh 的机器在某个时间段的整体均值数据做了对比。Provider 侧 Mesh 化后的 RT 增加了 0.52ms，而 Consumer 侧增加了 1.63ms。</p>
+<p>在 CPU 和内存开销方面，Mesh 化之后，Envoy 所消耗的 CPU 在所有核心应用上都维持在 0.1 核左右，会随着 Pilot 推送数据而产生毛刺。未来需要借助 Pilot 和 Envoy 之间的增量推送去对毛刺做优化。内存的开销随着应用的服务和集群规模不同而存在巨大差异，目前看来 Envoy 在内存的使用上仍存在很大的优化空间。</p>
+<p>从所有双11 上线的核心应用的数据表现来看，Service Mesh 的引入对于 RT 的影响和带来的 CPU 开销是基本一样的，而内存开销则因为依赖服务和集群规模的不同而有相当大的差异。</p>
+<h1 id="展望">展望</h1>
+<p>在云原生的浪潮下，阿里巴巴借这波技术浪潮致力于打造面向未来的技术基础设施。在发展的道路上将贯彻“借力开源，反哺开源”的发展思路，通过开源实现技术普惠，为未来的云原生技术在更大范围的普及做出自己的贡献。</p>
+<p>接下来，我们的整体技术着力点在于：</p>
+<ul>
+<li><p>与 Istio 开源社区共同增强 Pilot 的数据推送能力。在阿里巴巴具备 双11 这种超大规模的应用场景下，我们对于Pilot 的数据推送能力有着极致的要求，相信在追求极致的过程中，能与开源社区一道加速全球事实标准的共建。从阿里巴巴内部来看，我们目前拉通了与 Nacos 团队的共建，将通过社区的 MCP 协议与 Nacos 对接，让阿里巴巴所开源的各种技术组件能体系化地协同工作；</p></li>
+<li><p>以 Istio 和 Envoy 为一体，进一步优化两者的协议以及各自的管理数据结构，通过更加精炼、更加合理的数据结构去减少各自的内存开销；</p></li>
+<li><p>着力解决大规模 Sidecar 的运维能力建设。让 Sidecar 的升级做到可灰度、可监控和可回滚；</p></li>
+<li><p>兑现 Service Mesh 的价值，让业务与技术设施能以更高的效率彼此独立演进。</p></li>
+</ul>
+<p><img src="./images/阿里巴巴 Service Mesh 落地的架构与挑战10.png" alt="ban.jpg" /></p>
+<p><strong>本书亮点</strong></p>
+<ul>
+<li>双11 超大规模 K8s 集群实践中，遇到的问题及解决方法详述</li>
+<li>云原生化最佳组合：Kubernetes+容器+神龙，实现核心系统 100% 上云的技术细节</li>
+<li>双 11 Service Mesh 超大规模落地解决方案</li>
+</ul>
+<blockquote>
+<p>“<a href="http://mp.weixin.qq.com/s?__biz=MzUzNzYxNjAzMg==&amp;mid=2247488128&amp;idx=1&amp;sn=d523d6c0d5ad53cadc00290db0f2136a&amp;chksm=fae5194fcd929059b00eb945e5febf9a3346185929aa6441190515aa8f4ed870c310c454a8bb&amp;token=1766136700&amp;lang=zh_CN#rd">阿里巴巴云原生</a>微信公众号（ID：Alicloudnative）关注微服务、Serverless、容器、Service Mesh等技术领域、聚焦云原生流行技术趋势、云原生大规模的落地实践，做最懂云原生开发者的技术公众号。”</p>
+</blockquote>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,205 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python元类深入理解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python元类深入理解</center></div><div class='banquan'>原文出处:本文由博客园博主克里夫妇提供。<br/>
+原文连接:https://www.cnblogs.com/jiaojianglong/p/11260944.html</div><br>
+    <h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350">1.python 中的类</span></h2>
+<p class="ql-long-13739350"><span class="ql-author-13739350">在python中，类也是一个对象，只不过这个对象拥有生成实例的能力，我们一般使用class XXX来定义一个类，在python解释器执行到这个地方的时候会自动创建出这个对象，python也为我们提供了手动创建类的方法，type()。type()这个方法对我们来说并不陌生，我们所熟知的用法是：class = type(instance)，当传入一个参数时，type()返回这个参数的类。而今天我们要用到的是type的另一个功能。type("classname",(object,),{"name":"jiao"})。当给type传入三个参数时，就是一个手动创建类的方式。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> A():
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name):
+        self.name </span>=<span style="color: #000000;"> name
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">创建了一个实例</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+a </span>= type(<span style="color: #800000;">"</span><span style="color: #800000;">a</span><span style="color: #800000;">"</span>,(A,),{<span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">jiao</span><span style="color: #800000;">"</span><span style="color: #000000;">}) 
+</span><span style="color: #0000ff;">print</span>(a)              <span style="color: #008000;">#</span><span style="color: #008000;">&lt;class '__main__.a'&gt;</span>
+<span style="color: #0000ff;">print</span>(a.name)          <span style="color: #008000;">#</span><span style="color: #008000;">jiao</span>
+<span style="color: #0000ff;">print</span>(a(<span style="color: #800000;">"</span><span style="color: #800000;">jiang</span><span style="color: #800000;">"</span>))      <span style="color: #008000;">#</span><span style="color: #008000;">创建了一个实例  </span>
+                        <span style="color: #008000;">#</span><span style="color: #008000;">&lt;__main__.a object at 0x00000280A973AA58&gt;</span></pre>
+</div>
+<p>&nbsp;</p>
+<p class="ql-long-13739350"><span class="ql-author-13739350">type接收三个参数分别是：</span></p>
+<p class="ql-long-13739350" style="margin-left: 30px;"><span class="ql-author-13739350">classname: 要创建的class 的名称</span></p>
+<p class="ql-long-13739350" style="margin-left: 30px;"><span class="ql-author-13739350">object:要创建类的父类所组成的元组</span></p>
+<p class="ql-long-13739350" style="margin-left: 30px;"><span class="ql-author-13739350">sttr_dict: 要创建类的属性</span></p>
+<p class="ql-long-13739350"><span class="ql-author-13739350">type返回一个class,我们接收并赋值到一个变量上，现在这个变量就指向我们所创建的类，我们可以通过这个变量来使用类。</span></p>
+<p>&nbsp;</p>
+<h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350">2.python 中的type</span></h2>
+<p class="ql-long-13739350"><span class="ql-author-13739350">在python 中，几乎所有的东西都是对象，<span class="ql-author-13739350 ql-size-12">这包括整数、字符串、函数以及类。它们全部都是对象，而且它们都是从一个类创建而来&mdash;&mdash;type</span></span></p>
+<h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350 ql-size-12">3.__metaclass__属性</span></h2>
+<p class="ql-long-13739350"><span class="ql-author-13739350 ql-size-12">python在创建类时，会按照如下的流程进行：</span></p>
+<p>&nbsp;</p>
+<p class="ql-long-13739350"><span class="ql-author-13739350 ql-size-12">Foo中有__metaclass__这个属性吗？如果是，Python会在内存中通过__metaclass__创建一个名字为Foo的类对象（我说的是类对象，请紧跟我的思路）。如果Python没有找到__metaclass__，它会继续在Bar（父类）中寻找__metaclass__属性，并尝试做和前面同样的操作。如果Python在任何父类中都找不到__metaclass__，它就会在模块层次中去寻找__metaclass__，并尝试做同样的操作。如果还是找不到__metaclass__,Python就会用内置的type来创建这个类对象。</span></p>
+<p class="ql-long-13739350"><span class="ql-author-13739350">那么在__metaclass__中放置什么样的代码可以创建类呢？<span class="ql-author-13739350 ql-size-12">type，或者任何使用到type或者子类化type的东东都可以。</span></span></p>
+<p>&nbsp;</p>
+<h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350 ql-size-12">4.自定义元类</span></h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> UpperAttrMetaClass(type):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__new__</span>(cls,class_name,class_parents,class_attr, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">__new__</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        class_attr[</span><span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>] = <span style="color: #800000;">"</span><span style="color: #800000;">jiao</span><span style="color: #800000;">"</span>
+        <span style="color: #0000ff;">return</span> type.<span style="color: #800080;">__new__</span><span style="color: #000000;">(cls,class_name,class_parents,class_attr)
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(self,*args,**<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">__init__</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        super().</span><span style="color: #800080;">__init__</span>(*args, **<span style="color: #000000;">kwargs)
+        self.</span><span style="color: #800080;">__cache</span> =<span style="color: #000000;"> {}
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(self, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">__call__</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">if</span> args <span style="color: #0000ff;">in</span> self.<span style="color: #800080;">__cache</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__cache</span><span style="color: #000000;">[args]
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            obj </span>= super().<span style="color: #800080;">__call__</span>(*<span style="color: #000000;">args)
+            self.</span><span style="color: #800080;">__cache</span>[args] =<span style="color: #000000;"> obj
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> obj
+
+
+</span><span style="color: #0000ff;">class</span> A(metaclass=<span style="color: #000000;">UpperAttrMetaClass):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name):
+        self.name </span>=<span style="color: #000000;"> name
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">a.__init__</span><span style="color: #800000;">"</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350">5.类的创建流程</span></h2>
+<p class="ql-long-13739350" style="margin-left: 30px;"><span class="ql-author-13739350">1.元类的__new__(),返回创建好的类。当我们想要改变创建方式的时候就要重写这个方法。</span></p>
+<p class="ql-long-13739350" style="margin-left: 30px;"><span class="ql-author-13739350">2.元类的__init__(),初始化一些类的属性</span></p>
+<p>&nbsp;</p>
+<h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350">6.实例创建流程</span></h2>
+<p class="ql-long-13739350" style="margin-left: 30px;"><span class="ql-author-13739350">1.元类的__call__(),创建一个实例时，首先调用这个方法，返回创建好的实例，所以我们可以通过改写这个方法来改变实例创建过程，比如实现单例模式</span></p>
+<p class="ql-long-13739350" style="margin-left: 30px;"><span class="ql-author-13739350">2.类的__init__()，初始化实例属性</span></p>
+<p>&nbsp;</p>
+<h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350">7.元类的应用</span></h2>
+<h3 class="ql-long-13739350" data-header="3"><span class="ql-author-13739350">1.单例模式</span></h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Singleton(type):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(cls,*args,**<span style="color: #000000;">kwargs):
+        cls.</span><span style="color: #800080;">__instance</span> =<span style="color: #000000;"> None
+        super().</span><span style="color: #800080;">__init__</span>(*args,**<span style="color: #000000;">kwargs)
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(cls, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">if</span> cls.<span style="color: #800080;">__instance</span> <span style="color: #0000ff;">is</span><span style="color: #000000;"> None:
+            cls.</span><span style="color: #800080;">__instance</span> = super().<span style="color: #800080;">__call__</span>(*args,**<span style="color: #000000;">kwargs)
+            </span><span style="color: #0000ff;">return</span> cls.<span style="color: #800080;">__instance</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">return</span> cls.<span style="color: #800080;">__instance</span>
+
+<span style="color: #0000ff;">class</span> Spam(metaclass=<span style="color: #000000;">Singleton):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">Creating Spam</span><span style="color: #800000;">"</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<pre><code>2.缓存模式</pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> weakref
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Cached(type):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(cls,*args,**<span style="color: #000000;">kwargs):
+        super().</span><span style="color: #800080;">__init__</span>(*args,**<span style="color: #000000;">kwargs)
+        cls.</span><span style="color: #800080;">__cache</span> =<span style="color: #000000;"> weakref.WeakValueDictionary()
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(cls, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">if</span> args <span style="color: #0000ff;">in</span> cls.<span style="color: #800080;">__cache</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">return</span> cls.<span style="color: #800080;">__cache</span><span style="color: #000000;">[args]
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            obj </span>= super().<span style="color: #800080;">__call__</span>(*<span style="color: #000000;">args)
+            cls.</span><span style="color: #800080;">__cache</span>[args] =<span style="color: #000000;"> obj
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> obj
+
+
+</span><span style="color: #0000ff;">class</span> Spams(metaclass=<span style="color: #000000;">Cached):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">Creating Spam({!r})</span><span style="color: #800000;">"</span><span style="color: #000000;">.format(name))
+        self.name </span>= name</pre>
+</div>
+<p>&nbsp;</p>
+<h3 class="ql-long-13739350" data-header="3"><span class="ql-author-13739350">3.获取属性的定义顺序</span></h3>
+<p>&nbsp;</p>
+<p class="ql-long-13739350"><span class="ql-author-13739350">能过获取到属性的定义顺序，我们就可以通过简单的方法实现属性到数据的映射，可以更加简单的将类中的属性数据化。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> collections <span style="color: #0000ff;">import</span><span style="color: #000000;"> OrderedDict
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Typed:
+    _excepted_type </span>=<span style="color: #000000;"> type(None)
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(self,name=<span style="color: #000000;">None):
+        self._name </span>=<span style="color: #000000;"> name
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__set__</span><span style="color: #000000;">(self, instance, value):
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> isinstance(value,self._excepted_type):
+            </span><span style="color: #0000ff;">raise</span> TypeError(<span style="color: #800000;">"</span><span style="color: #800000;">Excepted</span><span style="color: #800000;">"</span>+<span style="color: #000000;">str(self._excepted_type))
+        instance.</span><span style="color: #800080;">__dict__</span>[self._name] =<span style="color: #000000;"> value
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Integer(Typed):
+    _excepted_type </span>=<span style="color: #000000;"> int
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Float(Typed):
+    _excepted_type </span>=<span style="color: #000000;"> float
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> String(Typed):
+    _excepted_type </span>=<span style="color: #000000;"> str
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> OrderedMeta(type):
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__new__</span><span style="color: #000000;">(cls, clsname,bases,clsdict):
+        d </span>=<span style="color: #000000;"> dict(clsdict)
+        order </span>=<span style="color: #000000;"> []
+        </span><span style="color: #0000ff;">for</span> name,value <span style="color: #0000ff;">in</span><span style="color: #000000;"> clsdict.items():
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> isinstance(value,Typed):
+                value._name </span>=<span style="color: #000000;"> name
+                order.append(name)
+                d[</span><span style="color: #800000;">'</span><span style="color: #800000;">_order</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> order
+       </span><span style="color: #0000ff;">return</span> type.<span style="color: #800080;">__new__</span><span style="color: #000000;">(cls,clsname,bases,d)
+
+    @classmethod
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__prepare__</span><span style="color: #000000;">(metacls, name, bases):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> OrderedDict()
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">注：__prepare__该方法会在类定义一开始的时候调用，调用时以类名和基类名称作为参数，它必须返回一个映射对象，供处理类定义体时调用</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;">eg.</span>
+<span style="color: #0000ff;">class</span> Structure(metaclass=<span style="color: #000000;">OrderedMeta):
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> as_csv(self):
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">,</span><span style="color: #800000;">'</span>.join(str(getattr(self,name)) <span style="color: #0000ff;">for</span> name <span style="color: #0000ff;">in</span><span style="color: #000000;"> self._order)
+
+</span><span style="color: #0000ff;">class</span> Stock(metaclass=<span style="color: #000000;">OrderedMeta):
+    name </span>=<span style="color: #000000;"> String()
+    shares </span>=<span style="color: #000000;"> Integer()
+    price </span>=<span style="color: #000000;"> Float()
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name,shares,price):
+        self.name </span>=<span style="color: #000000;"> name
+        self.shares </span>=<span style="color: #000000;"> shares
+        self.price </span>=<span style="color: #000000;"> price
+
+s </span>= Stock(<span style="color: #800000;">"</span><span style="color: #800000;">haha</span><span style="color: #800000;">"</span>,23,23.3<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(s.name)
+s </span>= Stock(34,23,34<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> print(s.as_csv())</span></pre>
+</div>
+<p>&nbsp;</p>
+<pre><code>&nbsp;</pre>
+<h2 class="ql-long-13739350" data-header="2"><span class="ql-author-13739350">8.小结</span></h2>
+<p class="ql-long-13739350"><span class="ql-author-13739350">元类主要就是在类和实例创建的时候发挥作用，来实现一些功能。</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

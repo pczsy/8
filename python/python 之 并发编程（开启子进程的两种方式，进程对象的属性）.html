@@ -1,0 +1,186 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python 之 并发编程（开启子进程的两种方式，进程对象的属性）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python 之 并发编程（开启子进程的两种方式，进程对象的属性）</center></div><div class='banquan'>原文出处:本文由博客园博主small_white-提供。<br/>
+原文连接:https://www.cnblogs.com/mylu/p/11210157.html</div><br>
+    <h2 class="md-end-block md-heading md-focus"><span class="md-plain">第九章并发编程</span></h2>
+<p class="md-end-block md-p"><span class="md-plain">同一个程序执行多次是多个进程</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+​
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">爹是：</span><span style="color: #800000;">'</span>,os.getppid())      <span style="color: #008000;">#</span><span style="color: #008000;">父进程PID，(pycharm)</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">me是: </span><span style="color: #800000;">'</span>,os.getpid())      <span style="color: #008000;">#</span><span style="color: #008000;">3748 14648</span>
+time.sleep(500)</pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">9.1 开启子进程的两种方式</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">服务端目标：<span class="md-softbreak"> <span class="md-tab"> <span class="md-plain">1、不间断地提供服务<span class="md-softbreak"> <span class="md-tab"> <span class="md-plain">2、服务端要支持高并发+高性能</span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">一个进程在运行过程中开启了子进程（如nginx开启多进程，os.fork,subprocess.Popen等）</span></p>
+<p class="md-end-block md-p"><span class="md-plain">父进程发起请求，操作系统创建子进程</span></p>
+<p class="md-end-block md-p"><span class="md-plain">方式一：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> task(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s is running</span><span style="color: #800000;">'</span> %<span style="color: #000000;">name)
+    time.sleep(</span>3<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s has done</span><span style="color: #800000;">'</span> %<span style="color: #000000;">name)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">爹是：</span><span style="color: #800000;">'</span>, os.getppid()) <span style="color: #008000;">#</span><span style="color: #008000;">me是:  13892</span>
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">me是: </span><span style="color: #800000;">'</span>, os.getpid())  <span style="color: #008000;">#</span><span style="color: #008000;">me是:  7492</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span>:                  <span style="color: #008000;">#</span><span style="color: #008000;"> windows系统，开启子进程的操作一定要放到这下面</span>
+    p=Process(target=task,args=(<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span>,))     <span style="color: #008000;">#</span><span style="color: #008000;"> p=Process(target=task,kwargs={'name':'egon'})</span>
+    p.start() <span style="color: #008000;">#</span><span style="color: #008000;"> 向操作系统发送请求，操作系统会申请内存空间，然后把父进程的数据拷贝给子进程，作为子进程的初始状态</span>
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">me是: </span><span style="color: #800000;">'</span>, os.getpid())  <span style="color: #008000;">#</span><span style="color: #008000;">me是:  13892</span>
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">======主</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">======主 egon is running egon has done</span></pre>
+</div>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">target 表示调用对象，即子进程要执行的任务</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">args 指定为target函数传位置参数，是一个元组形式，必须有逗号</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">kwargs 表示调用对象的字典,kwargs={'name':'egon','age':18}</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">p.start() 启动进程，并调用该子进程中的p.run()</span></p>
+</li>
+</ul>
+<p class="md-end-block md-p"><span class="md-plain">方式二：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+​
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> MyProcess(Process):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,name):
+        super(MyProcess,self).</span><span style="color: #800080;">__init__</span><span style="color: #000000;">()
+        self.name</span>=<span style="color: #000000;">name
+​
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> run(self):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s is running</span><span style="color: #800000;">'</span> %<span style="color: #000000;">self.name)
+        time.sleep(</span>3<span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s has done</span><span style="color: #800000;">'</span> %<span style="color: #000000;">self.name)
+​
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    p</span>=MyProcess(<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    p.start()
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">主</span><span style="color: #800000;">'</span>)  <span style="color: #008000;">#</span><span style="color: #008000;">主  egon is running  egon has done</span></pre>
+</div>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">p.run():进程启动时运行的方法，正是它去调用target指定的函数，我们自定义类的类中一定要实现该方法 </span></p>
+</li>
+</ul>
+<h3 class="md-end-block md-heading"><span class="md-plain">9.2 进程之间内存空间隔离</span></h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+x</span>=1000
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> task():
+    time.sleep(</span>3<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">global</span><span style="color: #000000;"> x
+    x</span>=<span style="color: #000000;">0
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">儿子死啦</span><span style="color: #800000;">'</span><span style="color: #000000;">,x)
+​
+​
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(x)
+    p</span>=Process(target=<span style="color: #000000;">task)
+    p.start()
+    time.sleep(</span>5<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(x)    <span style="color: #008000;">#</span><span style="color: #008000;">1000    儿子死啦 0    1000</span></pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">9.3 父进程等待子进程结束</span></h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+x</span>=1000
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> task():
+    time.sleep(</span>3<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">global</span><span style="color: #000000;"> x
+    x</span>=<span style="color: #000000;">0
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">儿子死啦</span><span style="color: #800000;">'</span><span style="color: #000000;">,x)
+​
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    p</span>=Process(target=<span style="color: #000000;">task)
+    p.start()
+​
+    p.join() </span><span style="color: #008000;">#</span><span style="color: #008000;"> 让父亲在原地等</span>
+    <span style="color: #0000ff;">print</span><span style="color: #000000;">(x)
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+x</span>=1000
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> task(n):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s is runing</span><span style="color: #800000;">'</span> %<span style="color: #000000;">n)
+    time.sleep(n)
+​
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    start_time</span>=<span style="color: #000000;">time.time()
+    p_l</span>=<span style="color: #000000;">[]
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(1,4<span style="color: #000000;">):
+        p</span>=Process(target=task,args=<span style="color: #000000;">(i,))
+        p_l.append(p)
+        p.start()
+​
+    </span><span style="color: #0000ff;">for</span> p <span style="color: #0000ff;">in</span> p_l:                       <span style="color: #008000;">#</span><span style="color: #008000;">1 is runing</span>
+        p.join()                        <span style="color: #008000;">#</span><span style="color: #008000;">3 is runing</span>
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">主</span><span style="color: #800000;">'</span>,(time.time() - start_time)) <span style="color: #008000;">#</span><span style="color: #008000;">2 is runing    主  3.112313</span></pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">9.4 进程对象的其他属性</span></h3>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">p.terminate():强制终止进程p，不会进行任何清理操作，如果p创建了子进程，该子进程就成了僵尸进程，使用该方法需要特别小心这种情况。如果p还保存了一个锁那么也将不会被释放，进而导致死锁</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">p.is_alive():如果p仍然运行，返回True</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">p.join([timeout]):主线程等待p终止（强调：是主线程处于等的状态，而p是处于运行的状态）。timeout是可选的超时时间，<span><strong>强调:</strong><span class="md-plain"> p.join只能 join住start开启的进程，而不能join住run开启的进程 </span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">p.pid：进程的pid</span></p>
+</li>
+</ul>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time,os
+x</span>=1000
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> task(n):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s is runing self:%s parent:%s</span><span style="color: #800000;">'</span> %(n,os.getpid(),os.getppid()))<span style="color: #008000;">#</span><span style="color: #008000;">self:13032 parent:9136</span>
+    time.sleep(3<span style="color: #000000;">)
+​
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    p1</span>=Process(target=task,args=(1,),name=<span style="color: #800000;">'</span><span style="color: #800000;">任务1</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">不指定name,p1.name是process-1</span>
+<span style="color: #000000;">    p1.start()
+          
+    </span><span style="color: #0000ff;">print</span>(p1.pid)       <span style="color: #008000;">#</span><span style="color: #008000;"> 13032 没有p1.ppid</span>
+    <span style="color: #0000ff;">print</span>(p1.name)      <span style="color: #008000;">#</span><span style="color: #008000;"> 任务1</span>
+    p1.terminate()      <span style="color: #008000;">#</span><span style="color: #008000;"> 向操作系统提交进程终止 </span>
+<span style="color: #000000;">    p1.join()
+    </span><span style="color: #0000ff;">print</span>(p1.is_alive()) <span style="color: #008000;">#</span><span style="color: #008000;"> False</span>
+<span style="color: #000000;">​
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">主</span><span style="color: #800000;">'</span>,os.getpid())<span style="color: #008000;">#</span><span style="color: #008000;"> 主 9136</span></pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

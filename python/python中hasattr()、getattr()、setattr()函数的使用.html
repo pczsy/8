@@ -1,0 +1,157 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python中hasattr()、getattr()、setattr()函数的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python中hasattr()、getattr()、setattr()函数的使用</center></div><div class='banquan'>原文出处:本文由博客园博主暮良文王提供。<br/>
+原文连接:https://www.cnblogs.com/liangmingshen/p/11361947.html</div><br>
+    <p><span style="font-size: 16px;">引言：</span></p>
+<p><span style="font-size: 16px;">　　在阅读源码时，有很多简写的形式，其中一个比较常用的就是getattr()用来调用一个类中的变量或者方法，相关联的hasattr()、getattr()、setattr()函数的使用也一并学习了一下。</span></p>
+<p><span style="font-size: 16px;">正文：</span></p>
+<h2><span style="font-size: 16px;">　　</span>1. hasattr(object, name)</h2>
+<p><span style="font-size: 16px;">　　判断object对象中是否存在name属性，当然对于python的对象而言，属性包含变量和方法；有则返回True，没有则返回False；需要注意的是name参数是string类型，所以不管是要判断变量还是方法，其名称都以字符串形式传参；getattr和setattr也同样；</span></p>
+<p>&nbsp;</p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-size: 16px;">&gt;&gt;&gt; 
+&gt;&gt;&gt; class A():
+    　　name = 'python'
+    　　def func(self):
+        　　return 'A()类的方法func()'
+ 
+&gt;&gt;&gt; 
+&gt;&gt;&gt; hasattr(A, 'name')
+True
+&gt;&gt;&gt; 
+&gt;&gt;&gt; hasattr(A, 'age')
+False
+&gt;&gt;&gt; 
+&gt;&gt;&gt; hasattr(A, 'func')
+True
+
+</span></pre>
+</div>
+<p>&nbsp;</p>
+<h2>　　2. getattr(object, name[, default])</h2>
+<p>　　获取object对象的属性的值，如果存在则返回属性值，如果不存在分为两种情况：</p>
+<p>　　（1）没有default参数时，会直接报错；</p>
+<p>　　（2）给定了default参数，若对象本身没有name属性，则会返回给定的default值；</p>
+<p>　　　　如果给定的属性name是对象的<span style="color: #ff0000;">方法</span>，则返回的是<span style="color: #ff0000;">函数对象</span>，需要<span style="color: #ff0000;">调用</span>函数对象来<span style="color: #ff0000;">获得函数的返回值</span>；调用的话就是函数对象后面加括号，如func之于func();</p>
+<p>　　另外还需要注意：</p>
+<p>　　如果给定的方法func()是实例函数，则不能写getattr(A, 'func')()，因为fun()是实例函数的话，是不能用A类对象来调用的，应该写成getattr(A(), 'func')()；</p>
+<p>　　实例函数和类函数的区别：</p>
+<p>　　<span style="color: #ff0000;">实例函数</span>定义时，直接def func(self):，这样定义的函数<span style="color: #ff0000;">只能</span>是<span style="color: #ff0000;">将类实例化</span>后，用<span style="color: #ff0000;">类的实例化对象来调用</span>；</p>
+<p>　　而<span style="color: #ff0000;">类函数</span>定义时，需要用@classmethod来装饰，函数默认的参数一般是cls，类函数<span style="color: #ff0000;">可以通过类对象</span>来<span style="color: #ff0000;">直接调用</span>，而<span style="color: #ff0000;">不需要</span>对类进行<span style="color: #ff0000;">实例化</span>；</p>
+<p>&nbsp;</p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-size: 16px;">&gt;&gt;&gt; 
+&gt;&gt;&gt; class A():
+    name = 'python'
+    def func(self):
+        return 'Hello world'
+
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A, 'name')
+'python'
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A, 'age')　　　　# age变量不存在则报错
+
+Traceback (most recent call last):
+  File "&lt;pyshell#464&gt;", line 1, in &lt;module&gt;
+    getattr(A, 'age')
+AttributeError: class A has no attribute 'age'
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A, 'age', 20)
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A, 'func')
+&lt;unbound method A.func&gt;
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A, 'func')()　　　　# func()函数不能被A类对象调用，所以报错， 需要用类的实例化对象来调用
+
+Traceback (most recent call last):
+  File "&lt;pyshell#470&gt;", line 1, in &lt;module&gt;
+    getattr(A, 'func')()
+TypeError: unbound method func() must be called with A instance as first argument (got nothing instead)
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A(), 'func')()
+'Hello world'
+&gt;&gt;&gt; 
+
+
+&gt;&gt;&gt; class A(object):
+　　	name = 'python'
+
+　　　　@classmethod
+		def func():
+　　　　	return 'the method of A object.'
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A, 'func')()
+'the method of A object.'
+&gt;&gt;&gt;
+</span></pre>
+</div>
+<p>　　</p>
+<p>　　</p>
+<h2>　　3. setattr(object, name, value)</h2>
+<p><span style="font-size: 16px;">　　给object对象的name属性赋值value，如果对象原本存在给定的属性name，则setattr会更改属性的值为给定的value；如果对象原本不存在属性name，setattr会在对象中创建属性，并赋值为给定的value；</span></p>
+<p>&nbsp;</p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-size: 16px;">&gt;&gt;&gt; 
+&gt;&gt;&gt; class A():
+    　　name = 'python'
+    　　def func(self):
+        　　return 'Hello world'
+
+    
+&gt;&gt;&gt; 
+&gt;&gt;&gt; setattr(A, 'name', 'java')
+&gt;&gt;&gt; getattr(A, 'name')
+'java'
+&gt;&gt;&gt; 
+&gt;&gt;&gt; setattr(A, 'age', 20)
+&gt;&gt;&gt; getattr(A, 'age')
+20
+</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">一般先判断对象中是否存在某属性，如果存在则返回；如果不存在，则给对象增加属性并赋值：</span></p>
+<p>&nbsp;</p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-size: 16px;">&gt;&gt;&gt; class A():
+    　　name = 'python'
+    　　def func(self):
+        　　return 'Hello world'
+
+&gt;&gt;&gt; 
+&gt;&gt;&gt; if hasattr(A, 'age'):
+    　　print getattr(A, 'age')
+　　 else:
+    　　setattr(A, 'age', 20)
+
+    
+&gt;&gt;&gt; 
+&gt;&gt;&gt; getattr(A, 'age')
+&gt;&gt;&gt;
+</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>　感受一下：</p>
+<p><span style="font-size: 16px;"><img src="./images/python中hasattr()、getattr()、setattr()函数的使用0.png" alt="" /></span></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

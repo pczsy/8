@@ -1,0 +1,660 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修LNMP环境搭建(PHP7.2.25)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>LNMP环境搭建(PHP7.2.25)</center></div><div class='banquan'>原文出处:本文由博客园博主itbsl提供。<br/>
+原文连接:https://www.cnblogs.com/itbsl/p/12059892.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#准备工作">准备工作</a><ul>
+        <li><a href="#安装wget">安装wget</a></li>
+        <li><a href="#安装net-tools">安装net-tools</a></li>
+        <li><a href="#安装vim">安装vim</a></li>
+        <li><a href="#配置显示行号">配置显示行号</a></li>
+        <li><a href="#关闭防火墙">关闭防火墙</a></li>
+        </ul></li>
+        <li><a href="#安装nginx">安装Nginx</a><ul>
+        <li><a href="#安装依赖">安装依赖</a></li>
+        <li><a href="#编译安装nginx">编译安装Nginx</a></li>
+        <li><a href="#配置环境变量">配置环境变量</a></li>
+        <li><a href="#systemd管理">Systemd管理</a></li>
+        </ul></li>
+        <li><a href="#安装mysql">安装MySQL</a><ul>
+        <li><a href="#安装依赖-1">安装依赖</a></li>
+        <li><a href="#下载boost">下载boost</a></li>
+        <li><a href="#编译安装mysql">编译安装MySQL</a></li>
+        <li><a href="#配置环境变量-1">配置环境变量</a></li>
+        <li><a href="#修改配置文件">修改配置文件</a></li>
+        <li><a href="#systemd管理-1">Systemd管理</a></li>
+        <li><a href="#登录mysql">登录MySQL</a></li>
+        </ul></li>
+        <li><a href="#安装php">安装PHP</a><ul>
+        <li><a href="#安装依赖-2">安装依赖</a></li>
+        <li><a href="#编译安装php">编译安装PHP</a></li>
+        <li><a href="#配置systemd服务">配置Systemd服务</a></li>
+        <li><a href="#关联nginx和php">关联Nginx和PHP</a></li>
+        </ul></li>
+        <li><a href="#安装redis">安装Redis</a><ul>
+        <li><a href="#编译安装">编译安装</a></li>
+        <li><a href="#配置环境变量-2">配置环境变量</a></li>
+        <li><a href="#配置后台运行">配置后台运行</a></li>
+        <li><a href="#配置systemd服务-1">配置Systemd服务</a></li>
+        </ul></li>
+        <li><a href="#参考资料">参考资料</a></li>
+        </ul>
+    </div>
+</div>
+<p>作为一名PHP开发者，我们一定要懂得如何搭建PHP开发环境，目前主流的PHP开发环境组合是LAMP和LNMP,本文将介绍如何在CentOS7.*上搭建LNMP开发环境。</p>
+<p>各项版本说明:</p>
+<p>CentOS7: 7.7</p>
+<p>Nginx: 1.16.1</p>
+<p>MySQL:5.7.28</p>
+<p>PHP:7.2.25</p>
+<p>安装所需所有的资源我都放在了/usr/local/src目录下</p>
+<h2 id="准备工作">准备工作</h2>
+<h3 id="安装wget">安装wget</h3>
+<p><code>wget</code> 是一个从网络上自动下载文件的自由工具，支持通过 HTTP、HTTPS、FTP 三个最常见的TCP/IP协议下载，并可以可以使用HTTP代理。</p>
+<pre><code><code>sudo yum -y install wget</code></pre>
+<h3 id="安装net-tools">安装net-tools</h3>
+<p>最小化安装CentOS7时如果无法使用ifconfig命令，则需要安装<code>net-tools</code>,如果是安装的CentOS6版本则无需安装</p>
+<pre><code><code>sudo yum -y install net-tools</code></pre>
+<h3 id="安装vim">安装vim</h3>
+<pre><code><code>sudo yum -y install vim</code></pre>
+<h3 id="配置显示行号">配置显示行号</h3>
+<pre><code><code>vim ~/.vimrc # 编辑.vimrc配置文件
+set nu # 输入set nu 后退出保存</code></pre>
+<h3 id="关闭防火墙">关闭防火墙</h3>
+<pre><code><code>systemctl stop firewalld.service  #令关闭防火墙
+systemctl disable firewalld.service  #关闭防火墙开机自启动
+通过浏览器输入IP测试是否成功</code></pre>
+<h2 id="安装nginx">安装Nginx</h2>
+<h3 id="安装依赖">安装依赖</h3>
+<p>(1) 安装 <code>nginx</code> 需要先将官网下载的源码进行编译，编译依赖 gcc 环境，如果没有 gcc 环境，则需要安装gcc-c++。</p>
+<pre><code><code>yum -y install gcc gcc-c++</code></pre>
+<p>(2) <code>PCRE</code>是一个Perl库，中文&quot;Perl兼容的正则表达式库&quot;。安装Nginx是为了使Nginx支持具备URI重写功能的rewrite模块，如果不安装pcre库，则Nginx无法使用rewrite模块功能，Nginx的Rewrite模块功能几乎是企业应用必须。</p>
+<pre><code><code>yum -y install pcre pcre-devel</code></pre>
+<p>(3) <code>zlib</code> 库提供了很多种压缩和解压缩的方式， nginx 使用 zlib 对 http 包的内容进行 gzip ，所以需要在 Centos 上安装 zlib 库。</p>
+<pre><code><code>yum -y install zlib zlib-devel</code></pre>
+<p>(4) <code>OpenSSL</code>是一个强大的安全套接字层密码库，囊括主要的密码算法、常用的密钥和证书封装管理功能及 SSL 协议，并提供丰富的应用程序供测试或其它目的使用。 nginx 不仅支持 http 协议，还支持 https（即在ssl协议上传输http），所以需要安装 OpenSSL 库 。</p>
+<pre><code><code>yum -y install openssl openssl-devel</code></pre>
+<p>说明: yum安装方式安装的pcre版本比较低，不过基本不影响使用，但是最好还是手动编译安装官网最新稳定版的openssl。</p>
+<p><strong>检查基础依赖包</strong></p>
+<p>上面的依赖安装完成后可以通过如下命令检查各个依赖安装是否成功</p>
+<pre><code><code>rpm -qa pcre pcre-devel
+rpm -qa zlib zlib-devel
+rpm -qa pcre pcre-devel</code></pre>
+<h3 id="编译安装nginx">编译安装Nginx</h3>
+<pre><code><code># 这里我们把安装包都放到了/usr/local/src目录下，便于统一管理
+cd /usr/local/src  #切换到软件包目录
+wget http://nginx.org/download/nginx-1.16.1.tar.gz   #下载nginx源码包
+useradd nginx -s /sbin/nologin -M   #创建nginx用户用于管理nginx程序
+tar -zxvf nginx-1.16.1.tar.gz  #解压nginx源码包
+
+cd nginx-1.16.1
+
+#预编译
+./configure \
+--user=nginx \
+--group=nginx \
+--prefix=/usr/local/nginx-1.16.1 \
+--with-http_v2_module \
+--with-http_ssl_module \
+--with-http_stub_status_module
+
+make &amp;&amp; make install #编译 和 安装
+
+cd /usr/local
+ln -s nginx-1.16.1 nginx  #创建nginx的软链接</code></pre>
+<p><strong>安装说明</strong></p>
+<pre><code><code>--prefix=PATH    #设置安装路劲
+--user=USER      #进程用户权限
+--group=GROUP    #进程用户组权限
+--with-http_v2_module  # HTTP2
+--with-http_stub_status_module   #激活状态信息
+--with-http_ssl_module  #激活ssl功能</code></pre>
+<h3 id="配置环境变量">配置环境变量</h3>
+<pre><code><code>vim /etc/profile
+export PATH=/usr/local/nginx/sbin:$PATH
+source /etc/profile</code></pre>
+<h3 id="systemd管理">Systemd管理</h3>
+<p>新建并编辑<code>/usr/lib/systemd/system/nginx.service</code> 文件</p>
+<pre><code><code>vim /usr/lib/systemd/system/nginx.service</code></pre>
+<p>并添加如下内容(这里的配置是根据自己安装Nginx的路径来配置的，Nginx安装在了<code>/usr/local</code>目录下)</p>
+<pre><code><code>[Unit]
+Description=The nginx HTTP and reverse proxy server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+ExecStartPre=/usr/local/nginx/sbin/nginx -t
+ExecStart=/usr/local/nginx/sbin/nginx
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s stop
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>通过yum安装的nginx,默认的nginx.service配置如下，可以作为参考</p>
+<pre><code><code># /usr/lib/systemd/system/nginx.service
+[Unit]
+Description=The nginx HTTP and reverse proxy server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/run/nginx.pid
+# Nginx will fail to start if /run/nginx.pid already exists but has the wrong
+# SELinux context. This might happen when running `nginx -t` from the cmdline.
+# https://bugzilla.redhat.com/show_bug.cgi?id=1268621
+ExecStartPre=/usr/bin/rm -f /run/nginx.pid
+ExecStartPre=/usr/sbin/nginx -t
+ExecStart=/usr/sbin/nginx
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGQUIT
+TimeoutStopSec=5
+KillMode=process
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p><strong>重载daemon</strong></p>
+<p>执行下面的命令重新载入 systemd，扫描新的或有变动的单元即可</p>
+<pre><code><code>systemctl daemon-reload</code></pre>
+<p><strong>设置开机自启</strong></p>
+<pre><code><code>systemctl enable nginx.service # 设置开机自启
+systemctl disable nginx.service # 取消开机自启服务</code></pre>
+<p><strong>Nginx服务管理常用命令</strong></p>
+<pre><code><code>systemctl status nginx.service # 查看Nginx状态
+systemctl start nginx.service # 开启Nginx
+systemctl stop nginx.service # 关闭Nginx
+systemctl reload nginx.service # 重载配置
+systemctl restart nginx.service  # 重启Nginx(相当于stop&amp;start)</code></pre>
+<p><strong>服务启动检查</strong></p>
+<p>可以通过该命令查询80端口被谁占用</p>
+<pre><code><code>lsof -i :80</code></pre>
+<p>如果无法识别该命令，需要安装<code>lsof</code></p>
+<pre><code><code>sudo yum -y install lsof</code></pre>
+<h2 id="安装mysql">安装MySQL</h2>
+<h3 id="安装依赖-1">安装依赖</h3>
+<p>(1)cmake是新版MySQL的编译工具,必须安装</p>
+<pre><code><code>sudo yum -y install gcc gcc-c++ cmake ncurses-devel perl perl-devel autoconf bison bison-devel libtirpc libtirpc-devel</code></pre>
+<h3 id="下载boost">下载boost</h3>
+<p>如果安装的MySQL5.7及以上的版本，在编译安装之前需要安装boost,因为高版本mysql需要boots库的安装才可以正常运行。否则会报<code>CMake Error at cmake/boost.cmake:81</code>错误</p>
+<p>切换到<code>/usr/local/src</code>目录，然后在这个目录下下载boost<br />
+MySQL5.7.27要求boost的版本是1.59，更高版本的不适用MySQL5.7.28</p>
+<pre><code><code>wget http://www.sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz</code></pre>
+<p>百度网盘链接: <a href="https://pan.baidu.com/s/1qsTFtgqlziUji6oiKpNG7w">boost_1_59_0.tar.gz</a></p>
+<h3 id="编译安装mysql">编译安装MySQL</h3>
+<pre><code><code># 添加MySQL用户
+useradd -s /sbin/nologin -M mysql
+
+# 切换到/usr/src目录
+cd /usr/local/src
+
+# 下载MySQL
+wget https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.28.tar.gz
+
+# 解压MySQL
+tar -zxvf mysql-5.7.28.tar.gz
+
+#解压boost，并移至mysql/boost
+tar -zxvf boost_1_59_0.tar.gz
+mv boost_1_59_0 mysql-5.7.28/boost
+
+# 进到MySQL目录
+cd mysql-5.7.28
+
+# 预编译
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local/mysql-5.7.28 \
+-DWITH_BOOST=boost \
+-DWITH_SYSTEMD=1 \
+-DWITH_SSL=system \
+-DMYSQL_UNIX_ADDR=/var/lib/mysql/mysql.sock \
+-DMYSQL_DATADIR=/var/lib/mysql/data \
+-DDEFAULT_CHARSET=utf8mb4 \
+-DDEFAULT_COLLATION=utf8mb4_general_ci \
+-DWITH_EXTRA_CHARSETS=all \
+-DWITH_MYISAM_STORAGE_ENGINE=1 \
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+-DWITH_INNODB_MEMCACHED=1 \
+-DWITH_DEBUG=OFF \
+-DWITH_ZLIB=bundled \
+-DENABLED_LOCAL_INFILE=1 \
+-DENABLED_PROFILING=ON \
+-DMYSQL_MAINTAINER_MODE=OFF \
+-DMYSQL_TCP_PORT=3306
+
+# 编译&amp;安装
+make &amp;&amp; make install
+
+# 创建软链接
+cd /usr/local
+ln -s mysql-5.7.28 mysql</code></pre>
+<h3 id="配置环境变量-1">配置环境变量</h3>
+<pre><code><code># 添加到环境变量
+vim /etc/profile
+export PATH=/usr/local/mysql/bin:$PATH
+source /etc/profile</code></pre>
+<h3 id="修改配置文件">修改配置文件</h3>
+<ol>
+<li><p>在<code>/var/lib</code>目录下创建一个<code>mysql</code>文件夹</p>
+<pre><code><code>mkdir -p /var/lib/{mysql,mysql/data}
+touch /var/lib/mysql/mysqld.pid
+chown mysql.mysql -R /var/lib/mysql/</code></pre></li>
+<li><p>修改<code>/etc/my.cnf</code>文件</p>
+<pre><code><code># 修改/etc/my.cnf文件，编辑配置文件如下
+[mysqld]
+character-set-server=utf8mb4
+collation-server=utf8mb4_general_ci
+datadir=/var/lib/mysql/data
+socket=/var/lib/mysql/mysql.sock
+
+[mysqld_safe]
+log-error=/var/log/mysql/mysqld.log
+pid-file=/var/lib/mysql/mysqld.pid
+
+[client]
+default-character-set=utf8mb4</code></pre></li>
+<li><p>创建<code>mysqld.log</code> 和 <code>mysqld.pid</code>文件,并修改文件权限</p>
+<pre><code><code># 创建mysqld.log 和 mysqld.pid文件
+mkdir /var/log/mysql
+touch /var/log/mysql/mysqld.log
+chown mysql.mysql -R /var/log/mysql/</code></pre></li>
+<li><p>初始化数据库</p>
+<pre><code><code># 初始化数据库， –initialize 表示默认生成一个安全的密码，–initialize-insecure 表示不生成密码
+mysqld --initialize-insecure --user=mysql --basedir=/usr/local/mysql --datadir=/var/lib/mysql/data</code></pre></li>
+</ol>
+<h3 id="systemd管理-1">Systemd管理</h3>
+<p>创建一个<code>/usr/lib/systemd/system/mysqld.service</code>文件，然后编辑内容如下</p>
+<pre><code><code>vim /usr/lib/systemd/system/mysqld.service</code></pre>
+<pre class="ini"><code>[Unit]
+Description=MySQL Server
+Documentation=man:mysqld(8)
+Documentation=http://dev.mysql.com/doc/refman/en/using-systemd.html
+After=network.target
+After=syslog.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+User=mysql
+Group=mysql
+
+Type=forking
+
+PIDFile=/var/lib/mysql/mysqld.pid
+
+# Disable service start and stop timeout logic of systemd for mysqld service.
+TimeoutSec=0
+
+# Execute pre and post scripts as root
+PermissionsStartOnly=true
+
+# Needed to create system tables
+ExecStartPre=/usr/local/mysql/bin/mysqld_pre_systemd
+
+# Start main service
+ExecStart=/usr/local/mysql/bin/mysqld --daemonize --pid-file=/var/lib/mysql/mysqld.pid $MYSQLD_OPTS
+
+# Use this to switch malloc implementation
+EnvironmentFile=/etc/my.cnf
+
+# Sets open_files_limit
+LimitNOFILE = 5000
+
+Restart=on-failure
+
+RestartPreventExitStatus=1
+
+PrivateTmp=true</code></pre>
+<p><strong>重载daemon</strong></p>
+<p>执行下面的命令重新载入 systemd，扫描新的或有变动的单元即可</p>
+<pre><code><code>systemctl daemon-reload</code></pre>
+<p><strong>启动MySQL</strong></p>
+<pre><code><code>systemctl start mysqld.service # 启动MySQL
+systemctl stop mysqld.service # 关闭MySQL
+systemctl status mysqld.service # 查看MySQL状态</code></pre>
+<p><strong>开机自启</strong></p>
+<pre><code><code>systemctl enable mysqld.service # 设置开机自启
+systemctl disable mysqld.service # 取消开机自启</code></pre>
+<h3 id="登录mysql">登录MySQL</h3>
+<pre><code><code>mysql -u root -p #第一次登陆不需要密码，回车即可
+set password for root@localhost = password(&#39;root&#39;);  #修改密码</code></pre>
+<h2 id="安装php">安装PHP</h2>
+<h3 id="安装依赖-2">安装依赖</h3>
+<pre><code><code>sudo yum -y install gcc gcc-c++ zip unzip libxml2 libxml2-devel curl-devel autoconf libjpeg libjpeg-devel libpng libpng-devel freetype freetype-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel gd-devel bzip2 bzip2-devel libzip libzip-devel libwebp libwebp-devel</code></pre>
+<h3 id="编译安装php">编译安装PHP</h3>
+<pre><code><code>cd /usr/local/src
+tar -zxvf php-7.2.25.tar.gz
+cd  php-7.2.25
+./configure \
+--prefix=/usr/local/php-7.2.25 \
+--enable-fpm \
+--with-fpm-user=nginx \
+--with-fpm-group=nginx \
+--enable-mysqlnd \
+--with-pdo-mysql=mysqlnd \
+--with-mysqli=mysqlnd \
+--with-mysql-sock=/var/lib/mysql/mysql.sock \
+--with-gd \
+--with-webp-dir \
+--with-png-dir \
+--with-gettext \
+--with-jpeg-dir \
+--with-freetype-dir \
+--with-iconv-dir \
+--with-zlib-dir \
+--with-bz2 \
+--with-openssl \
+--with-curl \
+--enable-mbstring \
+--enable-static \
+--enable-zip \
+--enable-bcmath \
+--enable-ftp \
+--enable-pcntl \
+--enable-soap \
+--enable-calendar \
+--enable-sockets \
+--enable-exif \
+--enable-xml
+
+make &amp;&amp; make install</code></pre>
+<p>编译参数详解</p>
+<pre><code><code>./configure \
+--prefix=/usr/local/php-7.2.25 \ # 指定安装路径
+--enable-fpm \             # 表示激活PHP-FPM方式服务,即FactCGI方式运行PHP服务。
+--with-fpm-user=nginx \    # 指定PHP-FPM进程管理的用户为nginx,此处最好和Nginx服务用户统一。
+--with-fpm-group=nginx \   # 指定PHP-FPM进程管理用户组为nginx,此处最好和Nginx服务用户组统一。
+--enable-mysqlnd \
+--with-pdo-mysql=mysqlnd \
+--with-mysqli=mysqlnd \
+--with-mysql-sock=/var/lib/mysql/mysql.sock \
+--with-gd \          # 打开gd库的支持
+--with-webp-dir \
+--with-png-dir \
+--with-gettext \     # 实现了NLS (Native Language Support) API，他可以用来国际化您的PHP程序
+--with-jpeg-dir \
+--with-freetype-dir \
+--with-iconv-dir \   # 包含了 iconv 字符集转换功能的接口。
+--with-zlib-dir \    # 打开zlib库的支持,用于http压缩传输
+--with-bz2 \         # 用于透明地读写 bzip2（.bz2）压缩文件。
+--with-openssl \     # 打开openssl,加密传输时用到
+--with-curl \        # 打开curl浏览工具的支持 
+--enable-mbstring \  # 多字节，字符串的支持
+--enable-static \    # 生成静态链接库
+--enable-zip \       # 打开对zip的支持
+--enable-bcmath \
+--enable-ftp \       # 通过文件传输协议 (FTP) 提供对文件服务器的客户端访问
+--enable-pcntl \     # 多进程
+--enable-soap \
+--enable-calendar \
+--enable-sockets \   # 打开 sockets 支持
+--enable-exif \      # 可交换图像信息
+--enable-xml</code></pre>
+<p><strong>配置</strong></p>
+<pre><code><code>cd /usr/local
+
+ln -s php-7.2.25 php
+cp /usr/local/src/php-7.2.25/php.ini-development /usr/local/php-7.2.25/lib/php.ini
+ 
+vim /usr/local/php/lib/php.ini
+date.timezone = PRC  (大约在934行)
+expose_php = Off  #避免PHP信息暴露在http头中(大约369行)
+ 
+display_errors = Off(生产环境设置为off,开发环境就设置为On,便于调试)
+ 说明:设置了dispaly_errors为off后,需要在php-fpm.conf中开启错误日志记录路径error_log = log/php-fpm.log
+ 
+cd /usr/local/php 
+cp etc/php-fpm.conf.default etc/php-fpm.conf
+
+cd /usr/local/php/etc/php-fpm.d/
+cp www.conf.default www.conf
+cd /usr/local/php
+sbin/php-fpm
+ps -e | grep php-fpm
+
+如果在编译PHP时指定了--with-mysql=mysqlnd和--with-pdo-mysql=mysqlnd的参数，那么在生产中可能会遇到socket连接问题，解决办法是在php.ini里加入命令: pdo_mysql.default_socket=/var/lib/mysql/mysql.sock
+
+最好是在编译PHP的时候，指定mysql.socket的位置:
+--with-mysql-sock=/var/lib/mysql/mysql.sock</code></pre>
+<p><strong>管理PHP-FPM</strong></p>
+<pre><code><code>vim /usr/local/php/etc/php-fpm.conf
+pid = run/php-fpm.pid
+error_log = log/php-fpm.log #24行这个在php.ini设置display_errors = Off时启用
+设置完之后重启服务器
+向进程发送信号,就可以完成进程管理
+停止: kill -INT `cat /usr/local/php/var/run/php-fpm.pid`
+平滑停止: kill -QUIT `cat /usr/local/php/var/run/php-fpm.pid`
+重启:kill -USR2 `cat /usr/local/php/var/run/php-fpm.pid`
+重新打开日志:kill -USR1 `cat /usr/local/php/var/run/php-fpm.pid`</code></pre>
+<p><strong>配置环境变量</strong></p>
+<pre><code><code>vim /etc/profile
+export PATH=/usr/local/php/bin:$PATH
+source /etc/profile</code></pre>
+<h3 id="配置systemd服务">配置Systemd服务</h3>
+<p>其实php-fpm.service文件php已经帮我们配置好了，只需要我们复制到指定位置，并启用就行了。</p>
+<pre><code><code>cp /usr/local/src/php-7.2.25/sapi/fpm/php-fpm.service /usr/lib/systemd/system/</code></pre>
+<p>编辑<code>/usr/lib/systemd/system/php-fpm.service</code>文件并修改为如下内容:</p>
+<pre class="ini"><code># It&#39;s not recommended to modify this file in-place, because it
+# will be overwritten during upgrades.  If you want to customize,
+# the best way is to use the &quot;systemctl edit&quot; command.
+
+[Unit]
+Description=The PHP FastCGI Process Manager
+After=network.target
+
+[Service]
+Type=simple
+PIDFile=/usr/local/php/var/run/php-fpm.pid
+ExecStart=/usr/local/php/sbin/php-fpm --nodaemonize --fpm-config /usr/local/php/etc/php-fpm.conf
+ExecReload=/bin/kill -USR2 $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p><strong>重载daemon</strong></p>
+<p>执行下面的命令重新载入 systemd，扫描新的或有变动的单元即可</p>
+<pre><code><code>systemctl daemon-reload</code></pre>
+<p><strong>开机自启</strong></p>
+<pre><code><code>systemctl enable php-fpm.service</code></pre>
+<p><strong>启动php-fpm</strong></p>
+<pre><code><code>systemctl start php-fpm.service</code></pre>
+<h3 id="关联nginx和php">关联Nginx和PHP</h3>
+<p>nginx.conf配置</p>
+<pre><code><code>#user  nobody;
+# 有一个工作的子进程，可以自行修改，但太大无益，因为要争夺CPU
+# 一般设置CPU数 * 核数
+worker_processes  1; 
+
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
+
+
+events {
+#一般是配置Nginx进程与连接的特性
+#若几个同时工作
+    multi_accept on; #打开同时接受多个新网络连接请求的功能。
+    use epoll;  #使用epoll事件驱动，因为epoll的性能相比其他事件驱动要好很多
+    worker_connections  10240; #这是指一个子进程最大允许连接10240个连接
+}
+
+
+http { # 这是配置http服务器的主要段
+    include       mime.types;
+    default_type  application/octet-stream;
+    
+    #隐藏Nginx软件版本号
+    server_tokens off;
+    
+    #激活tcp_nodelay功能,提高I/O性能
+    tcp_nodelay on;
+
+    # 设置读取客户端请求头数据的超时时间。此处的数值为15，其单位是秒，为经验参考值
+    client_header_timeout 15;
+
+    # 设置读取客户端请求体的超时时间
+    client_body_timeout 15;
+
+    # 指定响应客户端的超时时间
+    send_timeout 25;
+
+    # 上传文件大小限制
+    client_max_body_size 8m;
+    
+    #压缩配置
+    gzip on;
+    gzip_min_length 1k;
+    gzip_buffers 4 16k;
+    gzip_http_version 1.1;
+    gzip_comp_level 2;
+    gzip_types text/plain text/css text/xml application/javascript;
+    gzip_vary on;
+
+    #log_format  main  &#39;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#39;
+    #                  &#39;$status $body_bytes_sent &quot;$http_referer&quot; &#39;
+    #                  &#39;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&#39;;
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #include extra/*.conf;
+    server {
+        listen       80;
+        server_name  www.blog.com;
+        root         html;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+            index  index.php index.html index.htm;
+            if (!-e $request_filename) {
+                rewrite ^/(.*)$ /index.php/$1 last;
+            }
+        }
+
+        #error_page  404              /404.html;
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        #
+        #location ~ \.php$ {
+        #    proxy_pass   http://127.0.0.1;
+        #}
+
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        #
+        location ~ \.php {
+            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_index  index.php;
+            fastcgi_split_path_info ^(.+\.php)(.*)$;
+            fastcgi_param PATH_INFO $fastcgi_path_info;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+            include        fastcgi_params;
+        }
+
+        # deny access to .htaccess files, if Apache&#39;s document root
+        # concurs with nginx&#39;s one
+        #
+        #location ~ /\.ht {
+        #    deny  all;
+        #}
+    }
+}</code></pre>
+<h2 id="安装redis">安装Redis</h2>
+<h3 id="编译安装">编译安装</h3>
+<pre><code><code># 解压源码文件
+tar -zxvf redis-5.0.7.tar.gz
+
+# 切换到解压目录
+cd redis-5.0.7
+
+# 编译安装
+make PREFIX=/usr/local/redis-5.0.7 install
+
+mkdir /usr/local/redis-5.0.7/etc
+cp redis.conf /usr/local/redis-5.0.7/etc/
+
+# 创建软链接
+cd /usr/local
+ln -s redis-5.0.7 redis</code></pre>
+<h3 id="配置环境变量-2">配置环境变量</h3>
+<pre><code><code>vim /etc/profile
+export PATH=/usr/local/redis/bin:$PATH
+source /etc/profile # 使修改立即生效</code></pre>
+<h3 id="配置后台运行">配置后台运行</h3>
+<p>让<code>redis</code>以后台进程的形式运行</p>
+<pre><code><code>vim /usr/local/redis/etc/redis.conf
+
+# daeonize no(大约136行)
+# 改为 -&gt;
+daemonize yes</code></pre>
+<h3 id="配置systemd服务-1">配置Systemd服务</h3>
+<p>在 <code>/usr/lib/systemd/system/</code>添加一个<code>redis.service</code>文件，并添加如下内容</p>
+<pre class="ini"><code>[Unit]
+Description=Redis
+After=network.target
+ 
+[Service]
+Type=forking
+PIDFile=/var/run/redis_6379.pid
+ExecStart=/usr/local/redis/bin/redis-server /usr/local/redis/etc/redis.conf
+ExecStop=/usr/local/redis/bin/redis-cli shutdown
+PrivateTmp=true
+ 
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p><strong>重载daemon</strong></p>
+<p>执行下面的命令重新载入 systemd，扫描新的或有变动的单元即可</p>
+<pre><code><code>systemctl daemon-reload</code></pre>
+<p><strong>开机自启</strong></p>
+<pre><code><code>systemctl enable redis.service</code></pre>
+<p><strong>启动redis服务</strong></p>
+<pre><code><code>systemctl start redis.service</code></pre>
+<h2 id="参考资料">参考资料</h2>
+<p><a href="https://blog.csdn.net/zhang_referee/article/details/88212695">centos7 源码编译安装 mysql5.7</a></p>
+<p><a href="https://www.cnblogs.com/JiangLe/p/6853010.html?utm_source=itdadao&amp;utm_medium=referral">mysql在linux7下systemd的相关配置</a></p>
+<p><a href="https://dev.mysql.com/doc/refman/5.7/en/using-systemd.html">Managing MySQL Server with systemd</a></p>
+<p><a href="https://www.cnblogs.com/xiexun/p/11359374.html">centos7 7.3php编译安装</a></p>
+<p><a href="https://www.cnblogs.com/jkko123/p/10790427.html">centos7下编译安装php7.3</a></p>
+<p><a href="https://www.cnblogs.com/liudw-0215/p/9877290.html">cmake安装配置及入门指南</a></p>
+<p><a href="http://blog.itpub.net/69915315/viewspace-2648182/">编译CMake 3.15 和 gcc 5.3.0</a></p>
+<p><a href="https://www.cnblogs.com/mrcoolfuyu/p/11446644.html">CentOS7升级OpenSSL到1.1.1</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

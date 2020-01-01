@@ -1,0 +1,245 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot原理讲解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot原理讲解</center></div><div class='banquan'>原文出处:本文由博客园博主WuJunStart提供。<br/>
+原文连接:https://www.cnblogs.com/wujunstart/p/12015895.html</div><br>
+    <h2>一.问题的引入</h2>
+<p>首先我们来看一个最简单的例子。</p>
+<p>我们先创建一个SpringBoot的工程，如何创建一个SpringBoot工程就不说了，不会请自行解决。然后写一个controller类，通过请求路径，返回HelloWorld在浏览器页面上显示。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<img src="./images/SpringBoot原理讲解0.png" alt="" width="946" height="368" /></p>
+<p><img src="./images/SpringBoot原理讲解1.png" alt="" width="705" height="377" /></p>
+<p>　　上面两张图就是程序的一个整体的结构和运行的结果，那么问题来了，SpringBoot程序中没有任何配置，不像Spring框架，写一大堆配置信息在xml文件中，那么程序是怎么将我们这里的Controller类扫描到spring容器中的呢？</p>
+<h2>二.原理讲解。</h2>
+<p>首先第一点，我们来看一下SpringBoot的启动类，</p>
+<div class="cnblogs_Highlighter">
+<pre><code>package com.example.demo;
+
+
+
+import org.springframework.boot.SpringApplication;
+
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+
+
+@SpringBootApplication
+
+public class DemoApplication {
+
+
+
+    public static void main(String[] args) {
+
+        //启动SpringBoot应用
+
+        SpringApplication.run(DemoApplication.class, args);
+
+    }
+
+}
+</pre>
+</div>
+<p>　　</p>
+<p>其中，我们看到一个注解<strong>@SpringBootApplication</strong>，SpringBoot应用标注在某个类上说明这个类是SpringBoot的主配置类，SpringBoot就应该运行这个类的main方法来启动SpringBoot应用；</p>
+<p>然后我们点进去看看这个注解到底包含了什么，</p>
+<div class="cnblogs_Highlighter">
+<pre><code>@Target(ElementType.TYPE)
+
+@Retention(RetentionPolicy.RUNTIME)
+
+@Documented
+
+@Inherited
+
+@SpringBootConfiguration
+
+@EnableAutoConfiguration
+
+@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+
+      @Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+
+public @interface SpringBootApplication {      
+</pre>
+</div>
+<p>　　</p>
+<p>其中我们需要重点关注的就是<strong>@SpringBootConfiguration、@EnableAutoConfiguration</strong></p>
+<p>下面我们逐个来讲解:</p>
+<p><strong>@SpringBootConfiguration</strong>这个注解顾名思义，标注在某个类上，这个类就是SpringBoot的配置类，我们再点进去看看。</p>
+<div class="cnblogs_Highlighter">
+<pre><code>@Target(ElementType.TYPE)
+
+@Retention(RetentionPolicy.RUNTIME)
+
+@Documented
+
+@Configuration
+</pre>
+</div>
+<p>　　</p>
+<p>&nbsp;</p>
+<p>原来这个注解是底层是Spring中的注解<strong>@Configuration</strong>,而@Configuration注解底层就是一个<strong>@Component</strong>，代表一个容器。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>SpringBoot的精髓是在<strong>@EnableAutoConfiguration</strong>这个注解上，根据名字，我们可以知道这是一个自动配置类，也就是能够实现一些自动配置的功能，那么具体是配置了什么东西呢？</p>
+<p>我们再点进去看看</p>
+<div class="cnblogs_Highlighter">
+<pre><code>@Target(ElementType.TYPE)
+
+@Retention(RetentionPolicy.RUNTIME)
+
+@Documented
+
+@Inherited
+
+@AutoConfigurationPackage
+
+@Import(AutoConfigurationImportSelector.class)
+</pre>
+</div>
+<p>　　</p>
+<p>我们看见了和这个注解有关联的重要的两个注解<strong>@AutoConfigurationPackage，@Import(AutoConfigurationImportSelector.class)</strong>，也是分别给大家讲解一下。</p>
+<p>1<strong>.@AutoConfigurationPackage</strong></p>
+<p><strong>@AutoConfigurationPackage</strong>：这是一个自动配置的包，我们来看下在这个程序中是配置了哪个包，点进来</p>
+<div class="cnblogs_Highlighter">
+<pre><code>@Import(AutoConfigurationPackages.Registrar.class)
+</pre>
+</div>
+<p>　　</p>
+<p>&nbsp;</p>
+<p>再点到Register,我们看到在大概123行的位置，有一段代码。</p>
+<div class="cnblogs_Highlighter">
+<pre><code>@Override
+
+public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
+
+   register(registry, new PackageImport(metadata).getPackageName());
+
+}
+</pre>
+</div>
+<p>　　</p>
+<p>我们看到这个方法器中一个参数metadata，代表注解的元信息，然后我们通过这个注解的元信息来获这个包名，我们在这打个断点，debug运行，可以看见一些元信息的基本内容，最主要我们要知道是导入了哪个包，我们选中<strong>new PackageImport(metadata).getPackageName()，</strong>右键计算一下</p>
+<p><img src="./images/SpringBoot原理讲解2.png" alt="" width="617" height="562" /></p>
+<p>发现导入的包就是我们项目的根目录，假如我们新建一个包叫<strong>com.controller</strong>，在里面写一个controller类，大家可以运行的试一下是否能成功呢。</p>
+<p>&nbsp;</p>
+<p>2.<strong>@Import(AutoConfigurationImportSelector.class)</strong></p>
+<p><strong>&nbsp; &nbsp; &nbsp;@Import(AutoConfigurationImportSelector.class):</strong>这个注解代表的是一个自动配置的选择器，那么要导入哪些组件的选择器呢？</p>
+<p>我们点进去，看到非常重要的一段。</p>
+<div class="cnblogs_Highlighter">
+<pre><code>protected AutoConfigurationEntry getAutoConfigurationEntry(AutoConfigurationMetadata autoConfigurationMetadata,
+
+      AnnotationMetadata annotationMetadata) {
+
+   if (!isEnabled(annotationMetadata)) {
+
+      return EMPTY_ENTRY;
+
+   }
+
+   AnnotationAttributes attributes = getAttributes(annotationMetadata);
+
+   List&lt;String&gt; configurations = getCandidateConfigurations(annotationMetadata, attributes);
+
+   configurations = removeDuplicates(configurations);
+
+   Set&lt;String&gt; exclusions = getExclusions(annotationMetadata, attributes);
+
+   checkExcludedClasses(configurations, exclusions);
+
+   configurations.removeAll(exclusions);
+
+   configurations = filter(configurations, autoConfigurationMetadata);
+
+   fireAutoConfigurationImportEvents(configurations, exclusions);
+
+   return new AutoConfigurationEntry(configurations, exclusions);
+
+}
+</pre>
+</div>
+<p>　　</p>
+<p>&nbsp;这里我们获得到了一个configurations 的list集合，我们打个断点看看这个集合中到底给我们装了些什么东西。</p>
+<p><img src="./images/SpringBoot原理讲解3.png" alt="" /></p>
+<p>我们发现这个configurations 里面装配了124个自动配置类，原来我们没有配置的一些信息，都通过SpringBoot的自动配置类给我配置好了。</p>
+<p>那么我还想知道这些类SpringBoot程序给我们放到哪了呢，我们看到<strong>getCandidateConfigurations(annotationMetadata, attributes)；</strong></p>
+<p>点进去，我们看到：</p>
+<div class="cnblogs_Highlighter">
+<pre><code>List&lt;String&gt; configurations = SpringFactoriesLoader.loadFactoryNames(getSpringFactoriesLoaderFactoryClass()
+</pre>
+</div>
+<p>　　</p>
+<p>&nbsp;</p>
+<p>那么再点进去我们看看到底加载的工厂名称是啥，</p>
+<div class="cnblogs_Highlighter">
+<pre><code>try {
+
+   Enumeration&lt;URL&gt; urls = (classLoader != null ?
+
+         classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
+
+         ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
+
+   result = new LinkedMultiValueMap&lt;&gt;();
+
+   while (urls.hasMoreElements()) {
+
+      URL url = urls.nextElement();
+
+      UrlResource resource = new UrlResource(url);
+
+      Properties properties = PropertiesLoaderUtils.loadProperties(resource);
+
+      for (Map.Entry&lt;?, ?&gt; entry : properties.entrySet()) {
+
+         String factoryTypeName = ((String) entry.getKey()).trim();
+
+         for (String factoryImplementationName : StringUtils.commaDelimitedListToStringArray((String) entry.getValue())) {
+
+            result.add(factoryTypeName, factoryImplementationName.trim());
+
+         }
+
+      }
+
+   }
+</pre>
+</div>
+<p>　　</p>
+<p>我们看到其中类加载器给我们获取了资源，我们点进去，</p>
+<h2><strong>点了这么多次，终于找到我们想要的答案了！！！</strong></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>public static final String FACTORIES_RESOURCE_LOCATION = "META-INF/spring.factories";
+</pre>
+</div>
+<p>　　</p>
+<p>&nbsp;</p>
+<p>原来这些自动配置类都在类路径下的<strong>"META-INF/spring.factories"</strong></p>
+<p><img src="./images/SpringBoot原理讲解4.png" alt="" width="1269" height="726" /></p>
+<p>还有下面的autoconfigure包中的内容，我们也看看</p>
+<p><img src="./images/SpringBoot原理讲解5.png" alt="" width="481" height="743" /></p>
+<p>这里面我们所有所用到的配置类全部由SpringBoot给我们配置了，所以我们知道SpringBoot表面上是零配置的，其实底层都给我们封装好了，也是方便我们程序员进行开发。</p>
+<p>那么有些人肯定又有疑惑，SpringBoot怎么知道给我们自动配置哪些类呢？</p>
+<p><strong>欲知后事如何，请关注一下作者，纯手打码字不易，也是希望和大家多多交流，一起学习，谢谢！</strong></p>
+<p><img id="uploading_image_52577" src="./images/SpringBoot原理讲解6.png" alt="" /></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

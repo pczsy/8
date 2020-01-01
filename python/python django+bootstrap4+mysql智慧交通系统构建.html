@@ -1,0 +1,1065 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python django+bootstrap4+mysql智慧交通系统构建' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python django+bootstrap4+mysql智慧交通系统构建</center></div><div class='banquan'>原文出处:本文由博客园博主一只帅气的IT小昂提供。<br/>
+原文连接:https://www.cnblogs.com/ITXiaoAng/p/11560222.html</div><br>
+    <p>&nbsp; &nbsp; &nbsp; &nbsp; 之前，我做了一个实训的项目，但是一直没有展示如何做的，现在就让我讲解一下如何用django+bootstrap4+mysql实现这个智慧交通系统。这里用到的是网页的bootstrap4框架和mysql数据库。</p>
+<p>&nbsp;</p>
+<p>一：软件项目内容</p>
+<p>1.实训项目简介</p>
+<p>　　智慧交通系统是旨在提高员工的日常工作便捷性、工作效率，降低管理及运营成本的实用项目。本软件系统将为该公司提供车辆信息管理、员工信息管理、线路信息管理、站点信息管理、排班方案管理等功能，同时提供了近场通讯功能（NFC）。利用这些功能充分满足该公交公司日常工作中的管理及信息同步需求。</p>
+<p>&nbsp;</p>
+<p>2.用到的uml图</p>
+<p>(1)用例图</p>
+<p>&nbsp; &nbsp; &nbsp; 首先是需求分析环节，先判断需要的用例，各个外部人员的角色：</p>
+<p>　&nbsp; 管理员用例，可以管理所有信息：</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;　　调度员用例，只能操作排班，其他只能查看：</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;　　</p>
+<p>　　调度员，只能查看排班信息：</p>
+<p>　<img src="./images/python django+bootstrap4+mysql智慧交通系统构建2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;(2)数据流图</p>
+<p>数据流图是描绘数据在软件中流动和被处理的逻辑过程的模型。它与数据字典一起用来构成系统的逻辑模型。</p>
+<p>总的数据流图：</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>三层数据流图：</p>
+<p>　　0<span style="font-family: 宋体;">层图：</span></p>
+<p><span style="font-family: 宋体;"><img src="./images/python django+bootstrap4+mysql智慧交通系统构建4.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;">&nbsp; &nbsp;顶层图把数据的流动进行了抽象，泛化。只对管理员和调度人员直接进行了数据流动分析，分为处理事务</span>，<span style="font-family: 宋体;">排班信息</span>和查询排班信息<span style="font-family: 宋体;">。</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;　　1层图：</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　　</p>
+<p>　　1层图对顶层图进行了细分，分为人员信息，车辆信息，线路信息和站点信息管理。</p>
+<p>(3)系统功能图</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>3.数据库设计</p>
+<p>(1)ER图：</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;(2)概念模型</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>(3)物理模型</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建9.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>二：django构建智慧交通系统系统</p>
+<p>&nbsp;1.首先我们需要构建一个数据库，这里具体怎么构建就不说了，下面是构建的数据库。</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建10.png" alt="" width="832" height="401" /></p>
+<p>&nbsp;</p>
+<p>2.然后我们创建一个django项目，需要修改models.py文件与数据库相对应：<br /><img src="./images/python django+bootstrap4+mysql智慧交通系统构建11.png" alt="" width="205" height="293" /></p>
+<p>修改的代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.db <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Bus(models.Model):
+    buscode </span>= models.AutoField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">busCode</span><span style="color: #800000;">'</span>, primary_key=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    buslicense = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">'</span>, max_length=20)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    bustype = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">busType</span><span style="color: #800000;">'</span>, max_length=25, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    busstatus = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">busStatus</span><span style="color: #800000;">'</span>, max_length=2, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    starttime = models.DateTimeField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">startTime</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+
+    <span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">bus</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Line(models.Model):
+    linecode </span>= models.AutoField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">'</span>, primary_key=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    linename = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">lineName</span><span style="color: #800000;">'</span>, max_length=20, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    status = models.CharField(max_length=2, blank=True, null=<span style="color: #000000;">True)
+    startlinetime </span>= models.DateTimeField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">startLineTime</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    direction = models.CharField(max_length=2, blank=True, null=<span style="color: #000000;">True)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">line</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> LineStationRef(models.Model):
+    linecode </span>= models.ForeignKey(Line, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    stationcode = models.ForeignKey(<span style="color: #800000;">'</span><span style="color: #800000;">Station</span><span style="color: #800000;">'</span>, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">stationCode</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    stationorder = models.IntegerField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">stationOrder</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+
+    <span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">line_station_ref</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Permission(models.Model):
+    permissioncode </span>= models.AutoField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">permissionCode</span><span style="color: #800000;">'</span>, primary_key=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    permissionname = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">permissionName</span><span style="color: #800000;">'</span>, max_length=50, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    permissiondescribe = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">permissionDescribe</span><span style="color: #800000;">'</span>, max_length=100, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+
+    <span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">permission</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Role(models.Model):
+    rolecode </span>= models.AutoField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">roleCode</span><span style="color: #800000;">'</span>, primary_key=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    rolename = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">roleName</span><span style="color: #800000;">'</span>, max_length=50, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    roledescribe = models.CharField(max_length=100, blank=True, null=<span style="color: #000000;">True)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">role</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> RolePermissionRef(models.Model):
+    relationcode </span>= models.AutoField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">relationCode</span><span style="color: #800000;">'</span>, primary_key=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    rolecode = models.ForeignKey(Role, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">roleCode</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    permissioncode = models.ForeignKey(Permission, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">permissionCode</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+
+    <span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">role_permission_ref</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Scheduling(models.Model):
+    code </span>= models.AutoField(primary_key=<span style="color: #000000;">True)
+    linecode </span>= models.ForeignKey(Line, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    tcnumber = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">tcNumber</span><span style="color: #800000;">'</span>, max_length=25, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    tctime = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">tcTime</span><span style="color: #800000;">'</span>, max_length=20, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    usercode = models.ForeignKey(<span style="color: #800000;">'</span><span style="color: #800000;">Sysuser</span><span style="color: #800000;">'</span>, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">userCode</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    startstation = models.ForeignKey(<span style="color: #800000;">'</span><span style="color: #800000;">Station</span><span style="color: #800000;">'</span>, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">startStation</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    endstation = models.ForeignKey(<span style="color: #800000;">'</span><span style="color: #800000;">Station</span><span style="color: #800000;">'</span>, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">endStation</span><span style="color: #800000;">'</span>, blank=True, null=True,related_name=<span style="color: #800000;">'</span><span style="color: #800000;">endStation</span><span style="color: #800000;">'</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    buslicense = models.ForeignKey(Bus, models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">'</span>, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+
+    <span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">scheduling</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Station(models.Model):
+    stationcode </span>= models.AutoField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">stationCode</span><span style="color: #800000;">'</span>, primary_key=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    stationname = models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">stationName</span><span style="color: #800000;">'</span>, max_length=50, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    longitude = models.CharField(max_length=50, blank=True, null=<span style="color: #000000;">True)
+    latitude </span>= models.CharField(max_length=50, blank=True, null=<span style="color: #000000;">True)
+    region </span>= models.CharField(max_length=50, blank=True, null=<span style="color: #000000;">True)
+    street </span>= models.CharField(max_length=50, blank=True, null=<span style="color: #000000;">True)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">station</span><span style="color: #800000;">'</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Sysuser(models.Model):
+    code </span>= models.AutoField(primary_key=<span style="color: #000000;">True)
+    loginname </span>= models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">loginName</span><span style="color: #800000;">'</span>, max_length=25, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    password = models.CharField(max_length=50, blank=True, null=<span style="color: #000000;">True)
+    name </span>= models.CharField(max_length=25, blank=True, null=<span style="color: #000000;">True)
+    phone </span>= models.CharField(max_length=11, blank=True, null=<span style="color: #000000;">True)
+    idcard </span>= models.CharField(db_column=<span style="color: #800000;">'</span><span style="color: #800000;">idCard</span><span style="color: #800000;">'</span>, max_length=25, blank=True, null=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> Field name made lowercase.</span>
+    role = models.ForeignKey(Role,models.DO_NOTHING, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">role</span><span style="color: #800000;">'</span>, blank=True, null=<span style="color: #000000;">True)
+    driving </span>= models.DecimalField(max_digits=10, decimal_places=0, blank=True, null=<span style="color: #000000;">True)
+    status </span>= models.CharField(max_length=25, blank=True, null=<span style="color: #000000;">True)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        managed </span>=<span style="color: #000000;"> True
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">sysuser</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>3.然后我们创建如下的静态网页文件，分别代表不同功能：<br /><img src="./images/python django+bootstrap4+mysql智慧交通系统构建12.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>4.登录页面</p>
+<p>首先是需要构建登录页面，代码如下：</p>
+<div class="cnblogs_code">
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta charset=<span style="color: #800000;">"</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">"</span>&gt;
+  &lt;title&gt;用户登录&lt;/title&gt;
+  &lt;link rel=<span style="color: #800000;">"</span><span style="color: #800000;">stylesheet</span><span style="color: #800000;">"</span> type=<span style="color: #800000;">"</span><span style="color: #800000;">text/css</span><span style="color: #800000;">"</span> href=<span style="color: #800000;">"</span><span style="color: #800000;">/static/css/denglu.css</span><span style="color: #800000;">"</span> /&gt;
+  &lt;script src=<span style="color: #800000;">"</span><span style="color: #800000;">/static/js/jquery.js</span><span style="color: #800000;">"</span>&gt; &lt;/script&gt;
+  &lt;link rel=<span style="color: #800000;">"</span><span style="color: #800000;">stylesheet</span><span style="color: #800000;">"</span> href=<span style="color: #800000;">"</span><span style="color: #800000;">/static/bootstrap/css/bootstrap.css</span><span style="color: #800000;">"</span>&gt;
+  &lt;script src=<span style="color: #800000;">"</span><span style="color: #800000;">/static/bootstrap/js/bootstrap.js</span><span style="color: #800000;">"</span>&gt;&lt;/script&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;!-- 两个输入框 --&gt;
+    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">container</span><span style="color: #800000;">"</span>&gt;
+        &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">row row-centered</span><span style="color: #800000;">"</span>&gt;
+            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">col-xs-6 col-md-4 col-center-block</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">one</span><span style="color: #800000;">"</span>&gt;
+                &lt;h1 <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">textcolor</span><span style="color: #800000;">"</span>&gt;智慧交通&lt;/h1&gt;
+                &lt;h3 <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">textcolor</span><span style="color: #800000;">"</span>&gt;公交调度排班系统&lt;/h3&gt;
+                &lt;form action=<span style="color: #800000;">"</span><span style="color: #800000;">{%url 'dengLu' %}</span><span style="color: #800000;">"</span> method=<span style="color: #800000;">"</span><span style="color: #800000;">post</span><span style="color: #800000;">"</span>&gt;<span style="color: #000000;">
+{</span><span style="color: #008000;">#</span><span style="color: #008000;">                  csrf_token 是为了防止csrf（跨站请求伪造）,安全机制去，需要加上#}</span>
+                    {%csrf_token%<span style="color: #000000;">}
+                    </span>&lt;!-- 输入登录名 --&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                        &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">sizing-addon1</span><span style="color: #800000;">"</span>&gt;
+                            &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-user</span><span style="color: #800000;">"</span> aria-hidden=<span style="color: #800000;">"</span><span style="color: #800000;">true</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                        &lt;input type=<span style="color: #800000;">"</span><span style="color: #800000;">text</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">userid</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">username</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入登录名</span><span style="color: #800000;">"</span>/&gt;
+                    &lt;/div&gt;
+                    &lt;!-- 输入密码 --&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                        &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">sizing-addon2</span><span style="color: #800000;">"</span>&gt;
+                            &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-lock</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                        &lt;input type=<span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">userpassword</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">userpassword</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入密码</span><span style="color: #800000;">"</span>/&gt;
+                    &lt;/div&gt;
+                    &lt;br/&gt;
+
+                    &lt;button type=<span style="color: #800000;">"</span><span style="color: #800000;">submit</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-primary btn-block</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">submit</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">登录</span><span style="color: #800000;">"</span>&gt;登录&lt;/button&gt;
+
+                    &lt;button type=<span style="color: #800000;">"</span><span style="color: #800000;">submit</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-success btn-block</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">submit</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">登录</span><span style="color: #800000;">"</span>&gt;清空&lt;/button&gt;
+                    
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</div>
+<p>想{%url 'dengLu' %}这样的写法就是为了和后台交互的，然后我们用dengLu变量和后台交互，在urls.py中加入如下代码：</p>
+<div class="cnblogs_code">
+<pre><code>re_path(r<span style="color: #800000;">'</span><span style="color: #800000;">^$</span><span style="color: #800000;">'</span><span style="color: #000000;">,view.dengLu),
+</span><span style="color: #008000;">#登录后接受表单跳转页面</span>
+path(<span style="color: #800000;">'</span><span style="color: #800000;">tiao_zhuan</span><span style="color: #800000;">'</span>,view.getDengLu,name=<span style="color: #800000;">"</span><span style="color: #800000;">dengLu</span><span style="color: #800000;">"</span>),</pre>
+</div>
+<p>这时候只是显示登陆后的状态，并没有具体操作，就需要在view.py文件中加入下面的代码进行动态交互：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> dengLu(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 登陆管理</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">denglu.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> getDengLu(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户登录后跳转页面</span>
+    username = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">username</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    userpassword </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">userpassword</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    response </span>= Sysuser.objects.filter(loginname=username,password=<span style="color: #000000;">userpassword)
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> response:
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> response:
+            quan_xian </span>=<span style="color: #000000;"> i.role.rolecode
+            zhuang_tai </span>=<span style="color: #000000;"> i.status
+            </span><span style="color: #0000ff;">if</span> quan_xian ==<span style="color: #000000;"> 0:
+                </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">index.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">if</span> quan_xian == 1 <span style="color: #0000ff;">and</span> zhuang_tai == <span style="color: #800000;">'</span><span style="color: #800000;">启动</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+                schedul_list </span>=<span style="color: #000000;"> Scheduling.objects.all()
+                </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">"</span><span style="color: #800000;">form_basic_diao_du.html</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">schedul_list</span><span style="color: #800000;">"</span><span style="color: #000000;">:schedul_list})
+            </span><span style="color: #0000ff;">elif</span> quan_xian == 2 <span style="color: #0000ff;">and</span> zhuang_tai == <span style="color: #800000;">'</span><span style="color: #800000;">启动</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+                schedul_list </span>=<span style="color: #000000;"> Scheduling.objects.all()
+                </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">form_basic_look.html</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">schedul_list</span><span style="color: #800000;">"</span><span style="color: #000000;">:schedul_list})
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">return</span> 0</pre>
+</div>
+<p>然后就可以看到我们的页面：<br /><img src="./images/python django+bootstrap4+mysql智慧交通系统构建13.png" alt="" width="798" height="420" /></p>
+<p>这里就根据数据库中的用户表进行判断：</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建14.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>5.其他页面构建</p>
+<p>其他的比如员工，车辆，站点，排班信息和的增删查改网页代码这里只举一例：</p>
+<div class="cnblogs_code">
+<pre><code>&lt;!-- 增加窗口 --&gt;
+    &lt;div id=<span style="color: #800000;">"</span><span style="color: #800000;">register</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal fade</span><span style="color: #800000;">"</span> tabindex=<span style="color: #800000;">"</span><span style="color: #800000;">-1</span><span style="color: #800000;">"</span>&gt;
+        &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal_wrapper</span><span style="color: #800000;">"</span>&gt;
+            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-dialog</span><span style="color: #800000;">"</span>&gt;
+                &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-content</span><span style="color: #800000;">"</span>&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-body</span><span style="color: #800000;">"</span>&gt;
+                        &lt;button <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">close</span><span style="color: #800000;">"</span> data-dismiss=<span style="color: #800000;">"</span><span style="color: #800000;">modal</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span&gt;&times;&lt;/span&gt;
+                        &lt;/button&gt;
+                    &lt;/div&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-title</span><span style="color: #800000;">"</span>&gt;
+                        &lt;h1 <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">text-center</span><span style="color: #800000;">"</span>&gt;增加员工信息&lt;/h1&gt;
+                    &lt;/div&gt;
+                    &lt;div action=<span style="color: #800000;">"</span><span style="color: #800000;">index</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-body</span><span style="color: #800000;">"</span>&gt;
+                        &lt;form action=<span style="color: #800000;">"</span><span style="color: #800000;">{%url 'form' %}</span><span style="color: #800000;">"</span> method=<span style="color: #800000;">"</span><span style="color: #800000;">post</span><span style="color: #800000;">"</span>&gt;<span style="color: #000000;">
+{</span><span style="color: #008000;">#</span><span style="color: #008000;">                            csrf_token 是为了防止csrf（跨站请求伪造）,安全机制去，需要加上#}</span>
+                            {%csrf_token%<span style="color: #000000;">}
+                            </span>&lt;!-- 输入用户编号 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-star</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">code</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">code</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入用户编号</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入登录名 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-user</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">loginName</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">loginName</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入登录名</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入登录密码 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-ok</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入登录密码</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入姓名 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-euro</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入姓名</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入手机号 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-phone-alt</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">phone</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">phone</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入手机号</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入身份证 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-list-alt</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">idCard</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">idCard</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入身份证</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-group</span><span style="color: #800000;">"</span>&gt;
+                                &lt;label <span style="color: #0000ff;">for</span>=<span style="color: #800000;">"</span><span style="color: #800000;">sel1</span><span style="color: #800000;">"</span>&gt;输入状态&lt;/label&gt;
+                                &lt;select <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">driving</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">status</span><span style="color: #800000;">"</span>&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">启动</span><span style="color: #800000;">"</span>&gt;启动&lt;/option&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">禁用</span><span style="color: #800000;">"</span>&gt;禁用&lt;/option&gt;
+                                &lt;/select&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入角色 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-group</span><span style="color: #800000;">"</span>&gt;
+                                &lt;label <span style="color: #0000ff;">for</span>=<span style="color: #800000;">"</span><span style="color: #800000;">sel1</span><span style="color: #800000;">"</span>&gt;输入角色&lt;/label&gt;
+                                &lt;select <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">status</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">role</span><span style="color: #800000;">"</span>&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">管理员</span><span style="color: #800000;">"</span>&gt;管理员&lt;/option&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">调度员</span><span style="color: #800000;">"</span>&gt;调度员&lt;/option&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">驾驶员</span><span style="color: #800000;">"</span>&gt;驾驶员&lt;/option&gt;
+                                &lt;/select&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入驾龄 --&gt;
+                            &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">thisInput</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">driving</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入驾龄</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;br/&gt;
+                            &lt;button type=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-success btn-block</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">增加</span><span style="color: #800000;">"</span>&gt;增加并保存&lt;/button&gt;
+                            &lt;button <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-primary btn-block</span><span style="color: #800000;">"</span> data-dismiss=<span style="color: #800000;">"</span><span style="color: #800000;">modal</span><span style="color: #800000;">"</span>&gt;返回&lt;/button&gt;
+                        &lt;/form&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+        &lt;!-- 删除窗口 --&gt;
+    &lt;div id=<span style="color: #800000;">"</span><span style="color: #800000;">delete</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal fade</span><span style="color: #800000;">"</span> tabindex=<span style="color: #800000;">"</span><span style="color: #800000;">-1</span><span style="color: #800000;">"</span>&gt;
+        &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal_wrapper</span><span style="color: #800000;">"</span>&gt;
+            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-dialog</span><span style="color: #800000;">"</span>&gt;
+                &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-content</span><span style="color: #800000;">"</span>&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-body</span><span style="color: #800000;">"</span>&gt;
+                        &lt;button <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">close</span><span style="color: #800000;">"</span> data-dismiss=<span style="color: #800000;">"</span><span style="color: #800000;">modal</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span&gt;&times;&lt;/span&gt;
+                        &lt;/button&gt;
+                    &lt;/div&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-title</span><span style="color: #800000;">"</span>&gt;
+                        &lt;h1 <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">text-center</span><span style="color: #800000;">"</span>&gt;请选择要删除的用户编号&lt;/h1&gt;
+                    &lt;/div&gt;
+                    &lt;div action=<span style="color: #800000;">""</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-body</span><span style="color: #800000;">"</span>&gt;
+                        &lt;form action=<span style="color: #800000;">"</span><span style="color: #800000;">{%url 'form2' %}</span><span style="color: #800000;">"</span> method=<span style="color: #800000;">"</span><span style="color: #800000;">post</span><span style="color: #800000;">"</span>&gt;<span style="color: #000000;">
+{</span><span style="color: #008000;">#</span><span style="color: #008000;">                             csrf_token 是为了防止csrf（跨站请求伪造）,安全机制去，需要加上#}</span>
+                            {%csrf_token%<span style="color: #000000;">}
+                            </span>&lt;!-- 输入用户编号 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-star</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入要删除的用户编号</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;button type=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-success btn-block</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">增加</span><span style="color: #800000;">"</span>&gt;确定删除&lt;/button&gt;
+                            &lt;button <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-primary btn-block</span><span style="color: #800000;">"</span> data-dismiss=<span style="color: #800000;">"</span><span style="color: #800000;">modal</span><span style="color: #800000;">"</span>&gt;返回&lt;/button&gt;
+                        &lt;/form&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+
+        &lt;!-- 修改窗口 --&gt;
+    &lt;div id=<span style="color: #800000;">"</span><span style="color: #800000;">modify</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal fade</span><span style="color: #800000;">"</span> tabindex=<span style="color: #800000;">"</span><span style="color: #800000;">-1</span><span style="color: #800000;">"</span>&gt;
+        &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal_wrapper</span><span style="color: #800000;">"</span>&gt;
+            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-dialog</span><span style="color: #800000;">"</span>&gt;
+                &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-content</span><span style="color: #800000;">"</span>&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-body</span><span style="color: #800000;">"</span>&gt;
+                        &lt;button <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">close</span><span style="color: #800000;">"</span> data-dismiss=<span style="color: #800000;">"</span><span style="color: #800000;">modal</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span&gt;&times;&lt;/span&gt;
+                        &lt;/button&gt;
+                    &lt;/div&gt;
+                    &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-title</span><span style="color: #800000;">"</span>&gt;
+                        &lt;h1 <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">text-center</span><span style="color: #800000;">"</span>&gt;修改员工信息&lt;/h1&gt;
+                    &lt;/div&gt;
+                    &lt;div action=<span style="color: #800000;">"</span><span style="color: #800000;">index</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">modal-body</span><span style="color: #800000;">"</span>&gt;
+                        &lt;form action=<span style="color: #800000;">"</span><span style="color: #800000;">{%url 'form3' %}</span><span style="color: #800000;">"</span> method=<span style="color: #800000;">"</span><span style="color: #800000;">post</span><span style="color: #800000;">"</span>&gt;<span style="color: #000000;">
+{</span><span style="color: #008000;">#</span><span style="color: #008000;">                            csrf_token 是为了防止csrf（跨站请求伪造）,安全机制去，需要加上#}</span>
+                            {%csrf_token%<span style="color: #000000;">}
+                            </span>&lt;!-- 输入用户编号 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-star</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">code</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">code</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入要修改的用户编号</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入修改后的编号 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-star</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">code2</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">code2</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入修改后的用户编号</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入登录名 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-user</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">loginName</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">loginName</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入修改后的登录名</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入登录密码 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-ok</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入修改后的登录密码</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入姓名 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-euro</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入修改后的姓名</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入手机号 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-phone-alt</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">phone</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">phone</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入修改后的手机号</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入身份证 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">edit input-group input-group-md</span><span style="color: #800000;">"</span>&gt;
+                            &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">input-group-addon</span><span style="color: #800000;">"</span>&gt;
+                                &lt;i <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-list-alt</span><span style="color: #800000;">"</span>&gt;&lt;/i&gt;&lt;/span&gt;
+                                &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">idCard</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">idCard</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入修改后的身份证</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;/div&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-group</span><span style="color: #800000;">"</span>&gt;
+                                &lt;label <span style="color: #0000ff;">for</span>=<span style="color: #800000;">"</span><span style="color: #800000;">sel1</span><span style="color: #800000;">"</span>&gt;输入状态&lt;/label&gt;
+                                &lt;select <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">driving</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">status</span><span style="color: #800000;">"</span>&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">启动</span><span style="color: #800000;">"</span>&gt;启动&lt;/option&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">禁用</span><span style="color: #800000;">"</span>&gt;禁用&lt;/option&gt;
+                                &lt;/select&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入角色 --&gt;
+                            &lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-group</span><span style="color: #800000;">"</span>&gt;
+                                &lt;label <span style="color: #0000ff;">for</span>=<span style="color: #800000;">"</span><span style="color: #800000;">sel1</span><span style="color: #800000;">"</span>&gt;输入角色&lt;/label&gt;
+                                &lt;select <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">status2</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">role</span><span style="color: #800000;">"</span>&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">管理员</span><span style="color: #800000;">"</span>&gt;管理员&lt;/option&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">调度员</span><span style="color: #800000;">"</span>&gt;调度员&lt;/option&gt;
+                                &lt;option value=<span style="color: #800000;">"</span><span style="color: #800000;">驾驶员</span><span style="color: #800000;">"</span>&gt;驾驶员&lt;/option&gt;
+                                &lt;/select&gt;
+                            &lt;/div&gt;
+                            &lt;!-- 输入驾龄 --&gt;
+                            &lt;input <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">form-control</span><span style="color: #800000;">"</span> id=<span style="color: #800000;">"</span><span style="color: #800000;">thisInput2</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">driving</span><span style="color: #800000;">"</span> placeholder=<span style="color: #800000;">"</span><span style="color: #800000;">请输入驾龄</span><span style="color: #800000;">"</span>/&gt;
+                            &lt;br/&gt;
+                            &lt;button type=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-success btn-block</span><span style="color: #800000;">"</span> name=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">修改</span><span style="color: #800000;">"</span>&gt;修改并保存&lt;/button&gt;
+                            &lt;button <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">btn btn-primary btn-block</span><span style="color: #800000;">"</span> data-dismiss=<span style="color: #800000;">"</span><span style="color: #800000;">modal</span><span style="color: #800000;">"</span>&gt;返回&lt;/button&gt;
+                        &lt;/form&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</pre>
+</div>
+<p>&nbsp;</p>
+<p>6.所有的urls.py文件内容如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> path,re_path
+</span><span style="color: #0000ff;">from</span> . <span style="color: #0000ff;">import</span><span style="color: #000000;"> view
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 两个必选参数：route、view 和两个可选参数：kwargs、name</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> route: 字符串，表示 URL 规则，与之匹配的 URL 会执行对应的第二个参数 view。</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> view: 用于执行与正则表达式匹配的 URL 请求。</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> kwargs: 视图使用的字典类型的参数。</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> name: 用来反向获取 URL。</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> path('', view.hello),</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> Django &gt;= 2.0 的版本，urls.py的django.conf.urls已经被django.urls取代</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> Django &gt;= 2.0 的版本，path() 函数无法匹配正则表达式，需要使用 re_path() 即可匹配正则表达式</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 首页</span>
+    re_path(r<span style="color: #800000;">'</span><span style="color: #800000;">^$</span><span style="color: #800000;">'</span><span style="color: #000000;">,view.dengLu),
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 登录后接受表单跳转页面</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">tiao_zhuan</span><span style="color: #800000;">'</span>,view.getDengLu,name=<span style="color: #800000;">"</span><span style="color: #800000;">dengLu</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 选择其他按钮后跳转页面</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">denglu</span><span style="color: #800000;">'</span>,view.dengLu,name=<span style="color: #800000;">"</span><span style="color: #800000;">deng_lu</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">index</span><span style="color: #800000;">'</span>,view.index,name=<span style="color: #800000;">'</span><span style="color: #800000;">index</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">che_liang</span><span style="color: #800000;">'</span>,view.che_liang,name=<span style="color: #800000;">'</span><span style="color: #800000;">che_liang</span><span style="color: #800000;">'</span>), <span style="color: #008000;">#</span><span style="color: #008000;"> 这里设置name，为了在模板文件中，写name，就能找到这个路由</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian</span><span style="color: #800000;">'</span>,view.zhan_dian,name=<span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">xian_lu</span><span style="color: #800000;">'</span>,view.xian_lu,name=<span style="color: #800000;">'</span><span style="color: #800000;">xian_lu</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">graph_flot</span><span style="color: #800000;">'</span>,view.graph_flot,name=<span style="color: #800000;">'</span><span style="color: #800000;">graph_flot</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">form_basic</span><span style="color: #800000;">'</span>,view.form_basic,name=<span style="color: #800000;">'</span><span style="color: #800000;">form_basic</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">table_basic</span><span style="color: #800000;">'</span>,view.table_basic,name=<span style="color: #800000;">'</span><span style="color: #800000;">table_basic</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 员工</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">my_index</span><span style="color: #800000;">'</span>,view.save_user,name=<span style="color: #800000;">"</span><span style="color: #800000;">form</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">'</span>,view.delete_user,name=<span style="color: #800000;">"</span><span style="color: #800000;">form2</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">my_modify</span><span style="color: #800000;">'</span>,view.modify_user,name=<span style="color: #800000;">"</span><span style="color: #800000;">form3</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">index_find</span><span style="color: #800000;">'</span>,view.chaXun_user,name=<span style="color: #800000;">"</span><span style="color: #800000;">form4</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 车辆</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">che_liang_index</span><span style="color: #800000;">'</span>,view.che_save,name=<span style="color: #800000;">"</span><span style="color: #800000;">che_liang_form</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">che_liang_delete</span><span style="color: #800000;">'</span>,view.che_delete,name=<span style="color: #800000;">"</span><span style="color: #800000;">che_liang_form2</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">che_liang_modify</span><span style="color: #800000;">'</span>,view.che_modify,name=<span style="color: #800000;">"</span><span style="color: #800000;">che_liang_form3</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">che_liang_find</span><span style="color: #800000;">'</span>,view.chaXun_che,name=<span style="color: #800000;">"</span><span style="color: #800000;">che_liang_form4</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 站点</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian_index</span><span style="color: #800000;">'</span>,view.zhan_dian_save,name=<span style="color: #800000;">"</span><span style="color: #800000;">zhan_dian_form</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian_delete</span><span style="color: #800000;">'</span>,view.zhan_dian_delete,name=<span style="color: #800000;">"</span><span style="color: #800000;">zhan_dian_form2</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian_modify</span><span style="color: #800000;">'</span>,view.zhan_dian_modify,name=<span style="color: #800000;">"</span><span style="color: #800000;">zhan_dian_form3</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian_find</span><span style="color: #800000;">'</span>,view.chaXun_zhan_dian,name=<span style="color: #800000;">"</span><span style="color: #800000;">zhan_dian_form4</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 线路</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">xian_lu_index</span><span style="color: #800000;">'</span>,view.xian_lu_save,name=<span style="color: #800000;">"</span><span style="color: #800000;">xian_lu_form</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">xian_lu_delete</span><span style="color: #800000;">'</span>,view.xian_lu_delete,name=<span style="color: #800000;">"</span><span style="color: #800000;">xian_lu_form2</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">xian_lu_modify</span><span style="color: #800000;">'</span>,view.xian_lu_modify,name=<span style="color: #800000;">"</span><span style="color: #800000;">xian_lu_form3</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">xian_lu_find</span><span style="color: #800000;">'</span>,view.chaXun_xian_lu,name=<span style="color: #800000;">"</span><span style="color: #800000;">xian_lu_form4</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 排班</span>
+    path(<span style="color: #800000;">"</span><span style="color: #800000;">pai_ban_index</span><span style="color: #800000;">"</span>,view.pai_ban_save,name=<span style="color: #800000;">"</span><span style="color: #800000;">pai_ban_form</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">"</span><span style="color: #800000;">pai_ban_delete</span><span style="color: #800000;">"</span>,view.pai_ban_delete,name=<span style="color: #800000;">"</span><span style="color: #800000;">pai_ban_form2</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">"</span><span style="color: #800000;">pai_ban_modify</span><span style="color: #800000;">"</span>,view.pai_ban_modify,name=<span style="color: #800000;">"</span><span style="color: #800000;">pai_ban_form3</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">"</span><span style="color: #800000;">form_basic_find</span><span style="color: #800000;">"</span>,view.chaXun_pai_ban,name=<span style="color: #800000;">"</span><span style="color: #800000;">pai_ban_form4</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+]</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>7.所有的view.py文件如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.shortcuts <span style="color: #0000ff;">import</span><span style="color: #000000;"> render
+</span><span style="color: #0000ff;">from</span> shuJuKu.models <span style="color: #0000ff;">import</span> *
+
+
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> dengLu(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 登陆管理</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">denglu.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> getDengLu(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户登录后跳转页面</span>
+    username = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">username</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    userpassword </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">userpassword</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    response </span>= Sysuser.objects.filter(loginname=username,password=<span style="color: #000000;">userpassword)
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> response:
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> response:
+            quan_xian </span>=<span style="color: #000000;"> i.role.rolecode
+            zhuang_tai </span>=<span style="color: #000000;"> i.status
+            </span><span style="color: #0000ff;">if</span> quan_xian ==<span style="color: #000000;"> 0:
+                </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">index.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">if</span> quan_xian == 1 <span style="color: #0000ff;">and</span> zhuang_tai == <span style="color: #800000;">'</span><span style="color: #800000;">启动</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+                schedul_list </span>=<span style="color: #000000;"> Scheduling.objects.all()
+                </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">"</span><span style="color: #800000;">form_basic_diao_du.html</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">schedul_list</span><span style="color: #800000;">"</span><span style="color: #000000;">:schedul_list})
+            </span><span style="color: #0000ff;">elif</span> quan_xian == 2 <span style="color: #0000ff;">and</span> zhuang_tai == <span style="color: #800000;">'</span><span style="color: #800000;">启动</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+                schedul_list </span>=<span style="color: #000000;"> Scheduling.objects.all()
+                </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">form_basic_look.html</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">schedul_list</span><span style="color: #800000;">"</span><span style="color: #000000;">:schedul_list})
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> 0
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> index(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用户表管理</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 通过objects这个模型管理器的all()获得所有数据行，相当于SQL中的SELECT * FROM</span>
+    my_list =<span style="color: #000000;"> Sysuser.objects.all()
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">"</span><span style="color: #800000;">index.html</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">user_list</span><span style="color: #800000;">"</span><span style="color: #000000;">: my_list})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> che_liang(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 车辆表管理</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 通过objects这个模型管理器的all()获得所有数据行，相当于SQL中的SELECT * FROM</span>
+    my_list =<span style="color: #000000;"> Bus.objects.all()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">che_liang.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">cheLiang_list</span><span style="color: #800000;">"</span><span style="color: #000000;">: my_list})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> zhan_dian(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 站点表管理</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 通过objects这个模型管理器的all()获得所有数据行，相当于SQL中的SELECT * FROM</span>
+    my_list =<span style="color: #000000;"> Station.objects.all()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">zhanDian_list</span><span style="color: #800000;">"</span><span style="color: #000000;">:my_list})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> xian_lu(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 线路表管理</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 通过objects这个模型管理器的all()获得所有数据行，相当于SQL中的SELECT * FROM</span>
+    my_list =<span style="color: #000000;"> Line.objects.all()
+    a </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> my_list:
+        my_linecode </span>=<span style="color: #000000;"> i.linecode
+        response </span>= LineStationRef.objects.filter(linecode=<span style="color: #000000;">my_linecode)
+        b </span>=<span style="color: #000000;"> []
+        </span><span style="color: #0000ff;">for</span> j <span style="color: #0000ff;">in</span><span style="color: #000000;"> response:
+            b.append(j.stationcode.stationname)
+        a[my_linecode] </span>=<span style="color: #000000;"> b
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">xian_lu.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">xianLu_list</span><span style="color: #800000;">"</span>:my_list,<span style="color: #800000;">"</span><span style="color: #800000;">a</span><span style="color: #800000;">"</span><span style="color: #000000;">:a})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> graph_flot(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 基础数据管理</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 通过objects这个模型管理器的all()获得所有数据行，相当于SQL中的SELECT * FROM</span>
+    my_list =<span style="color: #000000;"> Role.objects.all()
+    my_list2 </span>=<span style="color: #000000;"> Permission.objects.all()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">graph_flot.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">role_list</span><span style="color: #800000;">"</span>:my_list,<span style="color: #800000;">"</span><span style="color: #800000;">primission</span><span style="color: #800000;">"</span><span style="color: #000000;">:my_list2})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> form_basic(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 排班表管理</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 通过objects这个模型管理器的all()获得所有数据行，相当于SQL中的SELECT * FROM</span>
+    my_list =<span style="color: #000000;"> Scheduling.objects.all()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">form_basic.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">schedul_list</span><span style="color: #800000;">"</span><span style="color: #000000;">:my_list})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> table_basic(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 关系数据管理</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 通过objects这个模型管理器的all()获得所有数据行，相当于SQL中的SELECT * FROM</span>
+    my_list =<span style="color: #000000;"> RolePermissionRef.objects.all()
+    my_list2 </span>=<span style="color: #000000;"> LineStationRef.objects.all()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">table_basic.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">guanXi_list</span><span style="color: #800000;">"</span>:my_list,<span style="color: #800000;">"</span><span style="color: #800000;">guanXi2_list</span><span style="color: #800000;">"</span><span style="color: #000000;">:my_list2})
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 处理表单</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 接收POST请求数据</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 用户操作</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> save_user(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存员工信息增加数据</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        code </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">code</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        loginName </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">loginName</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        password </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">password</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        name </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        phone </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">phone</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        idCard </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">idCard</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        role </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">role</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        driving </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">driving</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        status </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">if</span> driving==<span style="color: #800000;">''</span><span style="color: #000000;">:
+            driving </span>=<span style="color: #000000;"> 0
+        my_role </span>= Role.objects.filter(rolename=<span style="color: #000000;">role)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> my_role:
+            user </span>= Sysuser(code=code,loginname=loginName,password=password,name=name,phone=phone,idcard=<span style="color: #000000;">idCard,
+                       role</span>=i,driving=driving,status=<span style="color: #000000;">status)
+            user.save()
+        all_list </span>= {<span style="color: #800000;">"</span><span style="color: #800000;">code</span><span style="color: #800000;">"</span>:code, <span style="color: #800000;">"</span><span style="color: #800000;">loginName</span><span style="color: #800000;">"</span>:loginName, <span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span>:password, <span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span><span style="color: #000000;">:name,
+                       </span><span style="color: #800000;">"</span><span style="color: #800000;">phone</span><span style="color: #800000;">"</span>:phone, <span style="color: #800000;">"</span><span style="color: #800000;">idCard</span><span style="color: #800000;">"</span>:idCard, <span style="color: #800000;">"</span><span style="color: #800000;">driving</span><span style="color: #800000;">"</span>:driving,<span style="color: #800000;">"</span><span style="color: #800000;">status</span><span style="color: #800000;">"</span>:status,<span style="color: #800000;">"</span><span style="color: #800000;">role</span><span style="color: #800000;">"</span><span style="color: #000000;">:role}
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">my_index.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">user_list2</span><span style="color: #800000;">"</span><span style="color: #000000;">:all_list})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> delete_user(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除员工信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        aa </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        Sysuser.objects.filter(code</span>=<span style="color: #000000;">aa).delete()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">index.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> modify_user(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 修改员工信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        code </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">code</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        code2 </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">code2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        loginName </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">loginName</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        password </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">password</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        name </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        phone </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">phone</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        idCard </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">idCard</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        role </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">role</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        driving </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">driving</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        status </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">if</span> driving==<span style="color: #800000;">''</span><span style="color: #000000;">:
+            driving </span>=<span style="color: #000000;"> 0
+        my_role </span>= Role.objects.filter(rolename=<span style="color: #000000;">role)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> my_role:
+            Sysuser.objects.filter(code</span>=code).update(code=code2,loginname=loginName,password=<span style="color: #000000;">password,
+                             role</span>=i,name=name,phone=phone,idcard=idCard,driving=driving,status=<span style="color: #000000;">status)
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">index.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> chaXun_user(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        one </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">one</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        two </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">two</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        response </span>= Sysuser.objects.filter(loginname=one,status=<span style="color: #000000;">two)
+        </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">index_find.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">'</span><span style="color: #800000;">find_user_list</span><span style="color: #800000;">'</span><span style="color: #000000;">:response})
+
+
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 车辆操作</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> che_save(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存车辆信息增加数据</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        busCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busLicense </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busType </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busType</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busStatus </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busStatus</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        startTime </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">startTime</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        this_bus </span>= Bus(buscode=busCode,buslicense=busLicense,bustype=busType,busstatus=<span style="color: #000000;">busStatus,
+                       starttime</span>=<span style="color: #000000;">startTime)
+        this_bus.save()
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">che_liang.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> che_delete(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除车辆信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        aa </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        Bus.objects.filter(buscode</span>=<span style="color: #000000;">aa).delete()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">che_liang.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> che_modify(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 修改车辆信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        busCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busCode2 </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busCode2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busLicense </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busType </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busType</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busStatus </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busStatus</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        startTime </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">startTime</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        Bus.objects.filter(buscode</span>=busCode).update(buscode=busCode2,buslicense=busLicense,bustype=busType,busstatus=<span style="color: #000000;">busStatus,
+                       starttime</span>=<span style="color: #000000;">startTime)
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">che_liang.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> chaXun_che(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        one </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">one</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        two </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">two</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        response </span>= Bus.objects.filter(buslicense=one,busstatus=<span style="color: #000000;">two)
+        </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">che_liang_find.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">'</span><span style="color: #800000;">find_user_list</span><span style="color: #800000;">'</span><span style="color: #000000;">:response})
+
+
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 站点</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> zhan_dian_save(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存站点信息增加数据</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        stationCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">stationCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        stationName </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">stationName</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        longitude </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">longitude</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        latitude </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">latitude</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        region </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">region</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        street </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">street</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        this_zhan_dian </span>= Station(stationcode=stationCode,stationname=stationName,longitude=<span style="color: #000000;">longitude,
+                                 latitude</span>=latitude,region=region,street=<span style="color: #000000;">street)
+        this_zhan_dian.save()
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> zhan_dian_delete(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除站点信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        aa </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        Station.objects.filter(stationcode</span>=<span style="color: #000000;">aa).delete()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> zhan_dian_modify(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 修改站点信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        stationCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">stationCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        stationCode2 </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">stationCode2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        stationName </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">stationName</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        longitude </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">longitude</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        latitude </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">latitude</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        region </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">region</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        street </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">street</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        Station.objects.filter(stationcode</span>=stationCode).update(stationcode=stationCode2,stationname=stationName,longitude=<span style="color: #000000;">longitude,
+                                 latitude</span>=latitude,region=region,street=<span style="color: #000000;">street)
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> chaXun_zhan_dian(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        one </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">one</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        two </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">two</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        three </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">three</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        response </span>= Station.objects.filter(stationname=one,region=two,street=<span style="color: #000000;">three)
+        </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">zhan_dian_find.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">'</span><span style="color: #800000;">find_user_list</span><span style="color: #800000;">'</span><span style="color: #000000;">:response})
+
+
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 线路</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> xian_lu_save(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存线路信息增加数据</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        lineCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        lineName </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">lineName</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        status </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        startLineTime </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">startLineTime</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        direction </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">direction</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        xian_lu_dian </span>= Line(linecode=lineCode,linename=lineName,status=<span style="color: #000000;">status,
+                                 startlinetime</span>=startLineTime,direction=<span style="color: #000000;">direction)
+        xian_lu_dian.save()
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">xian_lu.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> xian_lu_delete(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除线路信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        aa </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        Line.objects.filter(linecode</span>=<span style="color: #000000;">aa).delete()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">xian_lu.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> xian_lu_modify(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 修改线路信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        lineCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        lineCode2 </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">lineCode2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        lineName </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">lineName</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        status </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">status</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        startLineTime </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">startLineTime</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        direction </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">direction</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        xian_lu_dian </span>= Line.objects.filter(linecode=lineCode).update(linecode2=lineCode2,linename=lineName,status=<span style="color: #000000;">status,
+                                 startlinetime</span>=startLineTime,direction=<span style="color: #000000;">direction)
+        xian_lu_dian.save()
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">xian_lu.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> chaXun_xian_lu(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        one </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">one</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        two </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">two</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        three </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">three</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        response </span>= Line.objects.filter(linename=one,direction=two,status=<span style="color: #000000;">three)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(response)
+        </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">xian_lu_find.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">'</span><span style="color: #800000;">find_user_list</span><span style="color: #800000;">'</span><span style="color: #000000;">:response})
+
+
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 排班</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> pai_ban_save(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存排班信息增加数据</span>
+    all_list1 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储线路编号</span>
+    all_list2 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储车牌号</span>
+    all_list3 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储司机编号</span>
+    all_list4 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储始发站</span>
+    all_list5 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储终点站</span>
+
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Line.objects.all():
+        all_list1[i] </span>=<span style="color: #000000;"> i.linecode
+
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Bus.objects.all():
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 判断汽车是否启运</span>
+        <span style="color: #0000ff;">if</span> i.busstatus == <span style="color: #800000;">'</span><span style="color: #800000;">启运</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+            all_list2[i] </span>=<span style="color: #000000;"> i.buslicense
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">continue</span>
+
+
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Sysuser.objects.all():
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 判断是否为司机</span>
+        k =<span style="color: #000000;"> i.role.rolecode
+        </span><span style="color: #0000ff;">if</span> k == 2<span style="color: #000000;">:
+            all_list3[i] </span>=<span style="color: #000000;"> i.code
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">continue</span>
+
+
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Station.objects.all():
+        all_list4[i] </span>=<span style="color: #000000;"> i.stationname
+
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Station.objects.all():
+        all_list5[i] </span>=<span style="color: #000000;"> i.stationname
+
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        code </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">code</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        lineCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busLicense </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        tcNumber </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">tcNumber</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        tcTime </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">tcTime</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        userCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">userCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        startStation </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">startStation</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        endStation </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">endStation</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+        user </span>= Scheduling(code=<span style="color: #000000;">code)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 线路编号</span>
+        lineCode = Line.objects.filter(linecode=<span style="color: #000000;">lineCode)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> lineCode:
+            user.linecode </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 车牌号</span>
+        busLicense = Bus.objects.filter(buslicense=<span style="color: #000000;">busLicense)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> busLicense:
+            user.buslicense </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 趟次</span>
+        user.tcnumber =<span style="color: #000000;"> tcNumber
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 每趟时间</span>
+        user.tctime =<span style="color: #000000;"> tcTime
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 司机编号</span>
+        userCode = Sysuser.objects.filter(code=<span style="color: #000000;">userCode)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> userCode:
+            user.usercode </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 始发站</span>
+        startStation = Station.objects.filter(stationname=<span style="color: #000000;">startStation)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> startStation:
+            user.startstation </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 终点站</span>
+        endStation = Station.objects.filter(stationname=<span style="color: #000000;">endStation)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> endStation:
+            user.endstation </span>=<span style="color: #000000;"> i
+
+        user.save()
+
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">form_basic.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">"</span>:all_list1,<span style="color: #800000;">"</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">"</span>:all_list2,<span style="color: #800000;">"</span><span style="color: #800000;">userCode</span><span style="color: #800000;">"</span><span style="color: #000000;">:all_list3,
+                    </span><span style="color: #800000;">"</span><span style="color: #800000;">startStation</span><span style="color: #800000;">"</span>:all_list4,<span style="color: #800000;">"</span><span style="color: #800000;">endStation</span><span style="color: #800000;">"</span><span style="color: #000000;">:all_list5})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> pai_ban_delete(request):
+    all_list </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除排班信息</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        aa </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">my_delete</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        Scheduling.objects.filter(code</span>=<span style="color: #000000;">aa).delete()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">form_basic.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> pai_ban_modify(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 修改排班信息</span>
+    all_list1 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储线路编号</span>
+    all_list2 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储车牌号</span>
+    all_list3 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储司机编号</span>
+    all_list4 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储始发站</span>
+    all_list5 = {}  <span style="color: #008000;">#</span><span style="color: #008000;"> 存储终点站</span>
+
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Line.objects.all():
+        all_list1[i] </span>=<span style="color: #000000;"> i.linecode
+
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Bus.objects.all():
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 判断汽车是否启运</span>
+        <span style="color: #0000ff;">if</span> i.busstatus == <span style="color: #800000;">'</span><span style="color: #800000;">启运</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+            all_list2[i] </span>=<span style="color: #000000;"> i.buslicense
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">continue</span>
+
+
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Sysuser.objects.all():
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 判断是否为司机</span>
+        k =<span style="color: #000000;"> i.role.rolecode
+        </span><span style="color: #0000ff;">if</span> k == 2<span style="color: #000000;">:
+            all_list3[i] </span>=<span style="color: #000000;"> i.code
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">continue</span>
+
+
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Station.objects.all():
+        all_list4[i] </span>=<span style="color: #000000;"> i.stationname
+
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> Station.objects.all():
+        all_list5[i] </span>=<span style="color: #000000;"> i.stationname
+
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        code </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">code</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        code2 </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">code2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        lineCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        busLicense </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        tcNumber </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">tcNumber</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        tcTime </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">tcTime</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        userCode </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">userCode</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        startStation </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">startStation</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        endStation </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">endStation</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+        user </span>= Scheduling.objects.filter(code=code).update(code=<span style="color: #000000;">code2)
+
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 线路编号</span>
+        lineCode = Line.objects.filter(linecode=<span style="color: #000000;">lineCode)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> lineCode:
+            user.linecode </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 车牌号</span>
+        busLicense = Bus.objects.filter(buslicense=<span style="color: #000000;">busLicense)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> busLicense:
+            user.buslicense </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 趟次</span>
+        user.tcnumber =<span style="color: #000000;"> tcNumber
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 每趟时间</span>
+        user.tctime =<span style="color: #000000;"> tcTime
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 司机编号</span>
+        userCode = Sysuser.objects.filter(code=<span style="color: #000000;">userCode)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> userCode:
+            user.usercode </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 始发站</span>
+        startStation = Station.objects.filter(stationname=<span style="color: #000000;">startStation)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> startStation:
+            user.startstation </span>=<span style="color: #000000;"> i
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 终点站</span>
+        endStation = Station.objects.filter(stationname=<span style="color: #000000;">endStation)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> endStation:
+            user.endstation </span>=<span style="color: #000000;"> i
+
+        user.save()
+    </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">form_basic.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">lineCode</span><span style="color: #800000;">"</span>:all_list1,<span style="color: #800000;">"</span><span style="color: #800000;">busLicense</span><span style="color: #800000;">"</span>:all_list2,<span style="color: #800000;">"</span><span style="color: #800000;">userCode</span><span style="color: #800000;">"</span><span style="color: #000000;">:all_list3,
+                    </span><span style="color: #800000;">"</span><span style="color: #800000;">startStation</span><span style="color: #800000;">"</span>:all_list4,<span style="color: #800000;">"</span><span style="color: #800000;">endStation</span><span style="color: #800000;">"</span><span style="color: #000000;">:all_list5})
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> chaXun_pai_ban(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        one </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">one</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        two </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">two</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        three </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">three</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        response </span>= Scheduling.objects.filter(code=one,tcnumber=two,tctime=<span style="color: #000000;">three)
+        </span><span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">'</span><span style="color: #800000;">form_basic_find.html</span><span style="color: #800000;">'</span>,{<span style="color: #800000;">'</span><span style="color: #800000;">schedul_list2</span><span style="color: #800000;">'</span>:response})</pre>
+</div>
+<p>&nbsp;</p>
+<p>三：运行结果如下：</p>
+<p>1.登录管理员页面</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建15.png" alt="" width="809" height="385" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>2.调度员登录，只可以修改排班信息</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建16.png" alt="" width="809" height="385" /></p>
+<p>&nbsp;</p>
+<p>3.驾驶员登录，只能查看排班信息</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建17.png" alt="" width="809" height="385" /></p>
+<p>&nbsp;</p>
+<p>4.员工信息管理这里就不展示了，下面展示排班管理</p>
+<p>(1)增加排班信息</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建18.png" alt="" width="826" height="385" /></p>
+<p>修改后的展示为：<br /><img src="./images/python django+bootstrap4+mysql智慧交通系统构建19.png" alt="" width="826" height="385" /></p>
+<p>发现可以选择了。</p>
+<p>(2)删除排班信息</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建20.png" alt="" width="826" height="385" /></p>
+<p>(3)修改排班信息</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建21.png" alt="" width="826" height="385" /></p>
+<p>&nbsp;</p>
+<p>5.基础信息查看</p>
+<p><img src="./images/python django+bootstrap4+mysql智慧交通系统构建22.png" alt="" width="800" height="385" /></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

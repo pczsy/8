@@ -1,0 +1,166 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python学习日记(三十二) hmac检验客户端的合法性和socketsever模块' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python学习日记(三十二) hmac检验客户端的合法性和socketsever模块</center></div><div class='banquan'>原文出处:本文由博客园博主Fantac提供。<br/>
+原文连接:https://www.cnblogs.com/Fantac/p/11553581.html</div><br>
+    <p><span style="font-family: 宋体; font-size: 18pt;"><strong><span style="color: #ffffff; background-color: #ff0000;">Hmac模块</span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">其实这个模块类似hashlib模块,它能将一些重要的信息通过算法加密成密文,让信息更具有安全性。</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">关于hmac加密算法的了解:它的全名是哈希运算消息认证码(Hash-based Message Authentication Code),HMAC利用hash算法,以一个消息M和一个秘钥K作为输入,生成一个定长的消息摘要作为输出。HMAC算法利用已有的hash函数,关键问题是如何使用秘钥。</span></p>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">使用</span></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span> hmac                     <span style="color: #008000;">#</span><span style="color: #008000;">这个模块和hashlib机制很相似</span>
+h = hmac.new(b<span style="color: #800000;">'</span><span style="color: #800000;">key</span><span style="color: #800000;">'</span>,b<span style="color: #800000;">'</span><span style="color: #800000;">msg</span><span style="color: #800000;">'</span>)     <span style="color: #008000;">#</span><span style="color: #008000;">需要一个秘钥(bytes类型)和你想进行加密的bytes类型数据，前面为随机的key后面为一个消息</span>
+<span style="color: #0000ff;">print</span>(h.digest())               <span style="color: #008000;">#</span><span style="color: #008000;">结果拿到一个密文 </span>
+                                <span style="color: #008000;">#</span><span style="color: #008000;">b'\x18\xe3T\x8cY\xad@\xdd\x03\x90{z\xee\xe7\x1dg'</span></pre>
+</div>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">检验客户端合法性</span></strong></p>
+<p><span style="font-family: 宋体; font-size: 18px;">如何确定这个客户端是该服务器的合法客户端呢?如果两边实现都讲好了他们的秘钥就可以利用hmac.compare_digest()方法去比较他们最后产生的密文到底是不是相同的,如果是那就是合法的就进行相应的操作,若不合法就直接关闭。</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">这里介绍一个新的os模块方法urandom(32)</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">print</span>(os.urandom(32))   <span style="color: #008000;">#</span><span style="color: #008000;">随机生成32位的字节</span>
+                        <span style="color: #008000;">#</span><span style="color: #008000;">b'\xe2\x84:\x93\x82Q9\xff\x9e\x7f\x8a\x97)[\xedn\r\xa8\xf0v\x8b\xc0g\xbd\xe7\xeb\x0e\xa4\xf0\x80\x0c\x16'</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">利用这种'加盐'的方法我们就能让我们产生的秘钥具有不确定性,更加安全</span></p>
+<p><strong><span style="font-family: 宋体; font-size: 18px;"><em>检验合法的结果</em>:</span></strong></p>
+<p><span style="font-size: 18px; font-family: 宋体;">Sever:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> hmac
+</span><span style="color: #0000ff;">from</span> os <span style="color: #0000ff;">import</span><span style="color: #000000;"> urandom
+secret_key </span>= b<span style="color: #800000;">'</span><span style="color: #800000;">egg</span><span style="color: #800000;">'</span>                                         <span style="color: #008000;">#</span><span style="color: #008000;">秘钥</span>
+sk =<span style="color: #000000;"> socket.socket()
+sk.bind((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8090<span style="color: #000000;">))
+sk.listen()
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> check_conn(conn):
+    constant </span>= urandom(32<span style="color: #000000;">)
+    conn.send(constant)
+    h </span>= hmac.new(secret_key,constant)                        <span style="color: #008000;">#</span><span style="color: #008000;">拿到一个密文对象</span>
+    sever_digest =<span style="color: #000000;"> h.digest()
+    client_digest </span>= conn.recv(1024<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> hmac.compare_digest(sever_digest,client_digest)
+
+conn,addr </span>=<span style="color: #000000;"> sk.accept()
+
+res </span>=<span style="color: #000000;"> check_conn(conn)
+</span><span style="color: #0000ff;">if</span><span style="color: #000000;"> res:
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">合法的客户端!</span><span style="color: #800000;">'</span>)                                    <span style="color: #008000;">#</span><span style="color: #008000;">合法的客户端!</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">进行一系列操作</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">conn.close()</span>
+    <span style="color: #0000ff;">pass</span>
+<span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">不合法的客户端!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    conn.close()
+sk.close()</span></pre>
+</div>
+<p><span style="font-size: 18px; font-family: 宋体;">Client:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> hmac
+
+secret_key </span>= b<span style="color: #800000;">'</span><span style="color: #800000;">egg</span><span style="color: #800000;">'</span><span style="color: #000000;">
+sk </span>=<span style="color: #000000;"> socket.socket()
+sk.connect((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8090<span style="color: #000000;">))
+msg </span>= sk.recv(1024<span style="color: #000000;">)
+
+h </span>=<span style="color: #000000;"> hmac.new(secret_key,msg)
+client_digest </span>=<span style="color: #000000;"> h.digest()
+sk.send(client_digest)
+
+sk.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">那如果这个客户端它并不知道服务端的秘钥或者不知道服务端用的是HMAC进行的加密,那么它的结果很有可能是错误,给我们返回错误的客户端!</span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18pt; background-color: #ff0000; color: #ffffff;"><strong><span style="font-family: 宋体;">Socketsever模块</span></strong></span></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;">socketsever模块它能够实现多个客户端之间的交互</span></span></p>
+<p><strong><span style="font-family: 宋体;"><span style="font-size: 18px;">基本实现</span></span></strong></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;">Sever:</span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socketserver
+</span><span style="color: #0000ff;">class</span> Mysever(socketserver.BaseRequestHandler):                                 <span style="color: #008000;">#</span><span style="color: #008000;">一般情况下带Base都是作为父类,Request即请求,Handler就是处理</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> handle(self):
+        </span><span style="color: #0000ff;">print</span>(self.request.recv(1024).decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>))                          <span style="color: #008000;">#</span><span style="color: #008000;">self.request相当于一个conn</span>
+
+
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    sever </span>= socketserver.ThreadingTCPServer((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080),Mysever)         <span style="color: #008000;">#</span><span style="color: #008000;">Thread线程</span>
+                                                                                <span style="color: #008000;">#</span><span style="color: #008000;">在一个程序里正常情况下只会有一个线程</span>
+                                                                                <span style="color: #008000;">#</span><span style="color: #008000;">一个线程就是调度CPU的最小单位</span>
+                                                                                <span style="color: #008000;">#</span><span style="color: #008000;">引入线程的概念去实现并发的效果</span>
+    sever.serve_forever()                                                       <span style="color: #008000;">#</span><span style="color: #008000;">表示我永远启用一个服务</span></pre>
+</div>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;">Client:</span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>=<span style="color: #000000;"> socket.socket()
+sk.connect((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+sk.send(</span><span style="color: #800000;">'</span><span style="color: #800000;">hi</span><span style="color: #800000;">'</span>.encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+sk.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Output:</span></p>
+<div class="cnblogs_code">
+<pre><code>hi</pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">有socketsever的原因就是我想同时处理多个客户端找我下载的请求,那socketsever只是在底层的基础上做了一层封装,帮我们实现了并发效果,所以没有'clientsever'这个概念,客户端只需要正常启用就好</span></p>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">实现多个客户端交互</span></strong></p>
+<p><span style="font-family: 宋体; font-size: 18px;">Sever:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socketserver
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Mysever(socketserver.BaseRequestHandler):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> handle(self):
+        </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+            msg </span>= self.request.recv(1024).decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(msg)
+            info </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">&lt;&lt;&lt;</span><span style="color: #800000;">'</span>).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+            self.request.send(</span><span style="color: #800000;">'</span><span style="color: #800000;">Sever:</span><span style="color: #800000;">'</span>.encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>) +<span style="color: #000000;"> info)
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    sever </span>= socketserver.ThreadingTCPServer((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">),Mysever)
+    sever.serve_forever()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client1:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>=<span style="color: #000000;"> socket.socket()
+sk.connect((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+    msg </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">&lt;&lt;&lt;</span><span style="color: #800000;">'</span>).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    sk.send(</span><span style="color: #800000;">'</span><span style="color: #800000;">Client1:</span><span style="color: #800000;">'</span>.encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>) +<span style="color: #000000;"> msg)
+    </span><span style="color: #0000ff;">print</span>(sk.recv(1024).decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+sk.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client2:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>=<span style="color: #000000;"> socket.socket()
+sk.connect((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+    msg </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">&lt;&lt;&lt;</span><span style="color: #800000;">'</span>).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    sk.send(</span><span style="color: #800000;">'</span><span style="color: #800000;">Client2:</span><span style="color: #800000;">'</span>.encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>) +<span style="color: #000000;"> msg)
+    </span><span style="color: #0000ff;">print</span>(sk.recv(1024).decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+sk.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Output:</span></p>
+<p><strong><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十二) hmac检验客户端的合法性和socketsever模块0.png" alt="" width="397" height="123" /></span></strong></p>
+<p>&nbsp;<img src="./images/Python学习日记(三十二) hmac检验客户端的合法性和socketsever模块1.png" alt="" width="393" height="94" /></p>
+<p>&nbsp;<img src="./images/Python学习日记(三十二) hmac检验客户端的合法性和socketsever模块2.png" alt="" width="391" height="94" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

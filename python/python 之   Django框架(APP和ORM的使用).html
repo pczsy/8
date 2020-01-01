@@ -1,0 +1,537 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python 之   Django框架(APP和ORM的使用)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python 之   Django框架(APP和ORM的使用)</center></div><div class='banquan'>原文出处:本文由博客园博主small_white-提供。<br/>
+原文连接:https://www.cnblogs.com/mylu/p/11415113.html</div><br>
+    <h3 class="md-end-block md-heading md-focus"><span class="md-plain">12.3 APP</span></h3>
+<h4 class="md-end-block md-heading"><span class="md-plain">12.31 创建APP</span></h4>
+<p class="md-end-block md-p"><span class="md-plain"> 一个Django项目可以分为很多个APP，用来隔离不同功能模块的代码</span></p>
+<p class="md-end-block md-p"><span><strong>用命令行创建一个APP：</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>python3 manage.py startapp app01</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">创建好APP,记得告诉Django，app的名字，在settings.py中添加：</span></p>
+<div class="cnblogs_code">
+<pre><code>INSTALLED_APPS =<span style="color: #000000;"> [
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">django.contrib.admin</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">django.contrib.auth</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">django.contrib.contenttypes</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">django.contrib.sessions</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">django.contrib.messages</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">django.contrib.staticfiles</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">app01</span><span style="color: #800000;">'</span>,<span style="color: #008000;">#</span><span style="color: #008000;">或者'app01.apps.App01Config',</span>
+]</pre>
+</div>
+<h4 class="md-end-block md-heading"><span class="md-plain">12.32 Django中的ORM</span></h4>
+<p class="md-end-block md-p"><span><strong>Django项目使用MySQL数据库</strong></span></p>
+<p class="md-end-block md-p"><span class="md-plain">1.在Django项目的<span><strong>settings.py</strong><span class="md-plain">文件中，配置数据库连接信息：<span><strong>告诉Django连接哪个数据库</strong></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code>DATABASES =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">default</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">ENGINE</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">django.db.backends.mysql</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">NAME</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">db6</span><span style="color: #800000;">"</span>,              <span style="color: #008000;">#</span><span style="color: #008000;"> 需要自己手动先创建数据库</span>
+        <span style="color: #800000;">"</span><span style="color: #800000;">USER</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">root</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">PASSWORD</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">HOST</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">PORT</span><span style="color: #800000;">"</span>: 3306<span style="color: #000000;">
+    }
+}</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain"> 2.Django默认使用的是 MySQLdb模块 连接数据库，但 MySQLdb在python3中不支持，所以：</span></p>
+<p class="md-end-block md-p"><span class="md-plain">在与<span><strong><span class="md-plain">Django项目同名的文件夹的<span><code>__init__</code><span class="md-plain">.py</span></span></span></strong><span class="md-plain">文件中写如下代码，<span><strong>告诉Django使用pymysql模块连接MySQL数据库代替MySQLdb:</strong></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> pymysql
+pymysql.install_as_MySQLdb()</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">3.在<span><strong>app/models.py</strong><span class="md-plain">文件中定义类，一定要继承<span><strong>models.Model</strong></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.db <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+​
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> User(models.Model):
+    id </span>= models.AutoField(primary_key=True)  <span style="color: #008000;">#</span><span style="color: #008000;"> 自增主键</span>
+    name = models.CharField(max_length=16)   <span style="color: #008000;">#</span><span style="color: #008000;"> varchar(16)</span>
+    pwd = models.CharField(max_length=128)   <span style="color: #008000;">#</span><span style="color: #008000;"> varchar(128)</span>
+<span style="color: #000000;">​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 出版社    </span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Publisher(models.Model):
+    id </span>= models.AutoField(primary_key=True)   <span style="color: #008000;">#</span><span style="color: #008000;"> 自增主键</span>
+    name = models.CharField(max_length=16)    <span style="color: #008000;">#</span><span style="color: #008000;"> varchar(16) # 出版社名称</span>
+<span style="color: #000000;">​
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">def __str__(self):                     #定义__str__是在打印表的对象时可以看到每一行的字段</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">    return (self.id,self.name)</span>
+<span style="color: #000000;">​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 书籍</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Book(models.Model):
+    id </span>= models.AutoField(primary_key=True)        <span style="color: #008000;">#</span><span style="color: #008000;"> 自增的主键</span>
+    title = models.CharField(max_length=32)        <span style="color: #008000;">#</span><span style="color: #008000;"> 书籍名称 varchar(32)</span>
+    publisher = models.ForeignKey(to=<span style="color: #800000;">"</span><span style="color: #800000;">Publisher</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 外键关联Publisher这张表</span>
+<span style="color: #000000;">​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 作者</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Author(models.Model):
+    id </span>= models.AutoField(primary_key=<span style="color: #000000;">True)
+    name </span>= models.CharField(max_length=16<span style="color: #000000;">)
+    books </span>= models.ManyToManyField(to=<span style="color: #800000;">"</span><span style="color: #800000;">Book</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> ORM创建多对多字段，会自动在数据库中创建第三张表 id Author_id、Book_id</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">用命令行执行创建表的操作：</span></p>
+<div class="cnblogs_code">
+<pre><code>1. python3 manage.py makemigrations    --&gt;<span style="color: #000000;"> 将models.py的修改登记到小本本上
+</span>2. python3 manage.py migrate           --&gt; 将修改翻译成SQL语句，去数据库执行</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">4.在app/views.py文件中写urls.py中 <span><strong>/publisher_list/</strong><span class="md-plain"> 的对应函数<span><strong>publisher_list</strong><span class="md-plain">；<span><strong>/add_publisher/</strong><span class="md-plain">的对应函数<span><strong>add_publisher</strong></span></span></span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span><strong>urls.py中的对应关系:</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.conf.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> url
+</span><span style="color: #0000ff;">from</span> django.contrib <span style="color: #0000ff;">import</span><span style="color: #000000;"> admin
+</span><span style="color: #0000ff;">from</span> app01 <span style="color: #0000ff;">import</span><span style="color: #000000;"> views
+​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 对应关系</span>
+urlpatterns =<span style="color: #000000;"> [
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^admin/</span><span style="color: #800000;">'</span><span style="color: #000000;">, admin.site.urls),
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^login/</span><span style="color: #800000;">'</span><span style="color: #000000;">, views.login),
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^publisher_list/</span><span style="color: #800000;">'</span>, views.publisher_list),       <span style="color: #008000;">#</span><span style="color: #008000;"> 展示出版社列表</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^add_publisher/</span><span style="color: #800000;">'</span>, views.add_publisher),        <span style="color: #008000;">#</span><span style="color: #008000;"> 添加出版社</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^delete_publisher/</span><span style="color: #800000;">'</span>, views.delete_publisher),  <span style="color: #008000;">#</span><span style="color: #008000;"> 删除出版社</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^edit_publisher/</span><span style="color: #800000;">'</span>, views.edit_publisher),      <span style="color: #008000;">#</span><span style="color: #008000;"> 编辑出版社</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^book_list/</span><span style="color: #800000;">'</span>, views.book_list),               <span style="color: #008000;">#</span><span style="color: #008000;"> 书籍列表</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^add_book/</span><span style="color: #800000;">'</span>, views.add_book),                 <span style="color: #008000;">#</span><span style="color: #008000;"> 添加书籍</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^delete_book/</span><span style="color: #800000;">'</span>, views.delete_book             <span style="color: #008000;">#</span><span style="color: #008000;"> 删除书籍</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^edit_book/</span><span style="color: #800000;">'</span>, views.edit_book),               <span style="color: #008000;">#</span><span style="color: #008000;"> 编辑书籍</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^author_list/</span><span style="color: #800000;">'</span>, views.author_list),            <span style="color: #008000;">#</span><span style="color: #008000;"> 作者列表</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^add_author/</span><span style="color: #800000;">'</span>, views.add_author),             <span style="color: #008000;">#</span><span style="color: #008000;"> 添加作者</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^delete_author/</span><span style="color: #800000;">'</span>, views.delete_author),       <span style="color: #008000;">#</span><span style="color: #008000;"> 删除作者</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^edit_author/</span><span style="color: #800000;">'</span>, views.edit_author),           <span style="color: #008000;">#</span><span style="color: #008000;"> 编辑作者</span>
+    url(r<span style="color: #800000;">'</span><span style="color: #800000;">^$</span><span style="color: #800000;">'</span>, views.publisher_list)                   <span style="color: #008000;">#</span><span style="color: #008000;"> 以上对应关系都找不到，就匹配出版社页面</span>
+]</pre>
+</div>
+<p class="md-end-block md-p"><span><strong>app/views.py:</strong></span></p>
+<h5 class="md-end-block md-heading"><span class="md-plain">12.321 有关出版社的函数逻辑</span></h5>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.shortcuts <span style="color: #0000ff;">import</span><span style="color: #000000;"> HttpResponse, render, redirect
+</span><span style="color: #0000ff;">from</span> app01 <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 显示出版社列表</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> publisher_list(request):
+    ret </span>= models.Publisher.objects.all()    <span style="color: #008000;">#</span><span style="color: #008000;"> 从数据库中取出所有的数据对象列表</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">print(ret)</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">publisher_list.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">publisher_list</span><span style="color: #800000;">"</span><span style="color: #000000;">: ret})
+​
+</span><span style="color: #008000;">#</span><span style="color: #008000;">添加出版社函数</span>
+<span style="color: #0000ff;">def</span> add_publisher(request):     <span style="color: #008000;">#</span><span style="color: #008000;"> 根据请求方法的不同，要做不同的事情,add_publisher.html使用POST方法</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">"</span><span style="color: #800000;">POST</span><span style="color: #800000;">"</span>:<span style="color: #008000;">#</span><span style="color: #008000;">request.method获取的是请求的方法(GET、POST...必须是大写)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">request.POST(字典)获取POST提交过来的全部数据</span>
+        new_publisher_name = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">publisher_name</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        models.Publisher.objects.create(name</span>=new_publisher_name)<span style="color: #008000;">#</span><span style="color: #008000;">创建对象并封装属性(插入一行数据)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">或者自己用类实例化一个对象:obj=models.Publisher(name=new_publisher_name) obj.save()</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">让用户跳转到publisher_list.html，显示新增数据后的publisher_list.html页面</span>
+        <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/publisher_list/</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">add_publisher.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除出版社函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> delete_publisher(request):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">print(request.method)</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">print(request.GET)</span>
+    delete_id = request.GET.get(<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>)              <span style="color: #008000;">#</span><span style="color: #008000;">拿到用户要删除的出版社的id值</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">print(delete_id)</span>
+    obj = models.Publisher.objects.get(id=delete_id)<span style="color: #008000;">#</span><span style="color: #008000;">根据id值得到对象</span>
+    obj.delete()                                 <span style="color: #008000;">#</span><span style="color: #008000;">将数据删除</span>
+    <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/publisher_list/</span><span style="color: #800000;">"</span>)            <span style="color: #008000;">#</span><span style="color: #008000;">让用户重新访问publisher_list.html更新页面</span>
+<span style="color: #000000;">​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 编辑出版社的函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> edit_publisher(request):
+ </span><span style="color: #008000;">#</span><span style="color: #008000;">edit_id = request.GET.get("id")如果用户提交使用URL拼接id，那么从URL里面取id参数request.GET.get("id")</span>
+    <span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">"</span><span style="color: #800000;">POST</span><span style="color: #800000;">"</span>:    <span style="color: #008000;">#</span><span style="color: #008000;">如果是post请求，表示用户已经编辑好了，向服务端提交修改后的新数据</span>
+        edit_id = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">edit_id</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 拿到已经修改的出版社id</span>
+        new_name = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span>)    <span style="color: #008000;">#</span><span style="color: #008000;"> 拿到修改之后的出版社的名字</span>
+        edit_obj = models.Publisher.objects.get(id=edit_id)<span style="color: #008000;">#</span><span style="color: #008000;">通过id找到数据行对象</span>
+        edit_obj.name =<span style="color: #000000;"> new_name
+        edit_obj.save()                      </span><span style="color: #008000;">#</span><span style="color: #008000;">保存修改，提交数据库</span>
+        <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/publisher_list/</span><span style="color: #800000;">"</span>)    <span style="color: #008000;">#</span><span style="color: #008000;"> 修改成功，让用户跳转到出版社列表页面，更新页面</span>
+<span style="color: #000000;">​
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">如果不是post请求，则返回edit_publisher.html页面给用户修改出版社</span>
+    edit_id = request.GET.get(<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>)                <span style="color: #008000;">#</span><span style="color: #008000;">先获取编辑的出版社的ID值</span>
+    obj = models.Publisher.objects.get(id=edit_id)  <span style="color: #008000;">#</span><span style="color: #008000;">根据id值去数据库找对应的行数据对象</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">edit_publisher.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">publisher</span><span style="color: #800000;">"</span>: obj})<span style="color: #008000;">#</span><span style="color: #008000;">将数据想要编辑的出版社显示出来，等待用户编辑</span></pre>
+</div>
+<p class="md-end-block md-p"><span><strong>templates/publisher_list.html:</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('1fc6c76b-acb0-486b-b529-5c107b04303e')"><img id="code_img_closed_1fc6c76b-acb0-486b-b529-5c107b04303e" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_1fc6c76b-acb0-486b-b529-5c107b04303e" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('1fc6c76b-acb0-486b-b529-5c107b04303e',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_1fc6c76b-acb0-486b-b529-5c107b04303e" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">table </span><span style="color: #ff0000;">border</span><span style="color: #0000ff;">="1"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>#<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>出版社名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% for publisher in publisher_list %}
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ publisher.id }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">     #{{ forloop.counter }计数表格中的数据条数，从而删除后更新id
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ publisher.name }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="text-center"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="btn btn-info btn-sm"</span><span style="color: #ff0000;"> href</span><span style="color: #0000ff;">="/edit_publisher/?id={{ publisher.id }}"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">i </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="fa fa-pencil fa-fw"</span><span style="color: #ff0000;"> aria-hidden</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">i</span><span style="color: #0000ff;">&gt;</span> 编辑 <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="btn btn-danger btn-sm"</span><span style="color: #ff0000;"> href</span><span style="color: #0000ff;">="/delete_publisher/?id={{ publisher.id }}"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">i </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="fa fa-trash-o fa-fw"</span><span style="color: #ff0000;"> aria-hidden</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">i</span><span style="color: #0000ff;">&gt;</span>删除 <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% endfor %}
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">table</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p class="md-end-block md-p"><span><strong>templates/add_publisher.html:</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('1bc931a4-3575-4a03-814c-2c859f990653')"><img id="code_img_closed_1bc931a4-3575-4a03-814c-2c859f990653" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_1bc931a4-3575-4a03-814c-2c859f990653" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('1bc931a4-3575-4a03-814c-2c859f990653',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_1bc931a4-3575-4a03-814c-2c859f990653" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>添加新的出版社<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form </span><span style="color: #ff0000;">action</span><span style="color: #0000ff;">="/add_publisher/"</span><span style="color: #ff0000;"> method</span><span style="color: #0000ff;">="post"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="publisher_name"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="submit"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="提交"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">form</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p class="md-end-block md-p"><span><strong>templates/edit_publisher.html:</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('1d49fc61-2528-4aa8-8658-7a1f8a5481b9')"><img id="code_img_closed_1d49fc61-2528-4aa8-8658-7a1f8a5481b9" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_1d49fc61-2528-4aa8-8658-7a1f8a5481b9" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('1d49fc61-2528-4aa8-8658-7a1f8a5481b9',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_1d49fc61-2528-4aa8-8658-7a1f8a5481b9" class="cnblogs_code_hide">
+<pre><code><span style="color: #000000;">#如果#action="/edit_publisher/?id={{ publisher.id }}"那么就从URL中用request.GET.get()取id参数
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-horizontal"</span><span style="color: #ff0000;"> action</span><span style="color: #0000ff;">="/edit_publisher/"</span><span style="color: #ff0000;"> method</span><span style="color: #0000ff;">="post"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="edit_id"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="{{ publisher.id }}"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="hide"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">#将获取id的input框隐藏
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>出版社名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="name"</span><span style="color: #ff0000;">
+                   placeholder</span><span style="color: #0000ff;">="出版社名称"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="{{ publisher.name }}"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">#提交出版社名称
+        </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+​
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-offset-3 col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="submit"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="btn btn-default"</span><span style="color: #0000ff;">&gt;</span>提交<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">form</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<h5 class="md-end-block md-heading"><span class="md-plain">12.322 有关书籍的函数逻辑</span></h5>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.shortcuts <span style="color: #0000ff;">import</span><span style="color: #000000;"> HttpResponse, render, redirect
+</span><span style="color: #0000ff;">from</span> app01 <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 书籍列表函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> book_list(request):
+    ret </span>= models.Book.objects.all()                          <span style="color: #008000;">#</span><span style="color: #008000;">去数据库查询所有的书籍对象</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">book_list.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">book_list</span><span style="color: #800000;">"</span>: ret})<span style="color: #008000;">#</span><span style="color: #008000;">将数据填充到页面上，发送给客户端</span>
+<span style="color: #000000;">​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 添加书籍函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> add_book(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">"</span><span style="color: #800000;">POST</span><span style="color: #800000;">"</span>:                <span style="color: #008000;">#</span><span style="color: #008000;">如果是POST请求表示用户新添加了一本书籍和关联的出版社</span>
+        book_name = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">book_name</span><span style="color: #800000;">"</span>)       <span style="color: #008000;">#</span><span style="color: #008000;"> 添加新书籍的名称</span>
+        publisher_id = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">publisher_id</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 添加新书籍关联的出版社id值</span>
+        models.Book.objects.create(title=book_name, publisher_id=<span style="color: #000000;">publisher_id)
+        
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">publisher_obj = models.Publisher.objects.get(id=publisher_id)#根据id值先找到关联的出版社对象</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">models.Book.objects.create(title=book_name, publisher=publisher_obj)</span>
+        <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/book_list/</span><span style="color: #800000;">"</span>)                 <span style="color: #008000;">#</span><span style="color: #008000;"> 创建成功，让用户跳转到书籍列表页面，刷新数据</span>
+<span style="color: #000000;">​
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 取到所有的出版社数据，在页面上渲染成select标签，供用户选择</span>
+    ret =<span style="color: #000000;"> models.Publisher.objects.all()
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">add_book.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">publisher_list</span><span style="color: #800000;">"</span><span style="color: #000000;">: ret})
+​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除书籍的函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> delete_book(request):
+    delete_book_id </span>= request.GET.get(<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>)            <span style="color: #008000;">#</span><span style="color: #008000;"> 从URL里面取到要删除的书籍的ID</span>
+    models.Book.objects.get(id=delete_book_id).delete()<span style="color: #008000;">#</span><span style="color: #008000;"> 去数据库中删除</span>
+    <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/book_list/</span><span style="color: #800000;">"</span>)                    <span style="color: #008000;">#</span><span style="color: #008000;"> 删除成功，跳转到书籍列表页面，刷新数据</span>
+<span style="color: #000000;">​
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 编辑书籍的函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> edit_book(request):  
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">"</span><span style="color: #800000;">POST</span><span style="color: #800000;">"</span>:                 <span style="color: #008000;">#</span><span style="color: #008000;"> 如果是POST请求 表名是用户修改好了数据，向后端提交了</span>
+        new_book_title = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">book_title</span><span style="color: #800000;">"</span>) <span style="color: #008000;">#</span><span style="color: #008000;"> 取用户提交过来的数据</span>
+        new_publisher_id = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">publisher_id</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        
+        book_id </span>= request.GET.get(<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>)              <span style="color: #008000;">#</span><span style="color: #008000;">获取URL中的当前编辑图书的id</span>
+        book_obj = models.Book.objects.get(id=book_id)<span style="color: #008000;">#</span><span style="color: #008000;"> 根据id取出要编辑的书籍对象</span>
+<span style="color: #000000;">        
+        book_obj.title </span>=<span style="color: #000000;"> new_book_title
+        book_obj.publisher_id </span>=<span style="color: #000000;"> new_publisher_id
+        book_obj.save()                            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 将修改保存到数据库</span>
+        <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/book_list/</span><span style="color: #800000;">"</span>)              <span style="color: #008000;">#</span><span style="color: #008000;"> 修改完之后让用户跳转回书籍列表页面</span>
+<span style="color: #000000;">​
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回一个让用户编辑数据的页面</span>
+    edit_book_id = request.GET.get(<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>)                    <span style="color: #008000;">#</span><span style="color: #008000;"> 取编辑的书籍的id值</span>
+    edit_book_obj = models.Book.objects.get(id=edit_book_id) <span style="color: #008000;">#</span><span style="color: #008000;"> 取到要编辑的书籍对象</span>
+    publisher_list = models.Publisher.objects.all()          <span style="color: #008000;">#</span><span style="color: #008000;"> 去数据库查询目前所有的出版社数据</span>
+    <span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">"</span><span style="color: #800000;">edit_book.html</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">book</span><span style="color: #800000;">"</span>: edit_book_obj,<span style="color: #800000;">"</span><span style="color: #800000;">publisher_list</span><span style="color: #800000;">"</span>:publisher_list})</pre>
+</div>
+<p class="md-end-block md-p"><span><strong>templates/book_list.html：</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('ba0a6979-a0dc-4626-a951-53ec7bfbaeaf')"><img id="code_img_closed_ba0a6979-a0dc-4626-a951-53ec7bfbaeaf" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_ba0a6979-a0dc-4626-a951-53ec7bfbaeaf" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('ba0a6979-a0dc-4626-a951-53ec7bfbaeaf',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_ba0a6979-a0dc-4626-a951-53ec7bfbaeaf" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">table </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="table table-striped table-bordered"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>序号<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>书籍名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>出版社名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>操作<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% for book in book_list %}
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ forloop.counter }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ book.title }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ book.publisher.name}}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;"># book.publisher拿到的是外键(id)关联的出版社的行数据对象
+            </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="text-center"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="btn btn-info btn-sm"</span><span style="color: #ff0000;"> href</span><span style="color: #0000ff;">="/edit_book/?id={{ book.id }}"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">i </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="fa fa-pencil fa-fw"</span><span style="color: #ff0000;">  aria-hidden</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">i</span><span style="color: #0000ff;">&gt;</span> 编辑 <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="btn btn-danger btn-sm"</span><span style="color: #ff0000;"> href</span><span style="color: #0000ff;">="/delete_book/?id={{ book.id }}"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">i </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="fa fa-trash-o fa-fw"</span><span style="color: #ff0000;"> aria-hidden</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">i</span><span style="color: #0000ff;">&gt;</span> 删除 <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% endfor %}
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">table</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p class="md-end-block md-p"><span><strong>templates/add_book.html：</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('905b3ff8-befa-4f30-8ff4-9dbeb98dc9f5')"><img id="code_img_closed_905b3ff8-befa-4f30-8ff4-9dbeb98dc9f5" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_905b3ff8-befa-4f30-8ff4-9dbeb98dc9f5" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('905b3ff8-befa-4f30-8ff4-9dbeb98dc9f5',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_905b3ff8-befa-4f30-8ff4-9dbeb98dc9f5" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-horizontal"</span><span style="color: #ff0000;"> action</span><span style="color: #0000ff;">="/add_book/"</span><span style="color: #ff0000;"> method</span><span style="color: #0000ff;">="post"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>书籍名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="book_name"</span><span style="color: #ff0000;"> placeholder</span><span style="color: #0000ff;">="书籍名称"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>出版社名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">select </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="publisher_id"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                {% for publisher in publisher_list %}
+                </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">option </span><span style="color: #ff0000;">value</span><span style="color: #0000ff;">="{{ publisher.id }}"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;"> {{ publisher.name }}
+                </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">option</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                {% endfor %}
+            </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">select</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-offset-3 col-sm-9"</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="submit"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="btn btn-default"</span><span style="color: #0000ff;">&gt;</span>提交<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">form</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p class="md-end-block md-p"><span><strong>templates/edit_book.html：</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('8045271a-b9b1-4262-a500-192c2da6bbe8')"><img id="code_img_closed_8045271a-b9b1-4262-a500-192c2da6bbe8" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_8045271a-b9b1-4262-a500-192c2da6bbe8" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('8045271a-b9b1-4262-a500-192c2da6bbe8',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_8045271a-b9b1-4262-a500-192c2da6bbe8" class="cnblogs_code_hide">
+<pre><code><span style="color: #000000;">#action=""此处使用默认URL，即继承之前的/edit_book/?id={{ book.id }}
+#或者#action="/edit_publisher/?id={{ publisher.id }}"那么就从URL中用request.GET.get()取id参数
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-horizontal"</span><span style="color: #ff0000;"> action</span><span style="color: #0000ff;">=""</span><span style="color: #ff0000;"> method</span><span style="color: #0000ff;">="post"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    #隐藏要编辑的书，发送id到后端，为了在后端找到要修改的图书，方便修改
+    #</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="{{ book.id }}"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="book_id"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="hide"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    
+    #预先在输入框和下拉框显示要修改的图书名和出版社名
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>书籍名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="book_title"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="{{ book.title }}"</span><span style="color: #ff0000;"> placeholder</span><span style="color: #0000ff;">="书籍名称"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>出版社名称<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+        
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">select </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="publisher_id"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+             # 如果当前循环到的出版社和书关联的出版社相等，则添加selected，表示预先选中的
+                {% for publisher in publisher_list %}   
+                    {% if publisher == book.publisher %}
+                        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">option </span><span style="color: #ff0000;">value</span><span style="color: #0000ff;">="{{ publisher.id }}"</span><span style="color: #ff0000;"> selected</span><span style="color: #0000ff;">&gt;</span>{{ publisher.name }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">option</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                    {% else %}
+                        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">option </span><span style="color: #ff0000;">value</span><span style="color: #0000ff;">="{{ publisher.id }}"</span><span style="color: #0000ff;">&gt;</span>{{ publisher.name }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">option</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                    {% endif %}
+                {% endfor %}                      
+            </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">select</span><span style="color: #0000ff;">&gt;</span>
+            
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+​
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-offset-3 col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="submit"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="btn btn-default"</span><span style="color: #0000ff;">&gt;</span>提交<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">form</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<h5 class="md-end-block md-heading"><span class="md-plain">12.323 有关作者的函数逻辑</span></h5>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 作者列表函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> author_list(request):
+    authors </span>= models.Author.objects.all()    <span style="color: #008000;">#</span><span style="color: #008000;"> 从数据库中查询所有的作者数据，在页面上展示出来</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> author_obj = models.Author.objects.get(id=1)</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> print(author_obj.books.all())            表示id=1的作者写的所有书的对象</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">author_list.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">author_list</span><span style="color: #800000;">"</span><span style="color: #000000;">: authors})
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 添加作者函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> add_author(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">"</span><span style="color: #800000;">POST</span><span style="color: #800000;">"</span><span style="color: #000000;">:            
+        new_author_name </span>= request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">author_name</span><span style="color: #800000;">"</span>) <span style="color: #008000;">#</span><span style="color: #008000;"> 拿到新的作者姓名    </span>
+        models.Author.objects.create(name=new_author_name)<span style="color: #008000;">#</span><span style="color: #008000;"> 去数据库中创建一个新的作者记录</span>
+        <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/author_list/</span><span style="color: #800000;">"</span>)                  <span style="color: #008000;">#</span><span style="color: #008000;"> 创建好作者之后，让用户跳转到作者列表页面</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回一个页面，让用户填写新的作者信息</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">add_author.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除作者函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> delete_author(request):
+    delete_author_id </span>= request.GET.get(<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>)              <span style="color: #008000;">#</span><span style="color: #008000;"> 从URL里面取到要删除的作者的ID    </span>
+    models.Author.objects.get(id=delete_author_id).delete()<span style="color: #008000;">#</span><span style="color: #008000;"> 去数据库中找到该作者并删除</span>
+    <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/author_list/</span><span style="color: #800000;">"</span>)                      <span style="color: #008000;">#</span><span style="color: #008000;"> 删除成功后 跳转回作者列表页面</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 编辑作者函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> edit_author(request):
+    </span><span style="color: #0000ff;">if</span> request.method == <span style="color: #800000;">"</span><span style="color: #800000;">POST</span><span style="color: #800000;">"</span>:                  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果发送的是POST请求，应该拿到用户提交的数据      </span>
+        edit_author_id = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">author_id</span><span style="color: #800000;">"</span>)       <span style="color: #008000;">#</span><span style="color: #008000;"> 编辑的作者id</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 取新名字和新的书籍id</span>
+        new_author_name = request.POST.get(<span style="color: #800000;">"</span><span style="color: #800000;">author_name</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        new_book_ids </span>= request.POST.getlist(<span style="color: #800000;">"</span><span style="color: #800000;">book_ids</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 如果提交过来的数据是多个值（多选的select/多选的checkbox）则使用getlist取列表</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> print(request.POST)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> print(edit_author_id, new_author_name, new_book_ids)</span>
+ 
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 去编辑作者以及对应的书籍</span>
+        edit_author_obj = models.Author.objects.get(id=edit_author_id)<span style="color: #008000;">#</span><span style="color: #008000;"> 拿到编辑的作者对象</span>
+        edit_author_obj.name = new_author_name                        <span style="color: #008000;">#</span><span style="color: #008000;"> 修改作者姓名</span>
+<span style="color: #000000;">        edit_author_obj.save()
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 修改作者写的书籍</span>
+        edit_author_obj.books.set(new_book_ids)            <span style="color: #008000;">#</span><span style="color: #008000;">通过新书id更换作者对应的书籍，并提交数据库</span>
+        <span style="color: #0000ff;">return</span> redirect(<span style="color: #800000;">"</span><span style="color: #800000;">/author_list/</span><span style="color: #800000;">"</span>)                <span style="color: #008000;">#</span><span style="color: #008000;"> 修改完成之后，跳转到作者列表页面</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回一个页面，让用户编辑</span>
+    edit_author_id = request.GET.get(<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>)                      <span style="color: #008000;">#</span><span style="color: #008000;"> 从URL里面取到要编辑作者的id参数</span>
+    edit_author_obj = models.Author.objects.get(id=edit_author_id)<span style="color: #008000;">#</span><span style="color: #008000;"> 取到要编辑的作者对象</span>
+    book_list = models.Book.objects.all()                        <span style="color: #008000;">#</span><span style="color: #008000;"> 获取所有的书籍对象信息</span>
+    <span style="color: #0000ff;">return</span> render(request,<span style="color: #800000;">"</span><span style="color: #800000;">edit_author.html</span><span style="color: #800000;">"</span>,{<span style="color: #800000;">"</span><span style="color: #800000;">author</span><span style="color: #800000;">"</span>: edit_author_obj, </pre>
+</div>
+<p class="md-end-block md-p"><span><strong>templates/author_list.html:</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('f8db5632-d645-49c5-b421-6ee1df13de6e')"><img id="code_img_closed_f8db5632-d645-49c5-b421-6ee1df13de6e" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_f8db5632-d645-49c5-b421-6ee1df13de6e" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('f8db5632-d645-49c5-b421-6ee1df13de6e',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_f8db5632-d645-49c5-b421-6ee1df13de6e" class="cnblogs_code_hide">
+<pre><code> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-md-3 col-sm-6 pull-right add-btn"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">data-target</span><span style="color: #0000ff;">="#myModal"</span><span style="color: #ff0000;"> data-toggle</span><span style="color: #0000ff;">="modal"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="btn btn-success pull-right"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">新增
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="/add_author/"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="btn btn-info pull-right"</span><span style="color: #0000ff;">&gt;</span>新页面添加 <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+ <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+​
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">table </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="table table-striped table-bordered"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>序号<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>作者姓名<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>著作<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>操作<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">th</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">thead</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% for author in author_list %}#{"author_list": authors}
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ forloop.counter }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>{{ author.name }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">                               #在这一列展示这个作者关联的所有的书籍
+                {% for book in author.books.all %}#书籍对象的列表
+                    {% if forloop.last %}
+                        《{{ book.title }}》
+                    {% else %}
+                        《{{ book.title }}》,
+                    {% endif %}
+                {% empty %}
+                    暂无著作
+                {% endfor %}
+            </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">td </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="text-center"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="btn btn-info btn-sm"</span><span style="color: #ff0000;"> href</span><span style="color: #0000ff;">="/edit_author/?id={{ author.id }}"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">i </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="fa fa-pencil fa-fw"</span><span style="color: #ff0000;"> aria-hidden</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">i</span><span style="color: #0000ff;">&gt;</span>编辑 <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="btn btn-danger btn-sm"</span><span style="color: #ff0000;"> href</span><span style="color: #0000ff;">="/delete_author/?id={{ author.id }}"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">i </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="fa fa-trash-o fa-fw"</span><span style="color: #ff0000;"> aria-hidden</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">i</span><span style="color: #0000ff;">&gt;</span>删除 <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">td</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tr</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% endfor %}
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tbody</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">table</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p class="md-end-block md-p"><span><strong>templates/add_author.html：</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('814a081b-4ebf-404c-8eed-5a8fa75c96d5')"><img id="code_img_closed_814a081b-4ebf-404c-8eed-5a8fa75c96d5" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_814a081b-4ebf-404c-8eed-5a8fa75c96d5" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('814a081b-4ebf-404c-8eed-5a8fa75c96d5',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_814a081b-4ebf-404c-8eed-5a8fa75c96d5" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-horizontal"</span><span style="color: #ff0000;"> action</span><span style="color: #0000ff;">="/add_author/"</span><span style="color: #ff0000;"> method</span><span style="color: #0000ff;">="post"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>作者姓名<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="author_name"</span><span style="color: #ff0000;">
+                   placeholder</span><span style="color: #0000ff;">="作者姓名"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+​
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-offset-3 col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="submit"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="btn btn-default"</span><span style="color: #0000ff;">&gt;</span>提交<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">form</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p class="md-end-block md-p"><span><strong>templates/edit_author.html：</strong></span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('3d0dc124-560b-40e6-8393-4aa228338007')"><img id="code_img_closed_3d0dc124-560b-40e6-8393-4aa228338007" class="code_img_closed" src="./images/python 之   Django框架(APP和ORM的使用)0.png" alt="" /><img id="code_img_opened_3d0dc124-560b-40e6-8393-4aa228338007" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('3d0dc124-560b-40e6-8393-4aa228338007',event)" src="./images/python 之   Django框架(APP和ORM的使用)1.png" alt="" />
+<div id="cnblogs_code_open_3d0dc124-560b-40e6-8393-4aa228338007" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-horizontal"</span><span style="color: #ff0000;"> action</span><span style="color: #0000ff;">=""</span><span style="color: #ff0000;"> method</span><span style="color: #0000ff;">="post"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">#action=""默认转到当前URL
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="{{ author.id }}"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="author_id"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="hide"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>作者姓名<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="author_name"</span><span style="color: #ff0000;">
+                   value</span><span style="color: #0000ff;">="{{ author.name }}"</span><span style="color: #ff0000;"> placeholder</span><span style="color: #0000ff;">="作者姓名"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">label </span><span style="color: #ff0000;">for</span><span style="color: #0000ff;">="inputEmail3"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="col-sm-3 control-label"</span><span style="color: #0000ff;">&gt;</span>著作<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">label</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">select </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-control"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="book_ids"</span><span style="color: #ff0000;"> multiple</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                {% for book in book_list %}            #book_list 所有的书籍对象
+                    #author：要编辑的作者，author.books.all：要编辑的作者的所有书籍对象
+                    {% if book in author.books.all %}   # 如果当前这本书在作者写的书里面
+                        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">option </span><span style="color: #ff0000;">value</span><span style="color: #0000ff;">="{{ book.id }}"</span><span style="color: #ff0000;"> selected</span><span style="color: #0000ff;">&gt;</span>{{ book.title }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">option</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                    {% else %}
+                        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">option </span><span style="color: #ff0000;">value</span><span style="color: #0000ff;">="{{ book.id }}"</span><span style="color: #0000ff;">&gt;</span>{{ book.title }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">option</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                    {% endif %}
+                {% endfor %}
+            </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">select</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+​
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="form-group"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="col-sm-offset-3 col-sm-9"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="submit"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="btn btn-default"</span><span style="color: #0000ff;">&gt;</span>提交<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">form</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

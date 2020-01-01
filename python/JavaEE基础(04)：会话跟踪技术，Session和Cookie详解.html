@@ -1,0 +1,213 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JavaEE基础(04)：会话跟踪技术，Session和Cookie详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JavaEE基础(04)：会话跟踪技术，Session和Cookie详解</center></div><div class='banquan'>原文出处:本文由博客园博主知了一笑提供。<br/>
+原文连接:https://www.cnblogs.com/cicada-smile/p/12047240.html</div><br>
+    <blockquote>
+<p>本文源码：<a href="https://github.com/cicadasmile/java-base-parent">GitHub·点这里</a> || <a href="https://gitee.com/cicadasmile/java-base-parent">GitEE·点这里</a></p>
+</blockquote>
+<h1 id="一会话跟踪">一、会话跟踪</h1>
+<h2 id="场景描述">1、场景描述</h2>
+<p>比如登录某个购物网站，身份识别成功后，在网站下单，支付 等操作，这些操作中当前登录用户信息必须是共享的，这样这些操作结果才能和登录用户做关联。</p>
+<h2 id="概念简介">2、概念简介</h2>
+<p>可以把会话理解为客户端与服务器之间的一次交互，在一次交互中可能会包含多次请求和响应。在JavaWeb中，从客户端向服务器发出第一个请求开始，会话就开始了，直到客户端关闭浏览器会话结束。在一个会话的多个请求中共享数据，这就是会话跟踪技术。</p>
+<h1 id="二cookie用法详解">二、Cookie用法详解</h1>
+<h2 id="cookie简介">1、Cookie简介</h2>
+<p>Cookie在HTTP中通常是用来辨别用户身份，进行会话跟踪而储存在用户本地终端上的数据，一般会加密处理，由用户客户端计算机暂时或永久保存的信息。其结构就是一个键和一个值构成的。随着服务器端的响应发送给客户端浏览器。然后客户端浏览器会把Cookie保存起来，当下一次再访问服务器时把Cookie再发送给服务器。</p>
+<p><img src="./images/JavaEE基础(04)：会话跟踪技术，Session和Cookie详解0.png" /></p>
+<p>Cookie是由服务器创建，然后通过响应发送给客户端的键值对。客户端会保存Cookie，并会标注出Cookie的来源。当客户端向服务器发出请求时会把Cookie包含在请求中发送给服务器，这样服务器就可以识别客户端。</p>
+<h2 id="cookie用法">2、Cookie用法</h2>
+<ul>
+<li>创建Cookie</li>
+</ul>
+<p>JavaWeb中，可以基于Servlet创建Cookie，并设置属性。</p>
+<pre><code><code>public class CookieServletOne extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType(&quot;text/html;charset=utf-8&quot;);
+        // 创建Cookie
+        Cookie cookie = new Cookie(&quot;author&quot;,&quot;cicada&quot;);
+        // 设置生命周期 1小时
+        cookie.setMaxAge(60*60);
+        response.addCookie(cookie) ;
+        response.getWriter().print(&quot;Hello:Cookie&quot;);
+    }
+}</code></pre>
+<p>访问：<code>http://localhost:6002/cookieServletOne</code></p>
+<p>查看响应头：</p>
+<pre><code><code>Response Header
+Set-Cookie: author=cicada; Max-Age=3600;</code></pre>
+<p>这样，服务器创建的Cookie在客户端就拿到了。</p>
+<ul>
+<li>获取Cookie</li>
+</ul>
+<pre><code><code>public class CookieServletOne extends HttpServlet {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        System.out.println(&quot;doPost...&quot;);
+        Cookie[] cookies = request.getCookies() ;
+        for (Cookie cookie:cookies){
+            System.out.println(&quot;Name：&quot;+cookie.getName());
+            System.out.println(&quot;Value：&quot;+cookie.getValue());
+        }
+        response.setContentType(&quot;text/html;charset=utf-8&quot;);
+        String userName = request.getParameter(&quot;userName&quot;) ;
+        response.getWriter().print(&quot;Hello:&quot;+userName);
+    }
+}</code></pre>
+<p>通过测试，控制台输出：<code>Name：author;Value：cicada</code>。</p>
+<ul>
+<li>更新Cookie</li>
+</ul>
+<p>更新就是指Cookie的覆盖，如果服务器端发送重复的Cookie那么会覆盖原有的Cookie。</p>
+<pre><code><code>public class CookieServletTwo extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType(&quot;text/html;charset=utf-8&quot;);
+        // 创建Cookie
+        Cookie cookie = new Cookie(&quot;author&quot;,&quot;smile&quot;);
+        // 设置生命周期 2小时
+        cookie.setMaxAge(60*60*2);
+        response.addCookie(cookie) ;
+        response.getWriter().print(&quot;Hello:Cookie&quot;);
+    }
+}</code></pre>
+<p>可以通过上面方法测试Cookie的获取结果。</p>
+<ul>
+<li>删除Cookie</li>
+</ul>
+<p>cookie.setMaxAge(0)：生命等于0是一个特殊的值，它表示cookie被作废。</p>
+<pre><code><code>public class CookieServletTwo extends HttpServlet {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType(&quot;text/html;charset=utf-8&quot;);
+        Cookie[] cookies = request.getCookies() ;
+        for (Cookie cookie:cookies){
+            if (cookie.getName().equals(&quot;author&quot;)){
+                cookie.setMaxAge(0);
+                response.addCookie(cookie);
+            }
+        }
+        String userName = request.getParameter(&quot;userName&quot;) ;
+        response.getWriter().print(&quot;Hello:&quot;+userName);
+    }
+}</code></pre>
+<p>这样再测试Cookie的获取方法，发现上面删除的Cookie就没有了。</p>
+<h2 id="cookie相关api">3、Cookie相关API</h2>
+<ul>
+<li>setMaxAge()</li>
+</ul>
+<p>设置 cookie 过期的时间，秒为单位。默认情况cookie 只会在当前 session 会话中有效。</p>
+<ul>
+<li>getMaxAge()</li>
+</ul>
+<p>获取 cookie 的最大生存周期。</p>
+<ul>
+<li>getName()</li>
+</ul>
+<p>获取 cookie 的名称。名称在创建后不能改变。</p>
+<ul>
+<li>getValue()</li>
+</ul>
+<p>获取与 cookie 关联的值。</p>
+<ul>
+<li>setValue(String value)</li>
+</ul>
+<p>设置与cookie关联的value值。相同的name多次设置会覆盖。</p>
+<h1 id="三session-跟踪">三、Session 跟踪</h1>
+<h2 id="session简介">1、Session简介</h2>
+<p>会话管理，当用户在应用程序的Web页之间跳转时，存储在Session对象中的变量将不会丢失，而是在整个用户会话中一直存在下去。Servlet中可以把一个会话内需要共享的数据保存到HttSession对象中。四大域对象：PageContext、ServletRequest、HttpSession、ServletContext。</p>
+<h2 id="session运行原理">2、Session运行原理</h2>
+<p><img src="./images/JavaEE基础(04)：会话跟踪技术，Session和Cookie详解1.png" /></p>
+<ul>
+<li>首次使用</li>
+</ul>
+<p>首次使用session时，服务器端要创建session，session是保存在服务器端，数据是保存在session中，sessionId通过Cookie发送给客户端，且只在浏览器本次会话中存在，也就是说如果用户关闭了浏览器，那么这个Cookie就丢失。</p>
+<ul>
+<li>客户端访问</li>
+</ul>
+<p>客户端再次访问服务器时，在请求中会带上sessionId，服务器会通过sessionId找到对应的session，而无需再创建新的session。</p>
+<ul>
+<li>时效性</li>
+</ul>
+<p>当一个session长时间没人使用的话，服务器会把session删除了，这个时长在Tomcat中配置是30分钟，可以在${CATALANA}/conf/web.xml找到这个配置，也可以在的web.xml中覆盖这个配置！</p>
+<pre class="xml"><code>&lt;session-config&gt;
+    &lt;session-timeout&gt;30&lt;/session-timeout&gt;
+&lt;/session-config&gt;</code></pre>
+<h2 id="相关api用法">3、相关API用法</h2>
+<ul>
+<li>getSesssion()</li>
+</ul>
+<p>当前会话已经存在session对象那么直接返回，如果当前会话还不存在，创建session对象并返回 。</p>
+<ul>
+<li>getAttribute(String name)</li>
+</ul>
+<p>返回该 session 会话中具有指定名称的对象 。</p>
+<ul>
+<li>getId()</li>
+</ul>
+<p>分配给该 session 会话的唯一标识符的字符串。</p>
+<ul>
+<li>setAttribute(String name,Object value)</li>
+</ul>
+<p>使用指定的名称绑定一个对象到该 session 会话。</p>
+<ul>
+<li>removeAttribute(String name)</li>
+</ul>
+<p>从该 session 会话移除指定名称的对象。</p>
+<h2 id="应用案例">4、应用案例</h2>
+<p>在网站中，经常可见的一个功能就是上次登录时间，这个功能基于Session可以很便捷的实现。</p>
+<pre><code><code>public class SessionServletOne extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType(&quot;text/html;charset=utf-8&quot;);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+        HttpSession session = request.getSession(true) ;
+        Date createTime = new Date(session.getCreationTime());
+        Date lastAccessTime = new Date(session.getLastAccessedTime());
+        session.setAttribute(&quot;author&quot;,&quot;cicada&quot;);
+        response.getWriter().print(
+                &quot;SessionId：&quot; + session.getId() + &quot;&lt;br/&gt;&quot;+
+                &quot;User Author：&quot; + session.getAttribute(&quot;author&quot;)+&quot;&lt;br/&gt;&quot;+
+                &quot;Create Time：&quot; + dateFormat.format(createTime)+&quot;&lt;br/&gt;&quot;+
+                &quot;Last Access Time：&quot;+dateFormat.format(lastAccessTime));
+    }
+}</code></pre>
+<p>访问<code>http://localhost:6002/sessionServletOne</code></p>
+<p>页面打印，多次访问，查看效果。</p>
+<pre><code><code>SessionId：40C12C367CBFA7469D57E72C5C091300
+User Author：cicada
+Create Time：2019-12-14 15:34:10
+Last Access Time：2019-12-14 15:35:13</code></pre>
+<h1 id="四源代码地址">四、源代码地址</h1>
+<pre><code><code>GitHub·地址
+https://github.com/cicadasmile/java-base-parent
+GitEE·地址
+https://gitee.com/cicadasmile/java-base-parent</code></pre>
+<p><img src="./images/JavaEE基础(04)：会话跟踪技术，Session和Cookie详解2.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

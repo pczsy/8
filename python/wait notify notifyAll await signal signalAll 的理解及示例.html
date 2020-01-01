@@ -1,0 +1,122 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修wait notify notifyAll await signal signalAll 的理解及示例' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>wait notify notifyAll await signal signalAll 的理解及示例</center></div><div class='banquan'>原文出处:本文由博客园博主sanri1993提供。<br/>
+原文连接:https://www.cnblogs.com/sanri1993/p/12031662.html</div><br>
+    <p>从常见的一道面试题开始，题目的描述是这样子的：</p>
+<blockquote>
+<p><strong>有三个线程分别打印A、B、C,请用多线程编程实现，在屏幕上循环打印10次ABCABC…</strong></p>
+</blockquote>
+<p>网上大都教了你怎么去实现，其实我也写过一篇 <a href="https://blog.csdn.net/sanri1993/article/details/89644493" class="uri">https://blog.csdn.net/sanri1993/article/details/89644493</a> 但是都没有把原理说透，说再多的解法别人也记不住。</p>
+<p>这个其实需要从最原本的 Object 的方法 wait() ,notify() notifyAll() 来理解 ，想必读者在工作中应该几乎是没有使用过这几个方法的，这里我稍微介绍下功能</p>
+<ul>
+<li>这几个方法都必须在线程获得锁之后才能调用(这里说的锁是 <code>synchronized</code> 锁)</li>
+<li>wait 方法会阻塞当前线程并释放锁，直到被唤醒。即另一个线程获得那把锁，并调用锁对象的 notify 或 notifyAll 方法</li>
+<li>notify 调用后，wait 方法并不是立马往后执行，它需要重新获取锁</li>
+<li>wait 调用后会把当前线程放进一个 wait 集合中，那个集合并不是有序的</li>
+</ul>
+<p>利用 wait 的阻塞特性，我们可以用它来实现循环打印 ABC ；可以使用三把锁来实现，还需要一个变量来控制当前应该打印谁，当前如果不是打印这个值时，调用 wait，如果是打印这个值，就打印这个值并切换成一个打印变量，同时唤醒下一个打印，伪代码如下:</p>
+<p>完整代码 <code>ABCThreadWait</code> 在 <a href="https://gitee.com/sanri/example/tree/92b2ee7806bd3eecc36775db47aa61182694e796/testjava8/src/main/java/com/sanri/test/locktest">这个地方</a></p>
+<pre><code><code>char currentChar = &#39;A&#39;;
+Object lockA = new Object();
+Object lockB = new Object();
+Object lockC = new Object();
+
+ThreadA
+    synchronized(lockA){
+        // 先获取 A 锁，可能马上就要调用 wait 方法
+        // 因为这里只有三个线程，所以用 if 和 while 是一样的，建议用 while 
+        if(currentChar != &#39;A&#39;){
+            lockA.wait();
+        }
+        print(&#39;A&#39;);currentChar = &#39;B&#39;;
+        //然后唤醒 B ，需要先获取B 锁
+        synchronized(lockB){
+            lockB.notify();
+        }
+    }
+ThreadB
+    synchronized(lockB){
+        if(currentChar != &#39;B&#39;){
+            lockB.wait();
+        }
+        print(&#39;B&#39;);currentChar = &#39;C&#39;;
+        synchronized(lockC){
+            lockC.notify();
+        }
+    }
+ThreadC
+    synchronized(lockC){
+        if(currentChar != &#39;C&#39;){
+            lockC.wait();
+        }
+        print(&#39;C&#39;);currentChar = &#39;A&#39;;
+        synchronized(lockA){
+            lockA.notify();
+        }
+    }</code></pre>
+<p>这里可以精简为使用一个线程类，使用不同的线程实例来实现，但还是使用的三把锁，每个线程都需要先获取自身的锁，然后判断是否需要打印，如果不是当前字符则释放锁；是当前字符就打印字符，在打印完后获取下一个打印的锁，把下一个打印线程唤醒。伪代码如下：</p>
+<p>完整代码 <code>ABCThreadWaitOneThreadClass</code> 在 <a href="https://gitee.com/sanri/example/tree/92b2ee7806bd3eecc36775db47aa61182694e796/testjava8/src/main/java/com/sanri/test/locktest">这个地方</a></p>
+<pre><code><code>synchronized (lockSelf){
+    if(printChar != currentPrintChar){
+        try {
+            lockSelf.wait();
+        } catch (InterruptedException e) {e.printStackTrace();}
+    }
+    // 打印当前线程字符
+    System.out.print(printChar);
+
+    // 切换下一个线程，并切换状态
+    if(currentPrintChar == &#39;A&#39;){currentPrintChar = &#39;B&#39;;}
+    else if(currentPrintChar == &#39;B&#39;){currentPrintChar = &#39;C&#39;;}
+    else if(currentPrintChar == &#39;C&#39;){currentPrintChar = &#39;A&#39;;}
+
+    //唤醒下一个线程
+    synchronized (lockNext) {
+        lockNext.notify();
+    }
+}</code></pre>
+<p>当然也可以使用一把锁来实现，这需要用到 Lock + Condition ，关于 Lock 和 Condition 见<a href="https://blog.csdn.net/u013013553/article/details/78700168">这篇文章</a></p>
+<p>使用 Condition 的 await signal signalAll 时，同样需要获得 Lock 锁，其它特性等同于 wait notify notifyAll</p>
+<p>其实仔细看这道题，永远只有一个线程在打印，照理论来说只需要一把锁即可，上面需要有多把锁的原因是一个锁只有一个等待队列 ，并且 notify 也是随机唤醒的。而每个 Condition 会带一个等待队列，所以用 Condition 只要一把锁就可以了，减轻了代码的复杂度，多锁情况很容易造成死锁。</p>
+<p>使用 Lock + Condition 的完整代码 <code>ConditionABC</code> 在 <a href="https://gitee.com/sanri/example/tree/92b2ee7806bd3eecc36775db47aa61182694e796/testjava8/src/main/java/com/sanri/test/locktest">这个地方</a> ，这是用多个线程类实现的，当然也可以用单个线程类多个线程实例来实现，这里就不再写了。</p>
+<p>借用一篇写得挺不错的博文 ，请一定耐心把它读完再接着往下读 <a href="https://www.jianshu.com/p/25e243850bd2?appinstall=0">你真的懂 wait notify notifyAll 吗</a></p>
+<p>文章中的源码<code>QueueUseWaitNotify</code> 在 <a href="https://gitee.com/sanri/example/tree/92b2ee7806bd3eecc36775db47aa61182694e796/testjava8/src/main/java/com/sanri/test/locktest">这个地方</a></p>
+<p>这个图不错，收藏了</p>
+<p><img src="./images/wait notify notifyAll await signal signalAll 的理解及示例0.png" alt="锁图" /></p>
+<p><strong>文章中有一个地方说得挺好，就是面试常问的 notify 和 notifyAll 的区别</strong></p>
+<p>青铜玩家会一脸纯真的看着面试官，就是唤醒一个和唤醒一堆啊，但它两真正的区别是 notifyAll 调用后，会把所有在 <strong>Wait Set</strong> 中的线程状态变成 RUNNABLE 状态，然后这些线程再去竞争锁，获取到锁的线程为 Run 状态，没有获取到锁的线程进入 <strong>Entry Set</strong> 集合中变成 Block 状态，它们只需要等到上个线程执行完或者 wait 就可以再次竞争锁而无需 notify ； 而 notify 方法只是照规则唤醒 <strong>Wait Set</strong> 中的某一个线程，其它的线程还是在 <strong>Wait Set</strong> 中。</p>
+<p>文章中说到的为什么 wait 要写在 for 循环中是因为 wait 是释放了锁，然后阻塞，等到下次唤醒的时候，在多个生产者多个消费者的情况下，有可能是被 “同类” 唤醒的，所以需要再去检查下状态是否正确。</p>
+<p><strong>文章中有一个地方没有说明白 ，这里再解释下，就是那个使用 notfiy 会带来死锁的问题，个人理解，如有偏差望指正</strong></p>
+<p>当有多个消费者和多个生产者的时候，这时正好在消费，所以生产者是在 <strong>Wait Set</strong> 中，可能还有其它消费者也在 <strong>Wait Set</strong> 中，因为是 notify 而不是 notfiyAll 嘛，所以消费者有可能一直 notify 的都是另一个消费者，刚好这时 buffer 空了，正好所有消费都 wait 了而没能及时 notify 生产者，这时 <strong>Wait Set</strong> 中四目相望造成死锁。</p>
+<p>文章最后有一个评论说可以生产者用一把锁，消费者用一把锁，<a href="https://gitee.com/sanri/example/tree/92b2ee7806bd3eecc36775db47aa61182694e796/testjava8/src/main/java/com/sanri/test/locktest">这里也有实现</a> <code>QueueUseWaitNofiy2</code></p>
+<p>可以使用 Condition 做更好的实现，只使用一把锁，这里本身也只需要一把锁就可以了，具体实现见代码 <code>QueueUseCondition</code></p>
+<h2 id="一点小推广">一点小推广</h2>
+<p>创作不易，希望可以支持下我的开源软件，及我的小工具，欢迎来 gitee 点星，fork ，提 bug 。</p>
+<p>Excel 通用导入导出，支持 Excel 公式<br />
+博客地址：<a href="https://blog.csdn.net/sanri1993/article/details/100601578" class="uri">https://blog.csdn.net/sanri1993/article/details/100601578</a><br />
+gitee：<a href="https://gitee.com/sanri/sanri-excel-poi" class="uri">https://gitee.com/sanri/sanri-excel-poi</a></p>
+<p>使用模板代码 ，从数据库生成代码 ，及一些项目中经常可以用到的小工具<br />
+博客地址：<a href="https://blog.csdn.net/sanri1993/article/details/98664034" class="uri">https://blog.csdn.net/sanri1993/article/details/98664034</a><br />
+gitee：<a href="https://gitee.com/sanri/sanri-tools-maven" class="uri">https://gitee.com/sanri/sanri-tools-maven</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

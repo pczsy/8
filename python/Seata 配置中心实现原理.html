@@ -1,0 +1,117 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Seata 配置中心实现原理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Seata 配置中心实现原理</center></div><div class='banquan'>原文出处:本文由博客园博主后端进阶提供。<br/>
+原文连接:https://www.cnblogs.com/objcoding/p/12051212.html</div><br>
+    <p>Seata 可以支持多个第三方配置中心，那么 Seata 是如何同时兼容那么多个配置中心的呢？下面我给大家详细介绍下 Seata 配置中心的实现原理。</p>
+<h2 id="配置中心属性加载">配置中心属性加载</h2>
+<p>在 Seata 配置中心，有两个默认的配置文件：</p>
+<p><img src="./images/Seata 配置中心实现原理0.png" /></p>
+<p>file.conf 是默认的配置属性，registry.conf 主要存储第三方注册中心与配置中心的信息，主要有两大块：</p>
+<pre><code><code>registry {
+  # file 、nacos 、eureka、redis、zk、consul、etcd3、sofa
+  # ...
+}
+
+config {
+  # file、nacos 、apollo、zk、consul、etcd3
+  type = &quot;file&quot;
+  nacos {
+    serverAddr = &quot;localhost&quot;
+    namespace = &quot;&quot;
+  }
+  file {
+    name = &quot;file.conf&quot;
+  }
+  # ...
+}</code></pre>
+<p>其中 registry 为注册中心的配置属性，这里先不讲，config 为配置中心的属性值，默认为 file 类型，即会加载本地的 file.conf 里面的属性，如果 type 为其它类型，那么会从第三方配置中心加载配置属性值。</p>
+<p>在 config 模块的 core 目录中，有个配置工厂类 ConfigurationFactory，它的结构如下：</p>
+<p><img src="./images/Seata 配置中心实现原理1.png" /></p>
+<p>可以看到都是一些配置的静态常量：</p>
+<p>REGISTRY_CONF_PREFIX、REGISTRY_CONF_SUFFIX：配置文件名、默认配置文件类型；</p>
+<p>SYSTEM_PROPERTY_SEATA_CONFIG_NAME、ENV_SEATA_CONFIG_NAME、ENV_SYSTEM_KEY、ENV_PROPERTY_KEY：自定义文件名配置变量，也说明我们可以自定义配置中心的属性文件。</p>
+<p>ConfigurationFactory 里面有一处静态代码块，如下：</p>
+<p>io.seata.config.ConfigurationFactory</p>
+<p><img src="./images/Seata 配置中心实现原理2.png" /></p>
+<p>根据自定义文件名配置变量找出配置文件名称与类型，如果没有配置，默认使用 registry.conf，FileConfiguration 是 Seata 默认的配置实现类，如果为默认值，则会更具 registry.conf 配置文件生成 FileConfiguration 默认配置对象，这里也可以利用 SPI 机制支持第三方扩展配置实现，具体实现是继承 ExtConfigurationProvider 接口，在<code>META-INF/services/</code>创建一个文件并填写实现类的全路径名，如下所示：</p>
+<p><img src="./images/Seata 配置中心实现原理3.png" /></p>
+<h2 id="第三方配置中心实现类加载">第三方配置中心实现类加载</h2>
+<p>在静态代码块逻辑加载完配置中心属性之后，Seata 是如何选择配置中心并获取配置中心的属性值的呢？</p>
+<p>我们刚刚也说了 FileConfiguration 是 Seata 的默认配置实现类，它继承了 AbstractConfiguration，它的基类为 Configuration，提供了获取参数值的方法：</p>
+<pre class="java"><code>short getShort(String dataId, int defaultValue, long timeoutMills);
+int getInt(String dataId, int defaultValue, long timeoutMills);
+long getLong(String dataId, long defaultValue, long timeoutMills);
+// ....</code></pre>
+<p>那么意味着只需要第三方配置中心实现该接口，就可以整合到 Seata 配置中心了，下面我拿 zk 来做例子：</p>
+<p>首先，第三方配置中心需要实现一个 Provider 类：</p>
+<p><img src="./images/Seata 配置中心实现原理4.png" /></p>
+<p>实现的 provider 方法如其名，主要是输出具体的 Configuration 实现类。</p>
+<p>那么我们是如何获取根据配置去获取对应的第三方配置中心实现类呢？</p>
+<p>在 Seata 项目中，获取一个第三方配置中心实现类通常是这么做的：</p>
+<pre class="java"><code>Configuration CONFIG = ConfigurationFactory.getInstance();</code></pre>
+<p>在 getInstance() 方法中主要是使用了单例模式构造配置实现类，它的构造具体实现如下：</p>
+<p>io.seata.config.ConfigurationFactory#buildConfiguration：</p>
+<p><img src="./images/Seata 配置中心实现原理5.png" /></p>
+<p>首先从 ConfigurationFactory 中的静态代码块根据 registry.conf 创建的 CURRENT_FILE_INSTANCE 中获取当前环境使用的配置中心，默认为为 File 类型，我们也可以在 registry.conf 配置其它第三方配置中心，这里也是利用了 SPI 机制去加载第三方配置中心的实现类，具体实现如下：</p>
+<p><img src="./images/Seata 配置中心实现原理6.png" /></p>
+<p>如上，即是刚刚我所说的 ZookeeperConfigurationProvider 配置实现输出类，我们再来看看这行代码：</p>
+<pre class="java"><code>EnhancedServiceLoader.load(ConfigurationProvider.class,Objects.requireNonNull(configType).name()).provide();</code></pre>
+<p>EnhancedServiceLoader 是 Seata SPI 实现核心类，这行代码会加载 <code>META-INF/services/</code>和 <code>META-INF/seata/</code>目录中文件填写的类名，那么如果其中有多个配置中心实现类都被加载了怎么办呢？</p>
+<p>我们注意到 ZookeeperConfigurationProvider 类的上面有一个注解：</p>
+<pre class="java"><code>@LoadLevel(name = &quot;ZK&quot;, order = 1)</code></pre>
+<p>在加载多个配置中心实现类时，会根据 order 进行排序：</p>
+<p>io.seata.common.loader.EnhancedServiceLoader#findAllExtensionClass：</p>
+<p><img src="./images/Seata 配置中心实现原理7.png" /></p>
+<p>io.seata.common.loader.EnhancedServiceLoader#loadFile：</p>
+<p><img src="./images/Seata 配置中心实现原理8.png" /></p>
+<p>这样，就不会产生冲突了。</p>
+<p>但是我们发现 Seata 还可以用这个方法进行选择，Seata 在调用 load 方法时，还传了一个参数：</p>
+<pre class="java"><code>Objects.requireNonNull(configType).name()</code></pre>
+<p>ConfigType 为配置中心类型，是个枚举类：</p>
+<pre class="java"><code>public enum ConfigType {
+  File, ZK, Nacos, Apollo, Consul, Etcd3, SpringCloudConfig, Custom;
+}</code></pre>
+<p>我们注意到，LoadLevel 注解上还有一个 name 属性，在进行筛选实现类时，Seata 还做了这个操作：</p>
+<p><img src="./images/Seata 配置中心实现原理9.png" /></p>
+<p>根据当前 configType 来判断是否等于 LoadLevel 的 name 属性，如果相等，那么就是当前配置的第三方配置中心实现类。</p>
+<h2 id="第三方配置中心实现类">第三方配置中心实现类</h2>
+<p>ZookeeperConfiguration 继承了 AbstractConfiguration，它的构造方法如下：</p>
+<p><img src="./images/Seata 配置中心实现原理10.png" /></p>
+<p>构造方法创建了一个 zkClient 对象，这里的 FILE_CONFIG 是什么呢？</p>
+<pre class="java"><code>private static final Configuration FILE_CONFIG = ConfigurationFactory.CURRENT_FILE_INSTANCE;</code></pre>
+<p>原来就是刚刚静态代码块中创建的 registry.conf 配置实现类，从该配置实现类拿到第三方配置中心的相关属性，构造第三方配置中心客户端，然后实现 Configuration 接口时：</p>
+<p><img src="./images/Seata 配置中心实现原理11.png" /></p>
+<p>就可以利用客户端相关方法去第三方配置获取对应的参数值了。</p>
+<h2 id="第三方配置中心配置同步脚本">第三方配置中心配置同步脚本</h2>
+<p>上周末才写好，已经提交 PR 上去了，还处于 review 中，预估会在 Seata 1.0 版本提供给大家使用，敬请期待。</p>
+<p>具体位置在 Seata 项目的 script 目录中：</p>
+<p><img src="./images/Seata 配置中心实现原理12.png" /></p>
+<p>config.txt 为本地配置好的值，搭建好第三方配置中心之后，运行脚本会将 config.txt 的配置同步到第三方配置中心。</p>
+<blockquote>
+<p>更多精彩文章请关注作者维护的公众号「后端进阶」，这是一个专注后端相关技术的公众号。<br />
+关注公众号并回复「后端」免费领取后端相关电子书籍。<br />
+欢迎分享，转载请保留出处。</p>
+</blockquote>
+<p><img src="./images/Seata 配置中心实现原理13.png" alt="公众号「后端进阶」，专注后端技术分享！" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

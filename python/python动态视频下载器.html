@@ -1,0 +1,212 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python动态视频下载器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python动态视频下载器</center></div><div class='banquan'>原文出处:本文由博客园博主一只帅气的IT小昂提供。<br/>
+原文连接:https://www.cnblogs.com/ITXiaoAng/p/11524648.html</div><br>
+    <p>这里向大家分享一下python爬虫的一些应用，主要是用爬虫配合简单的GUI界面实现视频，音乐和小说的下载器。今天就先介绍如何实现一个动态视频下载器。</p>
+<p>&nbsp;</p>
+<p><strong>爬取电影天堂视频</strong></p>
+<p>首先介绍的是python爬取电影天堂网站的视频(包括电影，电视剧，综艺等)，主要是用selenium动态网页技术加上简单的爬虫技术。</p>
+<p>(1)电影网站首页面地址：<a href="https://www.dytt8.net/">https://www.dytt8.net/</a></p>
+<p>(2)用到的技术：selenium模拟浏览器运行。</p>
+<p>(3)首先要安装配置selenium库和不同浏览器和该库配合的插件。这里安装配置的过程略过。</p>
+<p>(4)然后我们用下面的代码打开首页，并输出该网页的源码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> getSource(url):
+    browser </span>=<span style="color: #000000;"> webdriver.Chrome()
+    browser.get(url)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(browser.page_source)
+    browser.close()<br /></span></pre>
+</div>
+<p>(5)然后我们找到搜索对应的网页元素标签，以及选择类型和立即搜索按钮对应的标签。</p>
+<p><img src="./images/python动态视频下载器0.png" alt="" width="583" height="292" /></p>
+<p>分别为：</p>
+<p><img src="./images/python动态视频下载器1.png" alt="" width="600" height="100" /></p>
+<p><img src="./images/python动态视频下载器2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><img src="./images/python动态视频下载器3.png" alt="" /></p>
+<p>(6)然后我们用下面的代码把用户输入的信息模拟放到浏览器上</p>
+<p>　　<span style="color: #ff0000;">由于未加载完毕会进入广告页面，因此有需要改进的地方，这时就需要延长载入时间。这里有显示等待和隐式等待，用简单的隐式等待即可。</span></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;有时候会出现错误，因为掩盖的div可能会在进行一些操作后，会消失，比如页面还在loading中。这时候点击元素的话，就直接点击在loading的标签上，所以在这个操作前可以加个等待，让掩盖的div自行消失后，再等待左侧菜单到可点击状态即可；或者进行刷新的操作，此div即可消失，再等待左侧菜单到可点击状态即可。</p>
+<p>代码为：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> putUserMessger(url,this_name,this_type):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    :param url: 浏览器网址
+    :param this_name: 需要下载的视频名
+    :param this_type: 需要下载的视频类型
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    this_browser </span>=<span style="color: #000000;"> webdriver.Chrome()
+    this_browser.implicitly_wait(</span>10<span style="color: #000000;">)
+    this_browser.get(url)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 把下载的视频名和视频类型进行模拟浏览器匹配</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 搜索输入框的标签属性有name和class,这里用name属性进行获取</span>
+    this_browser.find_element_by_name(<span style="color: #800000;">'</span><span style="color: #800000;">keyword</span><span style="color: #800000;">'</span><span style="color: #000000;">).send_keys(this_name)
+    time.sleep(</span>2<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 选择类型下拉框是html自带的下拉框，不是input做的假的下拉框</span>
+    Select(this_browser.find_element_by_name(<span style="color: #800000;">'</span><span style="color: #800000;">field</span><span style="color: #800000;">'</span><span style="color: #000000;">)).select_by_visible_text(this_type)
+    time.sleep(</span>2<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 点击立即搜索按钮，submit就不是单纯的单击，它会涉及到前后台的交互</span>
+    this_browser.find_element_by_name(<span style="color: #800000;">'</span><span style="color: #800000;">Submit</span><span style="color: #800000;">'</span><span style="color: #000000;">).click()
+    this_browser.close()
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> main():
+    name </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请输入视频名：</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    type </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请选择类型：</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">https://www.dytt8.net/</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    putUserMessger(url,name,type)</span></pre>
+</div>
+<p>　　但是还是会出现下面的问题：</p>
+<div class="cnblogs_code">
+<pre><code>selenium.common.exceptions.WebDriverException: Message: unknown error: Element &lt;input name=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> type=<span style="color: #800000;">"</span><span style="color: #800000;">Submit</span><span style="color: #800000;">"</span> value=<span style="color: #800000;">"</span><span style="color: #800000;">立即搜索</span><span style="color: #800000;">"</span>&gt; <span style="color: #0000ff;">is</span> <span style="color: #0000ff;">not</span> clickable at point (702, 220). Other element would receive the click: &lt;div style=<span style="color: #800000;">"</span><span style="color: #800000;">width: 1017px; height: 577px;</span><span style="color: #800000;">"</span>&gt;&lt;/div&gt;<span style="color: #000000;">
+  (Session info: chrome</span>=73.0.3683.86<span style="color: #000000;">)
+  (Driver info: chromedriver</span>=73.0.3683.68 (47787ec04b6e38e22703e856e101e840b65afe72),platform=Windows NT 10.0.17134 x86_64)</pre>
+</div>
+<p>但是我们发现我们点击后的其实是有规律的，因此用另一个方法。</p>
+<p>(6)二层页面配置参数及视频三层地址输出</p>
+<p>我们先分析一下url：<br /><img src="./images/python动态视频下载器4.png" alt="" /></p>
+<p>分析第二层页面地址为：</p>
+<div class="cnblogs_code">
+<pre><code>http://s.ygdy8.com/plus/so.php?typeid=1<span style="color: #ff0000;">&amp;keyword</span>=%C4%E3%B5%C4%C3%FB%D7%D6</pre>
+</div>
+<p>是由http://s.ygdy8.com/plus/so.php?+typeid=视频编号&amp;keyword=视频名gdk编码组成。因此需要先转化汉字为网页地址url的编码。</p>
+<p>用下面的代码就可以构建一个需要的网址：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> main():
+    name </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请输入视频名：</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    type </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请选择类型：</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    ret </span>= quote(name, encoding=<span style="color: #800000;">"</span><span style="color: #800000;">gbk</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    dict </span>= {<span style="color: #800000;">'</span><span style="color: #800000;">电影</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">电视剧</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">2</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">综艺</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">99</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">旧综艺</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">89</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">游戏</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">19</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">动漫</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">16</span><span style="color: #800000;">'</span><span style="color: #000000;">}
+    url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">http://s.ygdy8.com/plus/so.php?</span><span style="color: #800000;">'</span> + <span style="color: #800000;">'</span><span style="color: #800000;">typeid=</span><span style="color: #800000;">'</span> + dict[type] + <span style="color: #800000;">'</span><span style="color: #800000;">&amp;keyword=</span><span style="color: #800000;">'</span> + ret</pre>
+</div>
+<p>然后我们分析一下网页：<br /><img src="./images/python动态视频下载器5.png" alt="" width="475" height="171" /></p>
+<p><img src="./images/python动态视频下载器6.png" alt="" width="480" height="219" /></p>
+<p>输出所有的视频信息和三级地址：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> putUserMessger(url):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    :param url: 视频网址
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    this_browser </span>=<span style="color: #000000;"> webdriver.Chrome()
+    this_browser.get(url)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用css选择器选择</span>
+    input1 = this_browser.find_elements_by_css_selector(<span style="color: #800000;">'</span><span style="color: #800000;">.co_content8 ul td a</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> input1:
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.text)
+        </span><span style="color: #0000ff;">print</span>(i.get_attribute(<span style="color: #800000;">'</span><span style="color: #800000;">href</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    this_browser.close()</span></pre>
+</div>
+<p><img src="./images/python动态视频下载器7.png" alt="" /></p>
+<p>(7)三级网页找到下载界面</p>
+<p>下载的链接的位置是：</p>
+<p><img src="./images/python动态视频下载器8.png" alt="" width="501" height="300" /></p>
+<p>然后用request配合pyquery下载即可。</p>
+<p>下载链接如下：</p>
+<p><img src="./images/python动态视频下载器9.png" alt="" /></p>
+<p><img src="./images/python动态视频下载器10.png" alt="" width="324" height="371" /></p>
+<p>(8)完整代码</p>
+<p>这里没有用到数据库，上面的代码再配合界面，这里只暂时没有界面的代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> encoding: utf-8</span>
+<span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+</span><span style="color: #0000ff;">from</span> urllib.request <span style="color: #0000ff;">import</span><span style="color: #000000;"> quote
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #0000ff;">from</span> pyquery <span style="color: #0000ff;">import</span><span style="color: #000000;"> PyQuery as pq
+</span><span style="color: #0000ff;">from</span> tkinter <span style="color: #0000ff;">import</span> *
+
+
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> putUserMessger(url):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    :param url: 视频网址
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    last_url </span>=<span style="color: #000000;"> {}
+    this_browser </span>=<span style="color: #000000;"> webdriver.Chrome()
+    this_browser.get(url)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 用css选择器选择</span>
+    input1 = this_browser.find_elements_by_css_selector(<span style="color: #800000;">'</span><span style="color: #800000;">.co_content8 ul td a</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> input1:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">用字典保存视频的名字与下载地址</span>
+        last_url[i.text] = i.get_attribute(<span style="color: #800000;">'</span><span style="color: #800000;">href</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    this_browser.close()
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> last_url
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> download(all_url):
+    this_download </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #0000ff;">for</span> name,url <span style="color: #0000ff;">in</span><span style="color: #000000;"> dict.items(all_url):
+        r </span>=<span style="color: #000000;"> requests.get(url)
+        r.encoding </span>=<span style="color: #000000;"> r.apparent_encoding
+        doc </span>=<span style="color: #000000;"> pq(r.text)
+        this_url </span>= doc(<span style="color: #800000;">'</span><span style="color: #800000;">#Zoom a</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        this_download[name] </span>= this_url.attr(<span style="color: #800000;">'</span><span style="color: #800000;">href</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> this_download
+
+
+
+type </span>=<span style="color: #000000;"> 0
+name </span>=<span style="color: #000000;"> 0
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> myRadiobutton():
+    </span><span style="color: #0000ff;">global</span><span style="color: #000000;"> type
+    type </span>=<span style="color: #000000;"> v.get()
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> my_all():
+    name </span>=<span style="color: #000000;"> var.get()
+    ret </span>= quote(name, encoding=<span style="color: #800000;">"</span><span style="color: #800000;">gbk</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">http://s.ygdy8.com/plus/so.php?</span><span style="color: #800000;">'</span> + <span style="color: #800000;">'</span><span style="color: #800000;">typeid=</span><span style="color: #800000;">'</span> + str(type) + <span style="color: #800000;">'</span><span style="color: #800000;">&amp;keyword=</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> ret
+    all_url </span>=<span style="color: #000000;"> putUserMessger(url)
+    result </span>=<span style="color: #000000;"> download(all_url)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(result)
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 创建一个主窗口，用于容纳整个GUI程序</span>
+root =<span style="color: #000000;"> Tk()
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 设置主窗口对象的标题栏</span>
+root.title(<span style="color: #800000;">"</span><span style="color: #800000;">视频下载器</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+L1 </span>= Label(root, text=<span style="color: #800000;">"</span><span style="color: #800000;">请选择类型：</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+L1.pack(side </span>=<span style="color: #000000;"> TOP)
+v </span>=<span style="color: #000000;"> IntVar()
+Radiobutton(root, text</span>=<span style="color: #800000;">'</span><span style="color: #800000;">电影</span><span style="color: #800000;">'</span>, variable=v, command=myRadiobutton,value=1).pack(anchor=<span style="color: #000000;">W)
+Radiobutton(root, text</span>=<span style="color: #800000;">'</span><span style="color: #800000;">电视剧</span><span style="color: #800000;">'</span>, variable=v, command=myRadiobutton,value=2).pack(anchor=<span style="color: #000000;">W)
+Radiobutton(root, text</span>=<span style="color: #800000;">'</span><span style="color: #800000;">综艺</span><span style="color: #800000;">'</span>, variable=v, command=myRadiobutton,value=99).pack(anchor=<span style="color: #000000;">W)
+Radiobutton(root, text</span>=<span style="color: #800000;">'</span><span style="color: #800000;">旧综艺</span><span style="color: #800000;">'</span>, variable=v, command=myRadiobutton,value=89).pack(anchor=<span style="color: #000000;">W)
+Radiobutton(root, text</span>=<span style="color: #800000;">'</span><span style="color: #800000;">游戏</span><span style="color: #800000;">'</span>, variable=v, command=myRadiobutton,value=19).pack(anchor=<span style="color: #000000;">W)
+Radiobutton(root, text</span>=<span style="color: #800000;">'</span><span style="color: #800000;">动漫</span><span style="color: #800000;">'</span>, variable=v, command=myRadiobutton,value=16).pack(anchor=<span style="color: #000000;">W)
+
+var </span>=<span style="color: #000000;"> StringVar()
+L2 </span>= Label(root, text=<span style="color: #800000;">"</span><span style="color: #800000;">请输入视频名</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+L2.pack(side </span>=<span style="color: #000000;"> LEFT)
+E1 </span>= Entry(root, bd=5,textvariable=<span style="color: #000000;">var)
+E1.pack(side </span>=<span style="color: #000000;"> RIGHT)
+
+B </span>= Button(root, text=<span style="color: #800000;">"</span><span style="color: #800000;">点我</span><span style="color: #800000;">"</span>,command=my_all).place(x=120, y=80<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 显示界面，进入主事件循环</span>
+root.mainloop()</pre>
+</div>
+<p>结果如下：</p>
+<p><img src="./images/python动态视频下载器11.png" alt="" width="708" height="300" /></p>
+<p><img src="./images/python动态视频下载器12.png" alt="" width="708" height="300" /></p>
+<p><img src="./images/python动态视频下载器13.png" alt="" width="706" height="300" /></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

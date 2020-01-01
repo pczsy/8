@@ -1,0 +1,254 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM</center></div><div class='banquan'>原文出处:本文由博客园博主痞子衡提供。<br/>
+原文连接:https://www.cnblogs.com/henjay724/p/12098657.html</div><br>
+    <hr />
+<p>　　大家好，我是痞子衡，是正经搞技术的痞子。今天痞子衡给大家介绍的是<strong>恩智浦i.MX RT1xxx系列MCU的FlexRAM外设</strong>。</p>
+<p>　　本文是外设系列第二篇，上一篇讲的是离内核最近的高速缓存L1 Cache，今天咱们聊离内核第二近的静态内存SRAM。众所周知，i.MXRT系列内部没有非易失性存储器，但内部SRAM还是必备的，这个SRAM可用于存放data、Stack、Heap段或者Non-XIP代码text段等。我们知道Cortex-M7架构引入了TCM属性的静态内存，以Cortex-M7为内核的i.MXRT当然要支持TCM，除了TCM之外，i.MXRT还支持普通的OCRAM（On-chip SRAM），TCM和OCRAM在i.MXRT里都有着各自不可替代的应用场合，而在不同的具体应用中，TCM和OCRAM大小需求是不同的。为了能够灵活调整TCM和OCRAM大小，i.MXRT中引入了FlexRAM这个外设，今天痞子衡就跟大家聊一聊FlexRAM：</p>
+<h3 id="一flexram原理">一、FlexRAM原理</h3>
+<p>　　关于FlexRAM原理，下面这一张模块框图基本就概括了FlexRAM方方面面，包含FlexRAM三种形态（ITCM/DTCM/OCRAM）、系统总线连接、区域供电控制、大小分配控制等。下面咱们就来分别聊：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM0.png" style="zoom:100%" /></p>
+<h4 id="内存结构">1.1 内存结构</h4>
+<p>　　先说FlexRAM内存结构，不管FlexRAM处于哪种形态（ITCM/DTCM/OCRAM），其本质上还是SRAM。<font color="Blue">因为FlexRAM需要被动态配置成不同形态，因此SRAM被划分成很多小块，每个小块称为一个Bank，Bank是配置形态的最小单元。i.MXRT里每个Bank的SRAM大小为32KB</font>（见下图中RAM_x_y，每个Bank虽由2个16KB RAM Block组成，但这两个RAM block是绑定在一条线上的，不可分割）<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM1.png" style="zoom:100%" /></p>
+<h4 id="速度性能">1.2 速度(性能)</h4>
+<p>　　再聊FlexRAM性能，FlexRAM三种形态（ITCM/DTCM/OCRAM）访问速度是不一样的，这主要是因为挂的总线类型不一样。<font color="Blue">TCM分为ITCM和DTCM，分别挂在64bit的I-TCM和2x32bit的D-TCM总线上，而OCRAM则挂在了64bit的AXI总线上</font>。</p>
+<pre><code><code>• Integrated I-TCM and D-TCM RAM controller
+  • 64-bit I-TCM interface and 2x 32-bit D-TCM interface.
+  • Synchronous interface to the M7 Core,run at the same frequency as the core
+• Integrated OCRAM controller
+  • As slave module on the 64-bit system AXI bus
+  • Synchronous to the system bus, runs at the same frequency as bus fabric</code></pre>
+<p>　　<font color="Blue">TCM总线总是跟内核同频，AXI Master总线也是跟内核同频，但是AXI总线经由NIC-301模块中转处理后才输出给OCRAM，NIC-301固定工作在1/4内核主频下，因此OCRAM主频也只有内核频率的1/4</font>。<br />
+　　下图是RT1050上FlexRAM与内核之间的具体连接（图中SIM_M7频率是132MHz，这是以528MHz标准内核主频的1/4来算的）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM2.png" style="zoom:100%" /><br />
+　　下图是RT1170上FlexRAM与内核之间的具体连接（图中SIM_M7频率是240MHz，这是以960MHz标准内核主频的1/4来算的）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM3.png" style="zoom:100%" /></p>
+<p>　　虽然OCRAM工作频率比TCM低，但并不意味着放在OCRAM上的数据访问效率永远都比TCM访问效率低。<font color="Blue">TCM因为速度与L1 Cache一样，因此系统设计里其不会被L1 Cache缓存，但OCRAM是可以挂在L1 Cache上，有了Cache助阵，OCRAM上数据访问效率并不一定比TCM慢</font>。</p>
+<h4 id="供电管理">1.3 供电管理</h4>
+<p>　　说说FlexRAM功耗控制，这部分在不同i.MXRT芯片上差异较大。FlexRAM最多有三个电源域，分别是PDRET、PDRAM0、PDRAM1，这三个域在不同的系统功耗模式下的开关状态如下：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM4.png" style="zoom:100%" /></p>
+<p>　　PDRET域只在SNVS模式下才会关闭，基本上算是永远在工作了。PDRAM0域仅当内核suspend的时候，才可以被主动关闭。PDRAM1域在任意IDLE模式都可以被主动关闭。PDRAMx域的开关控制在GPC模块里（PDRAM0的控制在GPC-&gt;CNTR，PDRAM1的控制在PGC-&gt;MEGA_CTRL，PGC是GPC里的子模块）。<br />
+　　下面我们来看一下目前唯一一款三个FlexRAM电源域均支持的i.MXRT芯片（RT1050）上具体FlexRAM划分，从下图中我们可以看出Bank0属于PDRET域，Bank1-7属于PDRAM0域，Bank8-15属于PDRAM1域。<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM5.png" style="zoom:100%" /></p>
+<p>　　痞子衡前面讲过，FlexRAM功耗控制在不同i.MXRT芯片上差异较大，主要是因为这三个电源域在不同i.MXRT芯片上控制的Bank不同。之所以有这种差异是因为不同i.MXRT芯片Bank数量不一，并且有的i.MXRT除了支持FlexRAM之外，还支持额外的OCRAM（不属于FlexRAM范畴），因此功耗管理策略不一。下表很好地总结了不同i.MXRT芯片上FlexRAM电源域控制：</p>
+<table><tbody>
+    <tr>
+        <th rowspan="2">芯片</th>
+        <th colspan="3">FlexRAM电源域</th>
+    </tr>
+    <tr>
+        <th>PDRET</th>
+        <th>PDRAM0</th>
+        <th>PDRAM1</th>
+    </tr>
+    <tr>
+        <td>i.MXRT117x</td>
+        <td>-</td>
+        <td>Bank0-15</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>i.MXRT106x</td>
+        <td>-</td>
+        <td>Bank0-15</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>i.MXRT105x</td>
+        <td>Bank0</td>
+        <td>Bank1-7</td>
+        <td>Bank8-15</td>
+    </tr>
+    <tr>
+        <td>i.MXRT1021</td>
+        <td>Bank0-7</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>i.MXRT101x</td>
+        <td>Bank0-3</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+<h3 id="二flexram配置">二、FlexRAM配置</h3>
+<p>　　前面扯了些FlexRAM原理，痞子衡知道大家略嫌枯燥，下面咱就上点干货，谈一谈大家最关心的FlexRAM怎么具体配置三种形态（ITCM、DTCM、OCRAM），这也是大家在做项目时最常用的功能。</p>
+<h4 id="内存容量">2.1 内存容量</h4>
+<p>　　i.MXRT各芯片内存容量是不一样的，我们知道每个SRAM Bank都是32KB，内存容量不同则Bank数量不同，下表罗列了各i.MXRT芯片FlexRAM大小及Bank数：</p>
+<table><tbody>
+    <tr>
+        <th>芯片</th>
+        <th>FlexRAM大小</th>
+        <th>Bank数量</th>
+        <th>独立OCRAM大小</th>
+    </tr>
+    <tr>
+        <td>i.MXRT117x</td>
+        <td>512KB</td>
+        <td>16个，Bank0-15</td>
+        <td>1.5MB</td>
+    </tr>
+    <tr>
+        <td>i.MXRT106x</td>
+        <td>512KB</td>
+        <td>16个，Bank0-15</td>
+        <td>512KB</td>
+    </tr>
+    <tr>
+        <td>i.MXRT105x</td>
+        <td>512KB</td>
+        <td>16个，Bank0-15</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>i.MXRT1021</td>
+        <td>256KB</td>
+        <td>8个，Bank0-7</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>i.MXRT101x</td>
+        <td>128KB</td>
+        <td>4个，Bank0-3</td>
+        <td>-</td>
+    </tr>
+</table>
+<h4 id="映射地址">2.2 映射地址</h4>
+<p>　　在讲FlexRAM配置前，首先有必要交待一下FlexRAM各形态在ARM 4GB地址空间中的映射。<font color="Blue">对于CM7主核而言，ITCM永远是从0x0000_0000地址开始映射，DTCM永远是从0x2000_0000开始映射，而OCRAM的起始映射地址因i.MXRT芯片而异</font>（如果i.MXRT中没有非FlexRAM属性的OCRAM，那么就从0x2020_0000开始映射；如果i.MXRT中有独立的OCRAM，那么那个独立的OCRAM从0x2020_0000开始映射，属于FlexRAM的OCRAM则紧随其后映射，注：这个规则在RT1170的CM4内核下不适用）。<br />
+　　下表是RT1050上的FlexRAM映射地址（RT1050没有独立的OCRAM，则OCRAM从0x2020_0000开始映射）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM6.png" style="zoom:100%" /><br />
+　　下表是RT1060上的FlexRAM映射地址（RT1060有512KB独立的OCRAM，属于FlexRAM的OCRAM则从0x2028_0000开始映射）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM7.png" style="zoom:100%" /><br />
+　　下表是RT1170的CM7内核上的FlexRAM映射地址（CM7核下可以看到全部1.5MB独立的OCRAM，属于FlexRAM的OCRAM则从0x2038_0000开始映射）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM8.png" style="zoom:100%" /><br />
+　　下表是RT1170的CM4内核上的FlexRAM映射地址（CM4核下仅能看到有1.125MB独立的OCRAM，属于FlexRAM的OCRAM从0x2020_0000开始映射）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM9.png" style="zoom:100%" /></p>
+<h4 id="静态配置">2.3 静态配置</h4>
+<p>　　确定了FlexRAM各形态起始映射地址，那么FlexRAM配置主要就是关心每个形态（ITCM/DTCM/OCRAM）的容量各配置多少。<font color="Blue">芯片POR上电后，i.MXRT默认从eFuse中获取FlexRAM各形态容量分配值</font>。如果想用这种方式配置FlexRAM，只需要根据下面表格，找到合适的值烧写进eFuse即可，关于eFuse烧写，可参考痞子衡这篇文章 <a href="https://www.cnblogs.com/henjay724/p/9108176.html">《eFUSE及其烧写方法》</a>。需要注意的是烧写完eFuse之后，需要复位才会生效。<br />
+　　下表适用128KB容量FlexRAM的RT10xx系列（如RT1011、RT1015）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM10.png" style="zoom:100%" /><br />
+　　下表适用256KB容量FlexRAM的RT10xx系列（如RT1021）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM11.png" style="zoom:100%" /><br />
+　　下表适用512KB容量FlexRAM的RT10xx系列（如RT105x、RT106x）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM12.png" style="zoom:100%" /><br />
+　　下表适用512KB容量FlexRAM的RT11xx系列（如RT117x）：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM13.png" style="zoom:100%" /><br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM14.png" style="zoom:100%" /></p>
+<h4 id="动态配置">2.4 动态配置</h4>
+<p>　　i.MXRT也支持利用IOMUXC_GPR寄存器来动态配置FlexRAM，这也是为了解决利用eFuse静态配置FlexRAM的两个主要缺点：</p>
+<blockquote>
+<ul>
+<li>Fuse烧写仅可一次，因此无法多次调整FlexRAM配置</li>
+<li>Fuse中仅4/6bit配置位，没有穷尽所有FlexRAM Bank组合</li>
+</ul>
+</blockquote>
+<p>　　<font color="Blue">利用IOMUXC_GPR寄存器可以多次重复配置FlexRAM各形态容量，并且配置是立即生效的，而且IOMUXC_GPR寄存器仅在POR时才被复位，普通System Reset无法复位其值</font>。利用IOMUXC_GPR寄存器配置FlexRAM需要按照如下步骤来操作：</p>
+<h5 id="分配bank">2.4.1 分配Bank</h5>
+<p>　　首先是指定FlexRAM各Bank的分配情况，<font color="Blue">利用IOMUXC_GPR17寄存器的FLEXRAM_BANK_CFG位，你可以自由指定每个Bank最终形态（ITCM/DTCM/OCRAM）</font>。</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM15.png" style="zoom:100%" /><br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM16.png" style="zoom:100%" /></p>
+<h5 id="激活bank分配">2.4.2 激活Bank分配</h5>
+<p>　　分配好各Bank形态后，<font color="Blue">将IOMUXC_GPR16寄存器的FLEXRAM_BANK_CFG_SET置位，FLEXRAM_BANK_CFG指定的配置即立刻生效，此时你去访问ITCM/DTCM/OCRAM，已经是新配置下的映射空间了</font>。</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM17.png" style="zoom:100%" /></p>
+<p>　　我们使用J-Link在RT1050上做个实验：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM18.png" style="zoom:100%" /></p>
+<h5 id="禁掉tcm可选">2.4.3 禁掉TCM（可选）</h5>
+<p>　　如果前面Bank分配时，没有分配ITCM或DTCM，那么最好在IOMUXC_GPR16寄存器里将对应INIT_ITCM/DTCM_EN位给清零。<font color="Blue">默认ITCM/DTCM都是使能的，如果INIT_ITCM/DTCM_EN位被禁掉，需要软复位才会生效，软复位后内核无法正常TCM映射地址空间，无论Bank分配时是否预留了TCM空间</font>。痞子衡建议这一步可以不做，就一直默认TCM使能。</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM19.png" style="zoom:100%" /></p>
+<p>　　我们使用J-Link在RT1050上做个实验：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM20.png" style="zoom:100%" /></p>
+<h5 id="调整tcm容量可选">2.4.4 调整TCM容量（可选）</h5>
+<p>　　最后就是根据前面的Bank分配，<font color="Blue">在IOMUXC_GPR14或者IOMUXC_GPR16寄存器里设置CFGITCMSZ/CFGDTCMSZ重新调整ITCM/DTCM容量，TCM容量调整是立刻生效的，这决定内核可能访问到的最大TCM空间</font>。默认ITCM/DTCM容量都是FlexRAM总容量，这并不代表ITCM/DTCM实际容量，只代表ITCM/DTCM可能的最大容量。痞子衡建议这一步也可以不做，就一直默认配置TCM到最大容量。</p>
+<p><img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM21.png" style="zoom:100%" /></p>
+<p>　　我们使用J-Link在RT1050上做个实验：<br />
+<img src="./images/痞子衡嵌入式：恩智浦i.MX RT1xxx系列MCU外设那些事（2）- 善变的FlexRAM22.png" style="zoom:100%" /></p>
+<h5 id="示例代码">2.4.5 示例代码</h5>
+<p>　　如果使用FlexRAM动态配置，这段配置代码需要嵌入到应用程序里，每次程序跑之前都需要配一次。由于涉及到FlexRAM重新配置了，因此配置代码运行时必须不能依赖任何FlexRAM空间，程序text段最好是链接在外部Flash中或者外部RAM（SDRAM/HyperRAM）中。<br />
+　　如果text段链接是合乎条件的应用程序，配置代码在应用程序中的逻辑位置也需要注意，需要放在data/bss段初始化以任何函数调用（压栈）之前（此处假设TCM用作了存放data或STACK功能），因此最佳位置就是在Reset_Handler，应用程序一上来就执行FlexRAM动态配置。<br />
+　　RT1050示例汇编代码如下（默认eFuse配置128KB ITCM, 128KB DTCM, 256KB DTCM，我们使用IOMUXC_GPR动态配置成64KB ITCM, 128KB DTCM, 320KB OCRAM），应用程序工程预编译选项里应设FLEXRAM_CFG_ENABLE=1，并且无需定义FLEXRAM_ITCM/DTCM_ZERO_SIZE。</p>
+<pre class="c"><code>__iomux_gpr14_adr     EQU  0x400AC038
+__iomux_gpr16_adr     EQU  0x400AC040
+__iomux_gpr17_adr     EQU  0x400AC044
+
+__flexram_bank_cfg    EQU  0x55555FAA
+
+__flexram_itcm_size   EQU  0x7        ;64KB
+__flexram_dtcm_size   EQU  0x8        ;128KB
+
+Reset_Hanlder
+    CPSID I                     ;关闭全局中断
+
+;//////////////////////////////////////
+#ifdef FLEXRAM_CFG_ENABLE
+    ;分配Bank，并且激活Bank配置
+    LDR R0,=__iomux_gpr17_adr
+    MOV32 R1,__flexram_bank_cfg
+    STR R1,[R0]
+    LDR R0,=__iomux_gpr16_adr
+    LDR R1,[R0]
+    ORR R1,R1,#4
+    STR R1,[R0]
+;//////////////////////////////
+#ifdef FLEXRAM_ITCM_ZERO_SIZE
+    ;禁掉ITCM
+    LDR R0,=__iomux_gpr16_adr
+    LDR R1,[R0]
+    AND R1,R1,#0xFFFFFFFE
+    STR R1,[R0]
+#endif
+;//////////////////////////////
+#ifdef FLEXRAM_DTCM_ZERO_SIZE
+    ;禁掉DTCM
+    LDR R0,=__iomux_gpr16_adr
+    LDR R1,[R0]
+    AND R1,R1,#0xFFFFFFFD
+    STR R1,[R0]
+#endif
+;//////////////////////////////////////
+    ;调整TCM容量
+    LDR R0,=__iomux_gpr14_adr
+    LDR R1,[R0]
+    MOVT R1,#0x0000
+    MOV R2,#__flexram_itcm_size
+    MOV R3,#__flexram_dtcm_size
+    LSL R2,R2,#16
+    LSL R3,R3,#20
+    ORR R1,R2,R3
+    STR R1,[R0]
+#endif
+;//////////////////////////////////////
+    LDR R0,=0xE000ED08
+    LDR R1,=__vector_table
+    STR R1,[R0]
+    LDR R2,[R1]
+    MSR MSP,R2
+    LDR R0,=SystemInit
+    BLX R0
+    CPSIE I
+    LDR R0,=-_iar_program_start
+    BX R0</code></pre>
+<p>　　至此，恩智浦i.MX RT1xxx系列MCU的FlexRAM外设痞子衡便介绍完毕了，掌声在哪里~~~</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

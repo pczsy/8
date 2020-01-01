@@ -1,0 +1,335 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django之静态文件，中间件，admin后台管理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django之静态文件，中间件，admin后台管理</center></div><div class='banquan'>原文出处:本文由博客园博主YifChan提供。<br/>
+原文连接:https://www.cnblogs.com/yifchan/p/python-1-30.html</div><br>
+    <p>Django1.8.2中文文档：<a href="https://yiyibooks.cn/xx/django_182/index.html" target="_blank">Django1.8.2中文文档</a></p>
+<h2>静态文件</h2>
+<h4>静态文件的使用</h4>
+<p>在 网页使用的css文件，js文件和图片等叫做静态文件。<br />1)在项目下新建静态文件夹 static。</p>
+<p>2) 配置静态文件所在的物理目录。Settings.py</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理0.png" alt="" /></p>
+<ul>
+<li>STATIC_URL设置访问静态文件对应的url。</li>
+<li>STATICFILES_DIRS设置静态文件所在的物理目录。</li>
+
+
+
+
+</ul>
+<h4>动态生成静态文件的路径</h4>
+<p>即不管你的 STATIC_URL 怎么变，也对页面上的静态文件url获取没影响</p>
+<p>settings.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 设置访问静态文件的url地址</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> http://127.0.0.1:8000/static/images/mm.jpg，通过这个，可以直接访问图片</span>
+STATIC_URL = <span style="color: #800000;">'</span><span style="color: #800000;">/static/</span><span style="color: #800000;">'</span>
+<span style="color: #008000;">#</span><span style="color: #008000;"> STATIC_URL = '/abc/'</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 设置静态文件存放的物理目录</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Django找静态文件的顺序：先去配置的 STATICFILES_DIRS 下面去找，找不到就去应用下面的static下面找</span>
+STATICFILES_DIRS = [os.path.join(BASE_DIR, <span style="color: #800000;">'</span><span style="color: #800000;">static</span><span style="color: #800000;">'</span>)]</pre>
+</div>
+<p>static_test.html</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;!</span><span style="color: #ff00ff;">DOCTYPE html</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+{% load staticfiles %}
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html </span><span style="color: #ff0000;">lang</span><span style="color: #0000ff;">="en"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="UTF-8"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>静态文件测试<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="viewport"</span><span style="color: #ff0000;"> content</span><span style="color: #0000ff;">="width=device-width, initial-scale=1"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">img </span><span style="color: #ff0000;">src</span><span style="color: #0000ff;">="/static/images/mm.jpg"</span><span style="color: #ff0000;"> alt</span><span style="color: #0000ff;">="mm"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">img </span><span style="color: #ff0000;">src</span><span style="color: #0000ff;">="/abc/images/mm.jpg"</span><span style="color: #ff0000;"> alt</span><span style="color: #0000ff;">="mm"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+
+动态获取 STATIC_URL，拼接静态文件路径：</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">br</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">img </span><span style="color: #ff0000;">src</span><span style="color: #0000ff;">="{% static 'images/mm.jpg' %}"</span><span style="color: #ff0000;"> alt</span><span style="color: #0000ff;">="mm"</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>配套函数</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_test(request):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">静态文件</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">booktest/static_test.html</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<h2>中间件</h2>
+<p>中间件函数是django框架给我们预留的函数接口，让我们可以干预请求和应答的过程。</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理1.png" alt="" /></p>
+<h3>使用中间件</h3>
+<p>1)在应用中新建middleware.py文件。</p>
+<p>2)定义中间件类。</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理2.png" alt="" /></p>
+<p>在类中定义中间件预留函数。</p>
+<ul>
+<li>__init__:服务器响应第一个请求的时候调用。</li>
+<li>process_request:是在产生request对象，进行url匹配之前调用。</li>
+<li>process_view：是url匹配之后，调用视图函数之前。</li>
+<li>process_response：视图函数调用之后，内容返回给浏览器之前。</li>
+<li>process_exception:视图函数出现异常，会调用这个函数。</li>
+</ul>
+<p>如果注册的多个中间件类中包含process_exception函数的时候，调用的顺序跟注册的顺序是相反的。<br />3)注册中间件类。</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理3.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>使用中间件进行登录判断案例</h3>
+<p><strong>获取浏览器端的ip地址</strong>，使用request对象的META属性：</p>
+<div class="cnblogs_code">
+<pre><code>request.META[<span style="color: #800000;">'</span><span style="color: #800000;">REMOTE_ADDR</span><span style="color: #800000;">'</span>]</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>需求</strong></p>
+<p>当我们需要禁用某些恶意ip的访问时，需要获取用户ip，然后建立一个禁止ip列表，判断ip是否在禁止列表中，如果是恶意ip，则禁止进入，<br />否则返回响应的页面，诚然，我们可以定义一个装饰器来对每个函数进行判断，但这并不是最佳的选择，我们可以使用中间件。</p>
+<p><strong>单个函数判断</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> index(request):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">首页</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+    user_ip </span>= request.META[<span style="color: #800000;">'</span><span style="color: #800000;">REMOTE_ADDR</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(user_ip)
+    </span><span style="color: #0000ff;">if</span> user_ip <span style="color: #0000ff;">in</span><span style="color: #000000;"> EXCLUDE_IPS:
+        </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">"</span><span style="color: #800000;">&lt;h2&gt;Forbidden&lt;/h2&gt;</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">booktest/index.html</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>装饰器判断</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> ban_ip(view_func):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">用来禁止恶意ip的装饰器</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">def</span> wrapper(request, *args, **<span style="color: #000000;">kwargs):
+        user_ip </span>= request.META[<span style="color: #800000;">'</span><span style="color: #800000;">REMOTE_ADDR</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(user_ip)
+        </span><span style="color: #0000ff;">if</span> user_ip <span style="color: #0000ff;">in</span><span style="color: #000000;"> EXCLUDE_IPS:
+            </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">"</span><span style="color: #800000;">&lt;h2&gt;Forbidden&lt;/h2&gt;</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">return</span> view_func(request, *args, **<span style="color: #000000;">kwargs)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+
+@ban_ip
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> index(request):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">首页</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">booktest/index.html</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<p>中间件步骤</p>
+<ul>
+<li>1.在应用下新建一个middleware.py文件，名字随意，但一般用这个。</li>
+<li>2.编写中间件代码；</li>
+<li>3.在settings中注册中间件；</li>
+</ul>
+<p><strong>中间件判断</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.utils.deprecation <span style="color: #0000ff;">import</span><span style="color: #000000;"> MiddlewareMixin
+</span><span style="color: #0000ff;">from</span> django.http <span style="color: #0000ff;">import</span><span style="color: #000000;"> HttpResponse
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> BanIpMiddleware(MiddlewareMixin):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">中间件类</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+    EXCLUDE_IPS </span>= [<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span> process_view(request, view_func, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">视图函数调用之前会调用</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+        user_ip </span>= request.META[<span style="color: #800000;">'</span><span style="color: #800000;">REMOTE_ADDR</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+        </span><span style="color: #0000ff;">if</span> user_ip <span style="color: #0000ff;">in</span><span style="color: #000000;"> BanIpMiddleware.EXCLUDE_IPS:
+            </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">"</span><span style="color: #800000;">&lt;h2&gt;Forbidden&lt;/h2&gt;</span><span style="color: #800000;">"</span>)</pre>
+</div>
+<p>注册中间件</p>
+<div class="cnblogs_code">
+<pre><code>MIDDLEWARE =<span style="color: #000000;"> [
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">booktest.middleware.BanIpMiddleware</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+]</span></pre>
+</div>
+<p>&nbsp;</p>
+<h4>中间件执行顺序</h4>
+<p>中间件的执行顺序一般是按照在settings文件里面的注册顺序来的，特殊情况是如果注册的多个中间件类中包含process_exception函数的时候，调用的顺序跟注册的顺序是相反的。</p>
+<p>__init__只在服务器重启之后，第一个请求时调用，后面的请求都不会再调用了；</p>
+<p>中间件执行顺序示例代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> TestMiddleware(MiddlewareMixin):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">中间件类</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(self, get_response=<span style="color: #000000;">None):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">服务器重启之后，接收第一个请求时调用</span><span style="color: #800000;">"""</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> get_response参数是必需的，这个参数指的是下一个中间件或者view函数(如果是最后一个中间件)。</span>
+        super().<span style="color: #800080;">__init__</span><span style="color: #000000;">()
+        self.get_response </span>=<span style="color: #000000;"> get_response
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">-----init-----</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_request(request):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">产生request对象之后，url匹配之前调用</span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">-----process_request-----</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span> process_view(request, view_func, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">url匹配之后，视图函数调用之前调用</span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">-----process_view-----</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_response(request, response):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">视图函数之后，应答返回浏览器之前</span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">-----process_response-----</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> response
+        
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 执行结果：</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -----init-----</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -----process_request-----</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -----process_view-----</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -----process_response-----</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> ExceptionTest1Middleware(MiddlewareMixin):
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_exception(request, exception):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">视图函数发生异常时调用</span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">-----process_exception1-----</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(exception)
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> ExceptionTest2Middleware(MiddlewareMixin):
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_exception(request, exception):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">视图函数发生异常时调用</span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">-----process_exception2-----</span><span style="color: #800000;">"</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<h2>admin后台管理</h2>
+<h4>admin的使用</h4>
+<ul>
+<li>1) 本地化。语言和时区本地化。</li>
+</ul>
+<div class="cnblogs_code">
+<pre><code>LANGUAGE_CODE = <span style="color: #800000;">'</span><span style="color: #800000;">zh-hans</span><span style="color: #800000;">'</span><span style="color: #000000;">
+TIME_ZONE </span>= <span style="color: #800000;">'</span><span style="color: #800000;">Asia/Shanghai</span><span style="color: #800000;">'</span></pre>
+</div>
+<ul>
+<li>2) 创建超级管理员。</li>
+</ul>
+<div class="cnblogs_code">
+<pre><code>python mange.py createsuperuser</pre>
+</div>
+<ul>
+<li>3) 注册模型类。</li>
+<li>4)</li>
+<li>4.1.自定义管理页面。</li>
+<li>4.2.自定义模型管理类。</li>
+<li>4.3.注册模型类的时候给register函数添加第二个参数，就是自定义模型管理类的名字。</li>
+</ul>
+<h3>列表页选项</h3>
+<p><strong>列表页选项示例代码</strong></p>
+<p>models.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaInfo(models.Model):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">地区模型类</span><span style="color: #800000;">"""</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 地区名称</span>
+    atitle = models.CharField(verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">地区名</span><span style="color: #800000;">"</span>, max_length=20<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 自关联属性</span>
+    aParent = models.ForeignKey(<span style="color: #800000;">'</span><span style="color: #800000;">self</span><span style="color: #800000;">'</span>, null=True, blank=<span style="color: #000000;">True)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 在admin点进去表之后显示地区名</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__str__</span><span style="color: #000000;">(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.atitle
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义title列，提供显示atitle</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> title(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.atitle
+    title.admin_order_field </span>= <span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>  <span style="color: #008000;">#</span><span style="color: #008000;"> 定义title列的排序方式</span>
+    title.short_description = <span style="color: #800000;">'</span><span style="color: #800000;">地区名称</span><span style="color: #800000;">'</span>  <span style="color: #008000;">#</span><span style="color: #008000;"> 定义title列显示的列名</span>
+
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> parent(self):
+        </span><span style="color: #0000ff;">if</span> self.aParent <span style="color: #0000ff;">is</span><span style="color: #000000;"> None:
+            </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">''</span>
+        <span style="color: #0000ff;">return</span><span style="color: #000000;"> self.aParent.atitle
+    parent.short_description </span>= <span style="color: #800000;">'</span><span style="color: #800000;">父级地区名称</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>admin.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaInfoAdmin(admin.ModelAdmin):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">地区模型管理类</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+    list_per_page </span>= 10  <span style="color: #008000;">#</span><span style="color: #008000;"> 指定每页显示10条数据</span>
+    list_display = [<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">atitle</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">title</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">parent</span><span style="color: #800000;">'</span>]  <span style="color: #008000;">#</span><span style="color: #008000;"> 指定页面上展示的内容</span>
+    actions_on_bottom = True  <span style="color: #008000;">#</span><span style="color: #008000;"> 开启下面的action框</span>
+    actions_on_top = False  <span style="color: #008000;">#</span><span style="color: #008000;"> 关闭上建的action框</span>
+    list_filter = [<span style="color: #800000;">'</span><span style="color: #800000;">atitle</span><span style="color: #800000;">'</span>]  <span style="color: #008000;">#</span><span style="color: #008000;"> 页表右侧的过滤兰</span>
+    search_fields = [<span style="color: #800000;">'</span><span style="color: #800000;">atitle</span><span style="color: #800000;">'</span>]  <span style="color: #008000;">#</span><span style="color: #008000;"> 列表页上方的搜索框</span>
+<span style="color: #000000;">
+
+admin.site.register(models.AreaInfo, AreaInfoAdmin)</span></pre>
+</div>
+<p>注：list_display不仅可以写模型类的属性，还可以写方法；</p>
+<p>显示效果</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理4.png" alt="" width="853" height="367" /></p>
+<p>&nbsp;</p>
+<h3>编辑页选项</h3>
+<p>初始效果图</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理5.png" alt="" /></p>
+<p>fields控制显示字段顺序</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaInfoAdmin(admin.ModelAdmin):
+    fields </span>= [<span style="color: #800000;">'</span><span style="color: #800000;">aParent</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">atitle</span><span style="color: #800000;">'</span>]  <span style="color: #008000;">#</span><span style="color: #008000;"> 控制编辑页中 显示字段的顺序</span></pre>
+</div>
+<p>改变顺序后</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理6.png" alt="" /></p>
+<p>分组显示</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaInfoAdmin(admin.ModelAdmin):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">地区模型管理类</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+    fieldsets </span>=<span style="color: #000000;"> (
+        (</span><span style="color: #800000;">'</span><span style="color: #800000;">基本</span><span style="color: #800000;">'</span>, {<span style="color: #800000;">'</span><span style="color: #800000;">fields</span><span style="color: #800000;">'</span>: [<span style="color: #800000;">'</span><span style="color: #800000;">atitle</span><span style="color: #800000;">'</span><span style="color: #000000;">]}),
+        (</span><span style="color: #800000;">'</span><span style="color: #800000;">高级</span><span style="color: #800000;">'</span>, {<span style="color: #800000;">'</span><span style="color: #800000;">fields</span><span style="color: #800000;">'</span>: [<span style="color: #800000;">'</span><span style="color: #800000;">aParent</span><span style="color: #800000;">'</span><span style="color: #000000;">]})
+    )</span></pre>
+</div>
+<p>分组显示效果图</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理7.png" alt="" /></p>
+<p>应注意 ，fields和fieldsets不能同时使用。</p>
+<p>&nbsp;</p>
+<p><strong>关联对象/控制显示该地区下面的子级地区</strong></p>
+<p>块嵌入</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 块嵌入</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaStackedInline(admin.StackedInline):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 写多类的名称</span>
+    model = models.AreaInfo  <span style="color: #008000;">#</span><span style="color: #008000;"> 关联子对象</span>
+    extra = 2  <span style="color: #008000;">#</span><span style="color: #008000;"> 控制多余的行数/额外编辑2个子对象</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaInfoAdmin(admin.ModelAdmin):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">地区模型管理类</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+    inlines </span>= [AreaStackedInline]</pre>
+</div>
+<p>表嵌入</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaTabularInline(admin.TabularInline):
+    model </span>= models.AreaInfo  <span style="color: #008000;">#</span><span style="color: #008000;"> 关联子对象</span>
+    extra = 2  <span style="color: #008000;">#</span><span style="color: #008000;"> 控制多余的行数/额外编辑2个子对象</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaInfoAdmin(admin.ModelAdmin):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">地区模型管理类</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+    inlines </span>= [AreaStackedInline]</pre>
+</div>
+<p>表嵌入效果图</p>
+<p><img src="./images/Django之静态文件，中间件，admin后台管理8.png" alt="" width="890" height="336" /></p>
+<p>&nbsp;块嵌入和表嵌入其实显示的内容是一样的，知识显示样式不同而已。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

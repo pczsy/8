@@ -1,0 +1,192 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修动态数组（一维二维）探秘' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>动态数组（一维二维）探秘</center></div><div class='banquan'>原文出处:本文由博客园博主studywithallofyou提供。<br/>
+原文连接:https://www.cnblogs.com/studywithallofyou/p/12091928.html</div><br>
+    <p>因为做leetcode的一道算法题<span style="color: #0000ff;"><em>https://leetcode-cn.com/problems/regular-expression-matching/</em></span>，需要用到二维数组，结果自己在理解和使用上有很大误解，所以单独拿出来，从内存等各方面透彻的梳理一遍。</p>
+<h1>一维数组</h1>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">char</span> * a = (<span style="color: #0000ff;">char</span>*)<span style="color: #0000ff;">malloc</span>(<span style="color: #800080;">8</span> * <span style="color: #0000ff;">sizeof</span>(<span style="color: #0000ff;">char</span><span style="color: #000000;">));
+    memset(a, </span><span style="color: #800080;">0</span>, <span style="color: #800080;">8</span><span style="color: #000000;">);
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+    {
+        </span>*(a + i) = <span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> i;
+    }
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+    {
+        cout </span>&lt;&lt; *(a+<span style="color: #000000;">i);
+    }
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+    {
+        cout </span>&lt;&lt;<span style="color: #000000;"> a[i];
+    }
+    </span>free(a);</pre>
+</div>
+<p>输出内容abcdefghabcdefgh</p>
+<p>这样申请与char a[8]是一样的，不管是底层实现还是使用，都是一样的，这就是一个8个字节长度的数组。我们看内存，也是一段连续的数据。</p>
+<p><img src="./images/动态数组（一维二维）探秘0.png" alt="" /></p>
+<p>释放内存的时候，系统可以根据内存管理把这连续的8个字节的空间回收。</p>
+<h1>二维数组</h1>
+<h2>我们先看一下正常的用法</h2>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">char</span> a[<span style="color: #800080;">8</span>][<span style="color: #800080;">4</span>] = { <span style="color: #800080;">0</span><span style="color: #000000;"> };
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+    {
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+        {
+            a[i][j] </span>= <span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> i;
+        }
+    }
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+    {
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+        {
+            cout </span>&lt;&lt;<span style="color: #000000;"> a[i][j];
+        }
+    }</span></pre>
+</div>
+<p>输出结果 aaaabbbbccccddddeeeeffffgggghhhh</p>
+<p>我们看一下内存</p>
+<p><img src="./images/动态数组（一维二维）探秘1.png" alt="" /></p>
+<p>是一段连续的内存，数组a[n][m]，按照m跳度，前m个是第一个n的序列，然后是第二个n的m个序列，实际上这是一个一维数组。</p>
+<h2>看看我们第一种实现</h2>
+<div class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">char</span>** a = (<span style="color: #0000ff;">char</span>**)<span style="color: #0000ff;">malloc</span>(<span style="color: #800080;">8</span> * <span style="color: #0000ff;">sizeof</span>(<span style="color: #0000ff;">char</span>*<span style="color: #000000;">));
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span>*(a + i) = (<span style="color: #0000ff;">char</span>*)<span style="color: #0000ff;">malloc</span>(<span style="color: #800080;">4</span> * <span style="color: #0000ff;">sizeof</span>(<span style="color: #0000ff;">char</span><span style="color: #000000;">));
+        }
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                a[i][j] </span>= <span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> i;
+            }
+        }
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                cout </span>&lt;&lt;<span style="color: #000000;"> a[i][j];
+            }
+        }</span></pre>
+</div>
+<p>a是一个数组，也就是a指向了申请的一块空间，空间是8个char*大小。然后为a的每一个数组元素，又指向了一块空间，空间是4个char大小。内存空间如图所示，a指向了一块空间，有8个元素，每个元素的空间用来保存了一个char*的数据，也就是char的指针，a算是一个指向指针的指针。a是一个指针，指向了一块数据，这块数据保存的是一个指针，指向了一块数据，这块数据保存的是一个4字节的char。</p>
+<p><img src="./images/动态数组（一维二维）探秘2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;我们看一下实际的内存地址</p>
+<p><img src="./images/动态数组（一维二维）探秘3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>这是char*数组a的数据，8个char*的空间，标蓝的是第一个a+0保存的数据，是一个指针地址，因为是32位的，所以是4个字节，翻译过来就是0X00557600</p>
+<p>我们看一下a的第一块数据指向的内容，是一块数据，保存了aaaa，四个a。</p>
+<p><img src="./images/动态数组（一维二维）探秘4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>这就是二维数组的实质。一维数组a指向了一块数据，保存的是字符，二维数组指向了一块数据，保存的相当于是一个一维数组指针的列表，每个二维数组元素相当于一个一维数组。以此类推，三维数组就是保存了一个二维数组指针的列表。</p>
+<p>它是如何访问数据的呢，与一维数组一样，先通过a+i访问到a的元素指针，然后通过*(a+i)访问到数据，这个数据又是个数组，通过*(a+i)+j访问到元素指针，再通过*(*(a+i)+j)访问到数据，最后提醒，别忘了释放空间。</p>
+<div class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                cout </span>&lt;&lt; *(*(a + i) +<span style="color: #000000;"> j);
+            }
+        }
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">free</span>(*(a +<span style="color: #000000;"> i));
+        }
+        </span><span style="color: #0000ff;">free</span>(a);</pre>
+</div>
+<h2>二维数组的第二种实现</h2>
+<p>我们看到，如果通过char a[8][4]申请一个二维数组，实际上空间是连续的，我们能不能模拟呢，这样整块申请内存，效率更高。代码如下</p>
+<div class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">char</span>* a = (<span style="color: #0000ff;">char</span>*)<span style="color: #0000ff;">malloc</span>(<span style="color: #800080;">8</span> * <span style="color: #800080;">4</span> * <span style="color: #0000ff;">sizeof</span>(<span style="color: #0000ff;">char</span><span style="color: #000000;">));
+
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                </span>*(a + i * <span style="color: #800080;">4</span> + j) = <span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> i;
+            }
+        }
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                cout </span>&lt;&lt; *(a + i * <span style="color: #800080;">4</span> +<span style="color: #000000;"> j);
+            }
+        }
+        </span><span style="color: #0000ff;">free</span>(a);</pre>
+</div>
+<p>申请了一个一维数组，大小是a[n][m]中n*m个数组元素个数。访问呢，就模仿二维数组的访问，m个元素是一组。内存如下</p>
+<p><img src="./images/动态数组（一维二维）探秘5.png" alt="" /></p>
+<p><span style="color: #000000;">这里有一个小小的一问，char a[8][4]这种可以通过 a[1][2]访问，但是这种方式不行。</span>char[8][4]系统知道是一个二维数组，保留了它的信息，知道如何跳，而<span style="color: #0000ff;">char* a = (<span style="color: #0000ff;">char*)<span style="color: #0000ff;">malloc(<span style="color: #800080;">8 * <span style="color: #800080;">4 * <span style="color: #0000ff;">sizeof(<span style="color: #0000ff;">char<span style="color: #000000;">));</span></span></span></span></span></span></span></span>系统认为是一维数组，按照二维的那种方式跳，就会运行错误。</p>
+<h2>插曲</h2>
+<p>除了malloc，也可以用new，更方便一些</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">char</span> * a = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">char</span>[<span style="color: #800080;">8</span>]();</pre>
+</div>
+<p>减少了初始化的步骤，这里就是创建一块空间，大小是8，单位是char，调用()初始化。这里()的意思就是调用默认构造函数等于new char[8]{}</p>
+<h2>二维数组的第三种方法</h2>
+<p>上面的方法空间在一起了，但是无法用二维数组的方式访问 ，很别扭，那么有没有动态二维数组呢，上面插曲的new为我们提供了方法。</p>
+<div class="cnblogs_code">
+<pre><code>        auto a = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">char</span>[<span style="color: #800080;">8</span>][<span style="color: #800080;">4</span><span style="color: #000000;">]();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                a[i][j] </span>= <span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> i;
+            }
+        }
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                cout </span>&lt;&lt;<span style="color: #000000;"> a[i][j];
+            }
+        }
+        </span><span style="color: #0000ff;">delete</span>[](a);</pre>
+</div>
+<h2>auto a = <span style="color: #0000ff;">new <span style="color: #0000ff;">char[<span style="color: #800080;">8][<span style="color: #800080;">4<span style="color: #000000;">]()</span></span></span></span></span>到底是什么</h2>
+<p>感谢评论参考 <span style="color: #0000ff;"><em>https://blog.csdn.net/u012027907/article/details/16370625</em></span></p>
+<p>这种方法的实质是什么呢？实际上就是第二种方法，只不过告诉了系统，这是一个二维数组。那么二维数组的指针怎么定义呢？可以用如下代替</p>
+<div class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">char</span>(* a)[<span style="color: #800080;">4</span>] = (<span style="color: #0000ff;">char</span>(*)[<span style="color: #800080;">4</span>])<span style="color: #0000ff;">malloc</span>(<span style="color: #800080;">8</span> * <span style="color: #800080;">4</span> * <span style="color: #0000ff;">sizeof</span>(<span style="color: #0000ff;">char</span><span style="color: #000000;">));
+
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                a[i][j] </span>= <span style="color: #800000;">'</span><span style="color: #800000;">a</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> i;
+            }
+        }
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">8</span>; i++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt; <span style="color: #800080;">4</span>; j++<span style="color: #000000;">)
+            {
+                cout </span>&lt;&lt;<span style="color: #000000;"> a[i][j];
+            }
+        }
+        </span><span style="color: #0000ff;">free</span>(a);</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

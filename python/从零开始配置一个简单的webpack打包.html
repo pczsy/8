@@ -1,0 +1,190 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修从零开始配置一个简单的webpack打包' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>从零开始配置一个简单的webpack打包</center></div><div class='banquan'>原文出处:本文由博客园博主R_Javac提供。<br/>
+原文连接:https://www.cnblogs.com/ViavaCos/p/12084694.html</div><br>
+    <h2 id="一基础配置">一、基础配置</h2>
+<p>1.创建一个名为demo-webpack的文件夹(名称随意)</p>
+<p>2.初始化一个<code>package.json</code>文件</p>
+<pre><code><code>//在cmd窗口中使用以下命令快速创建
+npm init -y</code></pre>
+<p>3.安装<code>webpack</code>和<code>webpack-cli</code>到开发依赖下</p>
+<pre><code><code>npm i webpack -D
+npm i webpack-cli -D</code></pre>
+<p>4.配置<code>package.json</code></p>
+<pre class="diff"><code>&quot;scripts&quot;: {
+    &quot;test&quot;: &quot;echo \&quot;Error: no test specified\&quot; &amp;&amp; exit 1&quot;,
++    &quot;build&quot;: &quot;webpack&quot;
+},</code></pre>
+<p>5.创建入口文件<code>src/index.js</code></p>
+<p>6.运行<code>npm run build</code>命令测试打包是否正常<br />
+打包后将会自动创建<code>dist/main.js</code>文件，也就是默认的出口文件<br />
+(到这一步为止，目前的目录结构)</p>
+<pre><code><code>├─dist
+  └─main.js
+├─node_modules
+├─src
+  └─index.js
+├─package.json
+└─package-lock.json</code></pre>
+<p>7.配置打包模式<br />
+在第6步的时候，你将会看到如下的警告：<br />
+<img src="./images/从零开始配置一个简单的webpack打包0.png" /></p>
+<p>这是因为我们还没有设置打包的模式，所以<code>webpack</code>默认以生产(production)模式完成打包</p>
+<ul>
+<li><p>开始配置</p>
+<p>需要在根目录下创建<code>webpack</code>默认配置文件<code>webpack.config.js</code></p></li>
+</ul>
+<pre class="js"><code>  // 内容如下：打包模式分为两种development(开发模式打包)  production生产模式打包
+  const config = {
+      mode: &quot;development&quot;
+  }
+  // 这里可以直接导出上面的对象，但是使用变量保存可以使代码更美观
+  module.exports = config</code></pre>
+<p>配置完以上内容后再运行<code>npm run build</code>就会发现先前的警告信息消失了。</p>
+<p>8.配置入口文件和出口文件</p>
+<ul>
+<li>默认的出口文件为<code>dist/main.js</code></li>
+<li><p>默认的入口文件为<code>src/index.js</code></p></li>
+<li><p>依旧是在<code>webpack.config.js</code>中配置</p></li>
+</ul>
+<pre class="diff"><code>+ // 引入path模块处理路径问题
++ const path = require(&#39;path&#39;)
+
+const config = {
+    mode: &quot;development&quot;,
++    entry: &quot;./src/index.js&quot;,
++    output: {
++        path: path.join(__dirname, &#39;./dist&#39;),
++        filename: &quot;main.js&quot;
++    }
+}
+
+module.exports = config</code></pre>
+<h2 id="二loader配置">二、loader配置</h2>
+<p>通过以上的步骤就已经搭建了一个简单的webpack架子，然后让我们添加一个css文件来测试下打包</p>
+<ul>
+<li>先在根目录下新建一个<code>index.html</code>，然后再新建一个<code>src/styles/index.css</code>文件</li>
+<li>内容如下</li>
+</ul>
+<p>①在<code>index.html</code>中添加一些简单的结构</p>
+<pre class="html"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;script src=&quot;./dist/main.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p>②在<code>src/styles/index.css</code>添加一些简单的样式</p>
+<pre class="css"><code>body {
+    background-color: pink;
+}</code></pre>
+<p>③在<code>index.js</code>中引入css文件</p>
+<pre class="js"><code>import &#39;./styles/index.css&#39;</code></pre>
+<p>④最后，运行<code>npm run build</code>打包，并得到如下报错信息</p>
+<p><img src="./images/从零开始配置一个简单的webpack打包1.png" /></p>
+<p>报错部分明确的告诉你'You may need an appropriate loader to handle this file type'</p>
+<p>翻译过来大致就是：<code>你或许需要一个适当的加载器来处理这个类型的文件</code></p>
+<p>所以接下来我们需要下载用于解析CSS文件的loader</p>
+<ul>
+<li>直接使用如下命令安装<code>style-loader</code>和<code>css-loader</code></li>
+</ul>
+<pre><code><code>npm i style-loader css-loader -D</code></pre>
+<ul>
+<li>然后在<code>webpack.config.js</code>中添加如下配置</li>
+</ul>
+<pre class="diff"><code>const config = {
+    mode: &quot;development&quot;,
+    entry: &quot;./src/index.js&quot;,
+    output: {
+        path: path.join(__dirname, &#39;./dist&#39;),
+        filename: &quot;main.js&quot;
+    },
++    module: {
++        rules: [
++            {
++                test: /\.css$/,
++                use: [
++                    &#39;style-loader&#39;,
++                    &#39;css-loader&#39;
++                ]
++            }
++        ]
++    }
+}</code></pre>
+<ul>
+<li>最后运行<code>npm run build</code>就可以打开根目录下的<code>index.html</code>文件预览一番了</li>
+</ul>
+<p>什么?你说页面有点丑? 那告诉你怎么打包一个优美的图片好了</p>
+<ul>
+<li><p>操作如下：</p>
+<p>①在<code>src/assets</code>文件夹下放入一张优美的图，这里放入的是<code>pretty.png</code></p>
+<p>②在<code>index.html</code>的<code>body</code>中添加如下代码</p>
+<pre class="html"><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;img id=&quot;img&quot; src=&quot;nothing.png&quot; alt=&quot;&quot;&gt;
+&lt;/div&gt;</code></pre>
+<p>③在<code>src/index.js</code>中导入这张图片并动态设置给<code>img</code>标签</p></li>
+</ul>
+<pre class="js"><code>  import pic from &#39;./assets/pretty.png&#39;
+  
+  const img = document.getElementById(&#39;img&#39;)
+  img.src = &#39;./dist/&#39; + pic;</code></pre>
+<p>④运行<code>npm run build</code>打包，并得到如下报错</p>
+<p><img src="./images/从零开始配置一个简单的webpack打包2.png" /></p>
+<p>同样，这里需要配置对应的加载器来加载图片文件。</p>
+<p>所以还是老套路，先下载加载器，然后在<code>webpack</code>中配置一下</p>
+<p>①安装<code>file-loader</code>加载器</p>
+<pre><code><code>npm i file-loader -D</code></pre>
+<p>②在<code>webpack.config.js</code>中添加配置</p>
+<pre class="diff"><code>module: {
+    rules: [
+        {
+            test: /\.css$/,
+            use: [
+                &#39;style-loader&#39;,
+                &#39;css-loader&#39;
+            ]
+        },
++        {
++            test: /\.png$/,
++            use: [
++                &#39;file-loader&#39;
++            ]
++        }
+    ]
+}</code></pre>
+<p>③运行<code>npm run build</code>就可以看到优美的图片了</p>
+<p>PS:</p>
+<ul>
+<li>如果这里你用的不是<code>.png</code>后缀的图片的话，需要在上面正则匹配(<code>test: /\.png$/</code>)中修改一下哈</li>
+<li>因为<code>webpack</code>最初是用于打包js文件的，所以如果想要打包其它类型的文件都需要配置对应的loader</li>
+<li>配置的方法和上面讲述的都大同小异，加载器在<code>webpack</code>官方也都有列出不少</li>
+<li>地址：<a href="https://www.webpackjs.com/loaders/" class="uri">https://www.webpackjs.com/loaders/</a></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

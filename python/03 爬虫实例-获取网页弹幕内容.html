@@ -1,0 +1,161 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修03 爬虫实例-获取网页弹幕内容' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>03 爬虫实例-获取网页弹幕内容</center></div><div class='banquan'>原文出处:本文由博客园博主格桑_哈哈提供。<br/>
+原文连接:https://www.cnblogs.com/xiaodan1040/p/11755274.html</div><br>
+    <h2><span style="font-family: 宋体;">练习：爬取哔哩哔哩网页弹幕内容,并将爬取的内容以五角星的形式显示出来</span></h2>
+<p>&nbsp;</p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/03 爬虫实例-获取网页弹幕内容0.png" alt="需求实现" width="374" height="354" /></p>
+<h2><span style="font-family: 宋体;">思路：</span></h2>
+<ol>
+<li><span style="font-family: 宋体;">向哔哩哔哩网站发送请求</span></li>
+<li><span style="font-family: 宋体;">请求成功后,解析爬取的弹幕内容保存到一个文件中</span></li>
+<li><span style="font-family: 宋体;">读取文件并分析弹幕内容中词组或文字出现的频率</span></li>
+<li><span style="font-family: 宋体;">将这些词组或文字组成五角星图形</span></li>
+<li><span style="font-family: 宋体;">组成五角星图形后,以图片的形式输出</span></li>
+</ol>
+<h2><span style="font-family: 宋体;">实现：</span></h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">#</span><span style="color: #008000;">!/usr/bin/env python</span>
+<span style="color: #008080;"> 2</span> <span style="color: #008000;">#</span><span style="color: #008000;"> -*- coding: utf-8 -*-</span>
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">#</span><span style="color: #008000;"> author：albert time:2019/10/28</span>
+<span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">from</span> bs4 <span style="color: #0000ff;">import</span><span style="color: #000000;"> BeautifulSoup
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> pandas as  pd
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> jieba
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;">from</span> wordcloud <span style="color: #0000ff;">import</span><span style="color: #000000;"> WordCloud
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;">from</span> imageio <span style="color: #0000ff;">import</span><span style="color: #000000;"> imread
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> matplotlib.pyplot as plt
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">14</span> <span style="color: #800000;">--获取网站弹幕列表内容
+</span><span style="color: #008080;">15</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">16</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 网页地址，该地址只针对哔哩哔哩弹幕网有效，获取方式查看</span>
+<span style="color: #008080;">17</span> url = <span style="color: #800000;">"</span><span style="color: #800000;">http://comment.bilibili.com/124001121.xml</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 网站访问的用户代理，建议携带，不携带可能无法访问</span>
+<span style="color: #008080;">20</span> header =<span style="color: #000000;"> {
+</span><span style="color: #008080;">21</span>     <span style="color: #800000;">"</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">22</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 向对方服务器发送请求，返回访问状态，</span>
+<span style="color: #008080;">25</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 返回状态如果是以[2]开头，表示访问成功，[4]开头表示网页不存在，[5]开头网站内部错误</span>
+<span style="color: #008080;">26</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 访问状态无法直接读取，需通过属性[text]获取</span>
+<span style="color: #008080;">27</span> response =<span style="color: #000000;"> requests.get(url,header)
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 获取网页的编码规则，建议通过该方式获取，而不是直接赋值，可能存在设置不对的情况，可能不是中文网页</span>
+<span style="color: #008080;">30</span> <span style="color: #008000;">#</span><span style="color: #008000;"> response.encoding = "utf-8"</span>
+<span style="color: #008080;">31</span> response.encoding =<span style="color: #000000;"> response.apparent_encoding
+</span><span style="color: #008080;">32</span> <span style="color: #008000;">#</span><span style="color: #008000;"> print(response.text)</span>
+<span style="color: #008080;">33</span> 
+<span style="color: #008080;">34</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 获取网页文本内容</span>
+<span style="color: #008080;">35</span> data =<span style="color: #000000;"> response.text
+</span><span style="color: #008080;">36</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">37</span> <span style="color: #800000;">--将获取到的弹幕内容处理后存放在txt文件中，并读取出来
+</span><span style="color: #008080;">38</span> <span style="color: #800000;">--网页获取的弹幕内容是带html标签的，需要将标签和非汉字的内容清除
+</span><span style="color: #008080;">39</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">40</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 解析文本xml，处理不规范标记并生成剖析树</span>
+<span style="color: #008080;">41</span> soup = BeautifulSoup(data,<span style="color: #800000;">'</span><span style="color: #800000;">lxml</span><span style="color: #800000;">'</span><span style="color: #000000;">)  
+</span><span style="color: #008080;">42</span> <span style="color: #008000;">#</span><span style="color: #008000;"> print(soup)</span>
+<span style="color: #008080;">43</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 获取所有&lt;d&gt;标签中的内容，此时是带标签的文本内容</span>
+<span style="color: #008080;">44</span> d_list = soup.find_all(<span style="color: #800000;">'</span><span style="color: #800000;">d</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">45</span> 
+<span style="color: #008080;">46</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 去掉&lt;d&gt;标签，将文本内容存在在列表dlst</span>
+<span style="color: #008080;">47</span> dlst =<span style="color: #000000;"> []
+</span><span style="color: #008080;">48</span> <span style="color: #0000ff;">for</span> d <span style="color: #0000ff;">in</span><span style="color: #000000;"> d_list:
+</span><span style="color: #008080;">49</span>     danmu =<span style="color: #000000;"> {}
+</span><span style="color: #008080;">50</span>     danmu[<span style="color: #800000;">'</span><span style="color: #800000;">弹幕</span><span style="color: #800000;">'</span>] = d.text  <span style="color: #008000;">#</span><span style="color: #008000;"> 循环获取所有&lt;d&gt;标签中内容</span>
+<span style="color: #008080;">51</span> <span style="color: #000000;">    dlst.append(danmu)
+</span><span style="color: #008080;">52</span> 
+<span style="color: #008080;">53</span> df = pd.DataFrame(dlst) <span style="color: #008000;">#</span><span style="color: #008000;"> 将列表dlst中的内容存放在数据集中，类似于Excel表格</span>
+<span style="color: #008080;">54</span> <span style="color: #008000;">#</span><span style="color: #008000;"> print(df)</span>
+<span style="color: #008080;">55</span> 
+<span style="color: #008080;">56</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 创建并打开一个文件</span>
+<span style="color: #008080;">57</span> f = open(<span style="color: #800000;">'</span><span style="color: #800000;">cl.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">w</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">58</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 进行文本过滤</span>
+<span style="color: #008080;">59</span> <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> df[<span style="color: #800000;">'</span><span style="color: #800000;">弹幕</span><span style="color: #800000;">'</span>].values: <span style="color: #008000;">#</span><span style="color: #008000;"> 遍历数据集中的所有的弹幕内容</span>
+<span style="color: #008080;">60</span>     pat = re.compile(r<span style="color: #800000;">'</span><span style="color: #800000;">[一-龥+]</span><span style="color: #800000;">'</span>)    <span style="color: #008000;">#</span><span style="color: #008000;"> 定义过滤规则，只保留中文汉字，该正则表达式几乎包含了所有汉字龥（yu，第四声）</span>
+<span style="color: #008080;">61</span>     filter_data = re.findall(pattern=pat,string=i)     <span style="color: #008000;">#</span><span style="color: #008000;"> 执行过滤操作</span>
+<span style="color: #008080;">62</span>     f.write(<span style="color: #800000;">''</span>.join(filter_data))     <span style="color: #008000;">#</span><span style="color: #008000;"> 将过滤后的弹幕内容写入创建的[cl.txt]文件中</span>
+<span style="color: #008080;">63</span> <span style="color: #000000;">f.close()
+</span><span style="color: #008080;">64</span> 
+<span style="color: #008080;">65</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">66</span> <span style="color: #800000;">--读取弹幕内容所在的文件[cl.txt]
+</span><span style="color: #008080;">67</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">68</span> f1 = open(<span style="color: #800000;">'</span><span style="color: #800000;">cl.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">69</span> data =<span style="color: #000000;"> f1.read()
+</span><span style="color: #008080;">70</span> 
+<span style="color: #008080;">71</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">72</span> <span style="color: #800000;">--将弹幕内容分割成词组，并组合成五角星的图案
+</span><span style="color: #008080;">73</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">74</span> result = <span style="color: #800000;">"</span> <span style="color: #800000;">"</span><span style="color: #000000;">.join(jieba.lcut(data))
+</span><span style="color: #008080;">75</span> 
+<span style="color: #008080;">76</span> <span style="color: #000000;">f1.close()
+</span><span style="color: #008080;">77</span> color_mask = imread(<span style="color: #800000;">"</span><span style="color: #800000;">五角星.jpg</span><span style="color: #800000;">"</span>)         <span style="color: #008000;">#</span><span style="color: #008000;"> 设置数据组合的图形，最好使用空心的图片</span>
+<span style="color: #008080;">78</span> wc =<span style="color: #000000;"> WordCloud(
+</span><span style="color: #008080;">79</span>     font_path=<span style="color: #800000;">"</span><span style="color: #800000;">C:\Windows\Fonts\simsun.ttc</span><span style="color: #800000;">"</span>,        <span style="color: #008000;">#</span><span style="color: #008000;"> 数据显示的字体</span>
+<span style="color: #008080;">80</span>     width=1000<span style="color: #000000;">,
+</span><span style="color: #008080;">81</span>     height=800<span style="color: #000000;">,
+</span><span style="color: #008080;">82</span>     background_color=<span style="color: #800000;">'</span><span style="color: #800000;">white</span><span style="color: #800000;">'</span>,       <span style="color: #008000;">#</span><span style="color: #008000;"> 词云的背景色</span>
+<span style="color: #008080;">83</span>     mask=color_mask         <span style="color: #008000;">#</span><span style="color: #008000;"> 词云组成的图形，默认为二维</span>
+<span style="color: #008080;">84</span> <span style="color: #000000;">)
+</span><span style="color: #008080;">85</span> 
+<span style="color: #008080;">86</span> wc.generate(result)     <span style="color: #008000;">#</span><span style="color: #008000;"> 将弹幕内容生成词云</span>
+<span style="color: #008080;">87</span> wc.to_file(<span style="color: #800000;">'</span><span style="color: #800000;">clanned.png</span><span style="color: #800000;">'</span>)       <span style="color: #008000;">#</span><span style="color: #008000;"> 词云输出文件</span>
+<span style="color: #008080;">88</span> 
+<span style="color: #008080;">89</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">90</span> <span style="color: #800000;">--显示弹幕内容组成的图片
+</span><span style="color: #008080;">91</span> <span style="color: #800000;">'''</span>
+<span style="color: #008080;">92</span> <span style="color: #000000;">plt.imshow(wc)
+</span><span style="color: #008080;">93</span> plt.show()</pre>
+</div>
+<p><span style="font-family: 宋体;">使用到的类库,如果没有,需要下载，下载命令：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">pip install requests
+pip install bs4
+pip install pandas
+pip install lxml        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 在解析xml文件时，需要使用</span>
+<span style="color: #000000;">pip install jieba
+pip install wordcloud
+pip install imageio
+pip install matplotlib</span></pre>
+</div>
+<p>&nbsp;</p>
+<h2><span style="font-family: 宋体;">知识点：</span></h2>
+<ul>
+<li><span style="font-family: 宋体;">request 向对方服务器发送请求</span></li>
+<li><span style="font-family: 宋体;">BeautifulSoup 解析爬取的弹幕内容</span></li>
+<li><span style="font-family: 宋体;">pandas 分析弹幕数据</span></li>
+<li><span style="font-family: 宋体;">jieba 中文分词器,或称为中文词组切片器</span></li>
+<li><span style="font-family: 宋体;">wordcloud 加载弹幕文本,并输出文件(这里使用图片的方式输出)</span></li>
+<li><span style="font-family: 宋体;">matplotlib.pyplot 将整理后的弹幕文本以图形的方式输出(这里是以五角星的图片为例)</span></li>
+<li><span style="font-family: 宋体;">imread 读取图片</span></li>
+</ul>
+<h2><span style="font-family: 宋体;">问题:</span></h2>
+<ul>
+<li>&nbsp;<span style="font-family: 宋体;">爬取的弹幕内容被保存在了文件后，后又重新读取，是否可以不存放在文件中，直接使用列表或者其他对象存储，然后再读取？保存在文件和直接读取的优缺点是什么？</span></li>
+<li><span style="font-family: 宋体;">弹幕内容中除了汉字，实际上还包含了大量的字母，表情符号，这些内容可以通过什么正则表达式进行筛选，能否同时跟汉字一起筛选出来？</span></li>
+<li><span style="font-family: 宋体;">在导包的时候，使用[from scipy.misc import imread]报错，用[from imageio import imread]代替即可。为什么使用scipy.misc中的imread报错？</span></li>
+</ul>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

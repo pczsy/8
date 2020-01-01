@@ -1,0 +1,73 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python+正则提取+ip代理爬取糗事百科文字信息' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python+正则提取+ip代理爬取糗事百科文字信息</center></div><div class='banquan'>原文出处:本文由博客园博主记住我忘记我提供。<br/>
+原文连接:https://www.cnblogs.com/nmsghgnv/p/11309433.html</div><br>
+    <p>很多网站都有反爬措施，最常见的就是封ip，请求次数过多服务器会拒绝连接，如图；</p>
+<p><img src="./images/python+正则提取+ip代理爬取糗事百科文字信息0.png" alt="" /></p>
+<p>在程序中设置一个代理ip，可有效的解决这种问题，代码如下；</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 需要的库</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Pool
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 设置代理ip</span>
+proxy =<span style="color: #000000;"> {
+</span><span style="color: #800000;">'</span><span style="color: #800000;">https</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">111.231.140.109:8888</span><span style="color: #800000;">'</span><span style="color: #000000;">
+}
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 请求头</span>
+headers =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36</span><span style="color: #800000;">'</span><span style="color: #000000;">
+}
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 主函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_character(url):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 请求网页，里面加入代理ip</span>
+    response = requests.get(url,headers,proxies=<span style="color: #000000;">proxy)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 正则提取内容（作者昵称，内容，好笑数量，评论数量）</span>
+    data = re.findall(<span style="color: #800000;">'</span><span style="color: #800000;">&lt;h2&gt;(.*?)&lt;/h2&gt;.*?&lt;div class="content"&gt;.*?&lt;span&gt;(.*?)&lt;/span&gt;.*?&lt;/div&gt;.*?&lt;span class="stats-vote"&gt;.*?</span><span style="color: #800000;">'</span>
+                          <span style="color: #800000;">'</span><span style="color: #800000;">&lt;i class="number"&gt;(.*?)&lt;/i&gt;(.*?)&lt;/span&gt;.*?&lt;i class="number"&gt;(.*?)&lt;/i&gt;(.*?)&lt;/a&gt;</span><span style="color: #800000;">'</span><span style="color: #000000;">,response.text,re.S)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 遍历获取到的数据</span>
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> data:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 以追加方式写入当前文件加下的qiubai.txt</span>
+        with open(<span style="color: #800000;">'</span><span style="color: #800000;">qiubai.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">a+</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf8</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 转换为字符串格式，去空格，替换掉多余内容每条内容加换行</span>
+            f.write(str(i).strip().replace(r<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span>,<span style="color: #800000;">''</span>)+<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 控制台打印查看爬取过程</span>
+            <span style="color: #0000ff;">print</span>(str(i).strip().replace(r<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span>,<span style="color: #800000;">''</span>)+<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 程序入口</span>
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 构造所有url</span>
+    urls = [<span style="color: #800000;">'</span><span style="color: #800000;">https://www.qiushibaike.com/text/page/{}/</span><span style="color: #800000;">'</span>.format(i) <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(1,14<span style="color: #000000;">)]
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 开启多进程</span>
+    pool =<span style="color: #000000;"> Pool()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 启动程序</span>
+<span style="color: #000000;">    pool.map(get_character,urls)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">爬取完毕</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>控制台输出；</p>
+<p><img src="./images/python+正则提取+ip代理爬取糗事百科文字信息1.png" alt="" /></p>
+<p>打开文件夹查看是否下载成功；</p>
+<p><img src="./images/python+正则提取+ip代理爬取糗事百科文字信息2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>done</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

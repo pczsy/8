@@ -1,0 +1,118 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python爬取b站任意up主所有视频弹幕' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python爬取b站任意up主所有视频弹幕</center></div><div class='banquan'>原文出处:本文由博客园博主rain_poi提供。<br/>
+原文连接:https://www.cnblogs.com/rain-poi/p/11515260.html</div><br>
+    <p>爬取b站弹幕并不困难。要得到up主所有视频弹幕，我们首先进入up主视频页面，即<a href="https://space.bilibili.com/4957245/video">https://space.bilibili.com/id号/video</a>这个页面。按F12打开开发者菜单，刷新一下，在network的xhr文件中有一个getSubmitVideo文件，这个文件里就有我们需要的视频av号了。如果直接抓取页面是拿不到的，因为视频是异步加载的。</p>
+<p>&nbsp;</p>
+<p>在这个文件里的data标签下，有一个count是视频总数，pages是第几页，vlist就是我们要找的视频信息了，里面的aid就是每个视频的av号。它的请求链接是https://space.bilibili.com/ajax/member/getSubmitVideos?mid=av号&amp;pagesize=30&amp;tid=0&amp;page=1&amp;keyword=&amp;order=pubdate。pagesize是每次传多少个视频信息。</p>
+<p>&nbsp;</p>
+<p><img src="./images/Python爬取b站任意up主所有视频弹幕0.png" alt="" width="453" height="508" /></p>
+<p>拿到所有的视频av号后，我们打开视频页面。同样是按F12打开开发者菜单，刷新一下，在network的xhr中有两个文件，一个以pagelist为开头，另一个以list.so为开头。这两个文件，第一个里包含了视频的cid，第二个就是根据cid拿到的弹幕文件。同样，我们根据视频av号访问第一个文件的请求url，得到cid，再根据cid访问第二个请求url就可以了。</p>
+<p>&nbsp;</p>
+<p><img src="./images/Python爬取b站任意up主所有视频弹幕1.png" alt="" width="454" height="442" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;最后，我们对拿到的弹幕文件进行适当的整理。主要是从文件中的&lt;d&gt;标签中提取出弹幕文字，然后去重，计数，再储存到文件里。<span style="color: #0000ff;"><br /></span></p>
+<div class="cnblogs_code">
+<pre><code><em id="__mceDel"><span style="color: #0000ff;">import<span>&nbsp;requests</span><br />from</span> lxml <span style="color: #0000ff;">import</span><span style="color: #000000;"> etree
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+</span><span style="color: #0000ff;">from</span> bs4 <span style="color: #0000ff;">import</span><span style="color: #000000;"> BeautifulSoup
+</span><span style="color: #0000ff;">from</span> requests <span style="color: #0000ff;">import</span><span style="color: #000000;"> exceptions
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> download_page(url):
+    headers </span>= {<br /><span style="color: #800000;">　　'</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">'</span>:<span style="color: #800000;">"</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1</span><span style="color: #800000;">"<br /></span><span style="color: #000000;">　　}
+    data </span>= requests.get(url, headers=<span style="color: #000000;">headers)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_video_page(space_num):
+    base_url </span>= <span style="color: #800000;">"</span><span style="color: #800000;">https://www.bilibili.com/av</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    url </span>= <span style="color: #800000;">"</span><span style="color: #800000;">https://space.bilibili.com/ajax/member/getSubmitVideos?mid={}&amp;pagesize=99&amp;tid=0&amp;page=1&amp;keyword=&amp;order=pubdate</span><span style="color: #800000;">"</span><span style="color: #000000;">.format(space_num)
+    data </span>= json.loads(download_page(url).content)[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    total </span>= data[<span style="color: #800000;">'</span><span style="color: #800000;">count</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    page_num </span>= int(total/99) + 1<span style="color: #000000;">
+    video_list </span>= data[<span style="color: #800000;">'</span><span style="color: #800000;">vlist</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    video_url </span>=<span style="color: #000000;"> []
+    </span><span style="color: #0000ff;">for</span> video <span style="color: #0000ff;">in</span><span style="color: #000000;"> video_list:
+        video_url.append(base_url </span>+ str(video[<span style="color: #800000;">'</span><span style="color: #800000;">aid</span><span style="color: #800000;">'</span><span style="color: #000000;">]))
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(2, page_num+1<span style="color: #000000;">):
+        time.sleep(</span>1<span style="color: #000000;">)
+        url </span>= <span style="color: #800000;">"</span><span style="color: #800000;">https://space.bilibili.com/ajax/member/getSubmitVideos?mid={}&amp;pagesize=99&amp;tid=0&amp;page={}&amp;keyword=&amp;order=pubdate</span><span style="color: #800000;">"</span><span style="color: #000000;">.format(space_num, i)
+        data </span>= json.loads(download_page(url).content)[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+        video_list </span>= data[<span style="color: #800000;">'</span><span style="color: #800000;">vlist</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+        </span><span style="color: #0000ff;">for</span> video <span style="color: #0000ff;">in</span><span style="color: #000000;"> video_list:
+            video_url.append(base_url </span>+ str(video[<span style="color: #800000;">'</span><span style="color: #800000;">aid</span><span style="color: #800000;">'</span><span style="color: #000000;">]))
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> video_url
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_barrage(name, space_num):
+    video_list </span>=<span style="color: #000000;"> get_video_page(space_num)
+    aid_to_oid </span>= <span style="color: #800000;">'</span><span style="color: #800000;">https://api.bilibili.com/x/player/pagelist?aid={}&amp;jsonp=jsonp</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    barrage_url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">https://api.bilibili.com/x/v1/dm/list.so?oid={}</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">for</span> url <span style="color: #0000ff;">in</span><span style="color: #000000;"> video_list:<br />　　　　　# 降低爬取速度防止被禁
+        time.sleep(</span>1<span style="color: #000000;">)
+        aid </span>= re.search(r<span style="color: #800000;">'</span><span style="color: #800000;">\d+$</span><span style="color: #800000;">'</span><span style="color: #000000;">,url).group()<br />　　　　　# 这里有时会出现莫名其妙的错误
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            oid </span>= json.loads(download_page(aid_to_oid.format(aid)).content)[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][0][<span style="color: #800000;">'</span><span style="color: #800000;">cid</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+            barrage </span>=<span style="color: #000000;"> download_page(barrage_url.format(oid)).content
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> requests.exceptions.ConnectionError:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">av:</span><span style="color: #800000;">'</span><span style="color: #000000;">,aid)
+            </span><span style="color: #0000ff;">continue</span>
+        <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> os.path.exists(<span style="color: #800000;">'</span><span style="color: #800000;">barrage/{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name)):
+            os.makedirs(</span><span style="color: #800000;">'</span><span style="color: #800000;">barrage/{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+        with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">barrage/{}/av{}.xml</span><span style="color: #800000;">'</span>.format(name,aid),<span style="color: #800000;">'</span><span style="color: #800000;">wb</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+            f.write(barrage)
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> reorganize_barrage(name):
+    results </span>=<span style="color: #000000;"> {}
+    </span><span style="color: #0000ff;">for</span> filename <span style="color: #0000ff;">in</span> os.listdir(<span style="color: #800000;">'</span><span style="color: #800000;">barrage/{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name)):
+        html </span>= etree.parse(<span style="color: #800000;">'</span><span style="color: #800000;">barrage/{}/{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name,filename), etree.HTMLParser())<br />　　　　　# 提取出xml文件中&lt;d&gt;标签中的文字
+        barrages </span>= html.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//d//text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">for</span> barrage <span style="color: #0000ff;">in</span><span style="color: #000000;"> barrages:<br />　　　　　　　# 有些弹幕会有回车符
+            barrage </span>= barrage.replace(<span style="color: #800000;">'</span><span style="color: #800000;">\r</span><span style="color: #800000;">'</span>, <span style="color: #800000;">''</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">if</span> barrage <span style="color: #0000ff;">in</span><span style="color: #000000;"> results:
+                results[barrage] </span>+= 1
+            <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+                results[barrage] </span>= 1
+    <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> os.path.exists(<span style="color: #800000;">'</span><span style="color: #800000;">statistical result</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+        os.makedirs(</span><span style="color: #800000;">'</span><span style="color: #800000;">statistical result</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">statistical result/{}.txt</span><span style="color: #800000;">'</span>.format(name), <span style="color: #800000;">'</span><span style="color: #800000;">w</span><span style="color: #800000;">'</span>, encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf8</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+        </span><span style="color: #0000ff;">for</span> key,value <span style="color: #0000ff;">in</span><span style="color: #000000;"> results.items():
+            f.write(</span><span style="color: #800000;">'</span><span style="color: #800000;">{}\t:\t{}\n</span><span style="color: #800000;">'</span>.format(key.rstrip(<span style="color: #800000;">'</span><span style="color: #800000;">\r</span><span style="color: #800000;">'</span><span style="color: #000000;">),value))
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:<br />　　# 在space list.txt文件里，我是用&ldquo;up主名称：id&rdquo;的格式来储存的，
+    with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">space list.txt</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+        </span><span style="color: #0000ff;">for</span> line <span style="color: #0000ff;">in</span><span style="color: #000000;"> f.readlines():
+            name, num </span>= line.split(<span style="color: #800000;">'</span><span style="color: #800000;">：</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(name)
+            get_barrage(name, space_number)
+            reorganize_barrage(name)</span></em></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

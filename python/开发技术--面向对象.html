@@ -1,0 +1,764 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修开发技术--面向对象' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>开发技术--面向对象</center></div><div class='banquan'>原文出处:本文由博客园博主Kate_liu提供。<br/>
+原文连接:https://www.cnblogs.com/Kate-liu/p/11243623.html</div><br>
+    <h1 id="开发面向对象">开发|面向对象</h1>
+<p><em>面向对象的学习，可以让我们的代码趋于模块化，规范化，尤其是引入设计模式之后，面向对象的优点就更加明显~~</em><br />
+<strong>希望大家在实际使用中多使用面向对象的思想，enjoy</strong>!</p>
+<h2 id="前言">前言</h2>
+<pre><code><code>目前所有的文章思想格式都是:知识+情感。
+知识:对于所有的知识点的描述。力求不含任何的自我感情色彩。
+情感:用我自己的方式，解读知识点。力求通俗易懂，完美透析知识。</code></pre>
+<h2 id="正文">正文</h2>
+<p><strong>我给本篇文章的定位是回顾自己之前学过的知识点，一定会有我没有涉及到的知识点。我会将我自己学习面向对象之后使用过的，忘记了的，我觉得自己需要掌握的内容，在正文中体现出来~~</strong><br />
+<em>花费了我不少时间，哈哈~~</em></p>
+<h3 id="必备知识">必备知识</h3>
+<p>1.面向对象直接这么说，是很空的一个概念。尤其是初学者，你说面向对象，根本都不知道是什么，哪怕是学习了很久的人，你问什么是面向对象，十之八九的答案都是，面向对象就是写一个类。。。。terrible~， So， 先一步一步的来了解一下什么是面向对象吧~</p>
+<p>2.看面向对象之前，想函数怎么可以执行，除了一个一个的向下执行，还可以嵌套使用吧!在函数中需要增加一个功能，我想需要更改的地方不一出，改完了，你敢确定没有影响其他的功能吗？？？答案肯定是，回去检查一下吧!咋们保险一点~</p>
+<p>3.由此面向对象就引出来了，可以简单的理解为面相对象就是解决只使用函数的扩展性问题。(其实，这里有一个问题就是，我写过全是函数的代码，不知你是否写过，又真的有相同体会？)</p>
+<p>4.总结一下<strong>，面向对象解决了扩展性问题</strong>。由此，咋们一起上了面向对象的车，一路开向<strong>面向对象的本质~</strong></p>
+<h3 id="面向对象初识">面向对象初识</h3>
+<p>接下来将开始，面向对象的第一次实质审查~~</p>
+<h4 id="什么面向对象">什么面向对象</h4>
+<p>一开始面向对象，大家会说<strong>Python里面一切皆对象</strong>，是否还记得linux里面一切皆文件~<br />
+补充一下，<strong>关于一切皆对象，对象怎么使用？？？</strong><br />
+1、都可以<strong>被引用</strong>，x=obj<br />
+2、都可以<strong>当作函数的参数传入</strong><br />
+3、都可以<strong>当作函数的返回值</strong><br />
+4、都可以<strong>当作容器类的元素</strong>，例如: l=[func,time,obj,1]</p>
+<p><strong>注意:</strong> Python3统一类与类型(数据类型)的概念，<strong>类型就是类</strong>。<br />
+上面这么说有一点空，看一个代码，希望大家可以有所理解~(看到的数据类型都是类)</p>
+<pre class="python"><code>In [10]: print(list)
+&lt;class &#39;list&#39;&gt;
+
+In [11]: print(str)
+&lt;class &#39;str&#39;&gt;
+
+In [12]: print(dict)
+&lt;class &#39;dict&#39;&gt;</code></pre>
+<h4 id="对象-与-类的关系">对象 与 类的关系？</h4>
+<p>1.现实生活中，需要先有了一个一个的对象，才可以将对象分为哪一类，哪一类，但是，在自己写程序的时候，需要自己<strong>先写到一个类，才可以产生一个的对象</strong>，产生对象的过程，称为<strong>实例化类</strong>。</p>
+<p>2.所以，一定是<strong>先有类，才可以实例化成为对象</strong>。</p>
+<h4 id="创建类">创建类</h4>
+<p>在创建类之前，需要掌握一点<strong>基础知识；</strong><br />
+1.类中具有自己的数据，称为<strong>数据属性，或者叫数据</strong><br />
+2.类中具有自己的函数，称为<strong>函数属性，或者叫方法</strong><br />
+3.看下面创建的类，school属于数据，sleep属于方法</p>
+<pre class="python"><code>class Student:
+    school = &#39;Peking University&#39;
+
+    def sleep(self):
+        print(&#39;Student is sleeping.&#39;)
+</code></pre>
+<h4 id="使用类">使用类</h4>
+<p>1.使用类，也就如何实例化出对象，根据上例子，<strong>student1=Student()</strong>，就可以实例化对象。</p>
+<p>2.<strong>实例化类，并执行函数</strong></p>
+<pre class="python"><code>In [16]: class Student:
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;Student is sleeping.&#39;)
+    ...:
+
+In [17]: student1 = Student()
+
+In [18]: student1.sleep()
+Student is sleeping.</code></pre>
+<p><strong>注意:</strong>代码加载的时候，就会执行类，产生名称空间存储响应的数据，如果类中的数据属性有another操作，就会被执行。看下面的another操作是print操作。</p>
+<pre class="python"><code>In [15]: class Student:
+    ...:     school = &#39;Peking University&#39;
+    ...:     print(school)
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;Student is sleeping.&#39;)
+    ...:
+Peking University</code></pre>
+<h4 id="类的属性与方法">类的属性与方法</h4>
+<p><em>在这里将详细的讲一下，一个类中的属性与方法和实例化对象的关系!</em></p>
+<p>1.<strong>类的属性是所有对象共同指向的，共同指向同一内存地址</strong><br />
+验证:</p>
+<pre class="python"><code>In [20]: class Student:
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;Student is sleeping.&#39;)
+    ...:
+
+In [21]: student1 = Student()
+
+In [22]: student2 = Student()
+
+In [23]: id(student1.school)
+Out[23]: 1745287897136
+
+In [24]: id(student2.school)
+Out[24]: 1745287897136</code></pre>
+<p>2.<strong>类的方法是绑定给每一个对象的，对象调用的时候自动传参</strong>，bound method 。<br />
+验证:</p>
+<pre class="python"><code>In [29]: student1.sleep
+Out[29]: &lt;bound method Student.sleep of &lt;__main__.Student object at 0x000001965B6F95F8&gt;&gt;
+
+In [30]: student2.sleep
+Out[30]: &lt;bound method Student.sleep of &lt;__main__.Student object at 0x000001965B9F2CF8&gt;&gt;</code></pre>
+<h3 id="面向对象进阶">面向对象进阶</h3>
+<h4 id="类的命名空间-dict">类的命名空间 <strong>dict</strong></h4>
+<p>1.类的命名空间查看，如下:</p>
+<pre class="python"><code>In [33]: Student.__dict__
+Out[33]:
+mappingproxy({&#39;__module__&#39;: &#39;__main__&#39;,
+              &#39;school&#39;: &#39;Peking University&#39;,
+              &#39;sleep&#39;: &lt;function __main__.Student.sleep(self)&gt;,
+              &#39;__dict__&#39;: &lt;attribute &#39;__dict__&#39; of &#39;Student&#39; objects&gt;,
+              &#39;__weakref__&#39;: &lt;attribute &#39;__weakref__&#39; of &#39;Student&#39; objects&gt;,
+              &#39;__doc__&#39;: None})</code></pre>
+<p>2.可以执行下面的代码<br />
+类.__ dict __['name]<br />
+类.name</p>
+<pre class="python"><code>In [40]: Student.__dict__[&#39;school&#39;]
+Out[40]: &#39;Peking University&#39;
+
+In [41]: Student.school
+Out[41]: &#39;Peking University&#39;</code></pre>
+<p>3.如果想要<strong>执行类中的函数属性</strong>，需要加上一个对象，来看下面，直接执行会报错，缺少一个对象的参数。解决，传入一个对象即可。</p>
+<pre class="python"><code>In [42]: Student.sleep()
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+&lt;ipython-input-42-6e9af3d2ac0b&gt; in &lt;module&gt;
+----&gt; 1 Student.sleep()
+
+TypeError: sleep() missing 1 required positional argument: &#39;self&#39;
+
+In [43]: Student.sleep(student1)
+Student is sleeping.</code></pre>
+<h4 id="init-方法"><strong>init</strong> 方法</h4>
+<p>1.<strong>init作为初始化，可以为每一个对象定制属于自己的属性</strong>，只需要在实例化的时候传入即可。</p>
+<p>2<strong>.方式一</strong>，实例化的时候，直接传参得到对象。</p>
+<pre class="python"><code>In [44]: class Student:
+    ...:
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;%s is sleeping.&#39; % self.name)
+    ...:
+
+In [45]: student1 = Student(&#39;kate&#39;, 18)
+
+In [46]: student1.__dict__
+Out[46]: {&#39;name&#39;: &#39;kate&#39;, &#39;age&#39;: 18}</code></pre>
+<p>3.方式二，在使用方式一的时候，执行了两步，首先是实例化了对象，其次是传入参数，看下面，</p>
+<pre class="python"><code>In [48]: class Student:
+    ...:
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;Student is sleeping.&#39;)
+    ...:
+
+In [49]: student2 = Student()
+
+In [50]: student2.name = &#39;kate&#39;
+
+In [51]: student2.age = 18
+
+In [52]: student2.__dict__
+Out[52]: {&#39;name&#39;: &#39;kate&#39;, &#39;age&#39;: 18}</code></pre>
+<h4 id="bases"><strong>bases</strong></h4>
+<p>bases的作用就是查看继承的父类有哪些，看下面例子，这个时候出现了一个object的类，但是我们在书写类的时候，并没有继承那个类啊，为什么会多了一个object的类，有疑惑的请移步到新式类与经典类，<strong>默认Python3中都是继承object类的，不写也给你默认继承。</strong></p>
+<pre class="python"><code>In [54]: Student.__bases__
+Out[54]: (object,)</code></pre>
+<h4 id="继承">继承</h4>
+<p>1.继承顾名思义就是继承，继承一个或者多个父类，被继承的类叫做基类(超类)，继承者叫做子类(派生类)。其中，<strong>继承表示的是:什么是什么的关系。</strong></p>
+<p>2.继承之后，实例化的对象的<strong>属性查找，需要特别留意</strong>。对象的属性，在<strong>不继承的时候</strong>，先从自己属性查找，再从类中找，找不到就报错。如果有父类，会去父类中找，找不到报错。</p>
+<p>3.总结: 继承的<strong>查找顺序</strong>-----&gt;先自己找，再去类中找，再去父类中找(父类中找也会出现问题，哪一个先找呢，看mro表就知道了~~)</p>
+<p>4.实际看一下继承的书写,(学生继承人这个类)</p>
+<pre class="python"><code>In [55]: class People:
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;%s is sleeping.&#39; % self.name)
+    ...:
+    ...:
+    ...: class Student(People):
+    ...:
+    ...:     school = &#39;Peking University&#39;
+    ...:
+
+In [56]: student = Student(&#39;kate&#39;, 18)
+
+In [57]: student.__dict__
+Out[57]: {&#39;name&#39;: &#39;kate&#39;, &#39;age&#39;: 18}</code></pre>
+<h4 id="派生">派生</h4>
+<p>1.在继承中，派生可以得到不同于父类的属性与方法，有两种方式，下面我们一起分别看一下~</p>
+<p><strong>2.指名道姓重用，(不依赖于继承)</strong></p>
+<pre class="python"><code>In [65]:
+    ...: class People:
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;%s is sleeping.&#39; % self.name)
+    ...:
+    ...:
+    ...: class Student(People):
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:     def sleep(self):
+    ...:         People.sleep(self)
+    ...:         print(&#39;Self sleeping....&#39;)
+    ...:
+
+In [66]: stu = Student(&#39;kate&#39;, 18)
+
+In [67]: stu.sleep()
+kate is sleeping.
+Self sleeping....</code></pre>
+<p>3.使用<strong>super()，依赖于继承</strong>，使用mro表计算实现继承顺序，<strong>在mro也存在一个指针，只要是遇到super，就继续沿着mro表，继续向后找。</strong></p>
+<pre class="python"><code>In [68]: class People:
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;%s is sleeping.&#39; % self.name)
+    ...:
+    ...:
+    ...: class Student(People):
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:     def sleep(self):
+    ...:         super(Student, self).sleep()
+    ...:         print(&#39;Self sleeping....&#39;)
+    ...:
+
+In [69]: stu = Student(&#39;kate&#39;, 18)
+
+In [70]: stu.sleep()
+kate is sleeping.
+Self sleeping....</code></pre>
+<p><strong>4，注意:</strong>一般的派生都是使用super()。并且更多的应用场景是在init中继承父类的内容，也有自己的内容。一定不要忘记子啊继承查找的时候，遇到super的试试，会继续向后查找的，就不会回到前面在查找了~~</p>
+<h4 id="mro"><strong>mro</strong></h4>
+<p><strong>mro列表</strong>，是查找继承的顺序列表，表示了<strong>属性的查找顺序。</strong><br />
+例子:</p>
+<pre class="python"><code>In [71]: class A:
+    ...:     name = &#39;A&#39;
+    ...:
+    ...:
+    ...: class B(A):
+    ...:     name = &quot;B&quot;
+    ...:
+    ...:
+    ...: class C(A):
+    ...:     name = &quot;C&quot;
+    ...:
+    ...:
+    ...: class D(B, C):
+    ...:     name = &#39;D&#39;
+    ...:
+
+In [74]: D.mro()
+Out[74]: [__main__.D, __main__.B, __main__.C, __main__.A, object]</code></pre>
+<h4 id="新式类">新式类</h4>
+<p>1.新式类，并不是它有多么的新，哈~<br />
+新式类的讨论，需要分python2与Python3来说了，接下来，没我们一起来看看吧!</p>
+<p>2.Python2的新式类，必须继承object类，<strong>继承object的类以及他的子类称为新式类。</strong></p>
+<p>3.Python3，默认所有 的类都是默认继承object类，所以都是新式类，也就是说Python3中没有经典类。</p>
+<p>4.新式类在mro寻继承的时候，遵循<strong>广度优先。</strong>具体可以查看自己的mro列表。</p>
+<h4 id="经典类">经典类</h4>
+<p>1.经典类是专门来对于Python2来说的，所以经典类说的是在Python2中， 没有继承object的类。</p>
+<p>2.经典类在继承查询的时候，遵循的是深度优先。</p>
+<h4 id="组合">组合</h4>
+<p>1.组合，不需要深入的了解，当一个类不能通过继承实现关系的时候，有需要自己有<strong>自己有什么关系</strong>的时候，就可以使用派生。此时就，派生出自己的属性与方法。</p>
+<pre class="python"><code>In [58]: class People:
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;%s is sleeping.&#39; % self.name)
+    ...:
+    ...:
+    ...: class Student(People):
+    ...:
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:
+    ...: class Course:
+    ...:
+    ...:     def __init__(self, name, price):
+    ...:         self.name = name
+    ...:         self.price = price
+    ...:
+
+In [59]: student = Student(&#39;kate&#39;, 18)
+
+In [60]: math = Course(&#39;math&#39;, 666)
+
+In [61]: student.course = math
+
+In [62]: student.__dict__
+Out[62]: {&#39;name&#39;: &#39;kate&#39;, &#39;age&#39;: 18, &#39;course&#39;: &lt;__main__.Course at 0x1965b5c1198&gt;}
+
+In [63]: student.course.name
+Out[63]: &#39;math&#39;
+
+In [64]: student.course.price
+Out[64]: 666</code></pre>
+<p>2.此时表示<strong>给对象绑定了一个对象作为他的属性</strong>，可以实现代码的重用。</p>
+<h4 id="多态">多态</h4>
+<p><strong>Python属于多态的语言，</strong>多态更多的体现在方法的调用上，保证多个类可以实现调用同一种方法，实现相同的任务。<br />
+回想，len()，这个内置函数，在执行的时候，可以对字符串，对列表，对元祖获取数据的长度，但是不同的数据类型都是不一样的类，但是实现了同样的函数方法。感觉自己解释不清楚了，看代码吧!</p>
+<pre class="python"><code>In [1]: a = &#39;hello&#39;
+
+In [2]: b = (1, 2, 3)
+
+In [3]: c = [4, 5, 6]
+
+In [4]: len(a)
+Out[4]: 5
+
+In [5]: len(b)
+Out[5]: 3
+
+In [6]: len(c)
+Out[6]: 3
+
+In [8]: a.__len__
+Out[8]: &lt;method-wrapper &#39;__len__&#39; of str object at 0x000002B0701D12D0&gt;
+
+In [9]: b.__len__
+Out[9]: &lt;method-wrapper &#39;__len__&#39; of tuple object at 0x000002B070404EE8&gt;
+
+In [10]: c.__len__
+Out[10]: &lt;method-wrapper &#39;__len__&#39; of list object at 0x000002B0703C0588&gt;</code></pre>
+<h4 id="鸭子类型">鸭子类型</h4>
+<p>鸭子类型，具体的概念我就不解释了!我想解释的是，鸭子模式体现的是多态性，正如上文我所述的len()内置方法。它属于一个比较理论的知识内容，Python语言本身就具体多态性，所以自己在学习的时候，按需进行学习!</p>
+<h4 id="封装">封装</h4>
+<p>1.封装作为面向对象的特性之一，就我目前的理解，封装主要是<strong>对数据的隐藏</strong>，或者是<strong>变成自己私有的，</strong>由于Python语言的特性，会在内部自动对杠杠开头的变量进行相应的处理，所以正好使用这一特性实现数据隐藏。</p>
+<p>2.具体的实现，<strong>隐藏</strong>，使前面加 __，此时的 __name 变为 **_类名__name<strong>，</strong>在类的加载阶段已经变化了，加上前缀的类名。**</p>
+<p>3.看下命名空间，应该可以理解的吧~</p>
+<pre class="python"><code>In [11]: class People:
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.__name = name
+    ...:         self.__age = age
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;%s is sleeping.&#39; % self.__name)
+    ...:
+
+In [12]: human = People(&#39;kate&#39;, 18)
+
+In [13]: human.__dict__
+Out[13]: {&#39;_People__name&#39;: &#39;kate&#39;, &#39;_People__age&#39;: 18}</code></pre>
+<p>4.封装可以将封装起来的数据，自己进行定义，不需要调用者操作与查看，不仅仅是<strong>封装数据</strong>，还<strong>隔离复杂度</strong>。</p>
+<h3 id="面向对象高阶">面向对象高阶</h3>
+<p>在面向对象高阶，我们开始一步一步的去寻找类的产生源头~~追根溯源。</p>
+<h4 id="抽象类">抽象类</h4>
+<p>1.抽象类的实现，使用的是abc模块，子哎程序的设计模式中可能会使用到，我在设计模式的文章中写过~，主要使用的是Python的abc模块</p>
+<p>2.抽象类的特性:** 只能被继承，不能被实例化<strong>。只要是继承抽象类的类，必须重写相应的类方法，名字都必须一样，不然报错~，这在设计模式的时候，就很好的</strong>规范了底层的调用接口。**</p>
+<p>3.例子，实现抽象类</p>
+<pre class="python"><code>In [17]: import abc
+    ...:
+    ...:
+    ...: class People(metaclass=abc.ABCMeta):
+    ...:
+    ...:     @abc.abstractmethod
+    ...:     def sleep(self):
+    ...:         pass
+    ...:
+    ...:
+    ...: class Student(People):
+    ...:     school = &#39;Peking University&#39;
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;Self sleeping....&#39;)
+    ...:
+
+In [18]: stu = Student(&#39;kate&#39;, 18)
+
+In [19]: stu.__dict__
+Out[19]: {&#39;name&#39;: &#39;kate&#39;, &#39;age&#39;: 18}</code></pre>
+<h4 id="property">property</h4>
+<p><strong>1.property 将访问函数属性变为访问数据属性的方法。</strong>原本需要加上括号才可以调用，现在直接就可以进行调用了。<strong>统一调用形式</strong>，<strong>不用加括号进行调</strong>。用了</p>
+<p>2.可以联动设置的参数，修改:name.setter， 删除:name.deleter</p>
+<p>3.代码实现，了解一下，这个property还是很常用的，</p>
+<pre class="python"><code>In [23]: class People:
+    ...:
+    ...:     def __init__(self, name):
+    ...:         self.__name = name
+    ...:
+    ...:     @property
+    ...:     def name(self):
+    ...:         return self.__name
+    ...:
+    ...:     @name.setter
+    ...:     def name(self, new_name):
+    ...:         self.__name = new_name
+    ...:
+    ...:
+    ...:     @name.deleter
+    ...:     def name(self):
+    ...:         print(&#39;Error .... no permission to delete..&#39;)
+    ...:
+
+IIn [24]: human = People(&#39;kat&#39;)
+
+In [26]: human.name
+Out[26]: &#39;kat&#39;
+
+In [27]: human.name = &#39;kate&#39;
+
+In [28]: human.name
+Out[28]: &#39;kate&#39;
+
+In [29]: del human.name
+Error .... no permission to delete..</code></pre>
+<h4 id="classmethod">classmethod</h4>
+<p><strong>classmethod属于绑定到类的方法</strong>，类可以使用，并且将类作为第一个参数传递进去。此时，可以<strong>回忆一下</strong>开始面向对象的时候，关于数据属性是所有的对象共同拥有的，所有的函数属性是绑定给每一个对象。<strong>注意:bond method </strong><br />
+看以下关于classmethod的例子:</p>
+<pre class="python"><code>In [30]: class People:
+    ...:
+    ...:     def __init__(self, name):
+    ...:         self.__name = name
+    ...:
+    ...:     @classmethod
+    ...:     def eat(self):
+    ...:         print(&#39;eat....&#39;)
+    ...:
+    ...:     def sleep(self):
+    ...:         print(&#39;sleep...&#39;)
+    ...:
+
+In [31]: peo = People(&#39;kate&#39;)
+
+In [32]: peo.sleep
+Out[32]: &lt;bound method People.sleep of &lt;__main__.People object at 0x000002B071C3E898&gt;&gt;
+
+In [33]: peo.eat
+Out[33]: &lt;bound method People.eat of &lt;class &#39;__main__.People&#39;&gt;&gt;
+
+In [34]: People.sleep
+Out[34]: &lt;function __main__.People.sleep(self)&gt;
+
+In [35]: People.eat
+Out[35]: &lt;bound method People.eat of &lt;class &#39;__main__.People&#39;&gt;&gt;</code></pre>
+<h4 id="staticmethod">staticmethod</h4>
+<p>staticmethod表示非绑定方法，对象和类都可以使用，一般没有什么具体的意思，就是一个普通的函数，我在使用的过程中也没有遇到，使用方法类似于classmethod。可以百度了解一下~~</p>
+<h4 id="反射">反射</h4>
+<p>反射，这个使用的次数是很多的，尤其是在很多<strong>开源的框架(Django 的框架中配置文件中的应用类，内部都是使用getattr)中</strong>都使用，这个方法很巧妙，可以字符串与函数关联起来。即可以<strong>通过字符串映射到对象的属性。</strong></p>
+<h5 id="hasattr">hasattr</h5>
+<p>hasatrr单独使用是没有啥用的，只是做一个判断，看下对象中是不是存在一个字符串对应的属性。</p>
+<h5 id="getattr">getattr</h5>
+<p>grtattr 是真正干活的那个，可以进行字符串与函数属性的映射，操作起来相当顺溜~~，一定要多使用，尤其是在开放封闭原则的配置文件，配置参数的时候局可以使用。</p>
+<h5 id="setattr">setattr</h5>
+<p>setattr一般使用的很少，我在上次学习到现在基本上没有怎么使用。</p>
+<h5 id="delattr">delattr</h5>
+<p>基本不使用的命令了，没使用过，要是不看到他了，我都忘记了这个了......</p>
+<h5 id="反射示例">反射示例</h5>
+<pre class="python"><code>In [39]: class Ftp:
+    ...:
+    ...:     def start(self):
+    ...:         while 1:
+    ...:             inp = input(&#39;&gt;&gt;&gt;&#39;).strip()
+    ...:             cmds = inp.split()
+    ...:             if hasattr(self, cmds[0]):
+    ...:                 func = getattr(self, cmds[0])
+    ...:                 func(cmds)
+    ...:
+    ...:     def put(self, cmds):
+    ...:         print(cmds)
+    ...:
+    ...:     def get(self, cmds):
+    ...:         print(cmds)
+    ...:
+
+In [40]: f =Ftp()
+
+In [41]: f.start()
+&gt;&gt;&gt;get d.md
+[&#39;get&#39;, &#39;d.md&#39;]
+&gt;&gt;&gt;put s.doc
+[&#39;put&#39;, &#39;s.doc&#39;]</code></pre>
+<h4 id="item系列">item系列</h4>
+<p>item系列，主要是<strong>将取出类中的数据属性，变成字典的方式取出</strong>，相应的包含getitem, setitem, delitem,实现属性的增删改查。</p>
+<pre class="python"><code>In [1]: class Student:
+   ...:     def __init__(self, name):
+   ...:         self.name = name
+   ...:
+   ...:     def __getitem__(self, item):
+   ...:         print(&#39;getitem...&#39;)
+   ...:         return self.__dict__.get(item)
+   ...:
+   ...:     def __setitem__(self, key, value):
+   ...:         print(&#39;setitem.... %s&#39; % value)
+   ...:         self.__dict__[key] = value
+   ...:
+   ...:     def __delitem__(self, key):
+   ...:         print(&#39;delitem....&#39;)
+   ...:         del self.__dict__[key]
+   ...:
+
+In [2]: stu = Student(&#39;kate&#39;)
+
+In [3]: stu.name
+Out[3]: &#39;kate&#39;
+
+In [4]: stu[&#39;name&#39;]
+getitem...
+Out[4]: &#39;kate&#39;
+
+In [5]: stu[&#39;age&#39;]
+getitem...
+
+In [6]: stu[&#39;age&#39;] = 18
+setitem.... 18
+
+In [7]: stu[&#39;age&#39;]
+getitem...
+Out[7]: 18
+
+In [8]: del stu[&#39;age&#39;]
+delitem....
+
+In [9]: stu.__dict__
+Out[9]: {&#39;name&#39;: &#39;kate&#39;}</code></pre>
+<h4 id="str"><strong>str</strong></h4>
+<p>类中定义__str__之后，会在<strong>打印print的时候，自动触发对应的方法</strong>，获得该方法的返回值进行输出，所以<strong>str方法必须有返回值，且必须是字符串类型。</strong>目前在数据库表中使用过，So，需要学会使用~</p>
+<pre class="python"><code>In [10]: class Student:
+    ...:
+    ...:     def __init__(self, name):
+    ...:         self.name = name
+    ...:
+    ...:     def __str__(self):
+    ...:         print(&#39;__str__ method&#39;)
+    ...:         return self.name
+    ...:
+
+In [11]: stu = Student(&#39;kate&#39;)
+
+In [12]: print(stu)
+__str__ method
+kate</code></pre>
+<h4 id="iter"><strong>iter</strong></h4>
+<p><strong>iter方法比较常用</strong>，在python中实现了__iter__方法的对象是可迭代的。实际上要想让一个迭代器工作，至少要实现__iter__方法和next方法。</p>
+<pre class="python"><code>In [20]: class Test():
+    ...:     def __init__(self,data):
+    ...:         self.data = data
+    ...:
+    ...:     def __iter__(self):
+    ...:         return self
+    ...:     def __next__(self):
+    ...:         if self.data &gt; 5:
+    ...:             raise StopIteration
+    ...:         else:
+    ...:             self.data+=1
+    ...:             return self.data
+    ...:
+
+In [21]: t = Test(3)
+
+In [22]: t
+Out[22]: &lt;__main__.Test at 0x1d9198679e8&gt;
+
+In [23]: for i in t:
+    ...:     print(i)
+    ...:
+4
+5
+6</code></pre>
+<h4 id="del"><strong>del</strong></h4>
+<p>1.了解del之前，希望大家可以回一下自己在文件操作的时候，是不是需要打开文件之后必须要关闭文件啊!不想自己的关闭的时候，可以指定使用with语句进行关闭，但是这里就出现了一个问题，<strong>程序运行结束打开的文件是不是关闭了？？</strong></p>
+<p>2.已经引出del的作用了，<strong>del是实现回收操作系统资源，</strong>打开文件是操作系统打开文件，并不是自己的英语程序打开，想一下软件是运行在操作系统上的，操作系统建立在硬件的基础之上，获得f文件句柄是是应用程序的变量，记住，文件句柄f是应用程序的一个变量，指向的是操作系统的打开文件的资源，调用read函数的时候，是去操作系统的内存取数据，完了，晕了晕了，可自行百度一下~~</p>
+<p>3.就算del不实现，在程序结束的时候，<strong>程序也会自动的时间回收系统资源</strong>。在这里瞬间让我想到了<strong>numpy中创建一个空数组</strong>的时候，会出现非0的空数组，里面包含的资源就是遗留的内存数据~~</p>
+<h4 id="doc"><strong>doc</strong></h4>
+<p>doc方法是创建类的时候，书写注释之后就可以自动触发该方法执行，并且在这里面可以看到对应的<strong>注释内容。</strong></p>
+<h4 id="call"><strong>call</strong></h4>
+<p><strong>调用对象的时候，在实例化的对象的后面加上括号，自动触发call执行。</strong>还记的怎么触发init方法执行不，是不是实例化对象的时候触发执行~</p>
+<pre class="python"><code>In [24]: class School:
+    ...:
+    ...:     def __init__(self):
+    ...:         print(&#39;init....&#39;)
+    ...:
+    ...:     def __call__(self, *args, **kwargs):
+    ...:         print(&#39;call....&#39;)
+    ...:
+    ...:
+
+In [25]: s = School()
+init....
+
+In [26]: s()
+call....</code></pre>
+<h4 id="单例模式">单例模式</h4>
+<p>1.单例模式，需要好好地掌握，在程序的设计模式中存在，在实际的使用中会使用，我推荐两种实现单例模式的方法。</p>
+<p>2.第一种实现单例模式，在类模块中直接实例化成为一个对象，在其他模块引入调用的时候，直接调用已经实例化的对象即可，此时就实现了<strong>调用的单例模式</strong>。</p>
+<p>3.在类的内部进行是否已经有实例化的判断，如果已经实例化，就需要将之前的实例化对象返回即可。</p>
+<p>4.单例模式的优点，将参数相同的属性在内存中指向同一个地方，优化的策略。</p>
+<p>5.简单实现单例模式，类内部判断方法</p>
+<pre class="python"><code>In [34]: class Mysql:
+    ...:     __instance = None
+    ...:
+    ...:     def __init__(self):
+    ...:         self.host = &#39;127.0.0.1&#39;
+    ...:         self.port = 3306
+    ...:
+    ...:     @classmethod
+    ...:     def singleton(cls):
+    ...:         if not cls.__instance:
+    ...:             mysql = cls()
+    ...:             cls.__instance = mysql
+    ...:         return cls.__instance
+    ...:
+
+In [35]: m = Mysql.singleton()
+
+In [36]: n = Mysql.singleton()
+
+In [37]: m
+Out[37]: &lt;__main__.Mysql at 0x1d919a8fda0&gt;
+
+In [38]: n
+Out[38]: &lt;__main__.Mysql at 0x1d919a8fda0&gt;</code></pre>
+<h4 id="元类">元类</h4>
+<p>终于来到面向对象的高阶中的顶级了~~~让我们一起，看看类的祖宗~</p>
+<p>1.需要了解的东西，元类，顾名思义就是说<strong>产生类的类都是元类，其实就是type~</strong></p>
+<p>2.此时我们就可以得到定义类的<strong>两种方式: 使用class 或者 使用元类</strong></p>
+<p>3.使用元类定义类的三要素:** 类名 继承类 命名空间<strong><br />
+类名: 当然是自己起什么就是什么了<br />
+继承类: 没有多继承，那</strong> object 还是需要继承的<strong><br />
+命名空间: 这个就需要自己结合之前学过一个</strong>内置函数 exec() ** ，这个函数的执行会产生相应的局部命名空间与全局命名空间。</p>
+<p>4.尝试<strong>使用元类定义一个类~</strong>，看下面的例子:<br />
+<strong>注意: 使用exec的时候，如果不将exec内部书写的字符串数据定格书写会报错的，语法不能解析~~~</strong></p>
+<pre class="python"><code>In [41]: # 定义类的三要素:类名，类的基类们，类的名称空间
+    ...: class_name = &#39;Chinese&#39;
+    ...: class_bases = (object,)
+    ...:
+    ...: class_body = &quot;&quot;&quot;
+    ...: country=&#39;China&#39;
+    ...:
+    ...: def __init__(self, name):
+    ...:     self.name=name
+    ...:
+    ...: def area(self):
+    ...:  print(&#39;%s is area&#39; % self.name)
+    ...: &quot;&quot;&quot;
+    ...:
+    ...: class_dic = {}
+    ...: exec(class_body, globals(), class_dic)  # Execute the given source in the context o
+    ...: f globals and locals.
+    ...:
+    ...: Chinese = type(class_name, class_bases, class_dic)  # 元类type定义类，type(name, ba
+    ...: ses, dict) -&gt; a new type
+    ...:
+
+In [42]: obj1 = Chinese(&#39;kate&#39;)
+
+In [43]: obj1.name
+Out[43]: &#39;kate&#39;
+
+In [44]: obj1
+Out[44]: &lt;__main__.Chinese at 0x1d919881be0&gt;</code></pre>
+<h4 id="元类控制类的行为">元类控制类的行为</h4>
+<p>使用元类控制类的行为，包括<strong>控制类的创建行为，与实例化行为。</strong></p>
+<p>1.控制创建行为可以实现， 创建的类必须首字母大写， 必须写注释。。。。，并且可以直接在Mymeta类中添加属性，子类直接可以进行调用。</p>
+<pre class="python"><code>In [49]: class Mymeta(type):
+    ...:     def __init__(self, class_name, class_bases, class_dic):
+    ...:         self.country = &#39;china&#39;
+    ...:
+    ...:         if &#39;__doc__&#39; not in class_dic or not class_dic.get(&#39;__doc__&#39;).strip():
+    ...:             raise TypeError(&#39;必须为类指定文档注释&#39;)
+    ...:
+    ...:         if not class_name.istitle():
+    ...:             raise TypeError(&#39;类名首字母必须大写&#39;)
+    ...:
+    ...:         super(Mymeta, self).__init__(class_name, class_bases, class_dic)
+    ...:
+    ...:
+    ...: class Student(object, metaclass=Mymeta):
+    ...:     &quot;&quot;&quot;
+    ...:     Student class
+    ...:     &quot;&quot;&quot;
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:
+    ...: stu = Student(&#39;kate&#39;, 18)
+    ...:
+
+In [50]: stu.__dict__
+Out[50]: {&#39;name&#39;: &#39;kate&#39;, &#39;age&#39;: 18}</code></pre>
+<p>2.控制类的实例化行为， 使用的是 触发__call__方法，这个时候就自己创建一个空对象，并调用init函数，返回对象，实现自动触发init执行的内容。</p>
+<pre class="python"><code>In [49]: class Mymeta(type):
+    ...:     def __init__(self, class_name, class_bases, class_dic):
+    ...:         self.country = &#39;china&#39;
+    ...:
+    ...:         if &#39;__doc__&#39; not in class_dic or not class_dic.get(&#39;__doc__&#39;).strip():
+    ...:
+    ...:         if not class_name.istitle():
+    ...:             raise TypeError(&#39;类名首字母必须大写&#39;)
+    ...:
+    ...:         super(Mymeta, self).__init__(class_name, class_bases, class_dic)
+    ...:
+    ...:     def __call__(self, *args, **kwargs):
+    ...:         obj = object.__new__(self)  # 实例化Student，产生空对象obj
+    ...:         self.__init__(obj, *args, **kwargs)  # 调用Student下的函数__init__，初始化o
+    ...: bj
+    ...:         return obj  # 返回初始化好了的obj
+    ...:
+    ...:
+    ...: class Student(object, metaclass=Mymeta):
+    ...:     &quot;&quot;&quot;
+    ...:     Student class
+    ...:     &quot;&quot;&quot;
+    ...:
+    ...:     def __init__(self, name, age):
+    ...:         self.name = name
+    ...:         self.age = age
+    ...:
+    ...:
+    ...: stu = Student(&#39;kate&#39;, 18)
+
+In [52]: stu.__dict__
+Out[52]: {&#39;name&#39;: &#39;kate&#39;, &#39;age&#39;: 18}</code></pre>
+<h2 id="结束语">结束语</h2>
+<p><strong>结束了面向对象的内容，长出一口气，又陷入了新的迷茫~</strong><br />
+<strong>面向对象的内容，远不止我所述的这些，还有很多，尤其是面向对象的思想，Python的一切皆对象，底层的很多杠杠方法，我个人觉得，学习重在思考与实践与总结。</strong><br />
+<em>希望大家阅读愉快~</em></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

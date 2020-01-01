@@ -1,0 +1,700 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python语法速查： 2. 列表、元组、字典、集合操作' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python语法速查： 2. 列表、元组、字典、集合操作</center></div><div class='banquan'>原文出处:本文由博客园博主初级电路与软件研究提供。<br/>
+原文连接:https://www.cnblogs.com/initcircuit/p/11535866.html</div><br>
+    <style><!--
+td.subtitle { 
+  background-color:#FBFBFE;
+}
+
+td.name {
+  font-family: 'Consolas';
+}
+
+td.name span{
+  font-size: 13px;
+  font-style: italic;
+  
+}
+td.name p {
+  line-height: 2ex;
+}
+
+td.example {
+  font-family: 'Consolas';
+  color: #606060;
+  font-size: 12px;
+}
+
+td.example p {  
+  line-height: 2ex;
+}
+
+td.example p span {
+  color: #B0B0B0;
+  font-size: 12px;
+}
+td.example a.advc {
+  color: #606060;
+}
+a.advc {  
+  border-bottom:1px solid gray;
+  text-decoration:none;
+}
+
+
+h2.dscp span {
+  font-style: italic;
+}
+.codebox {
+        display:table-cell;
+        width:800px;
+        padding-left:20px;
+        padding-right:20px;
+}
+.codebox span {
+  color: #909090;
+}
+a.return {
+    color: #BBB;
+    font-size:0.8em;
+}
+--></style>
+<p><a class="return" href="https://www.cnblogs.com/initcircuit/p/11849378.html">返回目录</a></p>
+<p>&nbsp;</p>
+<h2 id="">&nbsp;<span style="font-family: 'Microsoft YaHei';">（1）通用序列操作</span></h2>
+<p style="text-indent: 2em;">&ldquo;序列&rdquo;表示索引为非负整数的<strong>有序</strong>对象集合，列表、元组、字符串都属于序列。区别在于：列表是可变的，而元组和字符串是不可变的。序列的通用操作他们都可以用。</p>
+<table style="width: 100%;" dir="ltr" border="1" frame="border" cellspacing="0" cellpadding="0" align="left"><colgroup> <col width="180" /> <col width="340" /> </colgroup>
+<thead>
+<tr><th style="text-align: center;">操作或方法</th><th style="text-align: center;">简述</th><th style="text-align: center;">举例或说明</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="name">s[<span>i</span>]</td>
+<td>返回序列第 i 个元素</td>
+<td class="example">
+<p>-1为最后一个元素，-2为最后第二个元素，依此类推</p>
+</td>
+</tr>
+<tr>
+<td class="name">s[<span>i:j:k</span>]</td>
+<td>返回第 i 到 <strong>j-1</strong> 个元素的新序列，k为可选步长</td>
+<td class="example">
+<p><a id="t_slice" class="advc" style="text-decoration: none;" href="#h_slice">切片规则详见下述</a></p>
+</td>
+</tr>
+<tr>
+<td class="name">s1 + s2</td>
+<td>操作符，将2个序列拼接生成一个新序列</td>
+<td class="example">
+<p>(1,2) + ('a','b') <span>&nbsp; # 结果为 (1,2,'a','b')</span></p>
+<p>'ab' + 'c' <span>&nbsp; # 结果为 'abc'</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s * n</td>
+<td>操作符，将序列s重复n次生成新序列</td>
+<td class="example">
+<p>('a') * 3 <span>&nbsp; # 结果为 ('a', 'a', 'a')</span></p>
+<p>'py' * 3 <span>&nbsp; # 结果为 'pypypy'</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">in / not in</td>
+<td>操作符，检查一个值是否在序列中</td>
+<td class="example">
+<p>'a' in 'abc' <span>&nbsp; # 结果为 True</span></p>
+<p>'a' not in ['a','b'] <span>&nbsp; # 结果为 False</span></p>
+</td>
+</tr>
+<tr>
+<td id="t_index" class="name">s.index(<span>x[, i[, j]]</span>)</td>
+<td>返回序列中第一次出现x的索引值，<em>i,j</em> 为可选范围</td>
+<td class="example">
+<p>'abc'.index('b') <span>&nbsp;# 结果为 1</span></p>
+<p>'abc'.index('e') <span>&nbsp;# 找不到，引起ValueError错误</span></p>
+</td>
+</tr>
+<tr>
+<td id="t_count" class="name">s.count(<span>x</span>)</td>
+<td>返回序列中x出现的次数</td>
+<td class="example">
+<p>'abab'.count('a') <span>&nbsp; # 结果为 2</span></p>
+<p>'abab'.count('e') <span>&nbsp; # 结果为 0</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">len(<span>s</span>)</td>
+<td>内置函数，返回s中元素个数</td>
+<td class="example">
+<p>len('数123') <span>&nbsp; # 结果为 5（字符串中汉字算2个元素）</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<!------------------------- 切片规则 ------------------------------>
+<h2 id="h_slice" class="dscp">● s[i:j:k]</h2>
+<p><strong>切片规则：</strong></p>
+<p style="text-indent: 2em;">（1） 切片左数字必须小于右数字，否则输出为空</p>
+<p style="text-indent: 2em;">（2） 若 i 或 j 缺省，则表示向这个方向取到尽头</p>
+<p style="text-indent: 2em;">（3） 步长默认为1。若步长为负数，则表示从右向左方向取出元素，此时切片左数字必须大于右数字，否则输出为空。</p>
+<p><strong>举例：</strong></p>
+<div class="codebox">
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; 'abcde'[1:3] <span>&nbsp;# 结果为 'bc'</span>
+&gt;&gt;&gt; 'abcde'[3:1] <span>&nbsp;# 结果为 ''</span>
+&gt;&gt;&gt; 'abcde'[:3] <span>&nbsp;&nbsp;# 结果为 'abc'</span>
+&gt;&gt;&gt; 'abcde'[-2:] <span>&nbsp;# 结果为 'de' （含义为从倒数第2个元素开始取到最后一个元素）</span>
+&gt;&gt;&gt; 'abcde'[1:-2] <span>&nbsp;# 结果为 'bc' （含义为从正索引第1个元素('b')取到倒数第2个元素的前一个元素('c')）</span>
+&gt;&gt;&gt; 'abcde'[:] <span>&nbsp;&nbsp;&nbsp;# 结果为 'abcde' （含义为取出所有元素）</span>
+&gt;&gt;&gt; 'abcde'[::-1] <span>&nbsp;# 结果为 'edcba' （含义为从右向左依次取出所有元素）</span>
+&gt;&gt;&gt; 'abcde'[::-2] <span>&nbsp;# 结果为 'eca'</span>
+&gt;&gt;&gt; 'abcde'[0:2:-1] <span>&nbsp;# 结果为 '' （当步长为负数时，切片左数字必须大于右数字，否则输出为空）</span>
+&gt;&gt;&gt; 'abcde'[-1:-3:-1] <span>&nbsp;# 结果为 'ed'</span>
+&gt;&gt;&gt; 'abcde'[1::-1] <span>&nbsp;# 结果为 'ba' （步长为负数表示从右向左取，左数字为1表示从'b'开始取，右数字为空表示向左取到尽头）</span></pre>
+</div>
+</div>
+<p><a class="return" href="#t_slice">返回索引</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 id="">&nbsp;<span style="font-family: 'Microsoft YaHei';">（2）列表操作</span></h2>
+<table style="width: 100%;" dir="ltr" border="1" frame="border" cellspacing="0" cellpadding="0" align="left"><colgroup> <col width="180" /> <col width="340" /> </colgroup>
+<thead>
+<tr><th style="text-align: center;">操作或方法</th><th style="text-align: center;">简述</th><th style="text-align: center;">举例或说明</th></tr>
+</thead>
+<tbody><!----- 简单操作 ------------------------------------------>
+<tr>
+<td class="subtitle" colspan="4"><strong>简单操作</strong></td>
+</tr>
+<tr>
+<td class="name">s[<span>i</span>] = v</td>
+<td>元素赋值</td>
+<td class="example">
+<p>[1,2,3][1]=20 <span>&nbsp; # 结果为 [1,20,3]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s[<span>i:j:k</span>] = t</td>
+<td>切片赋值</td>
+<td class="example">
+<p>用法较灵活，<a id="t_slice_asign" class="advc" style="text-decoration: none;" href="#h_slice_asign">详见下述</a></p>
+</td>
+</tr>
+<tr>
+<td class="name">del s[<span>i</span>]</td>
+<td>元素删除</td>
+<td class="example">
+<p>del [1,2,3][1] <span>&nbsp; # 结果为 [1,3]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">del s[<span>i:j:k</span>]</td>
+<td>切片删除第 i 到 j-1 个元素，步长为k。切片规则见上。</td>
+<td class="example">
+<p>a=[1,2,3,4,5]</p>
+<p>del a[1:3] <span>&nbsp;&nbsp; # 结果为 a=[1,4,5]</span></p>
+<p>也可写成 a[1:3]=[] <span>&nbsp; # 结果同上 </span></p>
+</td>
+</tr>
+<!----- 列表专用方法 ------------------------------------------>
+<tr>
+<td class="subtitle" colspan="4"><strong>列表专用方法</strong></td>
+</tr>
+<tr>
+<td class="name">list(<span>[iter]</span>)</td>
+<td>内置函数，根据入参可迭代对象iter生成一个浅复制列表实例。若入参为字符串，则将其拆分成由个单字符组成的列表。</td>
+<td class="example">
+<p>s=list() <span>&nbsp; # 生成一个空列表，也可写成 s=[] </span></p>
+<p>s=list([1,2,3]) <span>&nbsp; # 生成一个浅复制新列表 </span></p>
+<p>s=list('abc') <span>&nbsp; # 结果为 ['a','b','c']</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.append(<span>x</span>)</td>
+<td>将一个新元素x追加到列表末尾</td>
+<td class="example">
+<p>[1,2,3].append(4) <span>&nbsp; # 结果为 [1,2,3,4]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.extend(<span>t</span>)</td>
+<td>将一个新列表t追加到列表末尾</td>
+<td class="example">
+<p>[1,2,3].extend([4,5]) <span>&nbsp; # 结果为 [1,2,3,4,5]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.insert(<span>i, x</span>)</td>
+<td>在索引 i 处插入元素x，若 i 超出索引范围，则元素x添加到最后。</td>
+<td class="example">
+<p>[1,2,3].insert(-1,4) <span>&nbsp; # 结果为 [1,2,4,3]</span></p>
+<p>[1,2,3].insert(10,5) <span>&nbsp; # 结果为 [1,2,3,5]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.pop(<span>[i]</span>)</td>
+<td>返回索引 i 处的元素并从列表中移除它。若省略 i，则返回列表中最后一个元素并移除它。若 i 超出索引范围，则引发IndexError。</td>
+<td class="example">
+<p>[1,2,3].pop(-2) <span>&nbsp; # 返回2，列表结果为 [1,3]</span></p>
+<p>[1,2,3].pop() <span>&nbsp;&nbsp;&nbsp; # 返回3，列表结果为 [1,2]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.remove(<span>x</span>)</td>
+<td>在列表中搜索x并移除第1个发现的x，若未发现x则引发ValueError。</td>
+<td class="example">
+<p>[1,2,1,2].remove(2) <span>&nbsp; # 结果为 [1,1,2]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.reverse()</td>
+<td>颠倒列表中所有元素的位置顺序</td>
+<td class="example">
+<p>[1,3,2,4].reverse() <span>&nbsp; # 结果为 [4,2,3,1]</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.sort(<span>*, key=None, reverse=False</span>)</td>
+<td>对s中所有元素按自定义规则进行排序，<strong>返回值为空</strong>，不会生成新的列表</td>
+<td class="example">
+<p><a id="t_sort" class="advc" style="text-decoration: none;" href="#h_sort">详见下述</a></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.index(<span>x[, i[, j]]</span>)</td>
+<td>返回序列中第一次出现x的索引值（通用序列方法已述，此处仅为索引方便）</td>
+<td class="example">
+<p><a class="advc" style="text-decoration: none;" href="#t_index">详见上面通用序列方法</a></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.count(<span>x</span>)</td>
+<td>返回序列中x出现的次数（通用序列方法已述，此处仅为索引方便）</td>
+<td class="example">
+<p><a class="advc" style="text-decoration: none;" href="#t_count">详见上面通用序列方法</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<!------------------------- 切片赋值 ------------------------------>
+<h2 id="h_slice_asign" class="dscp">● s[i:j:k] = t</h2>
+<p><strong>说明：</strong></p>
+<p style="text-indent: 2em;">分片赋值可以使用与原列表不等长的列表进行赋值，这就使得其用法非常灵活。其赋值规则是：移除等号左边分片划定范围内的元素，并在此位置用等号右边新的列表中的元素替代。</p>
+<p><strong>举例：</strong></p>
+<div class="codebox">
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt;  [1,2,3,4,5][2:4] = [30,40] <span>&nbsp;# 结果为 [1,2,30,40,5]  （切片长度等于等号右边列表长度）</span>
+&gt;&gt;&gt;  [1,2,3,4,5][2:4] = [30] <span>&nbsp;# 结果为 [1,2,30,5] （移除原列表中切片的2个元素，并用新的1个元素进行替换）</span>
+&gt;&gt;&gt;  [1,2,3,4,5][2:4] = [30,31,32] <span>&nbsp;# 结果为 [1,2,30,31,32,4,5] （移除原列表中切片的2个元素，并用新的3个元素进行替换）</span>
+&gt;&gt;&gt;  [1,2,3,4,5][2:4] = []<span>&nbsp;# 结果为 [1,2,5] （相当于将切片元素删除）</span>
+&gt;&gt;&gt;  [1,2,3,4,5][2:2] = [10,11] <span>&nbsp;# 结果为 [1,2,10,11,3,4,5] （由于切片[1:1]切不到移除元素，故此句相当于在位置2插入等号右边的列表元素）</span></pre>
+</div>
+</div>
+<p><a class="return" href="#t_slice_asign">返回索引</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<!------------------------- s.sort() ------------------------------>
+<h2 id="h_sort" class="dscp">● s.sort(*,key=None, reverse=False)</h2>
+<p><strong>说明：</strong></p>
+<p style="text-indent: 2em;">sort()方法会对原列表进行排序，<strong>返回值为空</strong>，不会生成新的列表。入参key可以指定一个函数对每个将要被排序的元素进行预处理，使得某些原本不能比较大小的元素，也能进行大小排序（原理和上一篇内置函数sorted()相同）。reverse为True时表示逆向排序。</p>
+<p><strong>举例：</strong></p>
+<div class="codebox">
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; [1,3,4,2].sort() <span>&nbsp;# 结果为 [1,2,3,4]</span>
+&gt;&gt;&gt; [1,3,4,2].sort(reverse=True) <span>&nbsp;# 结果为 [4,3,2,1]</span>
+&gt;&gt;&gt; [('b',2),('a',1)].sort(key=lambda x:x[1]) <span>&nbsp;# 结果为 [('a',1),('b',2)]</span>
+&gt;&gt;&gt; <span># 说明：上例中，使用匿名函数lambda对列表元素进行了预处理，将原本的元组('a',1)预处理为：取出元组中后一个元素（即：1），所以能够进行排序。</span></pre>
+</div>
+</div>
+<p><a class="return" href="#t_sort">返回索引</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 id="">&nbsp;<span style="font-family: 'Microsoft YaHei';">（3）元组操作</span></h2>
+<p style="text-indent: 2em;">元组为不可变序列，故元组只能使用开头所述的通用序列方法，而上面列表的方法元组都不可用。</p>
+<table style="width: 100%;" dir="ltr" border="1" frame="border" cellspacing="0" cellpadding="0" align="left"><colgroup> <col width="180" /> <col width="340" /> </colgroup>
+<thead>
+<tr><th style="text-align: center;">操作或方法</th><th style="text-align: center;">简述</th><th style="text-align: center;">举例或说明</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="name">tuple(<span>[iter]</span>)</td>
+<td>内置函数，生成入参可迭代对象iter的一个浅复制元组实例。</td>
+<td class="example">
+<p>t=tuple() <span>&nbsp; # 生成一个空元组，也可写成 t=() </span></p>
+<p>t=tuple([1,2,3]) <span>&nbsp; # 生成 (1,2,3) </span></p>
+<p>t=tuple('abc') <span>&nbsp; # 生成 ('a','b','c') </span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 id="">&nbsp;<span style="font-family: 'Microsoft YaHei';">（4）字典操作</span></h2>
+<p style="text-indent: 2em;">字典是&ldquo;映射&rdquo;类型，它是无序的，不能通过元素位置进行索引，只能通过键值进行索引。</p>
+<table style="width: 100%;" dir="ltr" border="1" frame="border" cellspacing="0" cellpadding="0" align="left"><colgroup> <col width="180" /> <col width="340" /> </colgroup>
+<thead>
+<tr><th style="text-align: center;">操作或方法</th><th style="text-align: center;">简述</th><th style="text-align: center;">举例或说明</th></tr>
+</thead>
+<tbody><!----- 简单操作 ------------------------------------------>
+<tr>
+<td class="subtitle" colspan="4"><strong>简单操作</strong></td>
+</tr>
+<tr>
+<td class="name">d[<span>k</span>] = x</td>
+<td>将已定义的字典d中键为k的值设为x，若k不存在，则建立k,v&ldquo;键值对&rdquo;</td>
+<td class="example">
+<p>d = {}</p>
+<p>d['a']=1 <span>&nbsp; # 结果为 d={'a':1}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">del d[<span>k</span>]</td>
+<td>从字典d中删除d[k]，若键k不存在，则引发KeyError错误</td>
+<td class="example">
+<p>d={'a':1}</p>
+<p>del d['a'] <span>&nbsp; # 结果为 d={}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name"><span>k</span> in <span>d</span></td>
+<td>若k是字典d中的键，则返回Tru，否则返回False</td>
+<td class="example">
+<p>'a' in {'a':1} <span>&nbsp; # 结果为 True</span></p>
+</td>
+</tr>
+<!----- 字典专用方法 ------------------------------------------>
+<tr>
+<td class="subtitle" colspan="4"><strong>字典专用方法</strong></td>
+</tr>
+<tr>
+<td class="name">dict(<span>[m]</span>)</td>
+<td>生成字典实例，有多种初始化方法，详见右例</td>
+<td class="example">
+<p>d=dict() <span>&nbsp; # 生成一个空字典，同 d={} </span></p>
+<p>d=dict({'a':1}) <span>&nbsp; # 浅复制生成字典，d={'a':1}</span></p>
+<p>d=dict([('a',1),('b',2)]) <span>&nbsp; # 用元组列表生成字典，d={'a':1,'b':2} </span></p>
+<p>d=dict(a=1,b=2) <span>&nbsp; # 用入参变量名生成字典，d={'a':1,'b':2}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.clear()</td>
+<td>将字典内的所有内容清空</td>
+<td class="example">
+<p>d.clear() <span>&nbsp; # 结果为 d={}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.copy()</td>
+<td>返回d的一个浅复制副本</td>
+<td class="example">
+<p>d2=d.copy() <span>&nbsp; # d2为d的一个副本，并不指向d </span></p>
+</td>
+</tr>
+<tr>
+<td class="name">dict.fromkeys(<span>s [,v]</span>)</td>
+<td>这是个类方法。创建返回一个新字典并将序列s中的所有元素作为新字典的键，这些键对应的值均为v；若缺省v，则这些值为None。</td>
+<td class="example">
+<p>d=dict.fromkeys(['a','b'])</p>
+<p><span># 结果为 d={'a':None, 'b':None}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.get(<span>k [,v]</span>)</td>
+<td>返回d[k]，若找不到键k，则返回v；若找不到键k且未指定v，则返回None</td>
+<td class="example">
+<p>{'a':1}.get('a') <span>&nbsp; # 结果为 1</span></p>
+<p>{'a':1}.get('b',2) <span>&nbsp; # 结果为 2</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.items()</td>
+<td>返回由d中的&ldquo;键值对&rdquo;元组组成的可迭代对象。</td>
+<td class="example">
+<p>{'a':1,'b':2}.items()</p>
+<p><span># 结果为 dict_items([('a',1),('b',2)])</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.keys()</td>
+<td>返回由d中的键组成的可迭代对象。</td>
+<td class="example">
+<p>{'a':1,'b':2}.keys()</p>
+<p><span># 结果为 dict_keys(['a','b'])</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.values()</td>
+<td>返回有d中的值组成的可迭代对象。</td>
+<td class="example">
+<p>{'a':1,'b':2}.values()</p>
+<p><span>&nbsp; # 结果为 dict_values([1,2])</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.pop(<span>k [,default]</span>)</td>
+<td>如果找到d[k]，则返回它，并从d中删除它；否则，若提供了default值，则返回这个值，若没有则引发KeyError错误</td>
+<td class="example">
+<p>{'a':1}.pop('a') <span>&nbsp; # 返回值为 1</span></p>
+<p>{'a':1}.pop('b',2) <span>&nbsp; # 返回值为 2 </span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.popitem()</td>
+<td>从字典d中随机返回一个&ldquo;键值对&rdquo;元组，并把它从d中删除</td>
+<td class="example">
+<p>d={'a':1,'b':2}</p>
+<p>d.popitem() <span>&nbsp; # 返回值为('b':2)</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.setdefault(<span>k [,v]</span>)</td>
+<td>如果找到d[k]，则返回它并无视v；若没找到，则返回v，并将d[k]设为v</td>
+<td class="example">
+<p>d={'a':1,'b':2}</p>
+<p>d.setdefault('c',3) <span>&nbsp; # 返回值为3，并且改变d</span></p>
+<p><span>#结果 d={'a':1,'b':2,'c':3} </span></p>
+</td>
+</tr>
+<tr>
+<td class="name">d.update(<span>b</span>)</td>
+<td>将入参字典b中所有的&ldquo;键值对&rdquo;添加到d中，若b与d中有键重复，则原d中的&ldquo;键值对&rdquo;被新值覆盖。</td>
+<td class="example">
+<p>d={'a':1,'b':2}</p>
+<p>d.update({'b':20,'c':3})</p>
+<p><span># 结果为 d={'a':1,'b':20,'c':3}</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 id="">&nbsp;<span style="font-family: 'Microsoft YaHei';">（5）集合操作</span></h2>
+<p style="text-indent: 2em;">集合同样也是无序的，分为可变集合（set）和不可变集合（frozenset）两种，可变集合用大括号&ldquo;{}&rdquo;表示。</p>
+<table style="width: 100%;" dir="ltr" border="1" frame="border" cellspacing="0" cellpadding="0" align="left"><colgroup> <col width="180" /> <col width="340" /> </colgroup>
+<thead>
+<tr><th style="text-align: center;">操作或方法</th><th style="text-align: center;">简述</th><th style="text-align: center;">举例或说明</th></tr>
+</thead>
+<tbody><!----- 通用集合操作 ------------------------------------------>
+<tr>
+<td class="subtitle" colspan="4"><strong>通用集合操作</strong></td>
+</tr>
+<tr>
+<td class="name">s.copy()</td>
+<td>返回s的一个浅复制副本</td>
+<td class="example">
+<p>s2=s.copy() <span>&nbsp;# s2为s的一个浅复制副本，并不指向s </span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.issubset(<span>t</span>)</td>
+<td>如果s是t的一个子集，则返回True</td>
+<td class="example">
+<p>{1}.issubset({1,2}) <span>&nbsp; # 结果为 True</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.issuperset(<span>t</span>)</td>
+<td>如果s是t的一个超集，则返回True</td>
+<td class="example">
+<p>{1,2}.issuperset{{1}} <span>&nbsp; # 结果为 True</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.union(<span>t</span>)</td>
+<td>求s和t的并集</td>
+<td class="example">
+<p>{1,2}.union({2,3}) <span>&nbsp; # 结果为 {1,2,3}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.intersection(<span>t</span>)</td>
+<td>求s和t的交集</td>
+<td class="example">
+<p>{1,2}.intersection({2,3}) <span>&nbsp; # 结果为 {1,2,3}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.isdisjoint(<span>t</span>)</td>
+<td>如果s和t没有交集，则返回True</td>
+<td class="example">
+<p>{1,2}.isdisjoint({3}) <span>&nbsp; # 结果为 True</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.difference(<span>t</span>)</td>
+<td>求差集s-t</td>
+<td class="example">
+<p>{1,2,3}.difference({1,2}) <span>&nbsp; # 结果为 {3}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.symmetric_difference(<span>t</span>)</td>
+<td>返回所有在s或t中，但又不同时属于这两个集合中的项的集合（对称差集）</td>
+<td class="example">
+<p>{1,2}.symmetric_difference({2,3})</p>
+<p><span># 结果为 {1,3}</span></p>
+</td>
+</tr>
+<!----- 可变集合专用方法 ------------------------------------------>
+<tr>
+<td class="subtitle" colspan="4"><strong>可变集合专用方法</strong></td>
+</tr>
+<tr>
+<td class="name">set(<span>[iter]</span>)</td>
+<td>可以用任何可迭代对象来生成一个集合</td>
+<td class="example">
+<p>s = set() <span>&nbsp; # 结果为 {}，效果同 s={}</span></p>
+<p>s = set([1,2]) <span>&nbsp; # 结果为 {1,2}</span></p>
+<p>s = set('abc') <span>&nbsp; # 结果为 {'a','b','c'}</span></p>
+<p>s = set({'a':1}) <span>&nbsp; # 结果为 {'a'}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.clear()</td>
+<td>删除集合s中的所有项</td>
+<td class="example">
+<p>s.clear() <span>&nbsp; # 结果为 {}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.add(<span>x</span>)</td>
+<td>将x添加到集合s中，若x已在集合中，则无任何效果</td>
+<td class="example">
+<p>{1,2}.add(3) <span>&nbsp; # 结果为 {1,2,3}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.discard(<span>x</span>)</td>
+<td>从s中删除成员x，若x不在集合中，则无任何效果</td>
+<td class="example">
+<p>{1,2,3}.discard({3}) <span>&nbsp; # 结果为 {1,2}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.remove(<span>x</span>)</td>
+<td>从s中删除成员x，若x不在集合中，则引发KeyError错误</td>
+<td class="example">
+<p>{1,2}.remove({3}) <span>&nbsp; # 结果引发KeyError错误 </span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.pop()</td>
+<td>随机从s中返回一个元素，并将其从s中删除</td>
+<td class="example">
+<p>{1,2,3}.pop() <span>&nbsp; # 返回值为2，结果为{1,3} </span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.update(<span>iter</span>)</td>
+<td>将iter中所有对象添加到s中，iter可以是任何可迭代对象</td>
+<td class="example">
+<p>{1}.update([1,2,3]) <span>&nbsp; # 结果为 {1,2,3}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.intersection_update(<span>t</span>)</td>
+<td>将s更新为：s与t的交集</td>
+<td class="example">
+<p>{1,2}.intersection_update({2,3})<span>&nbsp;# 结果为 {2}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.dirrerence_update(<span>t</span>)</td>
+<td>从s中删除同时也在t中的项</td>
+<td class="example">
+<p>{1,2,3}.difference_update({1})<span>&nbsp;# 结果为 {2,3}</span></p>
+</td>
+</tr>
+<tr>
+<td class="name">s.symmetric_difference_update(<span>t</span>)</td>
+<td>将s更新为：所有在s或t中，但又不同时在这两个集合中的项（对称差集）</td>
+<td class="example">
+<p>{1,2}.symmetric_difference_update({2,3})</p>
+<p><span># 结果为 {1,3}</span></p>
+</td>
+</tr>
+<!----- 不可变集合专用方法 ------------------------------------------>
+<tr>
+<td class="subtitle" colspan="4"><strong>不可变集合专用方法</strong></td>
+</tr>
+<tr>
+<td class="name">frozenset(<span>[iter]</span>)</td>
+<td>可以用任何可迭代对象来生成一个不可变集合</td>
+<td class="example">
+<p>f = frozenset() <span>&nbsp; # 结果为 frozenset()</span></p>
+<p>f = frozenset([1]) <span>&nbsp;# 结果为 frozenset({1})</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2 id="">&nbsp;<span style="font-family: 'Microsoft YaHei';">（6）浅复制与深复制</span></h2>
+<p style="text-indent: 2em;">前面的list(), tuple(), dict(), set(), frosenset()在复制一个已有对象时，使用的都是&ldquo;浅复制&rdquo;，即：只有数字（整数/浮点数/布尔值/复数）是实打实复制一个新的数字，其他所有类型都是共享的（列表、字符串、对象等）。</p>
+<!-- 高级代码块 -->
+<div class="cnblogs_code" style="margin-top: 0;">
+<pre class="brush:python;gutter:true;">a = [1,2,[3,4]]
+b = list(a)
+b.append(5)   # b新添加的值不影响a
+
+# 但是若作以下修改，会影响a
+b[2][0] = 6
+
+# 结果：a = [1,2[6,4]]</pre>
+</div>
+<p>&nbsp;</p>
+<p style="text-indent: 2em;">而&ldquo;深复制&rdquo;将在创建新对象时，将<strong>递归地</strong>复制它所包含的所有对象</p>
+<div class="cnblogs_code" style="margin-top: 0;">
+<pre class="brush:python;gutter:true;">import copy
+a = [1,2,[3,4]]
+b = copy.deepcopy(a)
+# b 和 a 现在是两个完完全全不相干的列表</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><a class="return" href="https://www.cnblogs.com/initcircuit/p/11849378.html">返回目录</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

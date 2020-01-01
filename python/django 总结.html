@@ -1,0 +1,430 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修django 总结' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>django 总结</center></div><div class='banquan'>原文出处:本文由博客园博主CoderJerry提供。<br/>
+原文连接:https://www.cnblogs.com/yangyuanhu/p/11531247.html</div><br>
+    <p>该文章没有任何理论概念的解释,建议读者具备基本web框架知识</p>
+<h1 id="视图函数">1.视图函数</h1>
+<pre><code><code>def login(req):
+    print(req.method)
+    # 判断请求方式 注意都是大写的
+    if req.method == &quot;GET&quot;:
+        # 直接返回页面  这里是使用请求方式来区分同一个地址的 请求的目的
+        return render(req, &quot;login.html&quot;)
+    elif req.method == &quot;POST&quot;:
+        # 如果是post请求就获取数据
+        # print(req.POST) # POST  或GET 获取到的都是一个字典QueryDict类型
+        # print(req.POST.get(&quot;hobby&quot;)) # 每个值都是一个数组类型  直接get得到的是最后一个值
+        # print(req.POST.getlist(&quot;hobby&quot;))  # 获取所有值 以列表形式
+
+
+        # 获取用户名和密码:
+        user = req.POST.get(&quot;user&quot;)
+        pwd = req.POST.get(&quot;pwd&quot;)
+
+        # 查询数据库
+        pool = ZS_POOL.ConnectPool()
+        res = pool.execute_sql(&quot;select *from person where name = %s and password = %s&quot;,[user,pwd])
+        print(res)
+        if res[0]:
+            return HttpResponse(&quot;login success!&quot;)
+        return HttpResponse(&quot;login failed!&quot;)
+
+    return HttpResponse()
+</code></pre>
+<h3 id="视图函数的返回值">1.1视图函数的返回值</h3>
+<p>django要求视图函数必须返回一个HTTPResponse对象,render函数和 redirect 函数其实都是返回了一个特定的HTTPResponse对象</p>
+<h4 id="reder函数">1.2 reder函数</h4>
+<p>render函数用于渲染一个模板文件,这里的渲染指的是将动态数据填充到页面文件中,</p>
+<p>该函数接收一个request请求对象,一个模板文件,一个context,</p>
+<p>其中context用于,向模板中传递数据,以字典形式,模板文件中可以使用模板语言从context中取出数据</p>
+<p>案例:</p>
+<pre><code><code>def user_list(req):
+    if req.method == &quot;GET&quot;:
+        return render(req,&quot;users.html&quot;,context={&quot;users&quot;:[&quot;jack&quot;,&quot;rose&quot;]})</code></pre>
+<h4 id="redirect函数">1.3 redirect函数</h4>
+<p>redirect函数用于重定向页面,返回值为HttpResonse,需要说明的是重定向的本质是让客户端重新发起新请求,请求另一个地址</p>
+<p>案例:</p>
+<pre><code><code>return redirect(&quot;/userlist&quot;)</code></pre>
+<h4 id="jsonresponse">1.4 JsonResponse</h4>
+<p>JsonResponse继承自HttpResponse,用于向前台返回json格式的响应数据</p>
+<pre><code><code>return JsonResponse({&quot;users&quot;:[&quot;json&quot;,&quot;scot&quot;]})
+
+
+
+return JsonResponse([&quot;json&quot;,&quot;scot&quot;])
+# 上面报错 因为默认只能序列化字典格式,如果要序列化其他类型 需要价格safe设置为False
+return JsonResponse([&quot;json&quot;,&quot;scot&quot;],safe=False)
+</code></pre>
+<h1 id="配置文件">2.配置文件</h1>
+<h2 id="静态文件配置">2.1静态文件配置</h2>
+<pre><code><code># Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/2.2/howto/static-files/
+
+STATIC_URL = &#39;/static/&#39;  # 静态路由, 路径为根路径+/static时将返回下列路径中的静态文件
+
+# 静态文件搜索路径 ,可以是列表
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR,&quot;static&quot;)
+]</code></pre>
+<p>在模板中可以从像反向解析一样从配置文件中拿到这个静态前缀</p>
+<pre class="html"><code>{% load static %}
+{% get_static_prefix %}
+&lt;a href=&quot;{% get_static_prefix %}upload.html&quot;&gt;page&lt;/a&gt;
+
+# 注意不要加/ 
+&lt;a href=&quot;{% get_static_prefix %}/upload.html&quot;&gt;page&lt;/a&gt;</code></pre>
+<h2 id="模板路径配置">2.2模板路径配置</h2>
+<p><img src="./images/django 总结0.png" alt="image-20190916102755612" /></p>
+<h2 id="补充pycharm链接数据库">补充:pycharm链接数据库</h2>
+<p><img src="./images/django 总结1.png" alt="image-20190916103320083" /></p>
+<h1 id="路由">3.路由</h1>
+<h3 id="提取路径中的参数">3.1 提取路径中的参数</h3>
+<p>1.* 的url 函数 与2.* re_path 使用方式一致</p>
+<p>第一个参数为正则表达式,第二个是要调用的函数名称</p>
+<p>re_path下的配置以及参数捕获</p>
+<p>先声明:不使用复杂的url配置直接将参数放在?后面也是可以完成所有需求的</p>
+<p>那么使用复杂的配置从path中取值的目的是什么呢? <strong>伪静态!</strong></p>
+<p><strong>而伪静态是为了SEO优化</strong></p>
+<ul>
+<li><p>无名分组:</p>
+<p>从path中使用re获取值然后当做位置参数传给视图函数</p></li>
+</ul>
+<pre><code><code>re_path(&#39;^book/(\d+)/$&#39;, views.book),
+
+#视图函数
+def book(request,any_name):
+  pass</code></pre>
+<ul>
+<li><p>有名分组:</p>
+<p>从path中使用re获取值然后当做关键字参数传给视图函数</p></li>
+</ul>
+<pre><code><code>re_path(&#39;^book/(?P&lt;id&gt;\d+)/$&#39;, views.book),
+
+#视图函数  参数名称必须与url配置中完全相同
+def book(request,id):
+  pass</code></pre>
+<h3 id="下的path">3.2 2.* 下的path</h3>
+<p>2.*版本下默认使用的是path,path其实就是老版本url的有名分组,捕获的参数都会以关键字的形式传给视图函数</p>
+<ul>
+<li>用法:</li>
+</ul>
+<pre><code><code>path(&#39;gets/&lt;page&gt;/info&#39;, views.gets),
+
+# &lt;&gt; 表示分组  括号中的page是参数名称
+
+</code></pre>
+<ul>
+<li><p>转换器</p>
+<p>本质就是封装的正则 最后在帮你做了类型转换</p></li>
+</ul>
+<pre><code><code>path(&#39;gets/&lt;int:page&gt;/info&#39;, views.gets),</code></pre>
+<ul>
+<li><p>自定义转换器</p>
+<p>当你的规则比较复杂或是要转换为特殊的类型时可以自定义转换器,有以下要求</p>
+<ul>
+<li><code>regex</code> 类属性，字符串类型</li>
+<li><code>to_python(self, value)</code> 方法，value是由类属性 <code>regex</code> 所匹配到的字符串，返回具体的Python变量值，以供Django传递到对应的视图函数中。</li>
+<li><code>to_url(self, value)</code> 方法，和 <code>to_python</code> 相反，value是一个具体的Python变量值，返回其字符串，通常用于url反向引用。</li>
+</ul>
+<p>案例:</p>
+<pre><code><code>class FourDigitYearConverter:
+    regex = &#39;[0-9]{4}&#39;
+    def to_python(self, value):
+        return int(value)
+    def to_url(self, value):
+        return &#39;%04d&#39; % value
+# 该转换器用于匹配4位的整数 并转为int类型</code></pre>
+<p>使用:</p>
+<pre><code><code># 注册
+register_converter(converters.FourDigitYearConverter, &#39;yyyy&#39;)
+# 使用
+urlpatterns = [
+    path(&#39;articles/2003/&#39;, views.special_case_2003),
+    path(&#39;articles/&lt;yyyy:year&gt;/&#39;, views.year_archive),</code></pre></li>
+</ul>
+<h3 id="反向解析">3.3反向解析</h3>
+<p><strong>何为反向</strong>,正常的请求流程是先走路由,在执行视图函数渲染模板,</p>
+<p>当我们在模板或者视图函数中需要获取路由信息时就称之为反向解析</p>
+<p><strong>为什么要这样做呢?</strong>,目的是为了方便后续修改路由配置,反向解析可以获取请求路径信息,而避免直接写死路径带来的麻烦事</p>
+<p>下例方法适用于1.* 中的url函数</p>
+<p>首先需要在路由中为这个路由指定一个名称</p>
+<ul>
+<li>不带分组</li>
+</ul>
+<pre><code><code>#路由
+re_path(&#39;books&#39;, views.books,name=&quot;path1&quot;)
+
+#视图函数取值
+print(reverse(&quot;path1&quot;))
+
+#模板取值
+&lt;h1&gt;{% url &quot;path1&quot; %}&lt;/h1&gt;</code></pre>
+<ul>
+<li>无名分组</li>
+</ul>
+<pre><code><code>#路由
+re_path(&#39;books/(\d+)&#39;, views.books2,name=&quot;path2&quot;),
+
+#视图函数取值
+print(reverse(&quot;path2&quot;,args=(&quot;100&quot;,)))
+
+#模板取值
+&lt;h1&gt;{% url &quot;path2&quot; &quot;1&quot; %}&lt;/h1&gt;</code></pre>
+<ul>
+<li>有名分组</li>
+</ul>
+<pre><code><code>#路由
+re_path(&#39;books3/(?P&lt;id&gt;\d+)&#39;, views.books3,name=&quot;path3&quot;),
+
+
+#视图函数取值
+print(reverse(&quot;path3&quot;, args=(&quot;100&quot;,)))
+# or
+print(reverse(&quot;path3&quot;, kwargs={&quot;id&quot;: &quot;100&quot;}))
+
+#模板取值
+&lt;h1&gt;{% url &quot;path3&quot; &quot;1&quot; %}&lt;/h1&gt;
+# or
+&lt;h1&gt;{% url &quot;path3&quot; id=&quot;1&quot; %}&lt;/h1&gt;</code></pre>
+<p>另外反向解析本质就是做字符串拼接,所以无论在什么位置只要存在就可以解析</p>
+<h3 id="路由分发">3.4路由分发</h3>
+<p>当应用程序体积大 模块多时需要拆分多个不同APP,同时urls也不能全都写在主路由配置中</p>
+<p>这就需要在主路由配置文件中引入其他app中的路由配置信息</p>
+<ul>
+<li>引入案例:</li>
+</ul>
+<p>主路由配置文件:</p>
+<pre><code><code>from django.urls import include, path
+
+urlpatterns = [
+   # 可以是完整的模块路径
+    path(&#39;help/&#39;, include(&#39;apps.help.urls&#39;)),
+   # 可以是一个已经导入的模块名称 
+    path(&#39;credit/&#39;, include(a_urls)),
+]</code></pre>
+<p>当请求路径为 http:xxxxxxx:8000/help/test/ 是将请求交给apps.help.urls来进行匹配,</p>
+<p><strong>需要强调的是在apps.help.urls中拿到的路径是已经去除前缀的,也就是只有/test/部分</strong></p>
+<ul>
+<li>使用include来简化书写:</li>
+</ul>
+<p>简化前</p>
+<pre><code><code>urlpatterns = [
+    path(&#39;&lt;page_slug&gt;-&lt;page_id&gt;/history/&#39;, views.history),
+    path(&#39;&lt;page_slug&gt;-&lt;page_id&gt;/edit/&#39;, views.edit),
+    path(&#39;&lt;page_slug&gt;-&lt;page_id&gt;/discuss/&#39;, views.discuss),
+    path(&#39;&lt;page_slug&gt;-&lt;page_id&gt;/permissions/&#39;, views.permissions),
+]</code></pre>
+<p>简化后:</p>
+<pre><code><code>urlpatterns = [
+    path(&#39;&lt;page_slug&gt;-&lt;page_id&gt;/&#39;, include([
+        path(&#39;history/&#39;, views.history),
+        path(&#39;edit/&#39;, views.edit),
+        path(&#39;discuss/&#39;, views.discuss),
+        path(&#39;permissions/&#39;, views.permissions),
+    ])),
+]</code></pre>
+<h4 id="路由分发中的名称空间">路由分发中的名称空间</h4>
+<p>当多个app中出现了相同名称的路由时,反向解析将出现问题</p>
+<ul>
+<li>解决方案1</li>
+</ul>
+<p>手动给name添加别名</p>
+<pre><code><code>re_path(&#39;^books$&#39;, views.books,name=&quot;appname_path1&quot;),</code></pre>
+<ul>
+<li>解决方案2</li>
+</ul>
+<p>在include中指定namespace</p>
+<pre><code><code>path(&quot;app01/&quot;,include(&quot;app01.urls&quot;,namespace=&quot;app01&quot;))
+
+#视图函数取值
+print(reverse(&quot;app01:path1&quot;))
+
+#模板取值
+&lt;h1&gt;{% url &quot;app01:path1&quot; %}&lt;/h1&gt;</code></pre>
+<h2 id="fbv---cbv">FBV - CBV</h2>
+<p>Function Base View 基于函数的视图</p>
+<p>Class Base View 基于class的视图:</p>
+<pre><code><code>
+# 路由
+path(&#39;student/&#39;, views.Student.as_view()),
+
+# 视图
+class Student(View):
+
+    def get(self,request):
+        print(&quot;get&quot;)
+        return HttpResponse(&quot;get request&lt;form action=&#39;&#39; method=&#39;post&#39;&gt;&lt;input type=&#39;submit&#39;&gt;&lt;/form&gt;&quot;)
+
+    def post(self, request):
+        print(&quot;post&quot;)
+        return HttpResponse(&quot;post request&quot;)</code></pre>
+<p>注意:函数必须是小写的 且接收一个request参数 源码如下:</p>
+<pre><code><code>handler = getattr(self, request.method.lower(), self.http_method_not_allowed)</code></pre>
+<h2 id="文件上传">文件上传</h2>
+<p>前台:</p>
+<pre><code><code> &lt;form action=&quot;/app1/upload_file&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+{#    &lt;form action=&quot;/app1/upload_file&quot; method=&quot;post&quot; enctype=&quot;application/x-www-form-urlencoded&quot;&gt;#}
+        &lt;input value=&quot;12312&quot; name=&quot;info&quot;&gt;
+        &lt;input type=&quot;file&quot; name=&quot;file1&quot;&gt;
+        &lt;input type=&quot;file&quot; name=&quot;file2&quot;&gt;
+        &lt;input type=&quot;submit&quot;&gt;
+    &lt;/form&gt;</code></pre>
+<p>后台:</p>
+<pre><code><code>class FileUpload(View):
+    def post(self,request):
+        print(request.POST)
+        print(request.FILES)
+        for name in request.FILES:
+            file = request.FILES.get(name)
+            with open(file.name,&quot;wb&quot;) as f:
+                for line in file:
+                    f.write(line)
+        return JsonResponse(&quot;ok&quot;,safe=False)</code></pre>
+<p>注意:经过测试enctype=&quot;multipart/form-data&quot; 或者 enctype=&quot;application/x-www-form-urlencoded&quot; 都是可以上传成功的 ,另外除了文件以外的参数也可以通过POST来获取</p>
+<h1 id="模板">模板</h1>
+<h3 id="语法">语法:</h3>
+<p>重点:模板访问context中的内容</p>
+<p>contexnt是模板与视图交互的容器,是一个字典类型</p>
+<p>在模板中使用{{ key名称 }} 来从context中取出一个值,并调用__str拿到这个值的字符串表现形式进行渲染</p>
+<pre><code><code>&lt;h1&gt;{{ title }}&lt;/h1&gt;</code></pre>
+<p>用点来展开这个值的属性,如果要访问的属性是一个函数会自动执行,并拿到函数返回值来渲染</p>
+<pre><code><code>&lt;h1&gt;{{ user.name }}&lt;/h1&gt;</code></pre>
+<h3 id="过滤器">过滤器:</h3>
+<p>这个名字很费解,但是过滤器的本质目的就是对即将渲染的值进行一些简单处理,例如字符串截断,空值判断,长度,单位转换等</p>
+<p>语法:</p>
+<pre><code><code>{{obj|filter__name:param}}  要处理变量名字|过滤器名称：另一个参数(如果需要)
+#实例:
+{{ value|default:&quot;nothing&quot; }}
+如果value为空则显示nothing</code></pre>
+<h3 id="标签">标签:</h3>
+<p>语法:</p>
+<pre><code><code>{% for | if | with.... %}
+
+{% endfor | endif endwith%}</code></pre>
+<p>实例:</p>
+<pre><code><code>{% if num &gt; 100 or num &lt; 0 %}
+    &lt;p&gt;无效&lt;/p&gt;
+{% elif num &gt; 80 and num &lt; 100 %}
+    &lt;p&gt;优秀&lt;/p&gt;
+{% else %}
+    &lt;p&gt;凑活吧&lt;/p&gt;
+{% endif %}</code></pre>
+<p>标签的目的是在模板中使用模板语言来玩一些基础的逻辑处理,例如循环,判断.等</p>
+<p>过滤器与标签的本质都是一个函数,我们可以自己来定义标签和过滤器,按照以下方式:</p>
+<pre><code><code>1、在settings中的INSTALLED_APPS配置当前app，不然django无法找到自定义的simple_tag.
+
+2、在app中创建templatetags模块(模块名只能是templatetags)
+
+3、创建任意 .py 文件，如：my_tags.py</code></pre>
+<p>案例:</p>
+<pre><code><code>from django import template
+from django.utils.safestring import mark_safe
+ 
+register = template.Library()   #register的名字是固定的,不可改变
+ 
+ 
+@register.filter
+def filter_multi(v1,v2):
+    return  v1 * v2
+&lt;br&gt;
+@register.simple_tag
+def simple_tag_multi(v1,v2):
+    return  v1 * v2
+&lt;br&gt;
+@register.simple_tag
+def my_input(id,arg):
+    result = &quot;&lt;input type=&#39;text&#39; id=&#39;%s&#39; class=&#39;%s&#39; /&gt;&quot; %(id,arg,)
+    return mark_safe(result)
+  
+  
+# 最后在模板中使用load来加载自定义标签和过滤器:
+{% load my_tags %}　</code></pre>
+<h3 id="模板的包含与继承">模板的包含与继承</h3>
+<p>这两个点对于大型项目而言非常重要,因为很多页面具备相同的地方,前端如果不用框架的话,要是先页面复用不是一件容易的事情,但是放到后台来做就非常简单了;</p>
+<p>其目的是为了复用已存在的模板或者是将页面分为不同板块进行解耦合</p>
+<ul>
+<li>包含</li>
+</ul>
+<pre><code><code>语法：{% include &#39;模版名称&#39; %}
+如：{% include &#39;adv.html&#39; %}
+#本质是直接将被包含的文件内容放到这个位置,字符串替换一个道理</code></pre>
+<ul>
+<li>继承</li>
+</ul>
+<p>继承则是在父级模板中 本质是提前留一个字符串空间(域,或者叫做范围 有开始 有结束 ),并给这个空间取个名称,然后在子模板中编写内容,替换到这个位置</p>
+<p>父级:</p>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;/&gt;
+    &lt;title&gt;{% block title %}My amazing site{% endblock %}&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+&lt;div id=&quot;sidebar&quot;&gt;
+    {% block sidebar %}
+        &lt;ul&gt;
+            &lt;li&gt;&lt;a href=&quot;/&quot;&gt;Home&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;/blog/&quot;&gt;Blog&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+    {% endblock %}
+&lt;/div&gt;
+
+&lt;div id=&quot;content&quot;&gt;
+    {% block content %}{% endblock %}
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>子级模板:</p>
+<pre><code><code>{% extends &quot;base.html&quot; %}
+ 
+{% block title %}My amazing blog{% endblock %}
+ 
+{% block content %}
+{% for entry in blog_entries %}
+    &lt;h2&gt;{{ entry.title }}&lt;/h2&gt;
+    &lt;p&gt;{{ entry.body }}&lt;/p&gt;
+{% endfor %}
+{% endblock %}</code></pre>
+<p>上面的sidebar位置并没有被子级覆盖所以还是现实了父级的内容,就像class的继承一样子级可以选择覆盖也可以选择不覆盖,</p>
+<p>子级中可以在某个block块中引如父级原本的内容</p>
+<pre><code><code>{% block title %}
+    {{ block.super }}
+{% endblock %}</code></pre>
+<p>注意:extends 语句必须位于第一行</p>
+<h1 id="django单元测试">Django单元测试</h1>
+<p>当我们想要针对某个部分代码进行测试时,直接执行Django相关的代码将无法成功,因为Django没有被正确的初始化,所以如果我们的测试代码中包含了Django提供的任何功能我们就需要在测试前线初始化Django环境</p>
+<p>在任意测试文件中添加一下代码</p>
+<pre><code><code>import os
+if __name__ == &#39;__main__&#39;:
+    os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;项目名称.settings&quot;)
+    import django
+    django.setup()
+
+#    测试代码:
+    from app01 import models
+    books = models.Book.objects.all()
+    print(books)</code></pre>
+<p>注意:导入的代码也必须放到setup()之后执行!</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

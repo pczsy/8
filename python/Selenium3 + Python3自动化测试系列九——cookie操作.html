@@ -1,0 +1,70 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Selenium3 + Python3自动化测试系列九——cookie操作' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Selenium3 + Python3自动化测试系列九——cookie操作</center></div><div class='banquan'>原文出处:本文由博客园博主wuwei丶提供。<br/>
+原文连接:https://www.cnblogs.com/wuweiblogs/p/11429231.html</div><br>
+    <h2>cookie操作</h2>
+<h3>一、Cookie操作</h3>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">WebDriver提供了操作Cookie的相关方法，可以读取、添加和删除cookie信息。</span></p>
+<p class="brush:python;gutter:true;" style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">使用方法：</span></p>
+<p class="brush:python;gutter:true;" style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">1：get_cookies() ,获取cookie信息</span></p>
+<p class="brush:python;gutter:true;" style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">2：get_cookie(name),即获取key的信息</span></p>
+<p class="brush:python;gutter:true;" style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">3：add_cookies(cookie_dict),添加cookie信息,cook_dict 指的是name 和 Value</span></p>
+<p class="brush:python;gutter:true;" style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">4：delete_cookie(name,opitionsString):删除cookie信息，name为cookie的名称，optionsString为cookie的选项</span></p>
+<p class="brush:python;gutter:true;" style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">5：delete_all_cookies():删除cookie信息</span></p>
+<h3 class="brush:python;gutter:true;">二、Cookie实例</h3>
+<p class="brush:python;gutter:true;" style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">下面我们来举个小小栗子。学习一下cookie是如何操作的。我们对百度首页的cookie进行查询，添加，与删除操作。具体代码如下：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> selenium.webdriver <span style="color: #0000ff;">import</span><span style="color: #000000;"> Chrome
+</span><span style="color: #0000ff;">from</span> time <span style="color: #0000ff;">import</span><span style="color: #000000;"> sleep
+
+driver </span>= Chrome(<span style="color: #800000;">"</span><span style="color: #800000;">C:\Program Files (x86)\Google\Chrome\Application\chromedriver.exe</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+driver.get(</span><span style="color: #800000;">"</span><span style="color: #800000;">https://www.baidu.com</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取所有cookie信息</span>
+cookies =<span style="color: #000000;"> driver.get_cookies()
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(cookies)
+sleep(</span>2<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 添加name=wuwei,value=123456的cookie信息</span>
+driver.add_cookie({<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">wuwei</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">value</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span><span style="color: #000000;">})
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 打印出所有cookie,name与value分开打印</span>
+<span style="color: #0000ff;">for</span> cookie <span style="color: #0000ff;">in</span><span style="color: #000000;"> driver.get_cookies():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">%s--&gt;%s</span><span style="color: #800000;">"</span> % (cookie[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>], cookie[<span style="color: #800000;">'</span><span style="color: #800000;">value</span><span style="color: #800000;">'</span><span style="color: #000000;">]))
+sleep(</span>2<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除名称为wuwei的cookie</span>
+driver.delete_cookie(name=<span style="color: #800000;">'</span><span style="color: #800000;">wuwei</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 打印出所有cookie,name与value分开打印</span>
+<span style="color: #0000ff;">for</span> cookie2 <span style="color: #0000ff;">in</span><span style="color: #000000;"> driver.get_cookies():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">%s--&gt;%s</span><span style="color: #800000;">"</span> % (cookie2[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>], cookie2[<span style="color: #800000;">'</span><span style="color: #800000;">value</span><span style="color: #800000;">'</span><span style="color: #000000;">]))
+sleep(</span>2<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除所有cookie</span>
+<span style="color: #000000;">driver.delete_all_cookies()
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(driver.get_cookies())
+driver.quit()</span></pre>
+</div>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">　　上述代码执行结果如下图：</span></p>
+<p style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 16px;"><img src="./images/Selenium3 + Python3自动化测试系列九——cookie操作0.png" alt="" width="810" height="396" /></span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 16px;">　　从上述执行结果可看出来，cookie数据是以字典的形式进行存放的。知道了cookie的存放形式，我们就可以按照这种形式向浏览器中写入cookie信息。通过遍历得到所有的cookie信息，从而打印所有cookie的key和value的值。<br />　　<br /></span></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

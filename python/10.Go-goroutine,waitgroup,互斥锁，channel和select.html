@@ -1,0 +1,271 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修10.Go-goroutine,waitgroup,互斥锁，channel和select' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>10.Go-goroutine,waitgroup,互斥锁，channel和select</center></div><div class='banquan'>原文出处:本文由博客园博主zhang_derek提供。<br/>
+原文连接:https://www.cnblogs.com/derek1184405959/p/11333376.html</div><br>
+    <h3><span style="color: #ff00ff;">10.1.goroutine</span></h3>
+<p>goroutine的使用</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func demo(count int)  {
+	for i :=1; i &lt; 10; i++{
+		fmt.Println(count,":",i)
+	}
+}
+
+func main() {
+	for i :=1; i &lt; 10; i++{
+		go demo(i)
+	}
+	//添加休眠时间等待goroutine执行结束
+	time.Sleep(3e9)
+}
+</pre>
+</div>
+<h3><span style="color: #ff00ff;">10.2.waitgroup</span></h3>
+<p>WaitGroup直译为等待组，其实就是计数器，只要计数器中有内容将一直阻塞</p>
+<p>WaitGroup有三种方法</p>
+<ul>
+<li>Add(delta int)表示向内部计数器添加增量(delta),其中参数delta可以使负数</li>
+<li>Done() 表示减少waitgroup计数器的值，应当在程序最后执行，相当于Add(-1)</li>
+<li>Wait()&nbsp; 表示阻塞知道waitgroup计数器为0</li>
+</ul>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(5)
+	for i := 0; i &lt; 5; i++{
+		go func(j int) {
+			fmt.Println("第",j,"次执行")
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	fmt.Println("程序结束")
+}</pre>
+</div>
+<h3><span style="color: #ff00ff;">10.3.互斥锁和读写锁</span></h3>
+<p>（1）互斥锁</p>
+<p>可以使用sync.Mutex对内容加锁，互斥锁的使用场景</p>
+<ul>
+<li>多个gouroutine访问同一个函数代码段</li>
+<li>操作一个全局变量</li>
+<li>为了保证共享变量安全性，值安全性</li>
+</ul>
+<p>&nbsp;（2）读写锁</p>
+<p>Go语言中的map不是线程安全的，多个gouroutine同时操作会出现错误</p>
+<p>RWMutex可以添加多个读锁或者一个写锁，读写锁不能同时存在</p>
+<p>map在并发下读写就需要结合读写锁完成</p>
+<p>互斥锁表示锁的代码同一时间只能有一个goroutine运行，而读写锁表示在锁范围内数据的读写操作</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var rwm sync.RWMutex
+	var wg sync.WaitGroup
+	wg.Add(10)
+	m := make(map[int]int)
+	for i := 0; i &lt; 10; i++{
+		go func(j int) {
+			rwm.Lock()
+			m[j] = j
+			fmt.Println(m)
+			rwm.Unlock()
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	fmt.Println("程序结束")
+}
+</pre>
+</div>
+<h3><span style="color: #ff00ff;">10.4.channel</span></h3>
+<p>channel是进程内通信方式，每个channel只能传递一个类型的值，这个类型需要在声明channel时指定</p>
+<p>channel在Go中主要的两个作用：同步和通信</p>
+<p>（1）声明channel的语法</p>
+<ul>
+<li>var 名称 chan 类型</li>
+<li>var 名称 chan &lt;- 类型&nbsp; &nbsp; &nbsp; &nbsp;只写</li>
+<li>var 名称 &lt;- chan 类型&nbsp; &nbsp; &nbsp; &nbsp;只读</li>
+<li>名称 := make(chan int)&nbsp; &nbsp; &nbsp; 无缓存chanel</li>
+<li>名称 := make(chan int)&nbsp; &nbsp; &nbsp; 无缓存channel</li>
+<li>名称 := make(chan int,100)&nbsp; &nbsp; &nbsp;有缓存channel</li>
+</ul>
+<p>&nbsp;（2）操作channel的语法</p>
+<ul>
+<li>ch &lt;- 值&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 向ch中添加一个值</li>
+<li>&lt;- ch&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;从ch中取出一个值</li>
+<li>a := &lt;-ch&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;从ch中取出一个值并赋值给a</li>
+<li>a,b := &lt;-ch&nbsp; &nbsp; &nbsp; &nbsp;从ch中取出一个值赋值给a,如果ch已经关闭或ch中没有值，b为false,</li>
+</ul>
+<p>&nbsp;（3）无论是向channel存数据还是取数据都会阻塞</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+func main() {
+	ch := make(chan int)
+	go func() {
+		fmt.Println("执行")
+		ch &lt;- 111     
+	}()
+	a := &lt;- ch
+	fmt.Println(a)
+	fmt.Println("程序结束")
+}
+</pre>
+</div>
+<p>　（4）使用channel实现gouroutine之间通信</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+func main() {
+	ch1 := make(chan string)
+	ch2 := make(chan int)
+
+	go func() {
+		ch1 &lt;- "derek"
+		ch2 &lt;- 111
+	}()
+
+	go func() {
+		content := &lt;- ch1
+		fmt.Println("取出数据：",content)       //取出数据： derek
+		ch2 &lt;- 222
+	}()
+
+	a := &lt;- ch2
+	b := &lt;- ch2
+	fmt.Println(a,b)              //111 222
+	fmt.Println("程序结束")
+}
+</pre>
+</div>
+<p>　（5）可以使用for range获取channel中内容</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+func main() {
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+
+	go func() {
+		for i := 0; i&lt;10;i++{
+			ch1 &lt;- i
+		}
+		ch2 &lt;- 222
+	}()
+
+	go func() {
+		for n := range ch1{
+			fmt.Println(n)
+		}
+	}()
+	&lt;- ch2
+	fmt.Println("程序结束")
+}
+</pre>
+</div>
+<h3><span style="color: #ff00ff;">10.5.select</span></h3>
+<p>select执行过程</p>
+<ul>
+<li>每个case必须是一个IO操作</li>
+<li>哪个case可以执行就执行哪个</li>
+<li>所有case都不能执行时，执行default</li>
+<li>所有case都不能执行且没有default，将会阻塞</li>
+</ul>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+func main() {
+	ch1 := make(chan int,2)       //有缓存的channel
+	ch2 := make(chan int,3)
+	ch1 &lt;- 111
+	ch2 &lt;- 222
+	select {
+	case a := &lt;-ch1:
+		fmt.Println(a)
+	case b := &lt;-ch2:
+		fmt.Println(b)
+	default:
+		fmt.Println("错误")
+	}
+}
+</pre>
+</div>
+<p>　select多和for循环结合使用</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+func main() {
+	ch := make(chan int)
+	for i := 0; i &lt; 10;i++{
+		go func(j int) {
+			ch &lt;- j
+		}(i)
+	}
+	//用for循环一直接受
+	for {
+		select {
+		case a := &lt;- ch:
+			fmt.Println(a)
+		default:
+		}
+	}
+}</pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

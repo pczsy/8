@@ -1,0 +1,133 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修用Python和Pandas以及爬虫技术统计历史天气' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>用Python和Pandas以及爬虫技术统计历史天气</center></div><div class='banquan'>原文出处:本文由博客园博主boydfd提供。<br/>
+原文连接:https://www.cnblogs.com/boydfd/p/11218120.html</div><br>
+    <h2 id="背景">背景</h2>
+<p>最近在计划明年从北京rebase到深圳去，所以最近在看深圳的各个方面。去年在深圳呆过一段时间，印象最深的是，深圳总是突然就下雨，还下好大的雨。对于我这种从小在南方长大但是后面又在北京呆了2年多的人来说，熟悉而又无奈。</p>
+<p>今天早上本来想随便浏览浏览一个天气网站，看看深圳的历史天气如何的，但是，一不小心发现，这家网站竟然直接能用API来抓数据，这~~~还不抓一波，省的自己一个月一个月地看。</p>
+<p>先上最后的效果图：</p>
+<p><img src="./images/用Python和Pandas以及爬虫技术统计历史天气0.png" alt="深圳" /></p>
+<p>所有的code都在我的GitHub上：<a href="https://github.com/boydfd/weather">boydfd</a></p>
+<p>下面从几个方面讲一讲我是怎么做的：</p>
+<ol>
+<li>爬取数据</li>
+<li>用pandas显示数据</li>
+<li>功能扩展</li>
+<li>遇到的坑</li>
+</ol>
+<h2 id="爬取数据">爬取数据</h2>
+<p>先是在http://tianqi.2345.com上面浏览了一下深圳的6月份天气。然后发现点切换月份的时候，网址没有变，那应该有请求API吧，看看这个API长啥样吧。<br />
+<img src="./images/用Python和Pandas以及爬虫技术统计历史天气1.png" alt="change month" /></p>
+<p><img src="./images/用Python和Pandas以及爬虫技术统计历史天气2.png" alt="change month api" /></p>
+<p>发现返回值就是纯JS代码，那就解析一下吧：</p>
+<ol>
+<li>去掉<code>var =</code>和最后的<code>;</code>。</li>
+<li>用到<code>demjson</code>解析成Python的<code>List[Dict]</code>对象。</li>
+<li>转成pandas的<code>DataFrame</code></li>
+<li>加上我们的date字段</li>
+</ol>
+<pre><code><code>date = &#39;201905&#39;
+weather = requests.get(&#39;http://tianqi.2345.com/t/wea_history/js/{date}/59493_{date}.js&#39;.format(date=date)).text.split(&#39;=&#39;)[1][:-1]
+weather = demjson.decode(weather)[&#39;tqInfo&#39;]
+df = pd.DataFrame(weather)
+df[&#39;month&#39;] = date</code></pre>
+<p>结果是这样的：</p>
+<p><img src="./images/用Python和Pandas以及爬虫技术统计历史天气3.png" alt="show weather" /></p>
+<h2 id="用pandas显示数据">用Pandas显示数据</h2>
+<h3 id="太多雨天">太多雨天</h3>
+<p>我们可以看到，有各种雷阵雨啊，阴转雨啊，雨转阴之类的，这样看到的天气太杂了，所以我就统一了一下，按照雨、多云、阴、晴的顺序来排序，先出出现的关键词优先级更高。</p>
+<p>写一个函数来处理之：</p>
+<pre><code><code>rain = &#39;雨&#39;
+rain_index = &#39; &#39; + rain
+cloudy = &#39;多云&#39;
+cloudy_index = &#39; &#39; + cloudy
+overcast = &#39;阴&#39;
+overcast_index = &#39; &#39; + overcast
+sunny = &#39;晴&#39;
+sunny_index = &#39; &#39; + sunny
+def weath_category(row):
+    tianqi = row[&#39;tianqi&#39;]
+    if tianqi.find(rain) != -1:
+        return rain_index
+    if tianqi.find(overcast) != -1:
+        return overcast_index
+    if tianqi.find(cloudy) != -1:
+        return cloudy_index
+    return sunny_index</code></pre>
+<h3 id="多个月的数据">多个月的数据</h3>
+<p>一个月的数据不够啊，我们想要很多个月的数据，那就写得函数来生成月份吧。</p>
+<pre><code><code>def date_generate(start, end):
+    start = datetime.strptime(start, &#39;%Y%m&#39;)
+    end = datetime.strptime(end, &#39;%Y%m&#39;)
+    while True:
+        next_start = start + relativedelta(months=1)
+        yield start.strftime(&#39;%Y%m&#39;)
+        if next_start &gt; end:
+            break
+        start = next_start</code></pre>
+<h3 id="画图">画图</h3>
+<p>分好类，爬了多个月份的数据，就剩最终的画图部分了。使用Pandas提供给我们的函数，可以很容易就画出图来。</p>
+<pre><code><code>def plot_weather(start, end):
+    df = read_weather(start, end).dropna().reset_index()
+    df[&#39;weather&#39;] = df.apply(weath_category, axis=1)
+    
+    from pylab import rcParams
+    rcParams[&#39;figure.figsize&#39;] = 40, 10
+    weather_df = df.groupby([&#39;month&#39;, &#39;weather&#39;]).aqi.count().unstack().reset_index()
+    weather_df.plot.bar(x=&#39;month&#39;, y=[rain_index, overcast_index, cloudy_index, sunny_index])</code></pre>
+<p><img src="./images/用Python和Pandas以及爬虫技术统计历史天气0.png" alt="shenzhen" /></p>
+<h2 id="功能扩展">功能扩展</h2>
+<p>现在只能收集到一个月的数据，想收集多个月的数据，还都自己去页面上找城市代表的code是啥，太低效了。</p>
+<p>这个网站这么容易爬，那就再试试能不能找到调用code的API。</p>
+<p>啊哦，一不小心找到了所有的code，哈哈哈。<br />
+<img src="./images/用Python和Pandas以及爬虫技术统计历史天气5.png" alt="change city" /></p>
+<p><img src="./images/用Python和Pandas以及爬虫技术统计历史天气6.png" alt="change city http" /></p>
+<p>那就在JS里面提取一下。</p>
+<ol>
+<li>先把所有的JS代码都复制到浏览器的console里, 结果长这样：</li>
+</ol>
+<p><img src="./images/用Python和Pandas以及爬虫技术统计历史天气7.png" alt="console" /></p>
+<ol>
+<li>将其转换成字符串。</li>
+</ol>
+<pre class="javascript"><code>provqx.flatMap(a =&gt; a).join(&#39;|&#39;)</code></pre>
+<ol>
+<li>在Python里处理它。</li>
+</ol>
+<pre><code><code>def line_to_city_code(line):
+    return line.split(&#39; &#39;)[1].split(&#39;-&#39;)
+
+def get_city_to_code():
+    city_code_list = list(map(line_to_city_code, city_code.split(&#39;|&#39;)))
+    return {city_code[0]: city_code[1] for city_code in city_code_list if len(city_code) == 2}</code></pre>
+<p>这样我们就拿到所有的code了，只需要输入城市，开始时间，结束时间，一张漂亮的图就出来了,我还写了个类稍微封装了一下，只需要这样就能使用了：</p>
+<pre><code><code>Weather(&#39;深圳&#39;).plot_weather(&#39;201701&#39;, &#39;201906&#39;)</code></pre>
+<h2 id="遇到的坑">遇到的坑</h2>
+<p>以前在电脑里面处理过一次，就是matplotlib画图中文乱码的事情，这次换了新电脑又碰到了。所以又搞了一次，</p>
+<p>大概的步骤可以参考https://www.jianshu.com/p/8ed59ac76c06</p>
+<p>我为了以防下次再经历一次，就写了个脚本自动处理这件事，目前只支持macOS和Python3。<br />
+脚本也在我的GitHub：<a href="">bash</a>，</p>
+<p>直接执行下面的bash脚本就可以解决这个问题：</p>
+<pre class="bash"><code>curl -o- https://raw.githubusercontent.com/boydfd/one_step_solve/master/matplotlib_chinese.sh | bash</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

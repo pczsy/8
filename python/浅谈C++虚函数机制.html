@@ -1,0 +1,482 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修浅谈C++虚函数机制' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>浅谈C++虚函数机制</center></div><div class='banquan'>原文出处:本文由博客园博主后端技术指南针提供。<br/>
+原文连接:https://www.cnblogs.com/backnullptr/p/12047900.html</div><br>
+    <p><span style="font-size: 18px;"><strong>0.前言</strong></span></p>
+<p>在后端面试中语言特性的掌握直接决定面试成败，C++语言一直在增加很多新特性来提高使用者的便利性，但是每种特性都有复杂的背后实现，充分理解实现原理和设计原因，才能更好地掌握这种新特性。</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/浅谈C++虚函数机制0.png" alt="" width="298" height="307" data-caption="" data-size="normal" data-rawwidth="521" data-rawheight="536" data-original="https://pic3.zhimg.com/v2-82ac38a1104594bf1cf56eb2fc928efa_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-82ac38a1104594bf1cf56eb2fc928efa_b.jpg" data-lazy-status="ok" /></p>
+<p>只要出发总会达到，只有出发才会到达，焦虑没用，学就完了，今天一起来学习C++的虚函数考点吧。</p>
+<p>通过本文你将了解的以下内容：</p>
+<ul>
+<li><strong>C++多态机制</strong></li>
+<li><strong>虚函数的基本使用</strong></li>
+<li><strong>虚函数的底层实现</strong></li>
+<li><strong>纯虚函数和抽象类</strong></li>
+<li><strong>虚析构函数</strong></li>
+<li><strong>虚函数的优缺点</strong></li>
+</ul>
+<p><span style="font-size: 18px;"><strong>1.C++多态机制</strong></span></p>
+<ul>
+<li><span style="font-size: 16px;"><strong>多态机制简介</strong></span></li>
+</ul>
+<p>C++面向对象的三大特征：</p>
+<ol>
+<li>多态(Polymorphism)</li>
+<li>封装(Encapsulation)</li>
+<li>继承(Inheritance)</li>
+</ol>
+<p>从字面上理解多态就是多种形态，具体如何多种形态，多态和继承的关系非常密切，试想下面的场景：</p>
+<ol>
+<li>派生类继承使用基类提供的方法，不需更改</li>
+<li>同一个方法在基类和派生类的行为是不同的，具体行为取决于调用对象。</li>
+</ol>
+<p>后者就是C++的多态需求场景，即同一方法的行为随调用者上下文而异，举个现实生活中类似的栗子，来加深理解：</p>
+<blockquote>基类Woker包括三个方法：打卡、午休、干活。&nbsp;<br />派生类包括产品经理PMer、研发工程师RDer、测试工程师Tester，派生类从基类Worker中继承了打卡、午休、干活三个方法。<br />打卡和午休对三个派生类来说是一样的，因此可以直接调用基类的方法即可。<br />但是每个派生类中干活这个方法具体的实现并不一样：产品经理提需求、研发写代码、测试找Bug。</blockquote>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/浅谈C++虚函数机制1.png" alt="" width="338" height="327" data-caption="" data-size="normal" data-rawwidth="455" data-rawheight="440" data-original="https://pic1.zhimg.com/v2-720e1d7800cd02e44a70c4b51552ac98_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-720e1d7800cd02e44a70c4b51552ac98_b.jpg" data-lazy-status="ok" /></p>
+<p>计算机程序的出现就是为了解决现实中的问题，从上面的例子可以看到，这种同一方法的行为随调用者而异的需求很普遍，然而多态的设计原因只有C++之父Bjarne Stroustrup大佬最清楚了。</p>
+<ul>
+<li><strong><span style="font-size: 16px;">静态绑定和动态绑定</span></strong><br />要充分理解多态，就要先说什么是绑定？</li>
+
+</ul>
+<p>绑定体现了函数调用和函数本身代码的关联，也就是产生调用时如何找到提供调用的方法入口，这里又引申出两个概念：</p>
+<ol>
+<li>静态绑定：程序编译过程中把函数调用与执行调用所需的代码相关联，这种绑定发生在编译期，程序未运行就已确定，也称为前期绑定。</li>
+<li>动态绑定：执行期间判断所引用对象的实际类型来确定调用其相应的方法，这种发生于运行期，程序运行时才确定响应调用的方法，也称为后期绑定。</li>
+
+</ol>
+<ul>
+<li><span style="font-size: 16px;"><strong>静态多态和动态多态</strong></span></li>
+
+</ul>
+<p>在C++泛型编程中可以基于模板template和重载override两种形式来实现静态多态。</p>
+<p>动态多态主要依赖于虚函数机制来实现，不同的编译器对虚函数机制的实现也有一些差异，本文主要介绍Linux环境下gcc/g++编译器的实现方法。</p>
+<blockquote>多态本质上是一种泛型技术，说白了就是试图使用不变的代码来实现可变的算法，要么试图在编译时决定，要么试图在运行时决定。csdn博客专家-左耳朵耗子-陈皓</blockquote>
+<ul>
+<li><span style="font-size: 16px;"><strong>虚函数与三大特征</strong></span></li>
+
+</ul>
+<p>虚函数为多态提供了基础，并且借助于继承来发挥多态的优势，从而完善了语言设计的封装，可见虚函数与C++三大特征之间有紧密的联系，是非常重要的特性。</p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/浅谈C++虚函数机制2.png" alt="" width="335" height="338" data-caption="" data-size="normal" data-rawwidth="498" data-rawheight="502" data-original="https://pic2.zhimg.com/v2-1d672e866a21d18df1a055e51ff657d5_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-1d672e866a21d18df1a055e51ff657d5_b.jpg" data-lazy-status="ok" /></p>
+<p><span style="font-size: 18px;"><strong>2.虚函数的基本使用</strong></span></p>
+<ul>
+<li><span style="font-size: 16px;"><strong>虚函数使用实例</strong></span></li>
+
+</ul>
+<p>使用virtual关键字即可将成员函数标记为虚函数，派生类继承基类的虚函数之后，可以重写该成员函数，派生类中是否增加virtual关键字均可，代码举例：</p>
+<div class="cnblogs_code">
+<pre><code>#include&lt;iostream&gt;
+<span style="color: #0000ff;">using</span> <span style="color: #0000ff;">namespace</span><span style="color: #000000;"> std;
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Worker{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">virtual</span> ~<span style="color: #000000;">Worker(){}
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> DoMyWork(){
+      cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">BaseWorker:I am base worker</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;
+    }
+};
+
+</span><span style="color: #0000ff;">class</span> PMer:<span style="color: #0000ff;">public</span><span style="color: #000000;"> Worker{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">virtual void DoMyWork(){</span>
+    <span style="color: #0000ff;">void</span><span style="color: #000000;"> DoMyWork(){
+      cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">ChildPMer:Tell rd demands</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;
+    }
+};
+</span><span style="color: #0000ff;">class</span> RDer:<span style="color: #0000ff;">public</span><span style="color: #000000;"> Worker{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">virtual void DoMyWork(){</span>
+    <span style="color: #0000ff;">void</span><span style="color: #000000;"> DoMyWork(){
+      cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">ChildRDer:Write code and solve bugs</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;
+    }
+};
+</span><span style="color: #0000ff;">class</span> Tester:<span style="color: #0000ff;">public</span><span style="color: #000000;"> Worker{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">virtual void DoMyWork(){</span>
+    <span style="color: #0000ff;">void</span><span style="color: #000000;"> DoMyWork(){
+      cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">ChildTester:Find bugs and inform rd</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;
+    }
+};
+
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;"> main(){
+  </span><span style="color: #008000;">//</span><span style="color: #008000;">使用基类指针访问派生类</span>
+  Worker *ptr_pm = <span style="color: #0000ff;">new</span><span style="color: #000000;"> PMer();
+  Worker </span>*ptr_rd = <span style="color: #0000ff;">new</span><span style="color: #000000;"> RDer();
+  Worker </span>*ptr_ts = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Tester();
+  cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">#### use ptr #####</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;
+  ptr_pm</span>-&gt;<span style="color: #000000;">DoMyWork();
+  ptr_rd</span>-&gt;<span style="color: #000000;">DoMyWork();
+  ptr_ts</span>-&gt;<span style="color: #000000;">DoMyWork();
+  ptr_pm</span>-&gt;<span style="color: #000000;">Worker::DoMyWork();
+  cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">-----------------------------</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;
+  </span><span style="color: #008000;">//</span><span style="color: #008000;">使用基类引用访问派生类</span>
+<span style="color: #000000;">  PMer pmins;
+  RDer rdins;
+  Tester tsins;
+  Worker </span>&amp;ref_pm =<span style="color: #000000;"> pmins;
+  Worker </span>&amp;ref_rd =<span style="color: #000000;"> rdins;
+  Worker </span>&amp;ref_ts =<span style="color: #000000;"> tsins;
+  cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">#### use ref #####</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;
+  ref_pm.DoMyWork();
+  ref_rd.DoMyWork();
+  ref_ts.DoMyWork();
+  ref_pm.Worker::DoMyWork();
+}</span></pre>
+</div>
+<p><strong>编译后，执行结果：</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 上述代码存储在文件virtual.cpp
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> g++编译器执行编译</span>
+g++ <span style="color: #0000ff;">virtual</span>.cpp -o <span style="color: #0000ff;">virtual</span>
+<span style="color: #008000;">//</span><span style="color: #008000;"> 执行exe文件</span>
+./<span style="color: #0000ff;">virtual</span>
+<span style="color: #008000;">//</span><span style="color: #008000;">详细输出</span>
+<span style="color: #000000;">#### use ptr #####
+ChildPMer:Tell rd demands
+ChildRDer:Write code and solve bugs
+ChildTester:Find bugs and inform rd
+BaseWorker:I am </span><span style="color: #0000ff;">base</span><span style="color: #000000;"> worker
+</span>-----------------------------<span style="color: #000000;">
+#### use </span><span style="color: #0000ff;">ref</span><span style="color: #000000;"> #####
+ChildPMer:Tell rd demands
+ChildRDer:Write code and solve bugs
+ChildTester:Find bugs and inform rd
+BaseWorker:I am </span><span style="color: #0000ff;">base</span> worker</pre>
+</div>
+<ul>
+<li><span style="font-size: 16px;"><strong>基类对派生类的访问</strong></span></li>
+</ul>
+<p>通过基类的指针或引用指向派生类的实例，在面向对象编程中使用非常普遍，这样就可以实现一种基类指针来访问所有派生类，更加统一。这种做法的理论基础是：一个派生类对象也是一个基类对象，可以将派生类对象看成基类对象，但是期间会发生隐式转换。</p>
+<ul><ol>
+<li>A *pA = new B；</li>
+<li>B b; A &amp;rb=b;</li>
+</ol></ul>
+<div class="highlight">
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Base { ... };
+</span><span style="color: #0000ff;">class</span> Derived: <span style="color: #0000ff;">public</span><span style="color: #000000;"> Base { ... };
+Derived d;
+Base </span>*pb = &amp;d;  <span style="color: #008000;">//</span><span style="color: #008000;"> implicitly convert Derived* =&gt; Base*</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>3.虚函数的底层实现</strong></span></p>
+<ul>
+<li><span style="font-size: 16px;"><strong>虚函数表和虚表指针</strong></span></li>
+</ul>
+<p>不同的编译器对虚函数的实现方法不一样，并且C++规范也并没有规定如何实现虚函数，大部分的编译器厂商使用虚表指针vptr和虚函数表vtbl来实现。</p>
+<p>现代的C++编译器对于每一个多态类型，其所有的虚函数的地址都以一个表V-Table的方式存放在一起，虚函数表的首地址储存在每一个对象之中，称为虚表指针vptr，这个虚指针一般位于对象的起始地址。通过虚指针和偏移量计算出虚函数的真实地址实现调用。</p>
+<ul>
+<li><span style="font-size: 16px;"><strong>单继承模式</strong></span></li>
+</ul>
+<p>单继承就是派生类只有1个基类，派生类的虚函数表中包含了基类和派生类的全部虚函数，如果发生覆盖则以派生类为准。</p>
+<p>举个栗子：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">dev：Linux 64bit g++ 4.8.5</span>
+#include &lt;iostream&gt;
+<span style="color: #0000ff;">using</span> <span style="color: #0000ff;">namespace</span><span style="color: #000000;"> std;
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">定义函数指针类型</span>
+typedef <span style="color: #0000ff;">void</span>(*Func)(<span style="color: #0000ff;">void</span><span style="color: #000000;">);
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">包含虚函数的基类</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Base {
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> f() {cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">base::f</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;}
+        </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> g() {cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">base::g</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;}
+        </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> h() {cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">base::h</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;}
+};
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">派生类</span>
+<span style="color: #0000ff;">class</span> Derive : <span style="color: #0000ff;">public</span><span style="color: #000000;"> Base{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">void</span> g() {cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">derive::g</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;}
+        </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> k() {cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">derive::k</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;}
+};
+
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;"> main () 
+{
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">base类占据空间大小</span>
+    cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">size of Base: </span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #0000ff;">sizeof</span>(Base)&lt;&lt;<span style="color: #000000;">endl;
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">基类指针指向派生类</span>
+<span style="color: #000000;">    Base b;
+    Base </span>*d = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Derive();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">派生类的首地址--虚表指针</span>
+    <span style="color: #0000ff;">long</span>* pvptr = (<span style="color: #0000ff;">long</span>*<span style="color: #000000;">)d;
+    </span><span style="color: #0000ff;">long</span>* vptr = (<span style="color: #0000ff;">long</span>*)*<span style="color: #000000;">pvptr;
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">从虚函数表依次获取虚函数地址</span>
+    Func f = (Func)vptr[<span style="color: #800080;">0</span><span style="color: #000000;">];
+    Func g </span>= (Func)vptr[<span style="color: #800080;">1</span><span style="color: #000000;">];
+    Func h </span>= (Func)vptr[<span style="color: #800080;">2</span><span style="color: #000000;">];
+    Func k </span>= (Func)vptr[<span style="color: #800080;">3</span><span style="color: #000000;">];
+
+    f();
+    g();
+    h();
+    k();
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800080;">0</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>特别注意，网上很多代码都是32位机器使用int*进行强转，但是指针类型在32bit和64bit机器的大小不一样，因此如果在64位机器执行32位的代码会出现第二个虚函数地址错误，产生coredump。</p>
+<p>上述代码在Linux 64位机器 g++4.8.5版本下编译结果为：</p>
+<div class="cnblogs_code">
+<pre><code>size of Base: <span style="color: #800080;">8</span>
+<span style="color: #0000ff;">base</span><span style="color: #000000;">::f
+derive::g
+</span><span style="color: #0000ff;">base</span><span style="color: #000000;">::h
+derive::k</span></pre>
+</div>
+<p>单继承派生类虚函数表的结构：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/浅谈C++虚函数机制3.png" alt="" width="575" height="265" data-caption="" data-size="normal" data-rawwidth="1074" data-rawheight="495" data-original="https://pic1.zhimg.com/v2-d0b32f9709535bd972e97bf66d35c85c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-d0b32f9709535bd972e97bf66d35c85c_b.jpg" data-lazy-status="ok" /></p>
+<ul>
+<li><span style="font-size: 16px;"><strong>多继承模式</strong></span></li>
+</ul>
+<p>当派生类有多个基类，在派生类中将出现多个虚表指针，指向各个基类的虚函数表，在派生类中会出现非覆盖和覆盖的情况，以覆盖为例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">dev：Linux 64bit g++ 4.8.5</span>
+#include&lt;iostream&gt;
+<span style="color: #0000ff;">using</span> <span style="color: #0000ff;">namespace</span><span style="color: #000000;"> std;
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Base1
+{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> f() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base1::f</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> g() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base1::g</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> h() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base1::h</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+};
+ 
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Base2
+{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> f() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base2::f</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> g() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base2::g</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> h() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base2::h</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+};
+ 
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Base3
+{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> f() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base3::f</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> g() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base3::g</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> h() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Base3::h</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+};
+ 
+</span><span style="color: #0000ff;">class</span> Derive :<span style="color: #0000ff;">public</span> Base1, <span style="color: #0000ff;">public</span> Base2, <span style="color: #0000ff;">public</span><span style="color: #000000;"> Base3
+{
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">覆盖各个基类的f</span>
+    <span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> f() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Derive::f</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> g1() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Derive::g1</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> h1() { cout &lt;&lt; <span style="color: #800000;">"</span><span style="color: #800000;">Derive::h1</span><span style="color: #800000;">"</span> &lt;&lt;<span style="color: #000000;"> endl; }
+};
+ 
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;"> main()
+{
+  Derive d;
+ 
+  Base1 </span>*b1 = &amp;<span style="color: #000000;">d;
+  Base2 </span>*b2 = &amp;<span style="color: #000000;">d;
+  Base3 </span>*b3 = &amp;<span style="color: #000000;">d;
+  b1</span>-&gt;<span style="color: #000000;">f();
+  b2</span>-&gt;<span style="color: #000000;">f();
+  b3</span>-&gt;<span style="color: #000000;">f();
+ 
+  b1</span>-&gt;<span style="color: #000000;">g();
+  b2</span>-&gt;<span style="color: #000000;">g();
+  b3</span>-&gt;<span style="color: #000000;">g();
+}</span></pre>
+</div>
+<p>上述代码在Linux 64位机器 g++4.8.5版本下编译结果为：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">Derive::f
+Derive::f
+Derive::f
+Base1::g
+Base2::g
+Base3::g</span></pre>
+</div>
+<p>多继承派生类各个虚指针和虚函数表的布局如图：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/浅谈C++虚函数机制4.png" alt="" width="540" height="393" data-caption="" data-size="normal" data-rawwidth="661" data-rawheight="481" data-original="https://pic4.zhimg.com/v2-45e28de9b44cfc5ee5b8dc8f74df2857_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-45e28de9b44cfc5ee5b8dc8f74df2857_b.jpg" data-lazy-status="ok" /></p>
+<ul>
+<li><span style="font-size: 16px;"><strong>虚继承</strong></span></li>
+</ul>
+<blockquote>虚继承是面向对象编程中的一种技术，是指一个指定的基类在继承体系结构中，将其成员数据实例共享给也从这个基类型直接或间接派生的其它类。<br />举例来说：<br />假如类A和类B各自从类X派生，且类C同时多继承自类A和B，那么C的对象就会拥有两套X的实例数据。&nbsp;<br />但是如果类A与B各自虚继承了类X，那么C的对象就只包含一套类X的实例数据。<br />这一特性在多重继承应用中非常有用，可以使得虚基类对于由它直接或间接派生的类来说，拥有一个共同的基类对象实例，避免由菱形继承问题。</blockquote>
+<p>菱形继承(钻石问题)：</p>
+<p><img class="content_image lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/浅谈C++虚函数机制5.png" alt="" width="334" data-caption="" data-size="normal" data-rawwidth="334" data-rawheight="311" data-actualsrc="https://pic3.zhimg.com/v2-fa2111c2fe246358f63e93aa65bcef76_b.jpg" data-lazy-status="ok" /></p>
+<p><strong>虚继承的作用：</strong></p>
+<p>菱形问题(又称钻石问题)带来了二义性和多份拷贝的问题，虚继承可以很好解决菱形问题。虚继承将共同基类设置为虚基类，从不同途径继承来的同名数据成员在内存中就只有一个拷贝，同一个函数名也只有一个映射。从而解决了二义性问题、节省了内存，避免了数据不一致的问题。</p>
+<p>维基百科虚继承的栗子：</p>
+<div class="cnblogs_code">
+<pre><code>#include &lt;iostream&gt;
+<span style="color: #0000ff;">using</span> <span style="color: #0000ff;">namespace</span><span style="color: #000000;"> std;
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Animal {
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">void</span> eat(){cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">delicious!</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;}
+};
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> Two classes virtually inheriting Animal:</span>
+<span style="color: #0000ff;">class</span> Mammal :  <span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">public</span><span style="color: #000000;">  Animal {
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> breathe(){}
+};
+
+</span><span style="color: #0000ff;">class</span> WingedAnimal :  <span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">public</span><span style="color: #000000;"> Animal {
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> flap(){}
+};
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> A bat is still a winged mammal</span>
+<span style="color: #0000ff;">class</span> Bat : <span style="color: #0000ff;">public</span> Mammal, <span style="color: #0000ff;">public</span><span style="color: #000000;"> WingedAnimal {
+};
+
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;"> main(){
+    Bat b;
+    b.eat();
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800080;">0</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>在后续学习继承和C++对象内存布局时，将对虚继承的底层实现原理进行展开，本文暂时不深入讨论。</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>4.纯虚函数和抽象类</strong></span></p>
+<p>虚函数的声明以=0结束，便可将它声明为纯虚函数，包含纯虚函数的类不允许实例化，称为抽象类，但是纯虚函数也可以有函数体，纯虚函数提供了面向对象中接口的功能，类似于Java中的接口。</p>
+<p>语法格式为：virtual 返回值类型 函数名(函数参数) = 0;</p>
+<p>需要抽象类的场景：</p>
+<ol>
+<li>功能不应由基类去完成</li>
+<li>无法缺点如何写基类的函数</li>
+<li>基类本身不应被实例化</li>
+</ol>
+<p>就像虽然有Animal类，但是并不能生成一个动物实例，并且Animal的类的成员函数无法定义，需要其派生类Tiger类、Fish类来具体实现，这种思想在面向对象的接口设计很普遍。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> CPerson{
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> hello() = <span style="color: #800080;">0</span><span style="color: #000000;">;
+};
+CPerson p;  </span><span style="color: #008000;">//</span><span style="color: #008000;">实例化抽象类 编译错误</span></pre>
+</div>
+<p>如果一个类从抽象类派生而来，它必须实现了基类中的所有纯虚函数，才能成为非抽象类，否则仍然为抽象类。</p>
+<div class="cnblogs_code">
+<pre><code>#include&lt;iostream&gt;
+<span style="color: #0000ff;">using</span> <span style="color: #0000ff;">namespace</span><span style="color: #000000;"> std;
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> A{
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+          </span><span style="color: #0000ff;">virtual</span> <span style="color: #0000ff;">void</span> f() = <span style="color: #800080;">0</span><span style="color: #000000;">;
+          </span><span style="color: #0000ff;">void</span> g(){ <span style="color: #0000ff;">this</span>-&gt;<span style="color: #000000;">f(); }
+          A(){}
+};
+</span><span style="color: #0000ff;">class</span> B:<span style="color: #0000ff;">public</span><span style="color: #000000;"> A{
+      </span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+          </span><span style="color: #0000ff;">void</span> f(){ cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">B:f()</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl;}
+};
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;"> main(){
+    B b;
+    b.g();
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800080;">0</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>5.虚析构函数</strong></span></p>
+<ul>
+<li><span style="font-size: 16px;"><strong>虚析构的作用</strong></span></li>
+</ul>
+<p>实现多态的基类析构函数一般被声明成虚函数，如果不设置成虚函数，在析构的过程中只会调用基类的析构函数而不会调用派生类的析构函数，从而可能造成内存泄漏。</p>
+<p>虚析构举例：</p>
+<div class="cnblogs_code">
+<pre><code>#include&lt;iostream&gt;
+<span style="color: #0000ff;">using</span> <span style="color: #0000ff;">namespace</span><span style="color: #000000;"> std;
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Base{
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+  Base() { cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">Base Constructor</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl; }
+  </span>~Base() { cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">Base Destructor</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl; }
+  </span><span style="color: #008000;">//</span><span style="color: #008000;">virtual ~Base() { cout&lt;&lt;"Base Destructor"&lt;&lt;endl; }</span>
+<span style="color: #000000;">};
+
+</span><span style="color: #0000ff;">class</span> Derived: <span style="color: #0000ff;">public</span><span style="color: #000000;"> Base{
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;">:
+  Derived() { cout</span>&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">Derived Constructor</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl; }
+  </span>~Derived() { cout&lt;&lt;<span style="color: #800000;">"</span><span style="color: #800000;">Derived Destructor</span><span style="color: #800000;">"</span>&lt;&lt;<span style="color: #000000;">endl; }
+};
+
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;"> main(){
+  Base </span>*p = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Derived();
+  </span><span style="color: #0000ff;">delete</span><span style="color: #000000;"> p;
+  </span><span style="color: #0000ff;">return</span> <span style="color: #800080;">0</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p><strong>非虚析构的输出：</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">Base Constructor
+Derived Constructor
+Base Destructor</span></pre>
+</div>
+<p><strong>虚析构的输出：</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">Base Constructor
+Derived Constructor
+Derived Destructor
+Base Destructor</span></pre>
+</div>
+<p>可以看到在Base使用虚析构时会执行派生类的析构函数，否则不执行。</p>
+<ul>
+<li><span style="font-size: 16px;"><strong>虚析构的使用时机</strong></span></li>
+</ul>
+<p>如果某个类不包含虚函数，一般表示它将不作为一个基类来使用，因此不使虚析构函数，否则增加一个虚函数表和虚指针，使得对象的体积增大。如果某个类将作为基类那么建议使用虚析构，包含虚函数则这条要求成为必然。无故使用虚析构函数和永远不使用一样是错误的。</p>
+<ul>
+<li><span style="font-size: 16px;"><strong>为什么构造函数不能是虚函数</strong></span></li>
+</ul>
+<p>其他语言中可能会成立，但是在C++中存在问题，原因主要有：</p>
+<ol>
+<li>构造对象时需要知道对象的实际类型，而虚函数行为是在运行期间才能确定实际类型的，由于对象还未构造成功，编译器无法知道对象的实际类型，俨然是个鸡和蛋的问题。</li>
+<li>如果构造函数是虚函数，那么构造函数的执行将依赖虚函数表，而虚函数表又是在构造函数中初始化的，而在构造对象期间，虚函数表又还没有被初始化，又是个死循环问题。</li>
+</ol>
+<p><strong>总结：</strong></p>
+<p>这块有点绕，从编译器的角度去看，构造函数就是为了在编译阶段确定对象类型、分配空间等工作，虚函数为了实现动态多态需要在运行期间才能确定具体的行为，显然构造函数不可能同时具备静态特性和动态特性。</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>6.虚函数的优缺点</strong></span></p>
+<p>虚函数的优点主要实现了C++的多态，提高代码的复用和接口的规范化，更加符合面向对象的设计理念，但是其缺点也比较明显，主要包括：</p>
+<ol>
+<li>编译器借助于虚表指针和虚表实现时，导致类对象占用的内存空间更大，这种情况在子类无覆盖基类的多继承场景下更加明显。</li>
+<li>虚函数表可能破坏类的安全性，可以根据地址偏移来访问Private成员</li>
+<li>执行效率有损耗，因为涉及通过虚函数表寻址真正执行函数</li>
+</ol>
+<p><span style="font-size: 18px;"><strong>7.参考资料</strong></span></p>
+<ol>
+<ul>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//www.cnblogs.com/chio/archive/2007/09/10/888260.html" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://www.<span class="visible">cnblogs.com/chio/archiv<span class="invisible">e/2007/09/10/888260.html</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//juejin.im/post/5d1ee816f265da1bb13f5196" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">juejin.im/post/5d1ee816<span class="invisible">f265da1bb13f5196</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//harttle.land/2015/06/28/cpp-polymorphism.html" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">harttle.land/2015/06/28<span class="invisible">/cpp-polymorphism.html</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//www.jianshu.com/p/5d6edcb3b83e" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://www.<span class="visible">jianshu.com/p/5d6edcb3b<span class="invisible">83e</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//www.jianshu.com/p/4dcd834be1ab" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://www.<span class="visible">jianshu.com/p/4dcd834be<span class="invisible">1ab</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//blog.csdn.net/zhang2531/article/details/51218149" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">blog.csdn.net/zhang2531<span class="invisible">/article/details/51218149</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//www.zfl9.com/cpp-polymorphism.html" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://www.<span class="visible">zfl9.com/cpp-polymorphi<span class="invisible">sm.html</span></span></span></a></li>
+<li><a class="internal" href="https://zhuanlan.zhihu.com/p/41309205" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">zhuanlan.zhihu.com/p/41<span class="invisible">309205</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//cloud.tencent.com/developer/article/1155155" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">cloud.tencent.com/devel<span class="invisible">oper/article/1155155</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//blog.csdn.net/qq_16209077/article/details/52788864" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">blog.csdn.net/qq_162090<span class="invisible">77/article/details/52788864</span></span></span></a></li>
+<li><span class="invisible"><a class=" external" href="https://link.zhihu.com/?target=https%3A//jocent.me/2017/08/07/virtual-table.html" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">https://<span class="visible">jocent.me/2017/08/07/vi<span class="invisible">rtual-table.htm</span></span></a></span></li>
+</ul>
+</ol></div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

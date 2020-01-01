@@ -1,0 +1,98 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Flask中的CBV以及正则表达式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Flask中的CBV以及正则表达式</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11600416.html</div><br>
+    <h1 id="flask中的cbv以及正则表达式">Flask中的CBV以及正则表达式</h1>
+<h2 id="一.cbv">一.CBV</h2>
+<pre><code><code>def auth(func):
+    def inner(*args, **kwargs):
+        print(&#39;before&#39;)
+        result = func(*args, **kwargs)
+        print(&#39;after&#39;)
+        return result
+
+    return inner
+
+class IndexView(views.View):
+    methods = [&#39;GET&#39;]
+    decorators = [auth, ]
+
+    def dispatch_request(self):
+        print(&#39;Index&#39;)
+        return &#39;Index!&#39;
+#如果不传name，这所有返回的都是view,这样就会报错，所有人家必须你要传递参数
+#然后他传递给view_func的其实就是你视图类中的dispatch_request方法。这样我们没有办法，在一个视图类中写多种请求方式
+app.add_url_rule(&#39;/index&#39;, view_func=IndexView.as_view(name=&#39;index&#39;))  # name=endpoint
+#或者，通常用此方式
+  class IndexView(views.MethodView):
+            methods = [&#39;GET&#39;]
+            #cbv添加装饰，用这个，我们看as_view中就知道了
+            decorators = [auth, ]
+
+            def get(self):
+                return &#39;Index.GET&#39;
+
+            def post(self):
+                return &#39;Index.POST&#39;
+#如果我们继承了MethodView，他帮我们重写了，dispatch_request方法，他给我们做了一个分发，通过请求，来执行不同的函数
+app.add_url_rule(&#39;/index&#39;, view_func=IndexView.as_view(name=&#39;index&#39;))  # name=endpoint</code></pre>
+<h2 id="二.正则表达式">二.正则表达式</h2>
+<pre><code><code>#1 写类，继承BaseConverter
+#2 注册：app.url_map.converters[&#39;regex&#39;] = RegexConverter
+# 3 使用：@app.route(&#39;/index/&lt;regex(&quot;\d+&quot;):nid&gt;&#39;)  正则表达式会当作第二个参数传递到类中
+from flask import Flask, views, url_for
+from werkzeug.routing import BaseConverter
+
+app = Flask(import_name=__name__)
+
+class RegexConverter(BaseConverter):
+    &quot;&quot;&quot;
+    自定义URL匹配正则表达式
+    &quot;&quot;&quot;
+    def __init__(self, map, regex):
+        super(RegexConverter, self).__init__(map)
+        self.regex = regex
+
+    def to_python(self, value):
+        &quot;&quot;&quot;
+        路由匹配时，匹配成功后传递给视图函数中参数的值
+        &quot;&quot;&quot;
+        return int(value)
+
+    def to_url(self, value):
+        &quot;&quot;&quot;
+        使用url_for反向生成URL时，传递的参数经过该方法处理，返回的值用于生成URL中的参数
+        &quot;&quot;&quot;
+        val = super(RegexConverter, self).to_url(value)
+        return val
+# 添加到flask中
+app.url_map.converters[&#39;regex&#39;] = RegexConverter
+@app.route(&#39;/index/&lt;regex(&quot;\d+&quot;):nid&gt;&#39;)  #这里是调用to_python方法.且先执行to_python再运行index函数
+def index(nid):
+    print(url_for(&#39;index&#39;, nid=&#39;888&#39;))  #这里其实调用to_url方法
+    return &#39;Index&#39;
+
+if __name__ == &#39;__main__&#39;:
+    app.run()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

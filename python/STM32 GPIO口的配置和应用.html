@@ -1,0 +1,132 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修STM32 GPIO口的配置和应用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>STM32 GPIO口的配置和应用</center></div><div class='banquan'>原文出处:本文由博客园博主物联网程序猿提供。<br/>
+原文连接:https://www.cnblogs.com/hrldc/p/12016072.html</div><br>
+    <p>STM32F103ZET6</p>
+<ul>
+<li>一共有7组IO口（有FT的标识是可以识别5v的）</li>
+<li>每组IO口有16个IO</li>
+<li>一共16*7=112个IO</li>
+</ul>
+<p>4种输入模式：<br />
+（1） GPIO_Mode_AIN 模拟输入<br />
+（2） GPIO_Mode_IN_FLOATING 浮空输入<br />
+（3） GPIO_Mode_IPD 下拉输入<br />
+（4） GPIO_Mode_IPU 上拉输入</p>
+<p>4种输出模式：<br />
+（5） GPIO_Mode_Out_OD 开漏输出<br />
+（6） GPIO_Mode_Out_PP 推挽输出<br />
+（7） GPIO_Mode_AF_OD 复用开漏输出<br />
+（8） GPIO_Mode_AF_PP 复用推挽输出</p>
+<h2 id="四种输入模式">四种输入模式：</h2>
+<p><strong>1、一图记住上拉、下拉、浮空输入模式：</strong><br />
+<img src="./images/STM32 GPIO口的配置和应用0.png" alt="在这里插入图片描述" /></p>
+<p>原理分析：图中箭头表示信号流动方向。从I/O引脚向左沿着箭头方向，首先遇到两个开关和电阻，与VDD相连的称为上拉电阻，与Vss相连的称为下拉电阻，再连接到施密特触发器（信号转换）把电压信号转化为0、1的数字信号，存储在输入数据寄存器（IDR)。然后通过设置配置寄存器（CRL、CRH)控制这两个开关，于是就可以得到GPIO的上拉输入、下拉输入模式和浮空输入模式，浮空就是既不接上拉也不接下拉。在上拉/下拉/浮空输入模式中，输出缓冲器被禁止（P-MOS和N-MOS），施密特触发器输入被激活，根据输入配置（上拉，下拉或浮动）的不同，弱上拉和下拉电阻被连接，读输入数据寄存器的值可得到I/O状态。</p>
+<p>小结：</p>
+<ol>
+<li>上拉输入：接入上拉电阻，与电源接通，所以默认状态下读到的GPIO引脚电平为高电平，即为1</li>
+<li>下拉输入：接入下拉电阻，与地接通，所以默认状态下读到的GPIO引脚电平为低电平，即为0</li>
+<li>浮空输入：既不接上拉也不接下拉，所以输入的是高电平就是高电平，低电平就是低电平</li>
+<li>在输入模式下可以通过ODR寄存器相对应的位来确定具体是上拉还是下拉，0是下拉，1是上拉。</li>
+</ol>
+<p><strong>2、一张图记住模拟输入：</strong><br />
+<img src="./images/STM32 GPIO口的配置和应用1.png" alt="在这里插入图片描述" /></p>
+<p>原理分析：图中箭头表示信号流动方向。可以看出模拟输入模式关闭了施密特触发器，也不接上、下拉电阻，经由另一线路把电压信号传送到片上外设模块。如传送给 ADC 模数转换模块，由ADC 采集电压信号。所以使用 ADC外设时，必须设置为模拟输入模式。在此模式中，输出缓冲器被禁止，禁止施密特触发输入，实现了每个模拟I/O引脚上的零消耗，施密特触发输出值被强制置为0，弱上拉和下拉电阻被禁止，读取输入数据寄存器时数值为0。</p>
+<p>小结：模拟输入模式把图中的红色字体部分都禁止了。注意：GPIO在输入模式下是不需要设置端口的最大输出速度的。</p>
+<h2 id="四种输出模式">四种输出模式：</h2>
+<p><strong>1、一张图记住开漏和推挽输出模式：</strong><br />
+<img src="./images/STM32 GPIO口的配置和应用2.png" alt="在这里插入图片描述" /></p>
+<p>原理分析：<br />
+开漏输出：图中箭头表示信号流动方向。如果往输出数据寄存器写入0，因为N-MOS是接地的，低电平信号会激活N-MOS，所以输出的IO口引脚为低电平。但是反过来是不成立的(另一个模式才可以)，你肯定会想，如果写入1，P-MOS接电源，所以输出1，不是这样的。开漏输出模式P-MOS从不被激活，所以开漏模式只可以输出强低电平，高电平得靠外部电阻拉高，要得到高电平状态需要上拉电阻才行。</p>
+<p>推挽输出：输出数据寄存器上的0激活N-MOS,I/O口输出低电平；而输出数据寄存器上的1将激活P-MOS,I/O口输出高电平。两个管子轮流导通，一个负责灌电流，一个负责拉电流，使其负载能力和开关速度都比普通方式有很大提高。</p>
+<p>小结：开漏就是推挽的二分之一。开漏模式只可以输出强低电平。</p>
+<p><strong>2、一张图记住开漏复用和推挽复用输出：</strong><br />
+<img src="./images/STM32 GPIO口的配置和应用3.png" alt="在这里插入图片描述" /></p>
+<p>当I/O端口被配置为复用功能时，其他配置跟开漏和推挽一样的，只不过开漏和推挽是由CPU来写，而复用就是外设来写0和1。至于选择复用开漏输出还是复用推挽输出，是根据 GPIO 复用功能来选择的，如 GPIO 的引脚用作串口输出，则使用复用推挽输出模式；如用在I2C、SMBUS 等这些需要“线与”功能的复用场合，就使用复用开漏模式。</p>
+<p>小结：复用是外设来写0和1。</p>
+<h2 id="gpio相关寄存器配置">GPIO相关寄存器配置</h2>
+<p>每一组IO口都有以下7个寄存器</p>
+<pre><code><code> - GPIOx_CRL：端口配置低寄存器（32位）
+ - GPIOx_CRH：端口配置高寄存器（32位）
+ - GPIOx_IDR：端口输入寄存器（32位）
+ - GPIOx_ODR：端口输出寄存器（32位）
+ - GPIOx_BSRR：端口位设置/清除寄存器（32位）
+ - GPIOx_BRR：端口位清除寄存器（16位）
+ - GPIOx_LCKR：端口配置锁存寄存器（32位）不常用
+</code></pre>
+<p><strong>1、CRL和CRH寄存器</strong><br />
+这两个32位寄存器是选择输入输出模式的时候起作用的，每4个位控制一个IO口，一组IO口有16个，所以一共需要64位，CRL管理（0~7）的IO口，CRH管理（8 ~15）的IO口。相应的值在MDK中通过一个枚举类型定义，只需要选择对应得值即可。</p>
+<pre><code><code>typedef enum
+{ GPIO_Mode_AIN = 0x0,
+  GPIO_Mode_IN_FLOATING = 0x04,
+  GPIO_Mode_IPD = 0x28,
+  GPIO_Mode_IPU = 0x48,
+  GPIO_Mode_Out_OD = 0x14,
+  GPIO_Mode_Out_PP = 0x10,
+  GPIO_Mode_AF_OD = 0x1C,
+  GPIO_Mode_AF_PP = 0x18
+}GPIOMode_TypeDef;
+</code></pre>
+<p><strong>2、ODR和IDR寄存器</strong><br />
+<img src="./images/STM32 GPIO口的配置和应用4.png" alt="在这里插入图片描述" /></p>
+<p>ODR寄存器只用到了前面的16位。作用是控制GPIOx(x=A ~ G)的输出，即设置某个IO口输出低电平还是高电平，只有在输出模式下有效。</p>
+<pre><code><code>在固件库中设置ODR寄存器来控制IO口的输出状态是通过这两个函数来实现的：
+void GPIO_WriteBit(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, BitAction BitVal);//读取一组
+void GPIO_Write(GPIO_TypeDef* GPIOx, uint16_t PortVal);//读取几个
+
+uint8_t GPIO_ReadOutputDataBit(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);//读取一组
+uint16_t GPIO_ReadOutputData(GPIO_TypeDef* GPIOx);//读取几个
+两个函数功能类似，区别是，前面的函数用来一次读取一组I/O口所有I/O口输出状态
+后面的函数用来一次读取一组I/O口中一个或者几个I/O口的输出状态。
+</code></pre>
+<p><img src="./images/STM32 GPIO口的配置和应用5.png" alt="在这里插入图片描述" /></p>
+<p>IDR寄存器也只用到了前面的16位。该寄存器用于读取GPIOx的输入，读取的某个I/O电平，如果对应的位为0(IDRy=0),则说明该脚输入为低电平；如果是1(IDRy=1),则表示输入的是高电平。用于寄存器设置的相关库函数为：</p>
+<pre><code><code>前面的函数用来读取一组I/O口的一个或者几个I/O口输入电平，后面的函数用来一次读取一组I/O口中所有I/O口的输入电平。
+uint8_t GPIO_ReadInputDataBit(GPIO_TypeDef*GPIOx,uint16_t GPIO_Pin);//读取一组
+uint16_t GPIO_ReadInputData(GPIO_TypeDef*GPIOx);//读取几个
+比如要读取GPIOF.3的输入电平，方法为：GPIO_ReadInputDataBit(GPIOF,GPIO_Pin_3)。
+</code></pre>
+<p><strong>3、端口位 设置/清除寄存器(GPIOx_BSRR)</strong><br />
+<img src="./images/STM32 GPIO口的配置和应用6.png" alt="在这里插入图片描述" /></p>
+<p>该寄存器用来置位或复位I/O口，它和ODR寄存器具有类似的作用，都可以用来设置GPIO端口的输出位是1还是0。如果同时设置了BSy和BRy的对应位，BSy位起作用。其中，对于低16位（0 ~ 15),在相应位ODRy写1,对应的I/O口会输出高电平，写0,则对I/O口没有任何影响。高16位（16~31)作用刚好相反，对相应的位ODRy写1会输出低电平，写0没有任何影响。即对于BSRR寄存器，写0对I/O口电平是没有任何影响的。要设置某个I/O口电平，只需要设置相关位为1即可。而ODR寄存器要设置某个I/O口电平，首先需要读出来ODR寄存器的值，然后对整个ODR寄存器重新赋值来达到设置某个或某些I/O口的目的，而BSRR寄存器，就不需先读，而是直接设置。BSRR 寄存器使用方法如下：</p>
+<pre><code><code>GPIOA-&gt;BSRR=1&lt;1;//设置GPIOA.1为高电平
+GPIOA-&gt;BSRR=1&lt;(16+1);//设置GPIOA.1为低电平
+</code></pre>
+<p>操作BSRR寄存器来设置I/O电平的库函数为：</p>
+<pre><code><code>//设置一组I/0口中的一个或者多个I/0口为高电平.
+void GPIO_SetBits(GPIO_TypeDef * GPIOx, uint16_t GPIO_Pin);
+</code></pre>
+<p><strong>4、端口位清除寄存器(GPIOx_BRR)</strong><br />
+<img src="./images/STM32 GPIO口的配置和应用7.png" alt="在这里插入图片描述" /></p>
+<p>寄存器用来置位或复位I/O口，即设置GPIO端口输出低电平。对于低16位（0~15),在相应位ODRy写1,对应的I/O口会输出低电平，写0则对I/O口没有任何影响。BRR 寄存器使用方法如下：</p>
+<pre><code><code>GPIOA-&gt;BRR=0×0001;//设置GPIOA.0为低电平
+</code></pre>
+<p>操作BRR寄存器来设置I/O电平的库函数为：</p>
+<pre><code><code>//设置一组I/0口中的一个或者多个I/0口为低电平
+void GPIO_ResetBits(GPIO_TypeDef*GPIOx,uint16_t GPIO_Pin);
+</code></pre>
+<p>小结：BSRR和BRR寄存器最终也是操作ODR寄存器，BRR的作用相当于BSRR的高16位，一般使用BSRR的低16位和BRR来设置电平，BSRR的高16位很少使用。</p>
+<p>欢迎关注我的公众号：物联网技术猿<br />
+我可以免费帮你下载csdn积分资料！</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

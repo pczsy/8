@@ -1,0 +1,418 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修CouchDB学习-集群管理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>CouchDB学习-集群管理</center></div><div class='banquan'>原文出处:本文由博客园博主触不可及`提供。<br/>
+原文连接:https://www.cnblogs.com/cbkj-xd/p/12077054.html</div><br>
+    <p><a href="https://docs.couchdb.org/en/stable/cluster/index.html">官方文档</a></p>
+<h1 id="集群管理">集群管理</h1>
+<h2 id="理论">理论</h2>
+<p>在<code>etc/fefault.ini</code>文件中有以下部分：</p>
+<pre><code><code>[cluster]
+q=8
+n=3</code></pre>
+<ul>
+<li>q - 分片的数量</li>
+<li>n - 每一份文档的拷贝数量(加上原文档一共几份副本)</li>
+</ul>
+<p>创建数据库时可以通过覆盖该值修改为自己的值。<br />
+在集群操作中，获取操作中CouchDB返回状态码200或者是写操作返回状态码201即为大多数成员达成一致。大多数成员定义为相关拷贝的数量的一半。对于“读写”操作，“相关副本”的定义稍有不同。<br />
+对于读操作，相关副本的数量是保存请求数据的当前可访问分片的数量，这意味着在发生故障或网络分区的情况下，相关副本的数量可能少于集群中的副本数量。 可以使用r参数设置读取份数。<br />
+对于写操作，相关副本的数量始终为n，即集群中的副本数量。 对于写操作，可以使用w参数设置份数。 如果少于此数量的可用节点，则返回202。</p>
+<h2 id="节点管理">节点管理</h2>
+<h3 id="查看所有节点">查看所有节点</h3>
+<pre><code><code>curl -u admin:adminpw -X GET http://localhost:5984/_membership
+{
+    &quot;all_nodes&quot;:[   # 当前节点所知道的节点
+        &quot;node1@xxx.xxx.xxx.xxx&quot;],
+    &quot;cluster_nodes&quot;:[ #当前节点所连接的节点
+        &quot;node1@xxx.xxx.xxx.xxx&quot;],
+}</code></pre>
+<h3 id="添加一个节点">添加一个节点</h3>
+<pre><code><code>curl -u admin:adminpw -X PUT http://localhost:5986/_nodes/node2@yyy.yyy.yyy.yyy -d {}</code></pre>
+<h3 id="删除一个节点">删除一个节点</h3>
+<pre><code><code>#首先获取关于文档的revision
+curl -u admin:adminpw -X GET &quot;http://xxx.xxx.xxx.xxx:5986/_nodes/node2@yyy.yyy.yyy.yyy&quot;
+{&quot;_id&quot;:&quot;node2@yyy.yyy.yyy.yyy&quot;,&quot;_rev&quot;:&quot;1-967a00dff5e02add41820138abb3284d&quot;} 
+#删除节点
+curl -u admin:adminpw -X DELETE http://localhost:5986/_nodes/node2@yyy.yyy.yyy.yyy?rev=1-967a00dff5e02add41820138abb3284d</code></pre>
+<h2 id="数据库管理">数据库管理</h2>
+<h3 id="创建数据库">创建数据库</h3>
+<p>数据库名字不支持大写字符，只支持[a-z],[0-9],以及特殊字符:<code>_ $ ( ) + - /</code></p>
+<pre><code><code>#创建一个数据库名字为db_name 
+curl -u admin:adminpw -X PUT http://localhost:5984/db_name?q=4&amp;n=2</code></pre>
+<h3 id="删除数据库">删除数据库</h3>
+<pre><code><code>curl -u admin:adminpw -X DELETE http://localhost:5984/db_name</code></pre>
+<h3 id="在一个具体的节点放置数据库">在一个具体的节点放置数据库</h3>
+<p>在CouchDB 2.0群集功能的前身BigCouch中，存在区域的概念。 CouchDB 2.0通过集群放置规则来实现这一目标。<br />
+使用<code>placement</code>参数将覆盖分片副本基数的标准逻辑（由[cluster] <code>n</code>指定）。<br />
+首先，每个节点必须标记有zone属性。 这定义了每个节点所在的区域。您可以通过编辑<code>/nodes</code>数据库中的节点文档来实现，该文档可通过“后门”（5986）端口进行访问。 添加以下形式的键值对：</p>
+<pre><code><code>&quot;zone&quot;:&quot;metro-dc-a&quot;</code></pre>
+<p>在集群上所有节点上操作。<br />
+在每一个节点的配置文件<code>local.ini</code>或者<code>default.ini</code>中，定义相同的集群设置：</p>
+<pre><code><code>[cluster]
+placement = metro-dc-a:2,metro-dc-b:1</code></pre>
+<p>在此示例中，它将确保将一个分区的两个副本托管在将<code>zone</code>属性设置为<code>metro-dc-a</code>的节点上，并将一个副本副本托管在一个将<code>zone</code>属性设置为<code>metro-dc-b</code>的新副本上。<br />
+请注意，您还可以使用该系统，通过为群集中的某些节点提供不出现在[cluster]放置字符串中的zone属性，来确保它们不承载新创建的数据库的任何副本。</p>
+<h2 id="分片管理">分片管理</h2>
+<h3 id="介绍">介绍</h3>
+<p>本文档讨论了分片在CouchDB中的工作方式，以及如何安全地添加，移动，删除和创建分片和分片副本的放置规则。<br />
+分片是数据库中数据的水平分区。将数据划分为多个碎片，并将每个碎片的副本（称为“碎片副本”或简称为“副本”）分布到群集中的不同节点，可以提高数据的持久性，防止节点丢失。CouchDB群集自动分片数据库，并在节点之间分配组成每个分片的文档子集。 修改群集成员身份和分片行为必须手动完成。</p>
+<h3 id="分片和复制">分片和复制</h3>
+<p>可以在全局级别或每个数据库的基础上设置每个数据库有多少个分片和副本。 相关参数是<code>q</code>和<code>n</code>。<br />
+<code>q</code>是要维护的数据库分片数。<code>n</code>是要分发的每个文档的副本数。<code>n</code>的默认值为3,<code>q</code>的默认值为8。当<code>q</code>= 8时，数据库分为8个分片。在<code>n</code>=3的情况下，群集分发每个分片的三个副本。总共，一个数据库有24个分片副本。在默认的3节点群集中，每个节点将接收8个分片。在4节点群集中，每个节点将接收6个分片。 在一般情况下，我们建议群集中的节点数应为n的倍数，以使碎片均匀分布。<br />
+CouchDB节点的<code>etc/local.ini</code>文件中的<code>cluster</code>部分：</p>
+<pre><code><code>[cluster]
+q=8
+n=3</code></pre>
+<p>可以修改这些设置以设置所有数据库的分片默认值，或者可以在创建数据库时通过指定q和n查询参数来针对每个数据库进行设置。 例如：</p>
+<pre><code><code>curl -X PUT &quot;http://localhost:5984/database-name?q=4&amp;n=2&quot;</code></pre>
+<p>这将创建一个数据库，该数据库分为4个分片和2个副本，从而产生8个分片副本分布在整个数据库中<br />
+的集群上。</p>
+<h3 id="quorum">Quorum</h3>
+<p>取决于集群的大小，每个数据库的分片数量以及分片副本的数量，并非每个节点都可以访问每个分片，但是每个节点都知道可以通过CouchDB的内部分片在哪里找到每个分片的所有副本。<br />
+进入CouchDB集群的每个请求均由任意一个随机协调节点处理。该协调节点将请求代理给其他具有相关数据的节点，这些数据可能包含也可能不包含自身。一旦达到法定数量的数据库节点响应，协调节点就会向客户端发送响应。2 默认情况下,默认的法定仲裁大小等于<code>r=w=((n+1)/2)</code>，其中<code>r</code>表示读取仲裁的大小，<code>w</code>表示写入仲裁的大小，<code>n</code>表示数字每个分片的副本。在n为3的默认群集中，<code>((n+1)/2)</code>将为2。<br />
+集群中的每个节点都可以作为任何请求的协调节点。集群内部没有专门的节点角色。<br />
+可以在请求时通过设置文档和视图读取的<code>r</code>参数以及文档写入的<code>w</code>参数来配置所需仲裁的大小。例如，这是一个请求，一旦至少两个节点已响应，该请求便指示协调节点发送响应：</p>
+<pre><code><code>curl &quot;$COUCH_URL:5984/&lt;db&gt;/&lt;doc&gt;?r=2&quot;</code></pre>
+<p>这是写文档的类似示例：</p>
+<pre><code><code>curl -X PUT &quot;$COUCH_URL:5984/&lt;db&gt;/&lt;doc&gt;?w=2&quot; -d &#39;{...}&#39;</code></pre>
+<p>将<code>r</code>或<code>w</code>设置为等于n（副本数）意味着只有在所有具有相关分片的节点都响应或超时后，您才会收到响应，因此这种方法不能保证<code>ACID</code>的一致性。 将<code>r</code>或<code>w</code>设置为1意味着仅一个相关节点响应后，您将收到响应。</p>
+<h3 id="数据库分片测试">数据库分片测试</h3>
+<p>有一些API端点可以帮助您了解如何分片数据库。 首先，在集群上创建一个新数据库，然后将几个文档放入其中：</p>
+<pre><code><code>$ curl -X PUT $COUCH_URL:5984/mydb
+{&quot;ok&quot;:true}
+$ curl -X PUT $COUCH_URL:5984/mydb/joan -d &#39;{&quot;loves&quot;:&quot;cats&quot;}&#39;
+{&quot;ok&quot;:true,&quot;id&quot;:&quot;joan&quot;,&quot;rev&quot;:&quot;1-cc240d66a894a7ee7ad3160e69f9051f&quot;}
+$ curl -X PUT $COUCH_URL:5984/mydb/robert -d &#39;{&quot;loves&quot;:&quot;dogs&quot;}&#39;
+{&quot;ok&quot;:true,&quot;id&quot;:&quot;robert&quot;,&quot;rev&quot;:&quot;1-4032b428c7574a85bc04f1f271be446e&quot;}</code></pre>
+<p>首先，<code>/db</code>将告诉您数据库的分片参数：</p>
+<pre><code><code>curl -s $COUCH_URL:5984/db | jq .
+{
+  &quot;db_name&quot;: &quot;mydb&quot;,
+...
+  &quot;cluster&quot;: {
+    &quot;q&quot;: 8,
+    &quot;n&quot;: 3,
+    &quot;w&quot;: 2,
+    &quot;r&quot;: 2
+}, ...
+}</code></pre>
+<p>因此，我们知道此数据库是由8个分片(<code>q</code>=8)建的，每个分片具有3个副本(<code>n</code>=3),集群中节点之间总共有24个分片副本。<br />
+现在，让我们看一下这些分片副本如何通过<code>/db/_shards</code>端点放置在集群上：</p>
+<pre><code><code>curl -s $COUCH_URL:5984/mydb/_shards | jq .
+{
+&quot;shards&quot;: {
+    &quot;00000000-1fffffff&quot;: [
+      &quot;node1@127.0.0.1&quot;,
+      &quot;node2@127.0.0.1&quot;,
+      &quot;node4@127.0.0.1&quot;
+    ],
+    &quot;20000000-3fffffff&quot;: [
+      &quot;node1@127.0.0.1&quot;,
+      &quot;node2@127.0.0.1&quot;,
+      &quot;node3@127.0.0.1&quot;
+    ],
+    ...
+  }
+}</code></pre>
+<p>现在我们看到该集群中实际上有4个节点，并且CouchDB已将这24个分片副本均匀地分布在所有4个节点上。<br />
+我们还可以确切地看到哪个分片包含具有<code>/db/_shards/doc</code>端点的给定文档：</p>
+<pre><code><code>curl -s $COUCH_URL:5984/mydb/_shards/joan | jq .
+{
+  &quot;range&quot;: &quot;e0000000-ffffffff&quot;,
+  &quot;nodes&quot;: [
+    &quot;node1@127.0.0.1&quot;,
+    &quot;node3@127.0.0.1&quot;,
+    &quot;node4@127.0.0.1&quot;
+] }
+$ curl -s $COUCH_URL:5984/mydb/_shards/robert | jq .
+{
+  &quot;range&quot;: &quot;60000000-7fffffff&quot;,
+  &quot;nodes&quot;: [
+   &quot;node1@127.0.0.1&quot;,
+    &quot;node3@127.0.0.1&quot;,
+    &quot;node4@127.0.0.1&quot;
+   ] 
+}</code></pre>
+<p>CouchDB向我们展示了两个示例文档中每个映射到的特定分片。</p>
+<h3 id="移动一个分片">移动一个分片</h3>
+<p>本节介绍如何手动放置和更换碎片。 当您确定群集太大或太小，并且想要成功调整其大小，或者从服务器指标中注意到数据库/碎片布局不是最佳的，并且您需要一些“热点”时，这些活动是至关重要的步骤 解决。<br />
+考虑一个<code>q</code>=8和<code>n</code>=3的三节点群集。每个数据库有24个分片，分布在三个节点上。如果将第四个节点添加到集群，则CouchDB不会将现有数据库分片重新分配给该集群。 这将导致负载不平衡，因为新节点将仅托管其加入集群后创建的数据库的分片。 为了平衡现有数据库中的分片分布，必须手动移动它们。<br />
+在集群中的节点上移动分片涉及以下几个步骤：</p>
+<ol>
+<li>确保目标节点已经加入集群</li>
+<li>将分片和任何辅助索引分片复制到目标节点上。</li>
+<li>设置目标节点为维护模式。</li>
+<li>更新集群元数据反映新的目标分片。</li>
+<li>监视内部复制以确保最新的分片。</li>
+<li>清除目标节点的维护模式。</li>
+<li>再次更新集群元数据移除原分片。</li>
+<li>移除原节点的分片和任何辅助索引分片.</li>
+</ol>
+<h4 id="拷贝分片文件">拷贝分片文件</h4>
+<p>从技术上讲，复制数据库和辅助索引碎片是可选的。 如果在不执行此数据副本的情况下继续进行下一步，则CouchDB将使用内部复制来填充新添加的分片副本。 但是，复制文件的速度比内部复制快，尤其是在繁忙的群集上，这就是为什么我们建议首先执行此手动数据复制的原因。<br />
+碎片文件位于CouchDB安装目录的<code>data/shards</code>目录中。这些子目录中包含分片文件本身。例如，对于一个名为<code>abc</code>的<code>q</code>=8数据库，这是其数据库分片文件：</p>
+<pre><code><code>data/shards/00000000-1fffffff/abc.1529362187.couch
+data/shards/20000000-3fffffff/abc.1529362187.couch
+data/shards/40000000-5fffffff/abc.1529362187.couch
+...</code></pre>
+<p>辅助索引(包括<code>JavaScript</code>视图，<code>Erlang</code>视图和<code>Mango</code>索引)也被分片，并且应移动它们的分片以节省新节点重建视图的工作量。查看<code>data/.</code>中的分片。例如：</p>
+<pre><code><code>data/.shards
+data/.shards/e0000000-ffffffff/_replicator.1518451591_design
+data/.shards/e0000000-ffffffff/_replicator.1518451591_design/mrview
+data/.shards/e0000000-ffffffff/_replicator.1518451591_design/mrview/3e823c2a4383ac0c18d4e574135a5b08.view
+...</code></pre>
+<p>由于它们是文件，因此可以使用<code>cp</code>，<code>rsync</code>，<code>scp</code>或其他文件复制命令将它们从一个节点复制到另一个节点。 例如：</p>
+<pre><code><code># 1主机
+$ mkdir -p data/.shards/&lt;range&gt;
+$ mkdir -p data/shards/&lt;range&gt;
+# 2主机
+$ scp &lt;couch-dir&gt;/data/.shards/&lt;range&gt;/&lt;database&gt;.&lt;datecode&gt;* \
+&lt;node&gt;:&lt;couch-dir&gt;/data/.shards/&lt;range&gt;/
+$ scp &lt;couch-dir&gt;/data/shards/&lt;range&gt;/&lt;database&gt;.&lt;datecode&gt;.couch \
+  &lt;node&gt;:&lt;couch-dir&gt;/data/shards/&lt;range&gt;/</code></pre>
+<p>先移动视图文件再移动数据库文件！ 如果视图索引在其数据库之前，则数据库将从头开始重建它。</p>
+<h4 id="设置目标节点为维护模式">设置目标节点为维护模式</h4>
+<p>在告诉CouchDB节点上的这些新分片之前，必须将节点置于维护模式。维护模式指示CouchDB返回<code>404 Not Found</code>响应在<code>/_up</code>端点，并确保其不参与其分片的常规交互式集群请求。使用GET<code>/_up</code>检查节点的运行状况的正确配置的负载均衡器将检测到此404并将该节点从循环中删除，从而阻止将请求发送到该节点。 例如，要将HAProxy配置为使用<code>/_up</code>端点，请使用：</p>
+<pre><code><code>http-check disable-on-404
+option httpchk GET /_up</code></pre>
+<p>如果未设置维护模式，或者负载平衡器忽略了此维护模式状态，则在执行下一步之后，群集在咨询相关节点时可能会返回错误的响应。不要这样做！在接下来的步骤中，我们将确保此分片是最新的，然后再允许其参与最终用户的请求。<br />
+启用维护模式：</p>
+<pre><code><code> curl -X PUT -H &quot;Content-type: application/json&quot; \ $COUCH_URL:5984/_node/&lt;nodename&gt;/_config/couchdb/maintenance_mode \ -d &quot;\&quot;true\&quot;&quot;</code></pre>
+<p>然后，通过在该节点的单个端点上执行GET<code>/_up</code>来验证该节点是否处于维护模式：</p>
+<pre><code><code>curl -v $COUCH_URL/_up
+...
+&lt; HTTP/1.1 404 Object Not Found
+...
+{&quot;status&quot;:&quot;maintenance_mode&quot;}</code></pre>
+<p>最后，检查负载均衡器是否已从可用后端节点池中删除了该节点。</p>
+<h4 id="更新集群元数据反映新的目标分片">更新集群元数据反映新的目标分片。</h4>
+<p>现在我们需要告诉CouchDB，目标节点（必须已经加入集群）应该为给定数据库托管碎片副本。<br />
+要更新群集元数据，请使用特殊的<code>/_dbs</code>数据库，该数据库是内部CouchDB数据库，它将数据库映射到分片和节点。该数据库在节点之间复制。它只能通过节点本地端口（通常是端口5986）进行访问。默认情况下，出于安全目的，此端口仅在localhost接口上可用。<br />
+首先，检索数据库的当前元数据：</p>
+<pre><code><code>curl http://localhost:5986/_dbs/{name}
+{
+  &quot;_id&quot;: &quot;{name}&quot;,
+  &quot;_rev&quot;: &quot;1-e13fb7e79af3b3107ed62925058bfa3a&quot;,
+  &quot;shard_suffix&quot;: [46, 49, 53, 51, 48, 50, 51, 50, 53, 50, 54],
+  &quot;changelog&quot;: [
+    [&quot;add&quot;, &quot;00000000-1fffffff&quot;, &quot;node1@xxx.xxx.xxx.xxx&quot;],
+    [&quot;add&quot;, &quot;00000000-1fffffff&quot;, &quot;node2@xxx.xxx.xxx.xxx&quot;],
+    [&quot;add&quot;, &quot;00000000-1fffffff&quot;, &quot;node3@xxx.xxx.xxx.xxx&quot;],
+    ...
+  ],
+  &quot;by_node&quot;: {
+    &quot;node1@xxx.xxx.xxx.xxx&quot;: [
+      &quot;00000000-1fffffff&quot;,
+      ...
+    ],
+    ... 
+  },
+  &quot;by_range&quot;: {
+    &quot;00000000-1fffffff&quot;: [
+      &quot;node1@xxx.xxx.xxx.xxx&quot;,
+      &quot;node2@xxx.xxx.xxx.xxx&quot;,
+      &quot;node3@xxx.xxx.xxx.xxx&quot;
+    ],
+    ...
+   } 
+}</code></pre>
+<p>这是该文档的简要剖析：</p>
+<ul>
+<li><code>_id</code>:数据库的名字</li>
+<li><code>_rev</code>:元数据的当前版本</li>
+<li><code>shard_suffix</code>:数据库创建时的时间戳，在Unix时期映射到ASCII数字的代码点后的秒。</li>
+<li><code>changelog</code>:数据库分片的历史</li>
+<li><code>by_node</code>:每个节点的分片列表</li>
+<li><code>by_range</code>:每个分片由哪些节点持有。</li>
+</ul>
+<p>要反映元数据中的分片移动，请执行以下三个步骤：</p>
+<ol>
+<li>添加合适的<code>changelog</code>实体。</li>
+<li>更新<code>by_node</code>实体。</li>
+<li>更新<code>by_range</code>实体。</li>
+</ol>
+<p>在修改时，此过程必须手动完成。<br />
+要将分片添加到节点，请将以下条目添加到数据库元数据的<code>changelog</code>属性中：</p>
+<pre><code><code>[&quot;add&quot;, &quot;&lt;range&gt;&quot;, &quot;&lt;node-name&gt;&quot;]</code></pre>
+<p><code>&lt;range&gt;</code>是特定的硬范围设置。<code>&lt;node-name&gt;</code>应该与集群中GET<code>/_membership</code>中显示的节点的名称和地址匹配。<br />
+如果从节点移除一个分片，简单地将<code>add</code>替换为<code>remove</code>。<br />
+找到新的变更日志条目后，将需要更新<code>by_node</code>和<code>by_range</code>以反映谁在存储哪些分片。 更改日志条目中的数据和这些属性必须匹配。 否则，数据库可能会损坏。<br />
+继续我们的示例，这是上面的元数据的更新版本，该版本将分片添加到名为node4的其他节点中：</p>
+<pre><code><code>{
+
+  &quot;_id&quot;: &quot;{name}&quot;,
+  &quot;_rev&quot;: &quot;1-e13fb7e79af3b3107ed62925058bfa3a&quot;,
+  &quot;shard_suffix&quot;: [46, 49, 53, 51, 48, 50, 51, 50, 53, 50, 54],
+  &quot;changelog&quot;: [
+    [&quot;add&quot;, &quot;00000000-1fffffff&quot;, &quot;node1@xxx.xxx.xxx.xxx&quot;],
+    [&quot;add&quot;, &quot;00000000-1fffffff&quot;, &quot;node2@xxx.xxx.xxx.xxx&quot;],
+    [&quot;add&quot;, &quot;00000000-1fffffff&quot;, &quot;node3@xxx.xxx.xxx.xxx&quot;],
+    ...
+    [&quot;add&quot;, &quot;00000000-1fffffff&quot;, &quot;node4@xxx.xxx.xxx.xxx&quot;]
+  ],
+  &quot;by_node&quot;: {
+    &quot;node1@xxx.xxx.xxx.xxx&quot;: [
+      &quot;00000000-1fffffff&quot;,
+    ... 
+    ],
+    ...
+    &quot;node4@xxx.xxx.xxx.xxx&quot;: [
+      &quot;00000000-1fffffff&quot;
+    ]
+  },
+  &quot;by_range&quot;: {
+    &quot;00000000-1fffffff&quot;: [
+      &quot;node1@xxx.xxx.xxx.xxx&quot;,
+      &quot;node2@xxx.xxx.xxx.xxx&quot;,
+      &quot;node3@xxx.xxx.xxx.xxx&quot;,
+      &quot;node4@xxx.xxx.xxx.xxx&quot;
+    ],
+    ...
+  }
+}</code></pre>
+<p>现在可以<code>PUT</code>新元数据：</p>
+<pre><code><code>curl -X PUT http://localhost:5986/_dbs/{name} -d &#39;{...}&#39;</code></pre>
+<h4 id="强制同步分片">强制同步分片</h4>
+<p>无论您是否将分片预先复制到新节点，都可以强制CouchDB同步所有分片的所有副本。<br />
+具有<code>/db/_sync_shards</code>端点的数据库中的分片：</p>
+<pre><code><code>curl -X POST $COUCH_URL:5984/{dbname}/_sync_shards
+{&quot;ok&quot;:true}</code></pre>
+<p>这将启动同步过程。 请注意，这将给群集增加额外的负载，这可能会影响性能。<br />
+通过写入存储在该分片中的文档，也可以在每个分片的基础上强制进行同步。</p>
+<h4 id="监视内部复制以确保最新的分片">监视内部复制以确保最新的分片</h4>
+<p>完成上一步后，CouchDB将开始同步分片。可以通过监视<code>/_node/&lt;nodename&gt;/_system</code>端点(包括<code>internal_replication_jobs</code>指标)来观察这种情况。<br />
+一旦此指标从开始分片同步之前返回到基线，或者为0，分片副本就可以提供数据了，我们可以使节点退出维护模式。</p>
+<h4 id="清除目标节点的维护模式">清除目标节点的维护模式</h4>
+<p>现在，可以像在步骤2中一样，通过在维护模式配置端点上放置<code>false</code>,使节点开始为数据请求提供服务。<br />
+通过在该节点的单个端点上执行GET<code>/_up</code>来验证该节点是否不在维护模式下。最后，检查负载均衡器是否已将该节点返回到可用后端节点池中。</p>
+<h4 id="再次更新集群元数据移除原分片">再次更新集群元数据移除原分片</h4>
+<p>现在，以与在步骤2中将新目标分片添加到分片图中相同的方式，从分片图中删除源分片。确保将<code>[“ remove”，&lt;range&gt;，&lt;source-shard&gt;]</code>条目添加到 更改日志的末尾，以及修改数据库元数据文档的<code>by_node</code>和<code>by_range</code>部分。</p>
+<h4 id="移除原节点的分片和任何辅助索引分片">移除原节点的分片和任何辅助索引分片</h4>
+<p>最后，可以通过从源主机上的命令行中删除源碎片副本的文件以及任何视图碎片副本来删除源碎片副本：</p>
+<pre><code><code>rm &lt;couch-dir&gt;/data/shards/&lt;range&gt;/&lt;dbname&gt;.&lt;datecode&gt;.couch
+rm -r &lt;couch-dir&gt;/data/.shards/&lt;range&gt;/&lt;dbname&gt;.&lt;datecode&gt;*</code></pre>
+<p>恭喜你！ 您已经移动了数据库分片副本。通过以这种方式添加和删除数据库分片副本，您可以更改集群的分片布局，也称为分片映射。</p>
+<h3 id="指定数据库放置位置">指定数据库放置位置</h3>
+<p>您可以配置CouchDB，以使用放置规则在数据库创建时将碎片副本放置在某些节点上。<br />
+首先，每个节点必须标记有zone属性。 这定义了每个节点所在的区域。您可以通过编辑<code>/_nodes</code>数据库中的节点文档来实现，该文档可通过本地节点端口进行访问。 添加以下形式的键值对：</p>
+<pre><code><code>&quot;zone&quot;: &quot;{zone-name}&quot;</code></pre>
+<p>在集群中的每一个节点都这样做：</p>
+<pre><code><code>curl -X PUT http://localhost:5986/_nodes/&lt;node-name&gt; \ -d &#39;{ \
+        &quot;_id&quot;: &quot;&lt;node-name&gt;&quot;,
+        &quot;_rev&quot;: &quot;&lt;rev&gt;&quot;,
+        &quot;zone&quot;: &quot;&lt;zone-name&gt;&quot;
+        }&#39;</code></pre>
+<p>在每个节点的本地配置文件（local.ini）中，定义一个一致的群集范围设置，例如：</p>
+<pre><code><code>[cluster]
+placement = &lt;zone-name-1&gt;:2,&lt;zone-name-2&gt;:1</code></pre>
+<p>在此示例中，CouchDB将确保将分区的两个副本托管在区域属性设置为<code>&lt;zone-name-1&gt;</code>的节点上，并将一个副本托管在新的区域属性设置为<code>&lt;zone-name-2&gt;</code>的节点上。<br />
+这种方法非常灵活，因为您还可以在创建数据库时使用与ini文件相同的语法，通过将放置设置指定为查询参数来基于每个数据库指定区域：</p>
+<pre><code><code>curl -X PUT $COUCH_URL:5984/&lt;dbname&gt;?zone=&lt;zone&gt;</code></pre>
+<p>也可以指定放置参数。 请注意，这将覆盖确定已创建副本的数量！<br />
+请注意，您还可以使用此系统来确保群集中的某些节点不为新主机托管任何副本。<br />
+通过为它们提供一个不会出现在<code>[cluster]</code>放置字符串中的<code>zone</code>属性，来创建数据库。</p>
+<h3 id="修改数据库到一个新的q值">修改数据库到一个新的<code>q</code>值</h3>
+<p>数据库的q值只能在创建数据库时设置，不能进行实时重新分片。 相反，要重新分片数据库，必须重新生成它。 步骤如下：</p>
+<ol>
+<li>通过在PUT操作期间将<code>q</code>值指定为查询参数来创建具有所需分片设置的临时数据库。</li>
+<li>停止客户端访问数据库</li>
+<li>将主数据库复制到临时数据库。 如果主数据库正在使用中，则可能需要多次复制。</li>
+<li>删除主数据库，<strong>确保没有人在使用!</strong></li>
+<li>使用所需的分片设置重新创建主数据库。</li>
+<li>客户端现在可以再次访问数据库。</li>
+<li>将临时数据库复制回主数据库。</li>
+<li>删除临时数据库.</li>
+</ol>
+<p>一旦完成所有步骤，即可再次使用该数据库。 集群将根据放置规则自动创建并分发其碎片。<br />
+如果可以指示客户端应用程序使用新数据库而不是旧数据库，并且可以在非常短暂的中断窗口内进行切换，则可以避免生产中的停机时间。</p>
+<h2 id="集群清除">集群清除</h2>
+<p>群集清除的主要目的是清除具有多个删除的逻辑删除或包含大量冲突的单个文档的数据库。 但是，它也可以用于清除具有任何修订版本的任何文档（已删除或未删除）。<br />
+群集清除旨在维护最终的一致性并防止不必要的二级索引无效。 为此，每个数据库都会跟踪数据库中请求的一定数量的历史清除以及其当前的<code>purge_seq</code>。 内部复制和二级索引处理数据库的清除，并定期更新其相应的清除检查点文档以报告由其处理的<code>purge_seq</code>。 为了确保最终的一致性，数据库将仅在内部复制作业和二级索引处理了存储的历史清除请求之后，才删除它们。</p>
+<h3 id="内部结构">内部结构</h3>
+<p>为了在节点和二级索引之间实现内部清除信息的复制，将两个内部清除树添加到数据库文件中以跟踪历史清除。</p>
+<pre><code><code>purge_tree: UUID -&gt; {PurgeSeq, DocId, Revs}
+purge_seq_tree: PurgeSeq -&gt; {UUID, DocId, Revs}</code></pre>
+<p>每次对<code>_purge API</code>的交互式请求，都会在增加<code>purge_seq</code>和<code>purge_request</code>时创建成对的有序集合，其中<code>purge_request</code>是一个包含<code>docid</code>和修订列表的元组。 对于每个<code>purge_request</code>都会生成<code>uuid</code>。清除请求将添加到内部清除树：将元组<code>{UUID-&gt; {PurgeSeq，DocId，Revs}}</code>添加到<code>purge_tree</code>，元组 <code>{PurgeSeq-&gt; {UUID，DocId，Revs}}</code>添加到<code>purge_seq_tree</code>。</p>
+<h3 id="压缩清除">压缩清除</h3>
+<p>在数据库压缩期间，最旧的清除请求将被删除，以仅在数据库中存储<code>purged_infos_limit</code>个清除数目。 但是，为了使数据库与索引和其他副本保持一致，我们只能删除索引和内部复制作业已处理的清除请求。因此，有时清除树可能存储的数据超过<code>purged_infos_limit</code>清除数目。 如果数据库中存储的清除数量超出<code>purged_infos_limit</code>某个阈值，则日志中会产生警告，表明数据库的清除与索引和其他副本的同步问题。</p>
+<h3 id="本地清除检查点文档">本地清除检查点文档</h3>
+<p>具有清除的数据库索引和内部复制会创建并定期更新本地检查点清除文档：<code>_local/purge-$type-$hash</code>。 这些文档报告了它们最后处理的<code>purge_seq</code>以及最后处理的时间戳。 本地检查点清除文档的示例：</p>
+<pre><code><code>{
+&quot;_id&quot;: &quot;_local/purge-mrview-86cacdfbaf6968d4ebbc324dd3723fe7&quot;, &quot;type&quot;: &quot;mrview&quot;,
+&quot;purge_seq&quot;: 10,
+&quot;updated_on&quot;: 1540541874,
+&quot;ddoc_id&quot;: &quot;_design/foo&quot;,
+&quot;signature&quot;: &quot;5d10247925f826ae3e00966ec24b7bf6&quot;
+}</code></pre>
+<h3 id="内部复制">内部复制</h3>
+<p>清除请求将以最终一致的方式在所有节点上重播。 清除的内部复制包括两个步骤：<br />
+1.拉取复制。内部复制首先要从目标中清除并将其应用于源，以确保我们不会重新引入目标中已清除的源文档/修订版。 在这一步中，我们使用存储在目标上的清除检查点文档来跟踪源处理的最后一个目标的<code>purge_seq</code>。 我们发现清除请求在此<code>purge_seq</code>之后发生，并在源上重播它们。 通过使用最新进程<code>purge_seq</code>和时间戳更新目标的检查点清除文档来完成此步骤。<br />
+2.推送复制。 然后，内部复制将照常进行，并插入一个额外的步骤以将源的清除请求推送到目标。 在此步骤中，我们使用本地内部复制检查点文档，这些文档在目标和源上均已更新。<br />
+在正常情况下，交互式清除请求已发送到包含数据库碎片副本的每个节点，并应用于每个副本。节点之间清除的内部复制只是确保副本之间一致性的一个额外步骤，在此副本上，一个节点上的所有清除请求都会在另一个节点上重播。为了不在副本上重播相同的清除请求，每个交互式清除请求都用唯一的<code>uuid</code>标记。内部复制会过滤出副本的<code>purge_tree</code>中已存在的<code>UUID</code>的清除请求，并仅应用<code>purge_tree</code>中不存在的<code>UUID</code>的清除请求。 这就是为什么我们需要有两个内部清除树的原因：1）<code>purge_tree：{UUID-&gt; {PurgeSeq，DocId，Revs}}</code>可以快速找到带有已存在的<code>UUID</code>的<code>purge requests</code>存在的副本； 2）<code>purge_seq_tree：{PurgeSeq-&gt; {UUID，DocId，Revs }}</code>允许从给定的<code>purge_seq</code>进行迭代，以收集在此<code>purge_seq</code>之后发生的所有清除请求。</p>
+<h3 id="索引">索引</h3>
+<p>每个清除请求将增加数据库的<code>update_seq</code>，以便还更新每个辅助索引，以便应用清除请求以维护主数据库内的一致性。</p>
+<h3 id="配置设置">配置设置</h3>
+<p>这些设置可以在<code>default.ini</code>或<code>local.ini</code>中进行更新：</p>
+<table>
+<thead>
+<tr class="header">
+<th>字段</th>
+<th>描述</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>max_document_id_number</td>
+<td>一个清除请求中允许的最大文档数</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td>max_revisions_number</td>
+<td>一项清除请求中允许的最大累积修订版本数</td>
+<td>1000</td>
+</tr>
+<tr class="odd">
+<td>allowed_purge_seq_lag</td>
+<td>除了<code>purged_infos_limit</code>外，还允许其他缓冲区存储清除请求</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td>index_lag_warn_seconds</td>
+<td>本地清除检查点文档的索引未更新时的允许持续时间</td>
+<td>86400</td>
+</tr>
+</tbody>
+</table>
+<p>在数据库压缩期间，我们检查所有检查点清除文档。 允许客户端（索引或内部复制作业）的上一次报告的<code>purge_seq</code>小于当前数据库碎片的<code>purge_seq</code>的值(<code>purged_infos_limit + allowed_purge_seq_lag</code>)。如果客户端的<code>purge_seq</code>甚至更小，并且客户端未在<code>index_lag_warn_seconds</code>内设置检查点，则它会阻止清除清除树，因此我们必须对此客户端发出以下日志警告：</p>
+<pre><code><code>Purge checkpoint &#39;_local/purge-mrview-9152d15c12011288629bcffba7693fd4’
+not updated in 86400 seconds in
+&lt;&lt;&quot;shards/00000000-1fffffff/testdb12.1491979089&quot;&gt;&gt;</code></pre>
+<p>如果发生这种类型的日志警告，请检查客户端以查看为什么清除请求的处理停滞在其中。<br />
+索引的设计文档和本地检查点文档之间存在映射关系。 如果更新或删除了索引的设计文档，则也应自动删除相应的本地检查点文档。 但是在意外情况下，当设计文档被更新/删除但其检查点文档仍然存在于数据库中时，将发出以下警告：</p>
+<pre><code><code>&quot;Invalid purge doc &#39;&lt;&lt;&quot;_design/bar&quot;&gt;&gt;&#39; on database
+&lt;&lt;&quot;shards/00000000-1fffffff/testdb12.1491979089&quot;&gt;&gt;
+with purge_seq &#39;50&#39;&quot;</code></pre>
+<p>如果发生这种类型的日志警告，请从数据库中删除本地清除文档。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

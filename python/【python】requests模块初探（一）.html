@@ -1,0 +1,139 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【python】requests模块初探（一）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【python】requests模块初探（一）</center></div><div class='banquan'>原文出处:本文由博客园博主复现提供。<br/>
+原文连接:https://www.cnblogs.com/flowertester/p/11581892.html</div><br>
+    <h1 id="一写在前面">一、写在前面</h1>
+<hr />
+<p>Requests 是用Python语言编写，基于 urllib，采用 Apache2 Licensed 开源协议的 HTTP 库。它比 urllib 更加方便，可以节约我们大量的工作，完全满足 HTTP 测试需求。Requests 的哲学是以 PEP 20 的习语为中心开发的，所以它比 urllib 更加 Pythoner。</p>
+<p>那么，requests都有哪些应用场景呢？</p>
+<p>1.服务器编程基础；</p>
+<p>2.爬虫利器；</p>
+<p>3.自动化接口测试；</p>
+<p>4.运维监控脚本</p>
+<p>等等</p>
+<p>本篇，我就记录一下requests最常用的两个请求方式和以及响应，其他内容后续更新</p>
+<hr />
+<h1 id="二安装">二、安装</h1>
+<p>安装很简单，只需要使用命令行安装即可：</p>
+<pre><code><code>pip install requests</code></pre>
+<h1 id="三请求">三、请求</h1>
+<h3 id="get请求">3.1 GET请求</h3>
+<pre><code><code>r = requests.get(&#39;https://api.github.com/events&#39;)</code></pre>
+<h3 id="传递url参数的get请求">3.2 传递URL参数的GET请求</h3>
+<pre><code><code>payload = {&#39;key1&#39;: &#39;value1&#39;, &#39;key2&#39;: &#39;value2&#39;}
+r = requests.get(&quot;http://httpbin.org/get&quot;, params=payload)</code></pre>
+<h3 id="请求cookies">3.3 请求cookies</h3>
+<pre><code><code>url = &#39;http://httpbin.org/cookies&#39;
+cookies = dict(cookies_are=&#39;working&#39;)
+r = requests.get(url, cookies=cookies)
+#后面用到再详细分析</code></pre>
+<h3 id="post请求">3.4 POST请求</h3>
+<p>通常，想要发送一些编码为表单形式的数据——非常像一个 HTML 表单。要实现这个，只需简单地传递一个字典给 data 参数。你的数据字典在发出请求时会自动编码为表单形式：</p>
+<pre><code><code>payload = {&#39;key1&#39;: &#39;value1&#39;, &#39;key2&#39;: &#39;value2&#39;}
+r = requests.post(&quot;http://httpbin.org/post&quot;, data=payload)</code></pre>
+<p>还可以为 data 参数传入一个元组列表。在表单中多个元素使用同一 key 的时候，这种方式尤其有效：</p>
+<pre><code><code>payload = ((&#39;key1&#39;, &#39;value1&#39;), (&#39;key1&#39;, &#39;value2&#39;))
+r = requests.post(&#39;http://httpbin.org/post&#39;, data=payload)</code></pre>
+<p>很多时候你想要发送的数据并非编码为表单形式的，例如你要传递一个 string 而不是一个 dict：</p>
+<pre><code><code>import json
+url = &#39;https://api.github.com/some/endpoint&#39;
+payload = {&#39;some&#39;: &#39;data&#39;}
+r = requests.post(url, data=json.dumps(payload))</code></pre>
+<p>或者是定义一个字符串的data</p>
+<pre><code><code>url = &#39;https://api.github.com/some/endpoint&#39;
+payload = &#39;{&quot;some&quot;: &quot;data&quot;}&#39;
+r = requests.post(url, data=payload)</code></pre>
+<p>此处除了可以自行对 dict 进行编码，你还可以使用 json 参数直接传递，然后它就会被自动编码</p>
+<pre><code><code>url = &#39;https://api.github.com/some/endpoint&#39;
+payload = {&#39;some&#39;: &#39;data&#39;}
+r = requests.post(url, json=payload)</code></pre>
+<h1 id="四请求头">四、请求头</h1>
+<p>如果想为请求添加 HTTP 头部，只要简单地传递一个 dict 给 headers 参数就可以了。</p>
+<pre><code><code>url = &#39;https://api.github.com/some/endpoint&#39;
+headers = {&#39;user-agent&#39;: &#39;my-app/0.0.1&#39;}
+r = requests.get(url, headers=headers)</code></pre>
+<h1 id="五响应">五、响应</h1>
+<p>前面的请求例子中，每个请求都会赋值给一个名为 r 的 Response 对象，我们可以从这个对象中获取所有我们想要的信息</p>
+<h3 id="获得请求url">5.1获得请求url</h3>
+<pre><code><code>payload = {&#39;key1&#39;: &#39;value1&#39;, &#39;key2&#39;: [&#39;value2&#39;, &#39;value3&#39;]}
+r = requests.get(&#39;http://httpbin.org/get&#39;, params=payload)
+print(r.url)
+&gt;&gt;&gt; http://httpbin.org/get?key1=value1&amp;key2=value2&amp;key2=value3</code></pre>
+<h3 id="获得响应内容">5.2获得响应内容</h3>
+<pre><code><code>r = requests.get(&#39;https://api.github.com/events&#39;)
+r.text #获得响应内容，类型为字符串
+r.json() #如果 JSON 解码失败， r.json() 就会抛出一个异常
+r.content #获得响应内容，类型为bytes-二进制响应内容
+r.raw #原始响应内容，在罕见的情况下，你可能想获取来自服务器的原始套接字响应（后面会详细结合流数据来分析）</code></pre>
+<h3 id="响应状态码">5.3响应状态码</h3>
+<pre><code><code>r = requests.get(&#39;http://httpbin.org/get&#39;)
+r.status_code</code></pre>
+<p>如果发送了一个错误请求(一个 4XX 客户端错误，或者 5XX 服务器错误响应)，我们可以通过 Response.raise_for_status() 来抛出异常：</p>
+<pre><code><code>r = requests.get(&#39;http://httpbin.org/status/404&#39;)
+r.status_code
+&gt;&gt;&gt; 404
+r.raise_for_status()
+&gt;&gt;&gt;
+Traceback (most recent call last):
+  File &quot;requests/models.py&quot;, line 832, in raise_for_status
+    raise http_error
+requests.exceptions.HTTPError: 404 Client Error</code></pre>
+<h3 id="响应头">5.4响应头</h3>
+<pre><code><code>r.headers</code></pre>
+<h3 id="response对象支持的所有方法">5.5 Response对象支持的所有方法</h3>
+<pre><code><code>r.xxx #在ipython调试中，可以通过tab键来查看所有方法</code></pre>
+<p>该对象所有方法如下：<br />
+<strong><em><br />
+apparent_encoding<br />
+content<br />
+encoding<br />
+is_permanent_redirect<br />
+iter_lines<br />
+next<br />
+raw<br />
+status_code<br />
+close<br />
+cookies<br />
+headers<br />
+is_redirect<br />
+json<br />
+ok<br />
+reason<br />
+text<br />
+connection<br />
+elapsed<br />
+history<br />
+iter_content<br />
+links<br />
+raise_for_status<br />
+request<br />
+url<br />
+</em></strong><br />
+这里仅介绍了几个很常用的响应方法，后面遇到实际问题再展开讨论</p>
+<h1 id="六超时">六、超时</h1>
+<p>可以告诉 requests 在经过以 timeout 参数设定的秒数时间之后停止等待响应。基本上所有的生产代码都应该使用这一参数。如果不使用，你的程序可能会永远失去响应：</p>
+<pre><code><code>requests.get(&#39;http://github.com&#39;, timeout=0.001)</code></pre>
+<h1 id="后记">后记</h1>
+<p>以上的两种关于requests库请求方式及响应方法应该可以处理一些基本问题了，后面会继续探索requests库的其他功能。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

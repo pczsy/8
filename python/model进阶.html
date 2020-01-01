@@ -1,0 +1,523 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修model进阶' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>model进阶</center></div><div class='banquan'>原文出处:本文由博客园博主changxin7提供。<br/>
+原文连接:https://www.cnblogs.com/changxin7/p/11588780.html</div><br>
+    <h2 id="一-queryset">一 QuerySet</h2>
+<h3 id="可切片">可切片</h3>
+<p>使用Python 的切片语法来限制<code>查询集</code>记录的数目 。它等同于SQL 的<code>LIMIT</code> 和<code>OFFSET</code> 子句。</p>
+<pre><code><code>&gt;&gt;&gt; Entry.objects.all()[:5]      # (LIMIT 5)
+
+&gt;&gt;&gt; Entry.objects.all()[5:10]    # (OFFSET 5 LIMIT 5)</code></pre>
+<p>不支持负的索引（例如<code>Entry.objects.all()[-1]</code>）。通常，<code>查询集</code> 的切片返回一个新的<code>查询集</code> —— 它不会执行查询。</p>
+<h3 id="可迭代">可迭代</h3>
+<pre><code><code>articleList=models.Article.objects.all()
+
+for article in articleList:
+    print(article.title)</code></pre>
+<h3 id="惰性查询">惰性查询</h3>
+<p><code>查询集</code> 是惰性执行的 —— 创建<code>查询集</code>不会带来任何数据库的访问。你可以将过滤器保持一整天，直到<code>查询集</code> 需要求值时，Django 才会真正运行这个查询。（关于惰性是不是在迭代器的地方听过呀）</p>
+<pre><code><code>queryResult=models.Article.objects.all() # not hits database，通过看到的打印的翻译出来的sql语句记录，你会发现单纯的这句话并没有sql语句打印
+ 
+print(queryResult) # hits database
+ 
+for article in queryResult:
+    print(article.title)    # hits database
+ 
+if判断的时候也会执行，if queryResult:pass
+</code></pre>
+<p>一般来说，只有在“请求”<code>查询集</code> 的结果时才会到数据库中去获取它们。当你确实需要结果时，<code>查询集</code> 通过访问数据库来<em>求值</em>。 关于求值发生的准确时间，参见<a href="http://python.usyiyi.cn/documents/django_182/ref/models/querysets.html#when-querysets-are-evaluated"><em>何时计算查询集</em></a>。　　</p>
+<h3 id="缓存机制">缓存机制</h3>
+<p>每个<code>查询集</code>都包含一个缓存来最小化对数据库的访问。理解它是如何工作的将让你编写最高效的代码。叫做queryset缓存空间</p>
+<p>在一个新创建的<code>查询集</code>中，缓存为空。首次对<code>查询集</code>进行求值 —— 同时发生数据库查询 ——Django 将保存查询的结果到<code>查询集(非简单查询的查询结果，简单查询往下看。)</code>的缓存中并返回明确请求的结果（例如，如果正在迭代<code>查询集</code>，则返回下一个结果）。接下来对该<code>查询集</code> 的求值将重用缓存的结果。</p>
+<p>请牢记这个缓存行为，因为对<code>查询集</code>使用不当的话，它会坑你的。例如，下面的语句创建两个<code>查询集</code>，对它们求值，然后扔掉它们：</p>
+<pre><code><code>print([a.title for a in models.Article.objects.all()])
+print([a.create_time for a in models.Article.objects.all()])
+</code></pre>
+<p>这意味着相同的数据库查询将执行两次，显然倍增了你的数据库负载。同时，还有可能两个结果列表并不包含相同的数据库记录，因为在两次请求期间有可能有Article被添加进来或删除掉。为了避免这个问题，只需保存<code>查询集</code>并重新使用它：</p>
+<pre><code><code>queryResult=models.Article.objects.all()
+print([a.title for a in queryResult])
+print([a.create_time for a in queryResult])
+</code></pre>
+<h4 id="何时查询集不会被缓存">何时查询集不会被缓存?</h4>
+<p>查询集不会永远缓存它们的结果。当只对查询集的部分进行求值时会检查缓存， 如果这个部分不在缓存中，那么接下来查询返回的记录都将不会被缓存。所以，这意味着使用切片或索引来限制查询集将不会填充缓存。</p>
+<p>例如，重复获取查询集对象中一个特定的索引将每次都查询数据库：</p>
+<pre><code><code>&gt;&gt;&gt; queryset = Entry.objects.all()
+&gt;&gt;&gt; print queryset[5] # Queries the database
+&gt;&gt;&gt; print queryset[5] # Queries the database again
+</code></pre>
+<p>然而，如果已经对全部查询集求值过，则将检查缓存：</p>
+<pre><code><code>&gt;&gt;&gt; queryset = Entry.objects.all()
+&gt;&gt;&gt; [entry for entry in queryset] # Queries the database
+&gt;&gt;&gt; print queryset[5] # Uses cache
+&gt;&gt;&gt; print queryset[5] # Uses cache
+</code></pre>
+<p>下面是一些其它例子，它们会使得全部的查询集被求值并填充到缓存中：</p>
+<pre><code><code>&gt;&gt;&gt; [entry for entry in queryset]
+&gt;&gt;&gt; bool(queryset)
+&gt;&gt;&gt; entry in queryset
+&gt;&gt;&gt; list(queryset)
+</code></pre>
+<p>注意：简单地打印查询集不会填充缓存。</p>
+<pre><code><code>queryResult=models.Article.objects.all()
+print(queryResult) #  hits database
+print(queryResult) #  hits database</code></pre>
+<h3 id="exists与iterator方法">exists()与iterator()方法</h3>
+<h4 id="exists">exists：</h4>
+<p>简单的使用if语句进行判断也会完全执行整个queryset并且把数据放入cache，虽然你并不需要这些 数据！为了避免这个，可以用exists()方法来检查是否有数据：</p>
+<pre><code><code> if queryResult.exists():
+    #SELECT (1) AS &quot;a&quot; FROM &quot;blog_article&quot; LIMIT 1; args=()
+        print(&quot;exists...&quot;)</code></pre>
+<h4 id="iterator">iterator:</h4>
+<p>当queryset非常巨大时，cache会成为问题。</p>
+<p>处理成千上万的记录时，将它们一次装入内存是很浪费的。更糟糕的是，巨大的queryset可能会锁住系统 进程，让你的程序濒临崩溃。要避免在遍历数据的同时产生queryset cache，可以使用iterator()方法 来获取数据，处理完数据就将其丢弃。</p>
+<pre><code><code>objs = Book.objects.all().iterator()  --- objs变成了一个生成器，生成器也是迭代器，但是生成器有个特点，就是取完值就不能再取了
+# iterator()可以一次只从数据库获取少量数据，这样可以节省内存
+for obj in objs:
+    print(obj.title)
+#BUT,再次遍历没有打印,因为迭代器已经在上一次遍历(next)到最后一次了,没得遍历了
+for obj in objs:
+    print(obj.title)</code></pre>
+<p>当然，使用iterator()方法来防止生成cache，意味着遍历同一个queryset时会重复执行查询。所以使 #用iterator()的时候要当心，确保你的代码在操作一个大的queryset时没有重复执行查询。</p>
+<p>总结:</p>
+<p>queryset的cache是用于减少程序对数据库的查询，在通常的使用下会保证只有在需要的时候才会查询数据库。 使用exists()和iterator()方法可以优化程序对内存的使用。不过，由于它们并不会生成queryset cache，可能 会造成额外的数据库查询。　</p>
+<h2 id="二-中介模型">二 中介模型</h2>
+<p>处理类似搭配 pizza 和 topping 这样简单的多对多关系时，使用标准的<code>ManyToManyField</code> 就可以了。但是，有时你可能需要关联数据到两个模型之间的关系上。</p>
+<p>例如，有这样一个应用，它记录音乐家所属的音乐小组。我们可以用一个<code>ManyToManyField</code> 表示小组和成员之间的多对多关系。但是，有时你可能想知道更多成员关系的细节，比如成员是何时加入小组的。</p>
+<p>对于这些情况，Django 允许你指定一个中介模型来定义多对多关系。 你可以将其他字段放在中介模型里面。源模型的<code>ManyToManyField</code> 字段将使用<code>through</code> 参数指向中介模型。对于上面的音乐小组的例子，代码如下：</p>
+<pre><code><code>from django.db import models
+ 
+class Person(models.Model):
+    name = models.CharField(max_length=128)
+ 
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+ 
+class Group(models.Model):
+    name = models.CharField(max_length=128)
+    members = models.ManyToManyField(Person, through=&#39;Membership&#39;)
+ 
+    def __str__(self):              # __unicode__ on Python 2
+        return self.name
+ 
+class Membership(models.Model):
+    person = models.ForeignKey(Person)
+    group = models.ForeignKey(Group)
+    date_joined = models.DateField()
+    invite_reason = models.CharField(max_length=64)
+</code></pre>
+<p>既然你已经设置好<code>ManyToManyField</code> 来使用中介模型（在这个例子中就是<code>Membership</code>），接下来你要开始创建多对多关系。你要做的就是创建中介模型的实例：</p>
+<pre><code><code>&gt;&gt;&gt; ringo = Person.objects.create(name=&quot;Ringo Starr&quot;)
+&gt;&gt;&gt; paul = Person.objects.create(name=&quot;Paul McCartney&quot;)
+&gt;&gt;&gt; beatles = Group.objects.create(name=&quot;The Beatles&quot;)
+&gt;&gt;&gt; m1 = Membership(person=ringo, group=beatles,
+...     date_joined=date(1962, 8, 16),
+...     invite_reason=&quot;Needed a new drummer.&quot;)
+&gt;&gt;&gt; m1.save()
+&gt;&gt;&gt; beatles.members.all()
+[&lt;Person: Ringo Starr&gt;]
+&gt;&gt;&gt; ringo.group_set.all()
+[&lt;Group: The Beatles&gt;]
+&gt;&gt;&gt; m2 = Membership.objects.create(person=paul, group=beatles,
+...     date_joined=date(1960, 8, 1),
+...     invite_reason=&quot;Wanted to form a band.&quot;)
+&gt;&gt;&gt; beatles.members.all()
+[&lt;Person: Ringo Starr&gt;, &lt;Person: Paul McCartney&gt;]
+</code></pre>
+<p>与普通的多对多字段不同，你不能使用<code>add</code>、 <code>create</code>和赋值语句（比如，<code>beatles.members = [...]</code>）来创建关系：</p>
+<pre><code><code># THIS WILL NOT WORK
+&gt;&gt;&gt; beatles.members.add(john)
+# NEITHER WILL THIS
+&gt;&gt;&gt; beatles.members.create(name=&quot;George Harrison&quot;)
+# AND NEITHER WILL THIS
+&gt;&gt;&gt; beatles.members = [john, paul, ringo, george]
+</code></pre>
+<p>为什么不能这样做？ 这是因为你不能只创建 <code>Person</code>和 <code>Group</code>之间的关联关系，你还要指定 <code>Membership</code>模型中所需要的所有信息；而简单的<code>add</code>、<code>create</code> 和赋值语句是做不到这一点的。所以它们不能在使用中介模型的多对多关系中使用。此时，唯一的办法就是创建中介模型的实例。</p>
+<p><code>remove()</code>方法被禁用也是出于同样的原因。但是<code>clear()</code> 方法却是可用的。它可以清空某个实例所有的多对多关系：</p>
+<pre><code><code>&gt;&gt;&gt; # Beatles have broken up
+&gt;&gt;&gt; beatles.members.clear()
+&gt;&gt;&gt; # Note that this deletes the intermediate model instances
+&gt;&gt;&gt; Membership.objects.all()
+[]
+</code></pre>
+<h2 id="三-查询优化">三 查询优化</h2>
+<p>表数据</p>
+<pre><code><code>class UserInfo(AbstractUser):
+    &quot;&quot;&quot;
+    用户信息
+    &quot;&quot;&quot;
+    nid = models.BigAutoField(primary_key=True)
+    nickname = models.CharField(verbose_name=&#39;昵称&#39;, max_length=32)
+    telephone = models.CharField(max_length=11, blank=True, null=True, unique=True, verbose_name=&#39;手机号码&#39;)
+    avatar = models.FileField(verbose_name=&#39;头像&#39;,upload_to = &#39;avatar/&#39;,default=&quot;/avatar/default.png&quot;)
+    create_time = models.DateTimeField(verbose_name=&#39;创建时间&#39;, auto_now_add=True)
+ 
+    fans = models.ManyToManyField(verbose_name=&#39;粉丝们&#39;,
+                                  to=&#39;UserInfo&#39;,
+                                  through=&#39;UserFans&#39;,
+                                  related_name=&#39;f&#39;,
+                                  through_fields=(&#39;user&#39;, &#39;follower&#39;))
+ 
+    def __str__(self):
+        return self.username
+ 
+class UserFans(models.Model):
+    &quot;&quot;&quot;
+    互粉关系表
+    &quot;&quot;&quot;
+    nid = models.AutoField(primary_key=True)
+    user = models.ForeignKey(verbose_name=&#39;博主&#39;, to=&#39;UserInfo&#39;, to_field=&#39;nid&#39;, related_name=&#39;users&#39;)
+    follower = models.ForeignKey(verbose_name=&#39;粉丝&#39;, to=&#39;UserInfo&#39;, to_field=&#39;nid&#39;, related_name=&#39;followers&#39;)
+ 
+class Blog(models.Model):
+ 
+    &quot;&quot;&quot;
+    博客信息
+    &quot;&quot;&quot;
+    nid = models.BigAutoField(primary_key=True)
+    title = models.CharField(verbose_name=&#39;个人博客标题&#39;, max_length=64)
+    site = models.CharField(verbose_name=&#39;个人博客后缀&#39;, max_length=32, unique=True)
+    theme = models.CharField(verbose_name=&#39;博客主题&#39;, max_length=32)
+    user = models.OneToOneField(to=&#39;UserInfo&#39;, to_field=&#39;nid&#39;)
+    def __str__(self):
+        return self.title
+ 
+class Category(models.Model):
+    &quot;&quot;&quot;
+    博主个人文章分类表
+    &quot;&quot;&quot;
+    nid = models.AutoField(primary_key=True)
+    title = models.CharField(verbose_name=&#39;分类标题&#39;, max_length=32)
+ 
+    blog = models.ForeignKey(verbose_name=&#39;所属博客&#39;, to=&#39;Blog&#39;, to_field=&#39;nid&#39;)
+ 
+class Article(models.Model):
+ 
+    nid = models.BigAutoField(primary_key=True)
+    title = models.CharField(max_length=50, verbose_name=&#39;文章标题&#39;)
+    desc = models.CharField(max_length=255, verbose_name=&#39;文章描述&#39;)
+    read_count = models.IntegerField(default=0)
+    comment_count= models.IntegerField(default=0)
+    up_count = models.IntegerField(default=0)
+    down_count = models.IntegerField(default=0)
+    category = models.ForeignKey(verbose_name=&#39;文章类型&#39;, to=&#39;Category&#39;, to_field=&#39;nid&#39;, null=True)
+    create_time = models.DateField(verbose_name=&#39;创建时间&#39;)
+    blog = models.ForeignKey(verbose_name=&#39;所属博客&#39;, to=&#39;Blog&#39;, to_field=&#39;nid&#39;)
+    tags = models.ManyToManyField(
+        to=&quot;Tag&quot;,
+        through=&#39;Article2Tag&#39;,
+        through_fields=(&#39;article&#39;, &#39;tag&#39;),
+)
+ 
+ 
+class ArticleDetail(models.Model):
+    &quot;&quot;&quot;
+    文章详细表
+    &quot;&quot;&quot;
+    nid = models.AutoField(primary_key=True)
+    content = models.TextField(verbose_name=&#39;文章内容&#39;, )
+ 
+    article = models.OneToOneField(verbose_name=&#39;所属文章&#39;, to=&#39;Article&#39;, to_field=&#39;nid&#39;)
+ 
+ 
+class Comment(models.Model):
+    &quot;&quot;&quot;
+    评论表
+    &quot;&quot;&quot;
+    nid = models.BigAutoField(primary_key=True)
+    article = models.ForeignKey(verbose_name=&#39;评论文章&#39;, to=&#39;Article&#39;, to_field=&#39;nid&#39;)
+    content = models.CharField(verbose_name=&#39;评论内容&#39;, max_length=255)
+    create_time = models.DateTimeField(verbose_name=&#39;创建时间&#39;, auto_now_add=True)
+ 
+    parent_comment = models.ForeignKey(&#39;self&#39;, blank=True, null=True, verbose_name=&#39;父级评论&#39;)
+    user = models.ForeignKey(verbose_name=&#39;评论者&#39;, to=&#39;UserInfo&#39;, to_field=&#39;nid&#39;)
+ 
+    up_count = models.IntegerField(default=0)
+ 
+    def __str__(self):
+        return self.content
+ 
+class ArticleUpDown(models.Model):
+    &quot;&quot;&quot;
+    点赞表
+    &quot;&quot;&quot;
+    nid = models.AutoField(primary_key=True)
+    user = models.ForeignKey(&#39;UserInfo&#39;, null=True)
+    article = models.ForeignKey(&quot;Article&quot;, null=True)
+    models.BooleanField(verbose_name=&#39;是否赞&#39;)
+ 
+class CommentUp(models.Model):
+    &quot;&quot;&quot;
+    点赞表
+    &quot;&quot;&quot;
+    nid = models.AutoField(primary_key=True)
+    user = models.ForeignKey(&#39;UserInfo&#39;, null=True)
+    comment = models.ForeignKey(&quot;Comment&quot;, null=True)
+ 
+ 
+class Tag(models.Model):
+    nid = models.AutoField(primary_key=True)
+    title = models.CharField(verbose_name=&#39;标签名称&#39;, max_length=32)
+    blog = models.ForeignKey(verbose_name=&#39;所属博客&#39;, to=&#39;Blog&#39;, to_field=&#39;nid&#39;)
+ 
+ 
+ 
+class Article2Tag(models.Model):
+    nid = models.AutoField(primary_key=True)
+    article = models.ForeignKey(verbose_name=&#39;文章&#39;, to=&quot;Article&quot;, to_field=&#39;nid&#39;)
+    tag = models.ForeignKey(verbose_name=&#39;标签&#39;, to=&quot;Tag&quot;, to_field=&#39;nid&#39;)</code></pre>
+<h3 id="select_related">select_related</h3>
+<h4 id="简单使用">简单使用</h4>
+<p>对于一对一字段（OneToOneField）和外键字段（ForeignKey），可以使用select_related 来对QuerySet进行优化。</p>
+<p>select_related 返回一个<code>QuerySet</code>，当执行它的查询时它沿着外键关系查询关联的对象的数据。它会生成一个复杂的查询并引起性能的损耗，但是在以后使用外键关系时将不需要数据库查询。</p>
+<p>简单说，在对QuerySet使用select_related()函数后，Django会获取相应外键对应的对象，从而在之后需要的时候不必再查询数据库了。</p>
+<p>下面的例子解释了普通查询和<code>select_related()</code> 查询的区别。</p>
+<p>查询id=2的文章的分类名称,下面是一个标准的查询：</p>
+<pre><code><code># Hits the database.
+article=models.Article.objects.get(nid=2)
+ 
+# Hits the database again to get the related Blog object.
+print(article.category.title)
+</code></pre>
+<pre><code><code>&#39;&#39;&#39;
+ 
+SELECT
+    &quot;blog_article&quot;.&quot;nid&quot;,
+    &quot;blog_article&quot;.&quot;title&quot;,
+    &quot;blog_article&quot;.&quot;desc&quot;,
+    &quot;blog_article&quot;.&quot;read_count&quot;,
+    &quot;blog_article&quot;.&quot;comment_count&quot;,
+    &quot;blog_article&quot;.&quot;up_count&quot;,
+    &quot;blog_article&quot;.&quot;down_count&quot;,
+    &quot;blog_article&quot;.&quot;category_id&quot;,
+    &quot;blog_article&quot;.&quot;create_time&quot;,
+     &quot;blog_article&quot;.&quot;blog_id&quot;,
+     &quot;blog_article&quot;.&quot;article_type_id&quot;
+             FROM &quot;blog_article&quot;
+             WHERE &quot;blog_article&quot;.&quot;nid&quot; = 2; args=(2,)
+ 
+SELECT
+     &quot;blog_category&quot;.&quot;nid&quot;,
+     &quot;blog_category&quot;.&quot;title&quot;,
+     &quot;blog_category&quot;.&quot;blog_id&quot;
+              FROM &quot;blog_category&quot;
+              WHERE &quot;blog_category&quot;.&quot;nid&quot; = 4; args=(4,)
+ 
+ 
+&#39;&#39;&#39;
+</code></pre>
+<p>如果我们使用select_related()函数：</p>
+<pre><code><code>articleList=models.Article.objects.select_related(&quot;category&quot;).all()
+ 
+ 
+    for article_obj in articleList:
+        #  Doesn&#39;t hit the database, because article_obj.category
+        #  has been prepopulated in the previous query.
+        print(article_obj.category.title)
+</code></pre>
+<pre><code><code>SELECT
+     &quot;blog_article&quot;.&quot;nid&quot;,
+     &quot;blog_article&quot;.&quot;title&quot;,
+     &quot;blog_article&quot;.&quot;desc&quot;,
+     &quot;blog_article&quot;.&quot;read_count&quot;,
+     &quot;blog_article&quot;.&quot;comment_count&quot;,
+     &quot;blog_article&quot;.&quot;up_count&quot;,
+     &quot;blog_article&quot;.&quot;down_count&quot;,
+     &quot;blog_article&quot;.&quot;category_id&quot;,
+     &quot;blog_article&quot;.&quot;create_time&quot;,
+     &quot;blog_article&quot;.&quot;blog_id&quot;,
+     &quot;blog_article&quot;.&quot;article_type_id&quot;,
+ 
+     &quot;blog_category&quot;.&quot;nid&quot;,
+     &quot;blog_category&quot;.&quot;title&quot;,
+     &quot;blog_category&quot;.&quot;blog_id&quot;
+ 
+FROM &quot;blog_article&quot;
+LEFT OUTER JOIN &quot;blog_category&quot; ON (&quot;blog_article&quot;.&quot;category_id&quot; = &quot;blog_category&quot;.&quot;nid&quot;);
+</code></pre>
+<h4 id="多外键查询">多外键查询</h4>
+<p>这是针对category的外键查询，如果是另外一个外键呢？让我们一起看下：</p>
+<pre><code><code>article=models.Article.objects.select_related(&quot;category&quot;).get(nid=1)
+print(article.articledetail)
+</code></pre>
+<p>观察logging结果，发现依然需要查询两次，所以需要改为：</p>
+<pre><code><code>article=models.Article.objects.select_related(&quot;category&quot;,&quot;articledetail&quot;).get(nid=1)
+print(article.articledetail)
+</code></pre>
+<p>或者：</p>
+<pre><code><code>article=models.Article.objects　　　　　　　　　　　　　.select_related(&quot;category&quot;)　　　　　　　　　　　　　.select_related(&quot;articledetail&quot;)　　　　　　　　　　　　　.get(nid=1)  # django 1.7 支持链式操作
+print(article.articledetail)</code></pre>
+<pre><code><code>SELECT
+ 
+    &quot;blog_article&quot;.&quot;nid&quot;,
+    &quot;blog_article&quot;.&quot;title&quot;,
+    ......
+ 
+    &quot;blog_category&quot;.&quot;nid&quot;,
+    &quot;blog_category&quot;.&quot;title&quot;,
+    &quot;blog_category&quot;.&quot;blog_id&quot;,
+ 
+    &quot;blog_articledetail&quot;.&quot;nid&quot;,
+    &quot;blog_articledetail&quot;.&quot;content&quot;,
+    &quot;blog_articledetail&quot;.&quot;article_id&quot;
+ 
+   FROM &quot;blog_article&quot;
+   LEFT OUTER JOIN &quot;blog_category&quot; ON (&quot;blog_article&quot;.&quot;category_id&quot; = &quot;blog_category&quot;.&quot;nid&quot;)
+   LEFT OUTER JOIN &quot;blog_articledetail&quot; ON (&quot;blog_article&quot;.&quot;nid&quot; = &quot;blog_articledetail&quot;.&quot;article_id&quot;)
+   WHERE &quot;blog_article&quot;.&quot;nid&quot; = 1; args=(1,)
+</code></pre>
+<h4 id="深层查询">深层查询</h4>
+<pre><code><code># 查询id=1的文章的用户姓名
+ 
+    article=models.Article.objects.select_related(&quot;blog&quot;).get(nid=1)
+    print(article.blog.user.username)
+</code></pre>
+<p>依然需要查询两次：</p>
+<pre><code><code>SELECT
+    &quot;blog_article&quot;.&quot;nid&quot;,
+    &quot;blog_article&quot;.&quot;title&quot;,
+    ......
+ 
+     &quot;blog_blog&quot;.&quot;nid&quot;,
+     &quot;blog_blog&quot;.&quot;title&quot;,
+ 
+   FROM &quot;blog_article&quot; INNER JOIN &quot;blog_blog&quot; ON (&quot;blog_article&quot;.&quot;blog_id&quot; = &quot;blog_blog&quot;.&quot;nid&quot;)
+   WHERE &quot;blog_article&quot;.&quot;nid&quot; = 1;
+ 
+ 
+ 
+ 
+SELECT
+    &quot;blog_userinfo&quot;.&quot;password&quot;,
+    &quot;blog_userinfo&quot;.&quot;last_login&quot;,
+    ......
+ 
+FROM &quot;blog_userinfo&quot;
+WHERE &quot;blog_userinfo&quot;.&quot;nid&quot; = 1;
+</code></pre>
+<p>这是因为第一次查询没有query到userInfo表，所以，修改如下：</p>
+<pre><code><code>article=models.Article.objects.select_related(&quot;blog__user&quot;).get(nid=1)
+print(article.blog.user.username)
+</code></pre>
+<pre><code><code>SELECT
+ 
+&quot;blog_article&quot;.&quot;nid&quot;, &quot;blog_article&quot;.&quot;title&quot;,
+......
+ 
+ &quot;blog_blog&quot;.&quot;nid&quot;, &quot;blog_blog&quot;.&quot;title&quot;,
+......
+ 
+ &quot;blog_userinfo&quot;.&quot;password&quot;, &quot;blog_userinfo&quot;.&quot;last_login&quot;,
+......
+ 
+FROM &quot;blog_article&quot;
+ 
+INNER JOIN &quot;blog_blog&quot; ON (&quot;blog_article&quot;.&quot;blog_id&quot; = &quot;blog_blog&quot;.&quot;nid&quot;)
+ 
+INNER JOIN &quot;blog_userinfo&quot; ON (&quot;blog_blog&quot;.&quot;user_id&quot; = &quot;blog_userinfo&quot;.&quot;nid&quot;)
+WHERE &quot;blog_article&quot;.&quot;nid&quot; = 1;
+</code></pre>
+<h4 id="总结">总结</h4>
+<ol>
+<li>select_related主要针一对一和多对一关系进行优化。</li>
+<li>select_related使用SQL的JOIN语句进行优化，通过减少SQL查询的次数来进行优化、提高性能。</li>
+<li>可以通过可变长参数指定需要select_related的字段名。也可以通过使用双下划线“__”连接字段名来实现指定的递归查询。</li>
+<li>没有指定的字段不会缓存，没有指定的深度不会缓存，如果要访问的话Django会再次进行SQL查询。</li>
+<li>也可以通过depth参数指定递归的深度，Django会自动缓存指定深度内所有的字段。如果要访问指定深度外的字段，Django会再次进行SQL查询。</li>
+<li>也接受无参数的调用，Django会尽可能深的递归查询所有的字段。但注意有Django递归的限制和性能的浪费。</li>
+<li>Django &gt;= 1.7，链式调用的select_related相当于使用可变长参数。Django &lt; 1.7，链式调用会导致前边的select_related失效，只保留最后一个。</li>
+</ol>
+<h3 id="prefetch_related">prefetch_related()</h3>
+<p>对于多对多字段（ManyToManyField）和一对多字段，可以使用prefetch_related()来进行优化。</p>
+<p>prefetch_related()和select_related()的设计目的很相似，都是为了减少SQL查询的数量，但是实现的方式不一样。后者是通过JOIN语句，在SQL查询内解决问题。但是对于多对多关系，使用SQL语句解决就显得有些不太明智，因为JOIN得到的表将会很长，会导致SQL语句运行时间的增加和内存占用的增加。若有n个对象，每个对象的多对多字段对应Mi条，就会生成Σ(n)Mi 行的结果表。</p>
+<p>prefetch_related()的解决方法是，分别查询每个表，然后用Python处理他们之间的关系。</p>
+<pre><code><code># 查询所有文章关联的所有标签
+    article_obj=models.Article.objects.all()
+    for i in article_obj:
+ 
+        print(i.tags.all())  #4篇文章: hits database 5
+
+改为prefetch_related：
+# 查询所有文章关联的所有标签
+    article_obj=models.Article.objects.prefetch_related(&quot;tags&quot;).all()
+    for i in article_obj:
+ 
+        print(i.tags.all())  #4篇文章: hits database 2
+
+
+
+
+
+SELECT &quot;blog_article&quot;.&quot;nid&quot;,
+               &quot;blog_article&quot;.&quot;title&quot;,
+               ......
+ 
+FROM &quot;blog_article&quot;;
+ 
+ 
+ 
+SELECT
+  (&quot;blog_article2tag&quot;.&quot;article_id&quot;) AS &quot;_prefetch_related_val_article_id&quot;,
+  &quot;blog_tag&quot;.&quot;nid&quot;,
+  &quot;blog_tag&quot;.&quot;title&quot;,
+  &quot;blog_tag&quot;.&quot;blog_id&quot;
+   FROM &quot;blog_tag&quot;
+  INNER JOIN &quot;blog_article2tag&quot; ON (&quot;blog_tag&quot;.&quot;nid&quot; = &quot;blog_article2tag&quot;.&quot;tag_id&quot;)
+  WHERE &quot;blog_article2tag&quot;.&quot;article_id&quot; IN (1, 2, 3, 4);</code></pre>
+<h2 id="四-extra">四 extra</h2>
+<p>extra(select=None, where=None, params=None,</p>
+<pre><code><code>      tables=None, order_by=None, select_params=None)</code></pre>
+<p>有些情况下，Django的查询语法难以简单的表达复杂的 <code>WHERE</code> 子句，对于这种情况, Django 提供了 <code>extra()</code> <code>QuerySet</code>修改机制 — 它能在 <code>QuerySet</code>生成的SQL从句中注入新子句</p>
+<p>extra可以指定一个或多个 <code>参数</code>,例如 <code>select</code>, <code>where</code> or <code>tables</code>. 这些参数都不是必须的，但是你至少要使用一个!要注意这些额外的方式对不同的数据库引擎可能存在移植性问题.(因为你在显式的书写SQL语句),除非万不得已,尽量避免这样做</p>
+<h3 id="参数之select">参数之select</h3>
+<p>The <code>select</code> 参数可以让你在 <code>SELECT</code> 从句中添加其他字段信息，它应该是一个字典，存放着属性名到 SQL 从句的映射。</p>
+<pre><code><code>queryResult=models.Article　　　　　　　　　　　.objects.extra(select={&#39;is_recent&#39;: &quot;create_time &gt; &#39;2017-09-05&#39;&quot;})</code></pre>
+<p>结果集中每个 Entry 对象都有一个额外的属性is_recent, 它是一个布尔值，表示 Article对象的create_time 是否晚于2017-09-05.</p>
+<p>练习：</p>
+<pre><code><code># in sqlite:
+    article_obj=models.Article.objects　　　　　　　　　　　　　　.filter(nid=1)　　　　　　　　　　　　　　.extra(select={&quot;standard_time&quot;:&quot;strftime(&#39;%%Y-%%m-%%d&#39;,create_time)&quot;})　　　　　　　　　　　　　　.values(&quot;standard_time&quot;,&quot;nid&quot;,&quot;title&quot;)
+    print(article_obj)
+    # &lt;QuerySet [{&#39;title&#39;: &#39;MongoDb 入门教程&#39;, &#39;standard_time&#39;: &#39;2017-09-03&#39;, &#39;nid&#39;: 1}]&gt;</code></pre>
+<h3 id="参数之where-tables">参数之<code>where</code> / <code>tables</code></h3>
+<p>您可以使用<code>where</code>定义显式SQL <code>WHERE</code>子句 - 也许执行非显式连接。您可以使用<code>tables</code>手动将表添加到SQL <code>FROM</code>子句。</p>
+<p><code>where</code>和<code>tables</code>都接受字符串列表。所有<code>where</code>参数均为“与”任何其他搜索条件。</p>
+<p>举例来讲：</p>
+<pre><code><code>queryResult=models.Article　　　　　　　　　　　.objects.extra(where=[&#39;nid in (1,3) OR title like &quot;py%&quot; &#39;,&#39;nid&gt;2&#39;])</code></pre>
+<p><a href="https://www.cnblogs.com/yuanchenqi/articles/7570003.html#_labelTop">回到顶部</a></p>
+<h3 id="整体插入">整体插入</h3>
+<p>创建对象时，尽可能使用bulk_create()来减少SQL查询的数量。例如：</p>
+<pre><code><code>Entry.objects.bulk_create([
+    Entry(headline=&quot;Python 3.0 Released&quot;),
+    Entry(headline=&quot;Python 3.1 Planned&quot;)
+])</code></pre>
+<p>...更优于：</p>
+<pre><code><code>Entry.objects.create(headline=&quot;Python 3.0 Released&quot;)
+Entry.objects.create(headline=&quot;Python 3.1 Planned&quot;)</code></pre>
+<p>注意该方法有很多注意事项，所以确保它适用于你的情况。</p>
+<p>这也可以用在ManyToManyFields中，所以：</p>
+<pre><code><code>my_band.members.add(me, my_friend)</code></pre>
+<p>...更优于：</p>
+<pre><code><code>my_band.members.add(me)
+my_band.members.add(my_friend)</code></pre>
+<p>...其中Bands和Artists具有多对多关联。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

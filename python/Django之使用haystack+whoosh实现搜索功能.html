@@ -1,0 +1,281 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django之使用haystack+whoosh实现搜索功能' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django之使用haystack+whoosh实现搜索功能</center></div><div class='banquan'>原文出处:本文由博客园博主YifChan提供。<br/>
+原文连接:https://www.cnblogs.com/yifchan/p/python-1-36.html</div><br>
+    <p>为了实现项目中的搜索功能，我们使用的是全文检索框架haystack+搜索引擎whoosh+中文分词包jieba</p>
+<h2>安装和配置</h2>
+<p>安装所需包</p>
+<div class="cnblogs_code">
+<pre><code>pip install django-<span style="color: #000000;">haystack
+pip install whoosh
+pip install jieba</span></pre>
+</div>
+<p>去settings文件注册haystack应用</p>
+<div class="cnblogs_code">
+<pre><code>INSTALLED_APPS =<span style="color: #000000;"> [
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">haystack</span><span style="color: #800000;">'</span>,  <span style="color: #008000;">#</span><span style="color: #008000;"> 注册全文检索框架</span>
+]</pre>
+</div>
+<p>在settings文件中配置全文检索框架</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 全文检索框架的配置</span>
+HAYSTACK_CONNECTIONS =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">default</span><span style="color: #800000;">'</span><span style="color: #000000;">: {
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 使用whoosh引擎</span>
+        <span style="color: #800000;">'</span><span style="color: #800000;">ENGINE</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">haystack.backends.whoosh_backend.WhooshEngine</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 索引文件路径</span>
+        <span style="color: #800000;">'</span><span style="color: #800000;">PATH</span><span style="color: #800000;">'</span>: os.path.join(BASE_DIR, <span style="color: #800000;">'</span><span style="color: #800000;">whoosh_index</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    }
+}
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 当添加、修改、删除数据时，自动生成索引</span>
+HAYSTACK_SIGNAL_PROCESSOR = <span style="color: #800000;">'</span><span style="color: #800000;">haystack.signals.RealtimeSignalProcessor</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>&nbsp;</p>
+<h2>索引文件的生成</h2>
+<p>要生成索引文件，首先你要配置，对哪些内容进行索引，比如商品名称，简介和详情；为了配置对数据库指定内容进行索引，我们要做如下步骤：</p>
+<p><strong>配置search_indexes.py文件</strong></p>
+<p>因为在django中数据库一般都是通过ORM生成的，首先我们在要在数据表对应的应用中创建一个 search_indexes.py 文件，例如，我现在要检索商品对应的表就是GoodsSKU表，而表是在goods应用下的，所以我在goods应用下新建 search_indexes.py 文件，截图如下：</p>
+<p><img src="./images/Django之使用haystack+whoosh实现搜索功能0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>在&nbsp;search_indexes.py 文件中加入以下内容</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 定义索引类</span>
+<span style="color: #0000ff;">from</span> haystack <span style="color: #0000ff;">import</span><span style="color: #000000;"> indexes
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 导入你的模型类</span>
+<span style="color: #0000ff;">from</span> goods.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> GoodsSKU
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 指定对于某个类的某些数据建立索引</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 索引类名格式:模型类名+Index</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> GoodsSKUIndex(indexes.SearchIndex, indexes.Indexable):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 索引字段 use_template=True指定根据表中的哪些字段建立索引文件的说明放在一个文件中</span>
+    text = indexes.CharField(document=True, use_template=<span style="color: #000000;">True)
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_model(self):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回你的模型类</span>
+        <span style="color: #0000ff;">return</span><span style="color: #000000;"> GoodsSKU
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 建立索引的数据</span>
+    <span style="color: #0000ff;">def</span> index_queryset(self, using=<span style="color: #000000;">None):
+        </span><span style="color: #0000ff;">return</span> self.get_model().objects.all()</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>指定要检索的内容</strong></p>
+<p>在templates文件夹下面新建search文件夹，在search文件夹下面新建indexes文件夹，在indexes文件夹下面新建要检索应用名的文件夹比如goods文件夹，在goods文件夹下面新建 表名_text.txt，表名小写，所以目前的目录结构是这样的 templates/search/indexes/goods/goodssku_text.txt ，截图如下：</p>
+<p><img src="./images/Django之使用haystack+whoosh实现搜索功能1.png" alt="" /></p>
+<p>在goodssku_text.txt 文件中指定你要根据表中的哪些字段建立索引数据，现在我们要根据商品的名称，简介，详情来建立索引，如下配置</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 指定根据表中的哪些字段建立索引数据</span>
+{{ object.name }} <span style="color: #008000;">#</span><span style="color: #008000;"> 根据商品的名称建立索引</span>
+{{ object.desc }} <span style="color: #008000;">#</span><span style="color: #008000;"> 根据商品的简介建立索引</span>
+{{ object.goods.detail }} <span style="color: #008000;">#</span><span style="color: #008000;"> 根据商品的详情建立索引</span></pre>
+</div>
+<p>其中的objects可以理解为数据表对应的商品对象。</p>
+<p>&nbsp;</p>
+<p><strong>生成索引文件</strong></p>
+<p>使用pycharm自带的命令行terminal运行以下命令生成索引文件：</p>
+<div class="cnblogs_code">
+<pre><code>python manage.py rebuild_index</pre>
+</div>
+<p>运行成功后，你可以在项目下看到类似如下索引文件</p>
+<p><img src="./images/Django之使用haystack+whoosh实现搜索功能2.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>使用全文检索</h2>
+<p>通过如上的配置，我们的数据索引已经建立了，现在我们要在项目中使用全文检索。</p>
+<p><strong>在需要使用检索的地方进行 form 表单改造</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form </span><span style="color: #ff0000;">action</span><span style="color: #0000ff;">="/search"</span><span style="color: #ff0000;"> method</span><span style="color: #0000ff;">="get"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="input_text fl"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="q"</span><span style="color: #ff0000;"> placeholder</span><span style="color: #0000ff;">="搜索商品"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="submit"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="input_btn fr"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">=""</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="搜索"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">form</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>如上所示，其中要注意的是：</p>
+<ul>
+<li>发送方式必须使用get；</li>
+<li>搜索的input框 name 必须是 q；</li>
+</ul>
+<p>&nbsp;</p>
+<p><strong>配置检索对应的url</strong></p>
+<p>在项目下的urls.py文件中添加如下url配置</p>
+<div class="cnblogs_code">
+<pre><code>urlpatterns =<span style="color: #000000;"> [
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^search/</span><span style="color: #800000;">'</span>, include(<span style="color: #800000;">'</span><span style="color: #800000;">haystack.urls</span><span style="color: #800000;">'</span>)),  <span style="color: #008000;">#</span><span style="color: #008000;"> 全文检索框架</span>
+]</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>检索成功后生成的参数</strong></p>
+<p>当haystack自动检索成功后，会给我们返回三个参数；</p>
+<ul>
+<li>query参数，表示你查询的参数；</li>
+<li>page参数，当前页的Page对象，是查询到的对象的集合，可以通过for循环类获取单个商品，通过 商品.objects.xxx 获取商品对应的字段；</li>
+<li>paginator参数，分页paginator对象。</li>
+</ul>
+<p>可以通过如下代码测试参数</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('b6b94af4-30d0-4c90-8630-d99b35c81faa')"><img id="code_img_closed_b6b94af4-30d0-4c90-8630-d99b35c81faa" class="code_img_closed" src="./images/Django之使用haystack+whoosh实现搜索功能3.png" alt="" /><img id="code_img_opened_b6b94af4-30d0-4c90-8630-d99b35c81faa" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('b6b94af4-30d0-4c90-8630-d99b35c81faa',event)" src="./images/Django之使用haystack+whoosh实现搜索功能4.png" alt="" />
+<div id="cnblogs_code_open_b6b94af4-30d0-4c90-8630-d99b35c81faa" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;!</span><span style="color: #ff00ff;">DOCTYPE html</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html </span><span style="color: #ff0000;">lang</span><span style="color: #0000ff;">="en"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="UTF-8"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>Title<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+搜索的关键字:{{ query }}</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">br</span><span style="color: #0000ff;">/&gt;</span><span style="color: #000000;">
+当前页的Page对象:{{ page }}</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">br</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">ul</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% for item in page %}
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">li</span><span style="color: #0000ff;">&gt;</span>{{ item.object }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">li</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% endfor %}
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">ul</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+分页paginator对象:{{ paginator }}</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">br</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">templates/indexes/search.html</span></div>
+<p>注意，位置和文件名都是固定的，并且这只是测试文件，后面使用全文检索时记得不能使用search.html，改成其他名字。</p>
+<p>&nbsp;</p>
+<p><strong>数据+search.html返回渲染后页面</strong></p>
+<p>当haystack全文检索后会返回数据，现在我们需要一个页面来接收这些数据，并且在页面渲染后返回这个页面给用户观看，渲染并返回页面的工作haystack已经帮我们做了，那么我们现在只需要准备一个页面容纳数据即可。</p>
+<p>在templates文件夹下的indexes文件夹下新建一个search.html，注意路径和文件名是固定的，如下图</p>
+<p><img src="./images/Django之使用haystack+whoosh实现搜索功能5.png" alt="" /></p>
+<p>利用检索返回的参数在search.html中定义要渲染出的模板和样式，我的页面如下</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('00719ecb-5b8d-410d-9f61-f092cdff9725')"><img id="code_img_closed_00719ecb-5b8d-410d-9f61-f092cdff9725" class="code_img_closed" src="./images/Django之使用haystack+whoosh实现搜索功能3.png" alt="" /><img id="code_img_opened_00719ecb-5b8d-410d-9f61-f092cdff9725" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('00719ecb-5b8d-410d-9f61-f092cdff9725',event)" src="./images/Django之使用haystack+whoosh实现搜索功能4.png" alt="" />
+<div id="cnblogs_code_open_00719ecb-5b8d-410d-9f61-f092cdff9725" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="breadcrumb"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="#"</span><span style="color: #0000ff;">&gt;</span>{{ query }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>&gt;<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="#"</span><span style="color: #0000ff;">&gt;</span>搜索结果如下:<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="main_wrap clearfix"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">ul </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="goods_type_list clearfix"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+        {% for item in page %}
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">li</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="{% url 'goods:detail' item.object.id %}"</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">img </span><span style="color: #ff0000;">src</span><span style="color: #0000ff;">="{{ item.object.image.url }}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="{% url 'goods:detail' item.object.id %}"</span><span style="color: #0000ff;">&gt;</span>{{ item.object.name }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="operate"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="prize"</span><span style="color: #0000ff;">&gt;</span>￥{{ item.object.price }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="unit"</span><span style="color: #0000ff;">&gt;</span>{{ item.object.price}}/{{ item.object.unite }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="#"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="add_goods"</span><span style="color: #ff0000;"> title</span><span style="color: #0000ff;">="加入购物车"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">li</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+        {% endfor %}
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">ul</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="pagenation"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+            {% if page.has_previous %}
+            </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="/search?q={{ query }}&amp;page={{ page.previous_page_number }}"</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">上一页&lt;/a</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+            {% endif %}
+            {% for pindex in paginator.page_range %}
+                {% if pindex == page.number %}
+                    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="/search?q={{ query }}&amp;page={{ pindex }}"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="active"</span><span style="color: #0000ff;">&gt;</span>{{ pindex }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                {% else %}
+                    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="/search?q={{ query }}&amp;page={{ pindex }}"</span><span style="color: #0000ff;">&gt;</span>{{ pindex }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                {% endif %}
+            {% endfor %}
+            {% if page.has_next %}
+            </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="/search?q={{ query }}&amp;page={{ page.next_page_number }}"</span><span style="color: #0000ff;">&gt;</span>下一页&gt;<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+            {% endif %}
+        </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<span class="cnblogs_code_collapse">search.html</span></div>
+<p>至此，我们可以在页面上搜索一下内容，应该是能成功的，但也有可能不会返回任何数据就算name就是你搜索的内容，这是因为我们现在使用的主要还是为英语服务的分词包，接下来我们要配置使用中文分词包了。</p>
+<p>&nbsp;</p>
+<h2>使用中文分词包jieba</h2>
+<p>在前面的配置中我们已经安装了jieba；</p>
+<p><strong>创建 ChineseAnalyzer.py 文件</strong></p>
+<p>进入虚拟环境下的&nbsp;<span style="text-decoration: underline;">Lib\site-packages\haystack\backends</span>&nbsp;目录下新建&nbsp;ChineseAnalyzer.py 文件</p>
+<p>目录如下图</p>
+<p><img src="./images/Django之使用haystack+whoosh实现搜索功能8.png" alt="" width="529" height="210" /></p>
+<p>在文件中添加如下内容</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('0c1c53c3-1dea-4e56-b1c9-d51f32fad719')"><img id="code_img_closed_0c1c53c3-1dea-4e56-b1c9-d51f32fad719" class="code_img_closed" src="./images/Django之使用haystack+whoosh实现搜索功能3.png" alt="" /><img id="code_img_opened_0c1c53c3-1dea-4e56-b1c9-d51f32fad719" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('0c1c53c3-1dea-4e56-b1c9-d51f32fad719',event)" src="./images/Django之使用haystack+whoosh实现搜索功能4.png" alt="" />
+<div id="cnblogs_code_open_0c1c53c3-1dea-4e56-b1c9-d51f32fad719" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> jieba
+</span><span style="color: #0000ff;">from</span> whoosh.analysis <span style="color: #0000ff;">import</span><span style="color: #000000;"> Tokenizer, Token
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> ChineseTokenizer(Tokenizer):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(self, value, positions=False, chars=<span style="color: #000000;">False,
+                 keeporiginal</span>=False, removestops=<span style="color: #000000;">True,
+                 start_pos</span>=0, start_char=0, mode=<span style="color: #800000;">''</span>, **<span style="color: #000000;">kwargs):
+        t </span>= Token(positions, chars, removestops=removestops, mode=<span style="color: #000000;">mode,
+                  </span>**<span style="color: #000000;">kwargs)
+        seglist </span>= jieba.cut(value, cut_all=<span style="color: #000000;">True)
+        </span><span style="color: #0000ff;">for</span> w <span style="color: #0000ff;">in</span><span style="color: #000000;"> seglist:
+            t.original </span>= t.text =<span style="color: #000000;"> w
+            t.boost </span>= 1.0
+            <span style="color: #0000ff;">if</span><span style="color: #000000;"> positions:
+                t.pos </span>= start_pos +<span style="color: #000000;"> value.find(w)
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> chars:
+                t.startchar </span>= start_char +<span style="color: #000000;"> value.find(w)
+                t.endchar </span>= start_char + value.find(w) +<span style="color: #000000;"> len(w)
+            </span><span style="color: #0000ff;">yield</span><span style="color: #000000;"> t
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> ChineseAnalyzer():
+    </span><span style="color: #0000ff;">return</span> ChineseTokenizer()</pre>
+</div>
+<span class="cnblogs_code_collapse">ChineseAnalyzer.py </span></div>
+<p>&nbsp;</p>
+<p><strong>编写haystack可使用的&nbsp;whoosh_cn_backend.py 文件</strong></p>
+<p>直接在&nbsp;虚拟环境下的&nbsp;<span style="text-decoration: underline;">Lib\site-packages\haystack\backends</span>&nbsp;目录下复制一份&nbsp;whoosh_backend.py 文件 并且重命名复制文件为&nbsp;whoosh_cn_backend.py；</p>
+<p>在&nbsp;whoosh_cn_backend.py 中导入我们编写的&nbsp;ChineseAnalyzer 类</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> .ChineseAnalyzer <span style="color: #0000ff;">import</span> ChineseAnalyzer</pre>
+</div>
+<p>更改haystack使用的分词包为 jieba 编写的中文分词类，大概在第160行左右</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> schema_fields[field_class.index_fieldname] = TEXT(stored=True, analyzer=StemmingAnalyzer(), field_boost=field_class.boost, sortable=True)</span>
+schema_fields[field_class.index_fieldname] = TEXT(stored=True, analyzer=ChineseAnalyzer(), field_boost=field_class.boost, sortable=True)</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>配置whoosh引擎使用&nbsp;whoosh_cn_backend.py&nbsp;</strong></p>
+<p>在settings文件中更改原来的配置如下</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 全文检索框架的配置</span>
+HAYSTACK_CONNECTIONS =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">default</span><span style="color: #800000;">'</span><span style="color: #000000;">: {
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 使用whoosh引擎</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',</span>
+        <span style="color: #800000;">'</span><span style="color: #800000;">ENGINE</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">haystack.backends.whoosh_cn_backend.WhooshEngine</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 索引文件路径</span>
+        <span style="color: #800000;">'</span><span style="color: #800000;">PATH</span><span style="color: #800000;">'</span>: os.path.join(BASE_DIR, <span style="color: #800000;">'</span><span style="color: #800000;">whoosh_index</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    }
+}
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 当添加、修改、删除数据时，自动生成索引</span>
+HAYSTACK_SIGNAL_PROCESSOR = <span style="color: #800000;">'</span><span style="color: #800000;">haystack.signals.RealtimeSignalProcessor</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>重新生成索引文件</strong></p>
+<div class="cnblogs_code">
+<pre><code>python manage.py rebuild_index</pre>
+</div>
+<p>至此，就可以放心的使用搜索功能了，如图，搜索成功的显示页面</p>
+<p><img src="./images/Django之使用haystack+whoosh实现搜索功能11.png" alt="" /></p>
+<p>&nbsp;可以通过如下配置控制每个分页显示的搜索出来对象的数目</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 指定搜索结果每页显示的条数</span>
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 1</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

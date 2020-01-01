@@ -1,0 +1,167 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修ORM 查询练习' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>ORM 查询练习</center></div><div class='banquan'>原文出处:本文由博客园博主郭楷丰提供。<br/>
+原文连接:https://www.cnblogs.com/guokaifeng/p/11227624.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#orm-查询练习">ORM 查询练习</a><ul>
+        <li><a href="#表结构">表结构</a></li>
+        <li><a href="#练习题">练习题</a></li>
+        <li><a href="#测试数据">测试数据</a></li>
+        <li><a href="#准备">准备</a></li>
+        <li><a href="#参考答案">参考答案</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h2 id="orm-查询练习">ORM 查询练习</h2>
+<h3 id="表结构">表结构</h3>
+<pre><code><code># 书
+class Book(models.Model):
+    title = models.CharField(max_length=32)
+    publish_date = models.DateField(auto_now_add=True)
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    memo = models.TextField(null=True)
+    # 创建外键，关联publish
+    publisher = models.ForeignKey(to=&quot;Publisher&quot;)
+    # 创建多对多关联author
+    author = models.ManyToManyField(to=&quot;Author&quot;)
+
+    def __str__(self):
+        return &quot;&lt;Book object: {} {}&gt;&quot;.format(self.id, self.title)
+
+
+# 出版社
+class Publisher(models.Model):
+    name = models.CharField(max_length=32)
+    city = models.CharField(max_length=32)
+
+    def __str__(self):
+        return &quot;&lt;Publisher object: {} {}&gt;&quot;.format(self.id, self.name)
+
+
+# 作者
+class Author(models.Model):
+    name = models.CharField(max_length=32)
+    age = models.IntegerField()
+    phone = models.CharField(max_length=11)
+
+    def __str__(self):
+        return &quot;&lt;Author object: {} {}&gt;&quot;.format(self.id, self.name)</code></pre>
+<h3 id="练习题">练习题</h3>
+<pre><code><code>&quot;&quot;&quot;
+查找所有书名里包含金老板的书
+查找出版日期是2018年的书
+查找出版日期是2017年的书名
+查找价格大于10元的书
+查找价格大于10元的书名和价格
+查找memo字段是空的书
+
+查找在北京的出版社
+查找名字以沙河开头的出版社
+
+查找“沙河出版社”出版的所有书籍
+查找每个出版社出版价格最高的书籍价格
+查找每个出版社的名字以及出的书籍数量
+
+查找作者名字里面带“小”字的作者
+查找年龄大于30岁的作者
+查找手机号是155开头的作者
+查找手机号是155开头的作者的姓名和年龄
+
+查找每个作者写的价格最高的书籍价格
+查找每个作者的姓名以及出的书籍数量
+
+查找书名是“跟金老板学开车”的书的出版社
+查找书名是“跟金老板学开车”的书的出版社所在的城市
+查找书名是“跟金老板学开车”的书的出版社的名称
+查找书名是“跟金老板学开车”的书的出版社出版的其他书籍的名字和价格
+
+查找书名是“跟金老板学开车”的书的所有作者
+查找书名是“跟金老板学开车”的书的作者的年龄
+查找书名是“跟金老板学开车”的书的作者的手机号码
+查找书名是“跟金老板学开车”的书的作者们的姓名以及出版的所有书籍名称和价钱
+&quot;&quot;&quot;</code></pre>
+<h3 id="测试数据">测试数据</h3>
+<pre><code><code>-- ----------------------------
+-- Records of app01_author
+-- ----------------------------
+INSERT INTO `app01_author` VALUES (&#39;1&#39;, &#39;金老板&#39;, &#39;18&#39;, &#39;15512351234&#39;);
+INSERT INTO `app01_author` VALUES (&#39;2&#39;, &#39;小哪吒&#39;, &#39;20&#39;, &#39;15312341234&#39;);
+INSERT INTO `app01_author` VALUES (&#39;3&#39;, &#39;Alex&#39;, &#39;73&#39;, &#39;15512341234&#39;);
+ 
+-- ----------------------------
+-- Records of app01_publisher
+-- ----------------------------
+INSERT INTO `app01_publisher` VALUES (&#39;1&#39;, &#39;沙河出版社&#39;, &#39;北京&#39;);
+INSERT INTO `app01_publisher` VALUES (&#39;2&#39;, &#39;西二旗出版社&#39;, &#39;北京&#39;);
+INSERT INTO `app01_publisher` VALUES (&#39;3&#39;, &#39;张江出版社&#39;, &#39;上海&#39;);
+INSERT INTO `app01_publisher` VALUES (&#39;4&#39;, &#39;沙河出版社&#39;, &#39;上海&#39;);
+ 
+-- ----------------------------
+-- Records of app01_book
+-- ----------------------------
+INSERT INTO `app01_book` VALUES (&#39;1&#39;, &#39;跟金老板学开车&#39;, &#39;2018-08-03&#39;, &#39;12.90&#39;, null, &#39;1&#39;);
+INSERT INTO `app01_book` VALUES (&#39;2&#39;, &#39;跟金老板学开潜艇&#39;, &#39;2017-08-10&#39;, &#39;9.99&#39;, null, &#39;1&#39;);
+INSERT INTO `app01_book` VALUES (&#39;3&#39;, &#39;跟肖帮主学思想&#39;, &#39;2018-09-03&#39;, &#39;39.99&#39;, null, &#39;2&#39;);
+INSERT INTO `app01_book` VALUES (&#39;4&#39;, &#39;跟egon学喊麦&#39;, &#39;2018-06-12&#39;, &#39;0.99&#39;, null, &#39;4&#39;);
+ 
+-- ----------------------------
+-- Records of app01_book_author
+-- ----------------------------
+INSERT INTO `app01_book_author` VALUES (&#39;3&#39;, &#39;1&#39;, &#39;1&#39;);
+INSERT INTO `app01_book_author` VALUES (&#39;4&#39;, &#39;1&#39;, &#39;2&#39;);
+INSERT INTO `app01_book_author` VALUES (&#39;5&#39;, &#39;2&#39;, &#39;1&#39;);
+INSERT INTO `app01_book_author` VALUES (&#39;2&#39;, &#39;2&#39;, &#39;2&#39;);
+INSERT INTO `app01_book_author` VALUES (&#39;6&#39;, &#39;3&#39;, &#39;3&#39;);
+INSERT INTO `app01_book_author` VALUES (&#39;7&#39;, &#39;4&#39;, &#39;3&#39;);</code></pre>
+<h3 id="准备">准备</h3>
+<ul>
+<li>①创建django项目 ②创建名为app01的app方便插入数据</li>
+<li>③配置settings.py 数据库,注册app等 ④插入测试数据</li>
+<li>⑥创建写orm语句的py文件 ⑦写ORM语句完成练习题</li>
+<li><a href = 'https://www.cnblogs.com/guokaifeng/p/11013842.html' target = '_blank'>不会创建注册app点这里</a></li>
+<li><a href = 'https://www.cnblogs.com/guokaifeng/p/11187315.html' target = '_blank'>不会配置settings文件点这里</a></li>
+<li>不会导入django环境看这里</li>
+</ul>
+<p><img src = 'https://img2018.cnblogs.com/blog/1644071/201907/1644071-20190722162919527-1222780240.png'></img></p>
+<ul>
+<li><h4 id="查看各表">查看各表</h4></li>
+</ul>
+<p><img src="./images/ORM 查询练习1.png" /></p>
+<p><img src="./images/ORM 查询练习2.png" /></p>
+<h3 id="参考答案">参考答案</h3>
+<p><span></span><br />
+<span></span><br />
+<div style="display: None;"><br />
+<a href = 'https://www.cnblogs.com/post/ReadAuth?blogId=504838&PostId=11699655&url=%2Fguokaifeng%2Fprotected%2Farticles%2F11699655.html' target = '_blank'>参考答案点击 密码666</a><br />
+</div></p>
+<div id="MySignature" style="display: block;">
+    <div><b>作    者：</b><a href="https://www.cnblogs.com/guokaifeng/" target="_blank">郭楷丰</a></div>
+    <div><b>出    处：</b><a href="https://www.cnblogs.com/guokaifeng/" target="_blank">https://www.cnblogs.com/guokaifeng/</a></div>
+    <div><b>声援博主：</b>如果您觉得文章对您有帮助，可以点击文章右下角 <strong><span style="color: #ff0000; font-size: 12pt;">【<a id="post-up" onclick="votePost(11221919,'Digg')">推荐</a>】</span></strong>一下。您的鼓励是博主的最大动力！</div>
+    <div><b>自    勉：</b>生活，需要追求；梦想，需要坚持；生命，需要珍惜；但人生的路上，更需要坚强。<b>带着感恩的心启程，学会爱，爱父母，爱自己，爱朋友，爱他人。</b></div>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

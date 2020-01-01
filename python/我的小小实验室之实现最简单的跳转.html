@@ -1,0 +1,253 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修我的小小实验室之实现最简单的跳转' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>我的小小实验室之实现最简单的跳转</center></div><div class='banquan'>原文出处:本文由博客园博主AlfredZhao提供。<br/>
+原文连接:https://www.cnblogs.com/jyzhao/p/12099875.html</div><br>
+    <p><strong>需求：</strong>由于工作需要，我自己的工作站上搭建有很多套实验环境，而在某种特定场景下，我需要通过默认连接的终端能随时跳转切换到其他环境下临时测试使用，因为只有我自己用，无需引入复杂的跳转机系统，也不需要审计。<br />
+<strong>环境：</strong>均为Linux服务器<br />
+<strong>实现：</strong>我想通过最简单的一些运维知识，搭建一套最简易的跳转程序，提升自己的工作效率。</p>
+<ul>
+<li><a href="#1">1.梳理有跳转需求的环境信息</a></li>
+<li><a href="#2">2.加入用户的环境变量</a></li>
+<li><a href="#3">3.配置ssh无密码登陆</a></li>
+<li><a href="#4">4.展示跳转机使用效果</a></li>
+</ul>
+<h1 id="1">1.梳理有跳转需求的环境信息</h1>
+<p>首先我默认连接的环境本身就是一套Oracle环境，默认也是以oracle用户连接的，IP地址为192.168.1.61。先梳理出目前所有需要纳入跳转清单的实验环境IP地址：<br />
+这里我编辑 /home/oracle/jump_server/server_list 文件，内容如下：</p>
+<pre><code><code>Oracle:
+        Oracle 9i:
+                9 -&gt; 192.168.1.9
+
+        Oracle 10g:
+                10 -&gt; 192.168.1.10
+
+        Oracle 11g:
+                11 -&gt; 192.168.1.11
+
+        Oracle 10g RAC:
+                171 -&gt; 192.168.1.171
+                173 -&gt; 192.168.1.173
+
+        Oracle 11g RAC:
+                61 -&gt; 192.168.1.61
+                63 -&gt; 192.168.1.63
+
+        Oracle 11g RAC(xData):
+                107 -&gt; 192.168.1.107
+                108 -&gt; 192.168.1.108
+                109 -&gt; 192.168.1.109
+
+        Oracle EM 13c(12.1.0.2 RAC):
+                111 -&gt; 192.168.1.111
+                112 -&gt; 192.168.1.112
+
+        Oracle 19c RAC:
+                193 -&gt; 192.168.1.193
+                195 -&gt; 192.168.1.195
+MySQL &amp; PostgreSQL: 
+        99 -&gt; 192.168.1.99</code></pre>
+<p>可以看到清楚的描述了环境的概要信息和对应IP地址。</p>
+<h1 id="2">2.加入用户的环境变量</h1>
+<p>编辑环境变量的配置文件，增加内容如下： vi ~/.bash_profile</p>
+<pre><code><code>###################
+##  跳转主机列表  ## 
+###################
+alias j=&#39;cat /home/oracle/jump_server/server_list&#39;
+# Alias for my env:
+alias 9=&#39;ssh 192.168.1.9&#39;
+alias 10=&#39;ssh 192.168.1.10&#39;
+alias 11=&#39;ssh 192.168.1.11&#39;
+alias 171=&#39;ssh 192.168.1.171&#39;
+alias 173=&#39;ssh 192.168.1.173&#39;
+alias 61=&#39;ssh 192.168.1.61&#39;
+alias 63=&#39;ssh 192.168.1.63&#39;
+alias 107=&#39;ssh 192.168.1.107&#39;
+alias 108=&#39;ssh 192.168.1.108&#39;
+alias 109=&#39;ssh 192.168.1.109&#39;
+alias 111=&#39;ssh 192.168.1.111&#39;
+alias 112=&#39;ssh 192.168.1.112&#39;
+alias 193=&#39;ssh 192.168.1.193&#39;
+alias 195=&#39;ssh 192.168.1.195&#39;
+alias 99=&#39;ssh root@192.168.1.99&#39;</code></pre>
+<h1 id="3">3.配置ssh无密码登陆</h1>
+<p>这点我有考虑过是否有必要？是否因配置了ssh无密码登陆会容易产生误操作？但结合自己的需求，在个人测试环境中还是需要这样的功能方便提升效率的。<br />
+配置/etc/hosts文件，添加：<br />
+vi /etc/hosts</p>
+<pre><code><code>#My Oracle Server
+192.168.1.9     DB9
+192.168.1.10    DB10
+192.168.1.11    DB11
+192.168.1.61    DB61
+192.168.1.63    DB63
+192.168.1.171   DB171
+192.168.1.173   DB173
+192.168.1.107   DB107
+192.168.1.108   DB108
+192.168.1.109   DB109
+192.168.1.111   DB111
+192.168.1.112   DB112
+192.168.1.193   DB193
+192.168.1.195   DB195
+192.168.1.99    DB99</code></pre>
+<p>这里可参考我之前的随笔：</p>
+<ul>
+<li><a href="https://www.cnblogs.com/jyzhao/p/5600336.html">Linux快速配置集群ssh互信</a></li>
+</ul>
+<p>上传cluster开头的2个脚本之后，配置环境变量，增加NODE_LIST变量值：</p>
+<pre><code><code>#NODE_LIST:
+export NODE_LIST=&#39;DB9 DB10 DB11 DB61 DB63 DB171 DB173 DB107 DB108 DB109 DB111 DB112 DB193 DB195 DB99&#39;</code></pre>
+<p>清除ssh互信的当前所有配置信息(根据情况选做)：</p>
+<pre><code><code>cluster_run_all_nodes &quot;hostname; rm -rf ~/.ssh&quot;
+rm -rf ~/.ssh</code></pre>
+<p><strong>3.1 使用cluster_run_all_nodes脚本，快速在各节点ssh-keygen生成RSA密钥和公钥</strong></p>
+<pre><code><code>cluster_run_all_nodes &quot;hostname; ssh-keygen -q -t rsa  -N \&quot;\&quot; -f  ~/.ssh/id_rsa&quot;</code></pre>
+<p><strong>3.2 我需要使用shell结合for循环遍历数组，如下：</strong></p>
+<pre><code><code>IP_NET=&quot;192.168.1.&quot;
+a=(9 10 11 61 63 171 173 107 108 109 111 112 193 195 99)
+for i in ${a[@]}
+do
+ssh $IP_NET$i cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
+echo Summarize ssh info from $IP_NET$i into a single file.
+done</code></pre>
+<p><strong>3.3 安全性，分发确认无误：</strong></p>
+<pre><code><code>chmod 600 ~/.ssh/authorized_keys
+cluster_copy_all_nodes ~/.ssh/authorized_keys ~/.ssh/
+cluster_run_all_nodes &quot;hostname; date&quot;</code></pre>
+<p>若配置成功，就不需要输入密码即可执行完成：</p>
+<pre><code><code>[oracle@jystdrac1 ~]$ cluster_run_all_nodes &quot;hostname; date&quot;
+db09
+Wed Dec 25 23:58:31 CST 2019
+db10
+Wed Dec 25 23:58:42 CST 2019
+OEL-ASM
+Wed Dec 25 23:58:28 CST 2019
+jystdrac1
+Wed Dec 25 23:58:47 CST 2019
+jystdrac2
+Wed Dec 25 23:58:48 CST 2019
+rac1-server
+Wed Dec 25 23:50:24 CST 2019
+rac2-server
+Wed Dec 25 23:50:47 CST 2019
+db01
+Wed Dec 25 23:58:48 CST 2019
+db02
+Wed Dec 25 23:58:48 CST 2019
+db03
+Wed Dec 25 23:58:49 CST 2019
+oemapp1
+Wed Dec 25 23:58:42 CST 2019
+oemapp2
+Wed Dec 25 23:58:44 CST 2019
+db193
+Wed Dec 25 23:56:53 CST 2019
+db195
+Wed Dec 25 23:56:54 CST 2019
+alfred
+Wed Dec 25 23:56:38 CST 2019</code></pre>
+<p>此外，特别需要注意99这台机器由于安装多款数据库产品，我为了方便是跳转到root用户的，这样切换到其他任意用户不需要输入密码，至于ssh互信这里需要特殊配置下，只需将99上的root用户输入ssh-keygen生成的id_rsa.pub文件内容追加到61上oracle用户下的authorized_keys，然后将61的这个文件再同步回99上root用户下authorized_keys即可。</p>
+<h1 id="4">4.展示跳转机使用效果</h1>
+<p>最后来看下跳转机实际使用的效果：</p>
+<p><strong>4.1 输入j显示可以跳转的服务器信息：</strong></p>
+<pre><code><code>[oracle@jystdrac1 ~]$ j
+Oracle:
+        Oracle 9i:
+                9 -&gt; 192.168.1.9
+
+        Oracle 10g:
+                10 -&gt; 192.168.1.10
+
+        Oracle 11g:
+                11 -&gt; 192.168.1.11
+
+        Oracle 10g RAC:
+                171 -&gt; 192.168.1.171
+                173 -&gt; 192.168.1.173
+
+        Oracle 11g RAC:
+                61 -&gt; 192.168.1.61
+                63 -&gt; 192.168.1.63
+
+        Oracle 11g RAC(xData):
+                107 -&gt; 192.168.1.107
+                108 -&gt; 192.168.1.108
+                109 -&gt; 192.168.1.109
+
+        Oracle EM 13c(12.1.0.2 RAC):
+                111 -&gt; 192.168.1.111
+                112 -&gt; 192.168.1.112
+
+        Oracle 19c RAC:
+                193 -&gt; 192.168.1.193
+                195 -&gt; 192.168.1.195
+MySQL &amp; PostgreSQL: 
+        99 -&gt; 192.168.1.99</code></pre>
+<p><strong>4.2 选择输入对应主机即可实现跳转：</strong><br />
+比如选择输入107，即可跳转到192.168.1.107的主机：</p>
+<pre><code><code>[oracle@jystdrac1 ~]$ 107
+Last login: Wed Dec 25 22:31:16 2019 from db02
+[oracle@db01 ~]$ ps -ef|grep pmon
+grid     19592     1  0 Dec22 ?        00:00:52 asm_pmon_+ASM1
+oracle   20315 20293  0 00:02 pts/0    00:00:00 grep --color=auto pmon
+oracle   21339     1  0 Dec22 ?        00:00:58 ora_pmon_orcl1
+[oracle@db01 ~]$ exit
+logout
+Connection to 192.168.1.107 closed.</code></pre>
+<p>比如选择输入193，即可跳转到192.168.1.193的主机：</p>
+<pre><code><code>[oracle@jystdrac1 ~]$ 193
+Last login: Wed Dec 25 22:30:01 2019 from 192.168.1.61
+[oracle@db193 ~]$ ps -ef|grep pmon
+grid     16918     1  0 Nov07 ?        00:05:33 asm_pmon_+ASM1
+oracle   17329     1  0 Nov07 ?        00:06:51 ora_pmon_jydb1
+oracle   28698 28674  0 00:00 pts/0    00:00:00 grep --color=auto pmon
+[oracle@db193 ~]$ exit
+logout
+Connection to 192.168.1.193 closed.</code></pre>
+<p>比如选择输入99，即可跳转到192.168.1.99的主机(因为之前特殊处理，所以可成功跳转到root用户)：</p>
+<pre><code><code>[oracle@jystdrac1 ~]$ 99
+Last login: Thu Dec 26 00:24:57 2019 from 192.168.1.61
+[root@alfred ~]# ps -ef|grep postgres
+postgres 17659     1  0 Dec23 ?        00:00:18 /usr/pgsql-10/bin/postmaster -D /var/lib/pgsql/10/data/
+postgres 17662 17659  0 Dec23 ?        00:00:00 postgres: logger process   
+postgres 17664 17659  0 Dec23 ?        00:00:00 postgres: checkpointer process   
+postgres 17665 17659  0 Dec23 ?        00:00:04 postgres: writer process   
+postgres 17666 17659  0 Dec23 ?        00:00:05 postgres: wal writer process   
+postgres 17667 17659  0 Dec23 ?        00:00:15 postgres: autovacuum launcher process   
+postgres 17668 17659  0 Dec23 ?        00:00:32 postgres: stats collector process   
+postgres 17669 17659  0 Dec23 ?        00:00:00 postgres: bgworker: logical replication launcher   
+root     19218 19196  0 00:28 pts/0    00:00:00 grep --color=auto postgres
+[root@alfred ~]# su - postgres
+Last login: Tue Dec 24 09:23:16 CST 2019 on pts/0
+-bash-4.2$ psql
+psql (10.11)
+输入 &quot;help&quot; 来获取帮助信息.
+
+postgres=# \q
+-bash-4.2$ exit
+登出
+[root@alfred ~]# exit
+logout
+Connection to 192.168.1.99 closed.</code></pre>
+<p>可以看到，这样方便的跳转功能，使我可以快速连接到各类环境进行测试学习。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

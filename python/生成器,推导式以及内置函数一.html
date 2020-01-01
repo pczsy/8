@@ -1,0 +1,260 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修生成器,推导式以及内置函数一' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>生成器,推导式以及内置函数一</center></div><div class='banquan'>原文出处:本文由博客园博主Bugbiss提供。<br/>
+原文连接:https://www.cnblogs.com/tutougold/p/11214666.html</div><br>
+    <h1 id="生成器推导式以及内置函数一">生成器,推导式以及内置函数一</h1>
+<h2 id="生成器">1.生成器</h2>
+<p>迭代器:python中内置的一种节省空间的工具.</p>
+<p>生成器的本质就是一个迭代器.</p>
+<p>迭代器和生成器的区别:一个是python自带的,一个是程序员自己写的.</p>
+<pre><code><code>#在函数中将return改写为yield就是一个生成器
+#yield 会记录执行位置
+#return 和 yield 都是返回
+#return 可以写多个,但是只执行一次,yield可以写多个,还可以返回多次
+#一个__next__()对应一个 yield
+#生成器可以使用for循环获取值
+#yield from --将可迭代对象逐个返回
+#在函数的内部yield能将for循环和while循环进行临时暂停
+#定义一个生成器:1.基于函数 
+#             2.函数体中存在yield就是一个生成器
+#             3.函数名() 就是产生一个生成器
+
+写一个生成器:
+    
+def func():
+    print(123)
+    yield &quot;你好&quot;
+func()              # 产生一个生成器
+
+def func():
+    if 3 &gt; 2:
+        yield &quot;你好&quot;   # 停,并进行记录
+    if 4 &gt; 2:
+        yield &quot;你好&quot;
+    yield &quot;大家好&quot;
+g = func()         # 产生一个生成器
+print(g.__next__())             # for i in g:
+print(g.__next__())             #     print(i)
+print(g.__next__())
+
+
+def foo():
+    for i in range(10):
+        pass
+        yield i
+    count = 1
+    while True:
+        yield count
+        count += 1
+g = foo()
+print(next(g))           # 推荐使用 next()
+print(next(g))       
+print(next(g))           # for i in g:
+print(next(g))           #     print(i)
+
+坑 --会生成新的生成器
+print(foo().__next__())
+print(foo().__next__())
+
+
+#  send()
+def func():
+    a = yield &quot;send&quot;
+    print(a)
+g = func()
+print(g.send(None))    # 打印出 send
+print(g.send(123))     # 报错
+
+# 生成器的应用场景:
+
+def func():
+    lst = []
+    for i in range(10):
+        lst.append(i)
+    return lst
+print(func())        #[0,1,2,3,4,5,6,7,8,9]
+
+def func():
+    for i in range(10):
+        yield i
+g = func()
+for i in range(5):
+    print(next(g))
+    
+def func():
+    lst = [&quot;你&quot;,&quot;我&quot;,&quot;他&quot;,&quot;它&quot;]
+    for i in lst:
+        yield i
+g = func()
+print(next(g))           # 你
+print(next(g))           # 我
+print(next(g))           # 他
+print(next(g))           # 它
+
+def func():
+    lst1 = [&quot;你&quot;,&quot;我&quot;,&quot;它&quot;]
+    lst2 = [&quot;他&quot;,&quot;她&quot;,&quot;昵&quot;]
+    yield from lst1          # yield 将可迭代对象逐个返回
+    yield from lst2
+g = func()
+print(next(g))        # 你
+print(next(g))        # 我
+print(next(g))        # 它</code></pre>
+<h2 id="推导式">2.推导式</h2>
+<pre class="pyhton"><code>list推导式:
+[变量(加工后的变量) for循环]
+[变量(加工后的变量) for循环 加工条件]
+生成器表达式:
+(变量(加工后的变量) for循环)
+(变量(加工后的变量) for循环 加工条件)
+字典推导式:
+{键:值 for循环 加工条件}
+集合推导式:
+{变量(加工后的变量) for循环 加工条件}
+
+
+list推导式
+print([i for i in range(20)])
+
+循环模式
+print([i+1 for in range(10)])
+[变量 for i in range(20)]
+
+筛选模式
+
+lst = []
+for i in range(20):
+    if i % 2 == 0:
+        lst.append(i)
+print(lst)
+
+print([i for i in range(20) if i % 2 == 0])
+[变量(加工后的变量) for循环 加工方式]
+
+生成器表达式:
+
+循环模式:
+g = (i for i in range(20))
+print(next(g))
+print(next(g))
+print(next(g))
+
+print(list(i for i in range(20)))
+
+筛选模式
+g = (i for i in range(50) if i % 2 == 0 )
+for i in g:
+    print(i)
+    
+字典推导式:
+print({i:i+1 for i in range(10)})
+{键:值 for循环 加工条件}
+
+集合推导式:
+print({i for i in range(10)})
+print({i for i in range(10) if i % 2 == 0})</code></pre>
+<h2 id="内置函数一">3.内置函数一</h2>
+<pre><code><code># eval()   执行字符串类型的代码,并返回最终结果
+s = &quot;2+2&quot;
+print(eval(s))   #4
+
+# exec()   执行字符串类型的代码
+s = &#39;&#39;&#39;
+for i in [1,2,3]
+    print(i)
+&#39;&#39;&#39;
+print(exec(s))  # 1 2 3            #工作中禁止使用
+
+#hash()    获取一个对象(可哈希对象)的哈希值
+print(hash(1))
+
+#help()    用于查看函数或模块用途的详细说明
+print(help(list))
+
+#callable() 函数用于检查一个对象是否是可调用的,True仍可能调用失败
+#             False也不一定绝对成功
+name = &quot;alex&quot;
+def func():
+    pass
+print(callable(name))     # False
+print(callable(func))     # True
+
+#int()    将一个字符串或数字转换成整型  
+print(int(&#39;12&#39;))  # 12
+
+#float()  用于将整数和字符串转换成浮点数
+print(float(2))  # 2.0
+
+#complex()   用于转换一个字符串或数为复数
+print(complex(1,2))    # (1+2j)
+
+#bin()  将十进制转换成二进制字符串并返回
+print(bin(10))    # 0b1010
+
+#oct()  将十进制转换成八进制字符串并返回
+print(oct(10))   # 0o12
+
+#hex() 将十进制转换成十六进制字符串并返回
+print(hex(10))   # 0xa
+
+#divmod() 获取商和余
+print(divmod(7,2)) # (3,1)
+
+#round() 保留浮点数的小数位数,默认保留整数
+print(round(7/3,2))  #2.33
+
+#pow()    求幂
+print(pow(2,3))  # 两个参数为2**3次幂
+print(pow(2,3,3))  # 三个参数为2**3次幂，对3取余。
+
+#bytes()  用于不同编码之间的转化
+s = &#39;你好&#39;
+bs = s.encode(&#39;utf-8&#39;)
+print(bs)
+
+#ord() 输入字符找当前字符编码的位置
+print(ord(&#39;a&#39;))  # 97
+
+#chr() 输入当前编码的位置数字找出其对应的字符
+print(chr(20013))  # 中
+
+#repr() 返回一个对象的string形式(原形)
+s = &quot;C:\u3000&quot;
+print(repr(s))     # &#39;C:\u3000&#39;
+
+#all() 可迭代对象中,全都是True才是True
+print(all([1,2,True,0]))   #False
+
+#any() 可迭代对象中,有一个True就是True
+print(any([1,&#39;&#39;,0]))    # True
+
+#global() 查看全局空间中的变量
+#locals() 查看当前空间的变量
+name = 1
+def func():
+    a = 123
+    print(locals())    # {&#39;a&#39;:123}
+    print(globals())   #全局空间中的变量
+func()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

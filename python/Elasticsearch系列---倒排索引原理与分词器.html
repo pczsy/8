@@ -1,0 +1,245 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Elasticsearch系列---倒排索引原理与分词器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Elasticsearch系列---倒排索引原理与分词器</center></div><div class='banquan'>原文出处:本文由博客园博主清茶豆奶提供。<br/>
+原文连接:https://www.cnblogs.com/huangying2124/p/12081933.html</div><br>
+    <h3 id="概要">概要</h3>
+<p>本篇主要讲解倒排索引的基本原理以及ES常用的几种分词器介绍。</p>
+<h3 id="倒排索引的建立过程">倒排索引的建立过程</h3>
+<p>倒排索引是搜索引擎中常见的索引方法，用来存储在全文搜索下某个单词在一个文档中存储位置的映射。通过倒排索引，我们输入一个关键词，可以非常快地获取包含这个关键词的文档列表。</p>
+<p>我们先看英文的，假设我们有两个文档：</p>
+<ol>
+<li>I have a friend who loves smile</li>
+<li>love me, I love you</li>
+</ol>
+<p>为了建立倒排索引，我们先按最简单的用空格把每个单词分开，可以得到如下结果：<br />
+*表示该列文档中有这个词条，为空表示没有该词条</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Term</th>
+<th style="text-align: center;">doc1</th>
+<th style="text-align: right;">doc2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">I</td>
+<td style="text-align: center;">*</td>
+<td style="text-align: right;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">have</td>
+<td style="text-align: center;">*</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">a</td>
+<td style="text-align: center;">*</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">friend</td>
+<td style="text-align: center;">*</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">who</td>
+<td style="text-align: center;">*</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">loves</td>
+<td style="text-align: center;">*</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">smile</td>
+<td style="text-align: center;">*</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">love</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">*</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">me</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">you</td>
+<td style="text-align: center;"></td>
+<td style="text-align: right;">*</td>
+</tr>
+</tbody>
+</table>
+<p>如果我们要搜索 I love you，我们只需要查找包含每个词条的文档：<br />
+| Term | doc1 | doc2 |<br />
+| :---- | :--: | -----: |<br />
+| I | * | * |<br />
+| love | | * |<br />
+| you | | * |</p>
+<p>两个文档都能匹配上，如果按命中词条数量来算，doc2比doc1更匹配。</p>
+<p>这个是倒排索引最简化的表达方式，在ES的倒排索引存储结果中，还会记录每个词条在文档中出现的位置。</p>
+<h3 id="期望的分词处理">期望的分词处理</h3>
+<p>我们再看一下这个索引的建立过程，loves和love有区别吗？没有，都是爱的意思，一个是第三人称单数，一个是原形。如果能将一些语法的区别处理掉，这样的搜索结果是不是更切合实际需求？<br />
+例如：</p>
+<ul>
+<li>loves提取词干处理成love</li>
+<li>a，have之类的无实义的词，直接屏蔽掉</li>
+<li>等等</li>
+</ul>
+<p>现在索引看上去成这样：<br />
+| Term | doc1 | doc2 |<br />
+| :---- | :--: | -----: |<br />
+| friend | * | |<br />
+| love | * | * |<br />
+| smile | * | |<br />
+| me | | * |<br />
+| you | | * |</p>
+<p>这样是不是精简了很多？<br />
+这个过程叫normalization，在建立倒排索引的时候，会执行一系列的操作，对拆分出的各个单词进行相应的处理，以提升后面搜索的时候能够搜索到相关联的文档的概率，如时态的转换，单复数的转换，同义词的转换，大小写的转换等。</p>
+<h3 id="分词器登场">分词器登场</h3>
+<p>分词器的作用就是把整篇文档，按一定的语义切分成一个一个的词条，目标是提升文档的召回率，并降低无效数据的噪音。</p>
+<p>recall召回率，也叫可搜索性，指搜索的时候，增加能够搜索到的结果的数量。<br />
+降噪：指降低文档中一些低相关性词条对整体搜索排序结果的干扰。</p>
+<p>文档的分词过程包含以下几步：</p>
+<ul>
+<li>字符过滤器</li>
+</ul>
+<p>对字符串进行预处理，如HTML标签清洗<span>Love</span> --&gt; Love，I &amp; you --&gt; I and you等等。</p>
+<ul>
+<li>分词器</li>
+</ul>
+<p>把字符串切分成单个的词条，如英文的按空格和标点切分，中文的按词语切分，针对不同的语言，有不同的分词器，有相对简单的标准分词器，也有特别复杂的中文分词器，里面包含了非常复杂的切分逻辑如：</p>
+<p>I Love you --&gt; I/Love/you</p>
+<p>我和我的祖国 --&gt; 我/和/我的/祖国</p>
+<ul>
+<li>Token过滤器<br />
+将分词器得到的词条进一步的处理，如改变词条（英文词干提取loves --&gt; love），删除无实际意义的词条（英文的a, and, this，中文的&quot;的&quot;，&quot;了&quot;，&quot;吗&quot;），增加词条（补充同义词）</li>
+</ul>
+<p>分词器非常重要，好的分词器可以显著提升召回率，不恰当的分词器得到的结果可能会对搜索产生歧义，最后处理好的结果再拿去建立倒排索引。</p>
+<h3 id="常见分词器介绍">常见分词器介绍</h3>
+<p>Elasticsearch自身提供了内置的分词器，也允许使用第三方的分词器。</p>
+<h4 id="内置分词器">内置分词器</h4>
+<ul>
+<li>标准分词器standard analyzer</li>
+</ul>
+<p>ES默认分词器，根据Unicode联盟定义的单词边界划分文本，删除绝大部分标点，最后将词条小写。</p>
+<ul>
+<li>简单分词器simple analyzer</li>
+</ul>
+<p>在任何不是字母的地方分隔文本，将词条小写</p>
+<ul>
+<li>空格分词器whitespace analyzer</li>
+</ul>
+<p>在空格的地方划分文本</p>
+<ul>
+<li>语言分词器language analyzer</li>
+</ul>
+<p>特定的语言的分词器，如english，英语分词器，维护了一组英语停用词and、the之类的，用于删除词条，针对英文语法规则，有提取单词词干的能力。</p>
+<p>内置的分词器主要是对英文的支持效果比较好，中文则需要使用外部的分词器。</p>
+<h4 id="外部分词器">外部分词器</h4>
+<ul>
+<li><p>IK中文分词器ik_max_word<br />
+会将文本做最细粒度的拆分；尽可能多的拆分出词语。<br />
+如南京市长江大桥 --&gt; 南京市/南京/市长/长江大桥/长江/大桥</p></li>
+<li><p>IK中文分词器ik_smart<br />
+会做最粗粒度的拆分；已被分出的词语将不会再次被其它词语占有<br />
+如南京市长江大桥 --&gt; 南京市/长江大桥</p></li>
+<li><p>中日韩文分词器cjk<br />
+支持亚洲语言中文，日文，韩文<br />
+如南京市长江大桥 --&gt; 南京/京市/市长/长江/江大/大桥</p></li>
+<li><p>阿里中文分词器aliws<br />
+阿里自研的中文分词器<br />
+如南京市长江大桥 --&gt; 南京/市/长江/大桥</p></li>
+</ul>
+<p>外部分词器众多，开源也有很多，有针对不同语言，不同领域的，各位可以结合自身业务的特点，挑选适合自己的分词器，这里就不一一介绍了，有兴趣自己可以去了解一下。</p>
+<h4 id="集成分词器">集成分词器</h4>
+<p>以Elasticsearch 6.3.1版本为例，集成IK分词器，其他的分词器过程也类似，在ES的bin目录下执行插件安装命令即可：<br />
+<code>./elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.3.1/elasticsearch-analysis-ik-6.3.1.zip</code></p>
+<p>其中install后面的那个的地址是 <a href="https://github.com/medcl/elasticsearch-analysis-ik/releases">elasticsearch-analysis-ik</a> 的github release对应ES版本的下载地址。</p>
+<p>安装成功后，ES启动日志就能看到如下信息：<br />
+<code>[2019-11-27T12:17:15,255][INFO ][o.e.p.PluginsService] [node-1] loaded plugin [analysis-ik]</code></p>
+<h3 id="测试分词效果">测试分词效果</h3>
+<p>ES有analyze API来查看文本是如何被分词的，可用来做学习和调试用，请求命令如下：</p>
+<pre><code><code>GET /_analyze
+{
+  &quot;analyzer&quot;: &quot;ik_max_word&quot;,
+  &quot;text&quot;: &quot;南京市长江大桥&quot;
+}
+</code></pre>
+<p>响应结果：</p>
+<pre><code><code>{
+  &quot;tokens&quot;: [
+    {
+      &quot;token&quot;: &quot;南京市&quot;,
+      &quot;start_offset&quot;: 0,
+      &quot;end_offset&quot;: 3,
+      &quot;type&quot;: &quot;CN_WORD&quot;,
+      &quot;position&quot;: 0
+    },
+    {
+      &quot;token&quot;: &quot;南京&quot;,
+      &quot;start_offset&quot;: 0,
+      &quot;end_offset&quot;: 2,
+      &quot;type&quot;: &quot;CN_WORD&quot;,
+      &quot;position&quot;: 1
+    },
+    {
+      &quot;token&quot;: &quot;市长&quot;,
+      &quot;start_offset&quot;: 2,
+      &quot;end_offset&quot;: 4,
+      &quot;type&quot;: &quot;CN_WORD&quot;,
+      &quot;position&quot;: 2
+    },
+    {
+      &quot;token&quot;: &quot;长江大桥&quot;,
+      &quot;start_offset&quot;: 3,
+      &quot;end_offset&quot;: 7,
+      &quot;type&quot;: &quot;CN_WORD&quot;,
+      &quot;position&quot;: 3
+    },
+    {
+      &quot;token&quot;: &quot;长江&quot;,
+      &quot;start_offset&quot;: 3,
+      &quot;end_offset&quot;: 5,
+      &quot;type&quot;: &quot;CN_WORD&quot;,
+      &quot;position&quot;: 4
+    },
+    {
+      &quot;token&quot;: &quot;大桥&quot;,
+      &quot;start_offset&quot;: 5,
+      &quot;end_offset&quot;: 7,
+      &quot;type&quot;: &quot;CN_WORD&quot;,
+      &quot;position&quot;: 5
+    }
+  ]
+}</code></pre>
+<h3 id="小结">小结</h3>
+<p>本篇主要介绍了倒排索引的基本思路，展示了简化后的结构，并阐述了分词处理的基本步骤。目前市面上流行的分词器组件特别多，开源的社区也非常活跃，各位可根据实际的项目需求背景，挑选适合的进行集成 ，注意版本号的兼容性问题即可。</p>
+<p>专注Java高并发、分布式架构，更多技术干货分享与心得，请关注公众号：Java架构社区<br />
+<img src="./images/Elasticsearch系列---倒排索引原理与分词器0.png" alt="Java架构社区" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

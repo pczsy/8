@@ -1,0 +1,110 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修关于python中的包，模块导入的问题详解（一）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>关于python中的包，模块导入的问题详解（一）</center></div><div class='banquan'>原文出处:本文由博客园博主My_DreamTrip提供。<br/>
+原文连接:https://www.cnblogs.com/My-DreamTrip/p/11275233.html</div><br>
+    <h1 style="text-align: left;">&nbsp;</h1>
+<h1 style="text-align: left;"><span style="color: #3366ff;">最近由于初学python，对包，模块的导入问题进行了资料的搜集，查阅，在这里做一个总结：</span></h1>
+<p style="text-align: left;">&nbsp;</p>
+<ul>
+<li style="text-align: left;">
+<h2>&nbsp;一： import 模块</h2>
+</li>
+</ul>
+<p><span style="font-family: 黑体; font-size: 18px;">在import的过程中发生了什么？我们用一个实验来说明：</span></p>
+<p style="text-align: left;"><img src="./images/关于python中的包，模块导入的问题详解（一）0.png" alt="" width="909" height="335" /></p>
+<p style="text-align: left;">以上截图表明：<span style="text-decoration: underline;"><em><strong>在import + 模块中，直接执行了里面是语句</strong></em></span></p>
+<p style="text-align: left;"><span style="color: #00ccff;">引申：一个模块不会被重复导入，如果要使用被导入模块的变量，要用&nbsp; &nbsp;模块.变量名&nbsp; 的方式 。</span></p>
+<p style="text-align: left;"><span style="color: #00ccff;">如果全局空间与模块的局部空间有命名重复的变量名或函数名，则在各自对应的域内去寻找各自的对象</span></p>
+<p style="text-align: left;"><span style="color: #00ccff;">如下代码所示</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">#</span><span style="color: #008000;">#######file_2.py</span>
+<span style="color: #008080;"> 2</span> <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">This is file_2</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> file_v2 = <span style="color: #800000;">'</span><span style="color: #800000;">msy</span><span style="color: #800000;">'</span>       <span style="color: #008000;">#</span><span style="color: #008000;">定义变量</span>
+<span style="color: #008080;"> 5</span> <span style="color: #0000ff;">def</span> file_d2():          <span style="color: #008000;">#</span><span style="color: #008000;">定义函数</span>
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">This is file_d2!!!</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #008000;">#</span><span style="color: #008000;">#######file_1.py</span>
+<span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span>  file_2           <span style="color: #008000;">#</span><span style="color: #008000;">导入模块</span>
+<span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span> <span style="color: #0000ff;">print</span>(file_2.file_v2)    <span style="color: #008000;">#</span><span style="color: #008000;">使用模块的变量</span>
+<span style="color: #008080;">14</span> <span style="color: #0000ff;">print</span>(file_2.file_d2())  <span style="color: #008000;">#</span><span style="color: #008000;">使用模块的函数</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">#####起别名需注意的地方</span>
+
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> file_2 as f
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">####注意：：：起了别名以后，原来的名字在当前模块就不能使用了</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>拓展：<span style="color: #00ccff;">按照PeP8开发规范，导入多个模块时，虽然可以一个import可以一次性导入多个模块，但不符合规范，且需按照#内置模块，#第三方模块，#自定义模块</span></p>
+<p><span style="color: #00ccff;">的顺序来导入</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<ul>
+<li><span style="font-family: 黑体; font-size: 18px;">二：模块搜索路径</span></li>
+</ul>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">#</span><span style="color: #008000;">#############模块搜索路径</span>
+<span style="color: #008080;">2</span> 
+<span style="color: #008080;">3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;">  sys
+</span><span style="color: #008080;">4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #008080;">5</span> 
+<span style="color: #008080;">6</span> base = os.path.basename(<span style="color: #800080;">__file__</span>)   <span style="color: #008000;">#</span><span style="color: #008000;">当前文件名</span>
+<span style="color: #008080;">7</span> base2 = os.path.abspath(<span style="color: #800080;">__file__</span>)           <span style="color: #008000;">#</span><span style="color: #008000;">绝对路径</span>
+<span style="color: #008080;">8</span> base3 = os.path.dirname(os.path.abspath(<span style="color: #800080;">__file__</span>))  <span style="color: #008000;">#</span><span style="color: #008000;">当前文件路径</span>
+<span style="color: #008080;">9</span> base4 = os.path.dirname(os.path.dirname(os.path.abspath(<span style="color: #800080;">__file__</span>)))  <span style="color: #008000;">#</span><span style="color: #008000;">当前文件上级路径</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-family: 黑体; font-size: 18px;">引申：除了sys.path中是内置，拓展模块外，其他模块都应使用你直接执行这个文件所在的目录作为搜索路径；</span></p>
+<blockquote>
+<p><span style="font-family: 黑体; font-size: 18px;">　　一个模块是否能被导入，就看这个模块的所在的目录在不在sys.path中，如下图演示：</span></p>
+</blockquote>
+<p><span style="font-family: 黑体; font-size: 18px;"><img src="./images/关于python中的包，模块导入的问题详解（一）1.png" alt="" width="1021" height="421" /></span></p>
+<p>&nbsp;</p>
+<p><img src="./images/关于python中的包，模块导入的问题详解（一）2.png" alt="" width="1021" height="426" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<ul>
+<li>三：运行py的方式</li>
+</ul>
+<p>常用的两种运行方式：1、cmd&nbsp; python xx.py&nbsp; &nbsp;脚本的方式运行</p>
+<p>　　　　　　　　　　2、导入他，import xx.py&nbsp;&nbsp;</p>
+<p>　　但大多数情况我们所见到的import 时 并不会有控制台输出，但是cmd运行的时候为什么有输出呢？（pycharm 运行也是脚本运行）</p>
+<p>　　或者如何达到这样的效果呢？</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">#</span><span style="color: #008000;">############实现import调用时不输出代码</span>
+<span style="color: #008080;">2</span> <span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800080;">__main__</span><span style="color: #000000;">:
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">        代码块
+</span><span style="color: #008080;">4</span> 
+<span style="color: #008080;">5</span> <span style="color: #008000;">#</span><span style="color: #008000;">############################</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,370 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修不一样的装饰器模式（设计模式二）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>不一样的装饰器模式（设计模式二）</center></div><div class='banquan'>原文出处:本文由博客园博主族语提供。<br/>
+原文连接:https://www.cnblogs.com/aoximin/p/12078650.html</div><br>
+    <h3 id="前言">前言</h3>
+<p>我是一名博客园的博主，目前排名第199675位，虽然排名稍稍落后，但这并不影响我向大家学习然后自己吹水。</p>
+<p>在常见的设计模式中，每个项目或者说产品可以说装饰器几乎必用。</p>
+<p>装饰器是decorator，别名wrapper，也称为包装器，是创建型、结构型、行为型分类的结构型，具体有什么用呢？</p>
+<p>说有什么用，不如直接看下，通过使用装饰器有什么结构变化，是如何演化过来的。</p>
+<p>通过演化过程，自然知道为什么装饰器划分为结构型，装饰器解决了什么问题，作用是啥。</p>
+<h3 id="上车出发">上车出发</h3>
+<p>在流中，有文件流、内存流以及网络流，他们的读取方式都不一样，但是它们都继承steam 这个类。<br />
+像这样:</p>
+<pre><code><code>public abstract class Stream
+{
+    protected abstract char Read(int number);
+
+    protected abstract void seek(int position = 0);
+
+    protected virtual void write(byte data) { }
+}</code></pre>
+<p>假设让我们来分别设计文件流、内存流与网络流<br />
+文件流:</p>
+<pre><code><code>public class FileStream: Stream
+{
+
+    public virtual void write(byte data) {
+        // 写入文件
+    }
+
+    public override char Read(int number)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void seek(int position = 0)
+    {
+        throw new NotImplementedException();
+    }
+}</code></pre>
+<p>内存流:</p>
+<pre><code><code>public class MemoryStream:Stream
+{
+
+    public virtual void write(byte data)
+    {
+        // 写内存流
+    }
+
+    public override char Read(int number)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void seek(int position = 0)
+    {
+        throw new NotImplementedException();
+    }
+}</code></pre>
+<p>网络流:</p>
+<pre><code><code>public class NetworkStream: Stream
+{
+
+    public virtual void write(byte data)
+    {
+        // 写网络流
+    }
+
+    public override char Read(int number)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void seek(int position = 0)
+    {
+        throw new NotImplementedException();
+    }
+}</code></pre>
+<p>我们在读取或者写入这些流的时候，可能会进行加密或者说缓存。<br />
+第一版设计，假设我们以继承的方式实现。<br />
+加密的文件流:</p>
+<pre><code><code>public class CryptoBufferedFileStream: FileStream
+{
+    public override  char Read(int number)
+    {
+        base.Read(number);
+        //额外的加密操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的加密操作
+        base.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的加密操作...
+        base.write(data);
+    }
+}</code></pre>
+<p>加密的内存流:</p>
+<pre><code><code>public class CryptoMemoryStream : MemoryStream
+{
+    public override char Read(int number)
+    {
+        base.Read(number);
+        //额外的加密操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的加密操作
+        base.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的加密操作...
+        base.write(data);
+    }
+}</code></pre>
+<p>加密的网络流</p>
+<pre><code><code>public class CryptoNetworkStream : NetWorkStream
+{
+    public override char Read(int number)
+    {
+        base.Read(number);
+        //额外的加密操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的加密操作
+        base.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的加密操作...
+        base.write(data);
+    }
+}</code></pre>
+<p>同样我们还要实现缓存流:</p>
+<pre><code><code>//文件流缓冲
+public class BufferedFileStream: FileStream
+{
+    public override char Read(int number)
+    {
+        base.Read(number);
+        //额外的缓冲操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的缓冲操作
+        base.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的缓冲操作...
+        base.write(data);
+    }
+}
+//内存流缓冲
+public class BufferedMemoryStream : MemoryStream
+{
+    public override char Read(int number)
+    {
+        base.Read(number);
+        //额外的缓冲操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的缓冲操作
+        base.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的缓冲操作...
+        base.write(data);
+    }
+}
+//网络流缓冲
+public class BufferedNetworkStream : NetWorkStream
+{
+    public override char Read(int number)
+    {
+        base.Read(number);
+        //额外的缓冲操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的缓冲操作
+        base.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的缓冲操作...
+        base.write(data);
+    }
+}</code></pre>
+<p>写完之后，会发现几个致命性问题:</p>
+<p>1.没有实现我们要加密也要缓存，如果要写下去那么还需要3个类，感觉没有尽头。<br />
+<img src="./images/不一样的装饰器模式（设计模式二）0.png" /></p>
+<p>假设steam 有n 个继承基础类，如FileSteam，需要实现m个扩展功能，比如说加密缓冲等。<br />
+那么计算是n(C(m,1),c(m,2)....,C(m,m))<br />
+计算C(m,1),c(m,2)....,C(m,m)=2^m-1<br />
+答案是n(2^m-1)<br />
+不好意思，我的数学不是很好，如果有错误，望请指正。<br />
+2.无论加密还是缓存都是操作byte，而且操作都是read、write与seek，感觉有太多相似性代码了。</p>
+<p>根据这两点我们改一下。<br />
+加密流:</p>
+<pre><code><code>public class CryptoBufferedStream:Stream
+{
+    Stream stream;
+
+    public CryptoBufferedStream(Stream stream)
+    {
+        this.stream = stream;
+    }
+
+    public override char Read(int number)
+    {
+        stream.Read(number);
+        //额外的加密操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的加密操作
+        stream.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的加密操作...
+        stream.write(data);
+    }
+}</code></pre>
+<p>缓冲流:</p>
+<pre><code><code>public class BufferedMemoryStream : Stream
+{
+    Stream stream;
+
+    public BufferedMemoryStream(Stream stream) {
+        this.stream = stream;
+    }
+
+    public override char Read(int number)
+    {
+        stream.Read(number);
+        //额外的缓冲操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的缓冲操作
+        stream.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的缓冲操作...
+        stream.write(data);
+    }
+}</code></pre>
+<p>这样似乎就看起来舒服很多了，这里可能会有一个疑惑性的问题，<br />
+为什么还要继承Stream?<br />
+装饰器也叫包装器，我们使用CryptoBufferedStream把文件流包装成了加密文件流，包装完也是必须是流啊，打包完别忘了打标签哦。</p>
+<p>调用示例:</p>
+<pre><code><code>static void Main(string[] args)
+{
+    FileStream fileStream = new FileStream();
+    BufferedMemoryStream bufferedMemoryStream = new BufferedMemoryStream(fileStream);
+}</code></pre>
+<p>这样就把fileStream给包装成了bufferedMemoryStream,后面我们使用的就是BufferedMemoryStream。<br />
+这样我们没有失去fileSteam 是流的特性，而且还要另外一个好处,既然还是流，那么我们还可以继续包装啊。</p>
+<pre><code><code>CryptoBufferedStream cryptoBufferedStream = new CryptoBufferedStream(bufferedMemoryStream);</code></pre>
+<p>这时候我们即加密了，也缓冲了，实现了我们原来没有写的3个类。<br />
+这里发现一个问题，那就是stream这个属性在CryptoBufferedStream 和 BufferedMemoryStream 都存在。<br />
+其实提取和不提取都没有关系，但是对我们写代码的人来说，每次都要去写个可以提取出来的字段，是相当不舒服的，而且还不开心。<br />
+终版：<br />
+将stream属性提取出来，提取到DecoratorStream中。</p>
+<pre><code><code>public abstract class DecoratorStream: Stream
+{
+    protected Stream stream;
+    public DecoratorStream(Stream stream){
+        this.stream = stream;
+    }
+}
+
+public class CryptoBufferedStream: DecoratorStream
+{
+
+    public CryptoBufferedStream(Stream stream):base(stream)
+    {
+    }
+
+    public override char Read(int number)
+    {
+        stream.Read(number);
+        //额外的加密操作
+        throw new NotImplementedException();
+    }
+    public override  void seek(int position)
+    {
+        //额外的加密操作
+        stream.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的加密操作...
+        stream.write(data);
+    }
+}
+
+public class BufferedMemoryStream : DecoratorStream
+{
+
+    public BufferedMemoryStream(Stream stream):base(stream) {
+
+    }
+
+    public override char Read(int number)
+    {
+        stream.Read(number);
+        //额外的缓冲操作
+        throw new NotImplementedException();
+    }
+    public override void seek(int position)
+    {
+        //额外的缓冲操作
+        stream.seek(position);
+    }
+    public override void write(byte data)
+    {
+        //额外的缓冲操作...
+        stream.write(data);
+    }
+}</code></pre>
+<p>看起来就舒服很多了。<br />
+为什么看起来会舒服，一张图解释出来。<br />
+<img src="./images/不一样的装饰器模式（设计模式二）1.png" /><br />
+假设steam 有n 个继承基础类，如FileSteam，需要实现m个扩展功能，比如说加密缓冲等。按照装饰器的计算方式是:m+1<br />
+n(2^m-1)与m+1 两者的方式对比显而易见啊,现在可以证明为什么装饰器是一个结构模式了吧。<br />
+至于作用，可以看出，可以解决继承导致的子类膨胀问题。</p>
+<h3 id="uml图">uml图</h3>
+<p>后面补上，画图累啊。</p>
+<h3 id="总结">总结</h3>
+<p>因为n(2^m-1)在n&gt;1或者m大于1的情况下，n(2^m-1)=&gt;m+1,且仅当m=2时候两者相等，所以作用为:可以解决继承导致的子类膨胀问题，膨胀问题属于结构问题，解决的是结构问题，所以归属为结构型。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

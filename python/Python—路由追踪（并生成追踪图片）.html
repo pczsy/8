@@ -1,0 +1,60 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python—路由追踪（并生成追踪图片）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python—路由追踪（并生成追踪图片）</center></div><div class='banquan'>原文出处:本文由博客园博主刘_love_田提供。<br/>
+原文连接:https://www.cnblogs.com/liuhaidon/p/11704017.html</div><br>
+    <p><strong>需要先安装两个包</strong></p>
+<div class="cnblogs_Highlighter">
+<pre><code>[root@localhost ~]# yum install graphviz            // 为了使用dot命令
+[root@localhost ~]# yum install ImageMagick         // 为了使用/usr/bin/convert命令</pre>
+</div>
+<p><strong>python脚本代码如下</strong></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;">#!/usr/bin/evn python
+#-*-coding:utf-8 -*-
+
+import os,sys,time,subprocess
+import warnings,logging
+from scapy.all import traceroute
+from scapy.as_resolvers import AS_resolver_radb
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+logging.getLogger("scapy.runtine").setLevel(logging.ERROR)
+
+domains = raw_input('please input the domain or IP what you want: ')
+target = domains.split(" ")
+dport = [80, 21]
+
+if len(target) &gt;= 1 and target[0] != '':
+    # 启动路由跟踪
+    res, unans = traceroute(target, dport=dport, retry=-2)
+    # traceroute 生成的信息绘制成svg
+    # res.graph(target="&gt; graph.svg")
+    res.graph(target="&gt; graph.svg", ASres=AS_resolver_radb(), type="svg")
+    time.sleep(2)
+    # svg 转格式为 png
+    subprocess.Popen("/usr/bin/convert graph.svg graph.png", shell=True)
+else:
+    print("IP/domain number of errors, exit")</pre>
+</div>
+<p><strong>注意：traceroute程序都需要root来运行。traceroute函数可以传入以列表格式的多个域名/IP，和多个端口（这里有80和21）。</strong></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

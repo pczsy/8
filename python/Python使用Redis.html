@@ -1,0 +1,479 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python使用Redis' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python使用Redis</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11439434.html</div><br>
+    <p>Redis是一个开源的使用ANSI C语言编写、支持网络、可基于内存亦可持久化的日志型、Key-Value数据库，并提供多种语言的API。<br />Redis支持存储的value类型包括字符串(String), 哈希(Hash), 列表(list), 集合(set) 和 有序集合(sorted set)。</p>
+<p>Redis官方文档：<a href="https://redis.io" target="_blank">https://redis.io</a></p>
+<p>Redis服务端的安装可参考：<a href="https://www.cnblogs.com/gdjlc/p/9857064.html" target="_blank">https://www.cnblogs.com/gdjlc/p/9857064.html</a><br />Redis客户端可视工具可使用：Redis Desktop Manager</p>
+<p><strong>一、Python安装Redis模块</strong></p>
+<p>pip3 install redis</p>
+<p><strong>二、连接Redis数据库</strong></p>
+<p>1、直接连接</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> Reids默认有db0至db15共16个数据库，db=0表示选择db0</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> decode_responses=True表示将返回结果decode，即将bytes类型改为默认utf-8，这样才能显示中文</span>
+r = redis.Redis(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=True)</pre>
+</div>
+<p>上面连接字符串也可以写成这样</p>
+<div class="cnblogs_code">
+<pre><code>dbconfig = {<span style="color: #800000;">'</span><span style="color: #800000;">host</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">password</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">db</span><span style="color: #800000;">'</span>:0, <span style="color: #800000;">'</span><span style="color: #800000;">decode_responses</span><span style="color: #800000;">'</span><span style="color: #000000;">:True}
+r </span>= redis.Redis(**dbconfig)</pre>
+</div>
+<p>2、连接池</p>
+<p>使用connection pool来管理对一个redis server的所有连接，预先创建多个连接，当需要进行数据库访问时，无需重新新建数据库连接，而是从连接池中取出一个空闲的数据库连接，避免每次建立、释放连接的开销，提高性能。</p>
+<div class="cnblogs_code">
+<pre><code>pool = redis.ConnectionPool(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=<span style="color: #000000;">True)
+r </span>= redis.Redis(connection_pool=pool)</pre>
+</div>
+<p><strong>三、Redis的使用</strong></p>
+<p><strong>1、字符串(String)</strong></p>
+<p>一个name对应一个字符串值来存储。如下图所示</p>
+<p><img src="./images/Python使用Redis0.png" alt="" /></p>
+<p>&nbsp;&nbsp;部分方法的源码说明：</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">#</span><span style="color: #008000;"> 设置单个值(不存在则创建，存在则修改)，可以设置过期时间，可以设置name是否存在时才设置value</span>
+    <span style="color: #0000ff;">def</span> set(self, name, value, ex=None, px=None, nx=False, xx=<span style="color: #000000;">False):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Set the value at key ``name`` to ``value``
+        ``ex`` sets an expire flag on key ``name`` for ``ex`` seconds.
+        ``px`` sets an expire flag on key ``name`` for ``px`` milliseconds.
+        ``nx`` if set to True, set the value at key ``name`` to ``value`` only
+            if it does not exist.
+        ``xx`` if set to True, set the value at key ``name`` to ``value`` only
+            if it already exists.
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 批量设置值(同样不存在则创建，存在则修改)</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> mset(self, mapping):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Sets key/values based on a mapping. Mapping is a dictionary of
+        key/value pairs. Both keys and values should be strings or types that
+        can be cast to a string via str().
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 获取值，key不存在返回None</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, name):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Return the value at key ``name``, or None if the key doesn't exist
+        </span><span style="color: #800000;">"""</span>
+ 
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 批量获取值</span>
+    <span style="color: #0000ff;">def</span> mget(self, keys, *<span style="color: #000000;">args):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Returns a list of values ordered identically to ``keys``
+        </span><span style="color: #800000;">"""</span></pre>
+</div>
+<p>使用实例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis
+
+r </span>= redis.Redis(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=<span style="color: #000000;">True)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 设置单个值(不存在则创建，存在则修改)</span>
+r.set(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">我是str_key1的值</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取值、值的字节长度(1个汉字占3个字节)</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1值：{}，字节长度：{}</span><span style="color: #800000;">'</span>.format(r.get(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span>), r.strlen(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span><span style="color: #000000;">)))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：我是str_key1的值，字节长度：20</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 在值后面追加内容</span>
+r.append(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">[这里追加的内容]</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1值：{}</span><span style="color: #800000;">'</span>.format(r.get(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span><span style="color: #000000;">)))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：我是str_key1的值[这里追加的内容]</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 批量设置值(同样不存在则创建，存在则修改)</span>
+r.mset({<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">str_key2</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">value2</span><span style="color: #800000;">'</span><span style="color: #000000;">})
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 批量获取</span>
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">批量获取值：{}</span><span style="color: #800000;">'</span>.format(r.mget(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key2</span><span style="color: #800000;">'</span><span style="color: #000000;">)))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：['value1', None]</span></pre>
+</div>
+<p><strong>2、 哈希(Hash)</strong></p>
+<p>一个name对应一个字典来存储。如下图所示</p>
+<p><img src="./images/Python使用Redis1.png" alt="" /></p>
+<p>&nbsp;&nbsp;部分方法的源码说明：</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">#</span><span style="color: #008000;"> 设置一个键值对(不存在则创建，存在则修改)，成功返回1否则返回0</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> hset(self, name, key, value):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Set ``key`` to ``value`` within hash ``name``
+        Returns 1 if HSET created a new field, otherwise 0
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 批量设置值</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> hmset(self, name, mapping):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Set key to value within hash ``name`` for each corresponding
+        key and value from the ``mapping`` dict.
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回一个键值对的值</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> hget(self, name, key):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return the value of ``key`` within the hash ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回所有键值对</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> hgetall(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return a Python dict of the hash's name/value pairs</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回指定hash名称的所有键</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> hkeys(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return the list of keys within hash ``name``</span><span style="color: #800000;">"</span>    
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回指定hash名称的键值对的个数</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> hlen(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return the number of elements in hash ``name``</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>使用实例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis
+
+r </span>= redis.Redis(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=<span style="color: #000000;">True)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 设置一个键值对(不存在则创建，存在则修改)</span>
+r.hset(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 批量设置值</span>
+r.hmset(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>, {<span style="color: #800000;">'</span><span style="color: #800000;">key2</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">value2</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key3</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">value3</span><span style="color: #800000;">'</span><span style="color: #000000;">})
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取一个键值对的值</span>
+<span style="color: #0000ff;">print</span>(r.hget(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key1</span><span style="color: #800000;">'</span>),r.hget(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key2</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：value1，value2</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 批量获取键对应的值</span>
+<span style="color: #0000ff;">print</span>(r.hmget(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key2</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：['value1', 'value2']</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取指定hash名称的所有键值对</span>
+<span style="color: #0000ff;">print</span>(r.hgetall(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：{'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取指定hash名称的键值对的个数</span>
+<span style="color: #0000ff;">print</span>(r.hlen(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：3</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取指定hash名称的所有key</span>
+<span style="color: #0000ff;">print</span>(r.hkeys(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：['key1', 'key2', 'key3']</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取指定hash名称的所有value</span>
+<span style="color: #0000ff;">print</span>(r.hvals(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：['value1', 'value2', 'value3']</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 判断指定hash名称的key是否存在</span>
+<span style="color: #0000ff;">print</span>(r.hexists(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key1</span><span style="color: #800000;">'</span>), r.hexists(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key4</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：True False</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 删除指定指定hash名称的键值对，成功返回1，失败返回0</span>
+<span style="color: #0000ff;">print</span>(r.hdel(<span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key3</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出： 1</span></pre>
+</div>
+<p><strong>3、列表(list)</strong></p>
+<p>一个name对应一个列表来存储。如下图所示：</p>
+<p><img src="./images/Python使用Redis2.png" alt="" /></p>
+<p>部分方法的源码说明：</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">#</span><span style="color: #008000;"> 列表左边添加值，支持多个元素，多个元素时，后面的元素在列表最终结果中排左边</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 相反方法，列表右边添加值：rpush(self, name, *values)</span>
+    <span style="color: #0000ff;">def</span> lpush(self, name, *<span style="color: #000000;">values):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Push ``values`` onto the head of the list ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> name存在才往列表左边添加元素，并返回列表个数。name不存在则不执行添加操作，返回0</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 相反方法，name存在才往列表右边添加元素：rpushx(self, name, value)</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> lpushx(self, name, value):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Push ``value`` onto the head of the list ``name`` if ``name`` exists</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 对列表指定的索引位置重新赋值</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> lset(self, name, index, value):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Set ``position`` of list ``name`` to ``value``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 移除并返回列表的第一个元素</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> lpop(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Remove and return the first item of the list ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回列表长度</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> llen(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return the length of the list ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回列表指定索引处的元素</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> lindex(self, name, index):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Return the item from list ``name`` at position ``index``
+
+        Negative indexes are supported and will return an item at the
+        end of the list
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回指定索引(可以是负数)开始至结束位置处的列表结果</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> lrange(self, name, start, end):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Return a slice of the list ``name`` between
+        position ``start`` and ``end``
+
+        ``start`` and ``end`` can be negative numbers just like
+        Python slicing notation
+        </span><span style="color: #800000;">"""</span></pre>
+</div>
+<p>使用实例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis
+
+r </span>= redis.Redis(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=<span style="color: #000000;">True)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 列表左边添加: 有多个时，后面在列表中排前面，即下面索引0处值是value1，索引1处值是value2</span>
+r.lpush(<span style="color: #800000;">'</span><span style="color: #800000;">list_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">value2</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 列表右边添加</span>
+r.rpush(<span style="color: #800000;">'</span><span style="color: #800000;">list_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">value3</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取列表长度</span>
+<span style="color: #0000ff;">print</span>(r.llen(<span style="color: #800000;">'</span><span style="color: #800000;">list_name1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：3</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取元素：索引</span>
+<span style="color: #0000ff;">print</span>(r.lindex(<span style="color: #800000;">'</span><span style="color: #800000;">list_name1</span><span style="color: #800000;">'</span>, 1<span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：value2</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取元素：切片方式</span>
+<span style="color: #0000ff;">print</span>(r.lrange(<span style="color: #800000;">'</span><span style="color: #800000;">list_name1</span><span style="color: #800000;">'</span>,0, -1), r.lrange(<span style="color: #800000;">'</span><span style="color: #800000;">list_name1</span><span style="color: #800000;">'</span>,1,2<span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：['value1', 'value2', 'value3'] ; ['value2', 'value3']</span></pre>
+</div>
+<p><strong>4、集合(set)</strong></p>
+<p>Set 是 String 类型的无序集合。集合成员是唯一的，集合中不能出现重复的数据。</p>
+<p>如下图所示：</p>
+<p><img src="./images/Python使用Redis3.png" alt="" /></p>
+<p>&nbsp;部分方法的源码说明：</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">#</span><span style="color: #008000;"> 给name中对应的集合添加元素，成功返回1，否则返回0（如果元素已存在返回0）</span>
+    <span style="color: #0000ff;">def</span> sadd(self, name, *<span style="color: #000000;">values):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Add ``value(s)`` to set ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回name对应集合中的元素个数</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> scard(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return the number of elements in set ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回name对应集合中的所有元素</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> smembers(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return all members of the set ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 检查value是否是name对应的集合内的元素</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> sismember(self, name, value):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return a boolean indicating if ``value`` is a member of set ``name``</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>使用实例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis
+
+r </span>= redis.Redis(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=<span style="color: #000000;">True)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 集合中添加元素</span>
+<span style="color: #0000ff;">print</span>(r.sadd(<span style="color: #800000;">'</span><span style="color: #800000;">set_name1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;">输出：1</span>
+
+<span style="color: #0000ff;">print</span>(r.sadd(<span style="color: #800000;">'</span><span style="color: #800000;">set_name1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;">输出：0</span>
+
+<span style="color: #0000ff;">print</span>(r.sadd(<span style="color: #800000;">'</span><span style="color: #800000;">set_name1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">value2</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;">输出：1</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取集合中的元素个数</span>
+<span style="color: #0000ff;">print</span>(r.scard(<span style="color: #800000;">'</span><span style="color: #800000;">set_name1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;">输出：2</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取集合中的所有成员</span>
+<span style="color: #0000ff;">print</span>(r.smembers(<span style="color: #800000;">'</span><span style="color: #800000;">set_name1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;">输出：{'value2', 'value1'}</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 检查value是否是name对应的集合内的元素</span>
+<span style="color: #0000ff;">print</span>(r.sismember(<span style="color: #800000;">'</span><span style="color: #800000;">set_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span>), r.sismember(<span style="color: #800000;">'</span><span style="color: #800000;">set_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">value3</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;">输出：True False</span></pre>
+</div>
+<p><strong>5、有序集合(sorted set)</strong></p>
+<p>有序集合和集合一样也是string类型元素的集合,且不允许重复的成员。<br />不同的是每个元素都会关联一个double类型的分数。redis正是通过分数来为集合中的成员进行从小到大的排序。<br />有序集合的成员是唯一的,但分数(score)却可以重复。<br />如下图所示：</p>
+<p>&nbsp;<img src="./images/Python使用Redis4.png" alt="" /></p>
+<p>&nbsp;部分方法的源码说明：</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">#</span><span style="color: #008000;"> 给name中对应的集合添加元素</span>
+    <span style="color: #0000ff;">def</span> zadd(self, name, mapping, nx=False, xx=False, ch=False, incr=<span style="color: #000000;">False):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Set any number of element-name, score pairs to the key ``name``. Pairs
+        are specified as a dict of element-names keys to score values.
+        ``nx`` forces ZADD to only create new elements and not to update
+        scores for elements that already exist.
+        ``xx`` forces ZADD to only update scores of elements that already
+        exist. New elements will not be added.
+        ``ch`` modifies the return value to be the numbers of elements changed.
+        Changed elements include new elements that were added and elements
+        whose scores changed.
+        ``incr`` modifies ZADD to behave like ZINCRBY. In this mode only a
+        single element/score pair can be specified and the score is the amount
+        the existing score will be incremented by. When using this mode the
+        return value of ZADD will be the new score of the element.
+        The return value of ZADD varies based on the mode specified. With no
+        options, ZADD returns the number of new elements added to the sorted
+        set.
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回元素个数</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> zcard(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return the number of elements in the sorted set ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回指定区间分数的元素个数</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> zcount(self, name, min, max):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Returns the number of elements in the sorted set at key ``name`` with
+        a score between ``min`` and ``max``.
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回指定区间索引的元素</span>
+    <span style="color: #0000ff;">def</span> zrange(self, name, start, end, desc=False, withscores=<span style="color: #000000;">False,
+               score_cast_func</span>=<span style="color: #000000;">float):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Return a range of values from sorted set ``name`` between
+        ``start`` and ``end`` sorted in ascending order.
+
+        ``start`` and ``end`` can be negative, indicating the end of the range.
+
+        ``desc`` a boolean indicating whether to sort the results descendingly
+
+        ``withscores`` indicates to return the scores along with the values.
+        The return type is a list of (value, score) pairs
+
+        ``score_cast_func`` a callable used to cast the score return value
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 对指定成员的分数加上增量amount</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> zincrby(self, name, amount, value):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Increment the score of ``value`` in sorted set ``name`` by ``amount``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;">　返回成员的分数值</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> zscore(self, name, value):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Return the score of element ``value`` in sorted set ``name``</span><span style="color: #800000;">"</span>
+
+　　<span style="color: #008000;">#</span><span style="color: #008000;"> 获取value值的排行位置（从0开始）</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> zrank(self, name, value):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Returns a 0-based value indicating the rank of ``value`` in sorted set
+        ``name``
+        </span><span style="color: #800000;">"""</span></pre>
+</div>
+<p>使用实例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis
+
+r </span>= redis.Redis(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=<span style="color: #000000;">True)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 集合中添加元素，返回成功个数，失败返回0</span>
+<span style="color: #0000ff;">print</span>(r.zadd(<span style="color: #800000;">'</span><span style="color: #800000;">zset_name1</span><span style="color: #800000;">'</span>, {<span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span>:1<span style="color: #000000;">}))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：1</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 集合中添加元素</span>
+<span style="color: #0000ff;">print</span>(r.zadd(<span style="color: #800000;">'</span><span style="color: #800000;">zset_name1</span><span style="color: #800000;">'</span>, {<span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span>:1, <span style="color: #800000;">'</span><span style="color: #800000;">value2</span><span style="color: #800000;">'</span>:5,<span style="color: #800000;">'</span><span style="color: #800000;">value3</span><span style="color: #800000;">'</span>:10<span style="color: #000000;">}))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：2</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 返回指定区间分数的元素个数</span>
+<span style="color: #0000ff;">print</span>(r.zcount(<span style="color: #800000;">'</span><span style="color: #800000;">zset_name1</span><span style="color: #800000;">'</span>,1,5<span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：2</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 返回指定区间索引的元素</span>
+<span style="color: #0000ff;">print</span>(r.zrange(<span style="color: #800000;">'</span><span style="color: #800000;">zset_name1</span><span style="color: #800000;">'</span>,1,10<span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：['value2', 'value3']</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 对指定成员的分数加上增量</span>
+r.zincrby(<span style="color: #800000;">'</span><span style="color: #800000;">zset_name1</span><span style="color: #800000;">'</span>, 10, <span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回成员的分数值</span>
+<span style="color: #0000ff;">print</span>(r.zscore(<span style="color: #800000;">'</span><span style="color: #800000;">zset_name1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：11.0</span></pre>
+</div>
+<p><strong>6、其它操作</strong></p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">#</span><span style="color: #008000;"> 删除当前db中所有数据，默认同步</span>
+    <span style="color: #0000ff;">def</span> flushdb(self, asynchronous=<span style="color: #000000;">False):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Delete all keys in the current database.
+
+        ``asynchronous`` indicates whether the operation is
+        executed asynchronously by the server.
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 删除所有db中所有数据，默认同步</span>
+    <span style="color: #0000ff;">def</span> flushall(self, asynchronous=<span style="color: #000000;">False):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Delete all keys in all databases on the current host.
+
+        ``asynchronous`` indicates whether the operation is
+        executed asynchronously by the server.
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回当前db所有key的个数</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> dbsize(self):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Returns the number of keys in the current database</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 返回数据类型</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> type(self, name):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Returns the type of key ``name``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 判断name是否存在</span>
+    <span style="color: #0000ff;">def</span> exists(self, *<span style="color: #000000;">names):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Returns the number of ``names`` that exist</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 重命名key</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> rename(self, src, dst):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        Rename key ``src`` to ``dst``
+        </span><span style="color: #800000;">"""</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 删除指定name</span>
+    <span style="color: #0000ff;">def</span> delete(self, *<span style="color: #000000;">names):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Delete one or more keys specified by ``names``</span><span style="color: #800000;">"</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 获取所有keys</span>
+    <span style="color: #0000ff;">def</span> keys(self, pattern=<span style="color: #800000;">'</span><span style="color: #800000;">*</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Returns a list of keys matching ``pattern``</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>使用实例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> redis
+
+r </span>= redis.Redis(host=<span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span>,password=<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>,db=0,decode_responses=<span style="color: #000000;">True)
+
+r.flushdb()
+
+r.set(</span><span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">我是str_key1的值</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+r.hset(</span><span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">key1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">value1</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(r.dbsize())
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：2</span>
+
+<span style="color: #0000ff;">print</span>(r.exists(<span style="color: #800000;">'</span><span style="color: #800000;">str_key1</span><span style="color: #800000;">'</span>), r.exists(<span style="color: #800000;">'</span><span style="color: #800000;">str_key2</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：1 0</span>
+<span style="color: #000000;">
+r.rename(</span><span style="color: #800000;">'</span><span style="color: #800000;">hash_name1</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">hash_name2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+r.delete(</span><span style="color: #800000;">'</span><span style="color: #800000;">hash_name2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(r.keys())
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 输出：['str_key1']</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

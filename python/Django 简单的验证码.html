@@ -1,0 +1,155 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django 简单的验证码' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django 简单的验证码</center></div><div class='banquan'>原文出处:本文由博客园博主klvchen提供。<br/>
+原文连接:https://www.cnblogs.com/klvchen/p/11325657.html</div><br>
+    <p>创建一个 Django 项目：yanzhengma 和 应用 app01<br />
+修改 urls.py 文件</p>
+<pre><code><code>from django.contrib import admin
+from django.urls import path
+
+from app01 import views
+
+urlpatterns = [
+    path(&#39;admin/&#39;, admin.site.urls),
+    path(&#39;login/&#39;, views.login),
+    path(&#39;get_valid_img.png/&#39;, views.get_valid_img),
+]</code></pre>
+<p>在 templates 文件夹下 创建一个 login.html 文件</p>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;form method=&quot;post&quot; action=&quot;/login/&quot;&gt;
+        &lt;fieldset&gt;
+            &lt;p&gt;验证码: &lt;input type=&quot;text&quot; name=&quot;checkcode&quot; /&gt; &lt;img onclick=&quot;ChangeCode();&quot; id=&quot;imgCode&quot; src=&quot;/get_valid_img.png&quot; title=&quot;点击更新&quot; /&gt;&lt;/p&gt;
+            &lt;input type=&quot;submit&quot;&gt;
+        &lt;/fieldset&gt;
+    &lt;/form&gt;
+
+    &lt;script type=&quot;text/javascript&quot;&gt;
+        function ChangeCode() {
+            var code = document.getElementById(&#39;imgCode&#39;);
+            code.src += &#39;?&#39;;
+        }
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>修改 settings.py 文件，注释下面行</p>
+<pre><code><code>#    &#39;django.middleware.csrf.CsrfViewMiddleware&#39;,</code></pre>
+<p>修改 views.py 文件</p>
+<pre><code><code>from django.shortcuts import render, HttpResponse, render_to_response
+from django.http import JsonResponse
+from django.contrib import auth
+from PIL import Image, ImageDraw, ImageFont
+import io
+import random
+
+
+# Create your views here.
+
+
+def login(request):
+    if request.method == &#39;POST&#39;:
+        check_code = request.POST.get(&#39;checkcode&#39;)
+        session_code = request.session[&quot;valid_code&quot;]
+        if check_code.strip().lower() != session_code.lower():
+            return HttpResponse(&#39;验证码不匹配&#39;)
+        else:
+            return HttpResponse(&#39;验证码正确&#39;)
+
+    return render_to_response(&#39;login.html&#39;, {&#39;error&#39;: &quot;&quot;})
+
+
+def get_valid_img(request):
+    # 获取随机颜色的函数
+    def get_random_color():
+        return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+
+    # 生成一个图片对象
+    img_obj = Image.new(
+        &#39;RGB&#39;,               # mode
+        (220, 35),           # size
+        get_random_color()   # color
+    )
+
+    # 在生成的图片上写字符
+    # 生成一个图片画笔对象
+    draw_obj = ImageDraw.Draw(img_obj)
+
+    # 加载字体文件，得到一个字体对象
+    font_obj = ImageFont.truetype(&quot;Monaco.ttf&quot;, 28)
+    tmp_list = []
+    for i in range(5):
+        u = chr(random.randint(65, 90))   # 生成大写字母
+        l = chr(random.randint(97, 122))  # 生成小写字母
+        n = str(random.randint(0, 9))     # 生成数字,要转换成字符串类型
+
+        tmp = random.choice([u, l, n])
+        tmp_list.append(tmp)
+        # draw.text()：文字的绘制，第一个参数指定绘制的起始点（文本的左上角所在位置），第二个参数指定文本内容，第三个参数指定文本的颜色，第四个参数指定字体（通过ImageFont类来定义）。
+        draw_obj.text((20 + 40 * i, 0), tmp, fill=get_random_color(), font=font_obj)
+
+    # 保存到 session
+    request.session[&quot;valid_code&quot;] = &quot;&quot;.join(tmp_list)
+
+    # 加干扰线
+    width = 220  # 图片宽度(防止越界)
+    height = 35
+    for i in range(5):
+        x1 = random.randint(0, width)
+        x2 = random.randint(0, width)
+        y1 = random.randint(0, height)
+        y2 = random.randint(0, height)
+        # draw.line()：直线的绘制，第一个参数指定的是直线的端点坐标，形式为（x0, y0, x1, y1），第二个参数指定直线的颜色；
+        draw_obj.line((x1, y1, x2, y2), fill=get_random_color())
+
+    # 加干扰点
+    for i in range(40):
+        # 在给定的坐标点上画一些点；坐标列表是包含2元组[(x,y),…]或者数字[x,y,…]的任何序列对象；变量options的fill给定点的颜色。
+        draw_obj.point((random.randint(0, width), random.randint(0, height)), fill=get_random_color())
+        x = random.randint(0, width)
+        y = random.randint(0, height)
+        # draw.arc()：（椭）圆弧的绘制，第一个参数指定弧所在椭圆的外切矩形，第二、三两个参数分别是弧的起始和终止角度， 第四个参数是填充颜色，第五个参数是线条颜色；
+        draw_obj.arc((x, y, x+4, y+4), 0, 90, fill=get_random_color())
+
+    # 不需要在硬盘上保存文件，直接在内存中加载就可以
+    io_obj = io.BytesIO()
+
+    # 将生成的图片数据保存在io对象中
+    img_obj.save(io_obj, &quot;png&quot;)
+
+    #从io对象里面取上一步保存的数据
+    data = io_obj.getvalue()
+
+    return HttpResponse(data)
+</code></pre>
+<p>生成数据库</p>
+<pre><code><code>python manage.py makemigrations  
+
+python manage.py migrate</code></pre>
+<p><img src="./images/Django 简单的验证码0.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

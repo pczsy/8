@@ -1,0 +1,151 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修使用Python处理非对称加密-测试大佬常用的处理方式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>使用Python处理非对称加密-测试大佬常用的处理方式</center></div><div class='banquan'>原文出处:本文由博客园博主可优提供。<br/>
+原文连接:https://www.cnblogs.com/keyou1/p/12071897.html</div><br>
+    <h3 id="一思考">一、思考❓❔</h3>
+<h4 id="什么是非对称加密"><span style="color:rgb(230,3,130);font-size: 20px">1.什么是非对称加密?</span></h4>
+<p><img src="./images/使用Python处理非对称加密-测试大佬常用的处理方式0.png" /></p>
+<ul>
+<li>公钥加密系统，广泛用于数据加密传输</li>
+<li>更详细的解释可参考维基百科（ https://en.wikipedia.org/wiki/RSA_(cryptosystem) ）</li>
+</ul>
+<p><br /></p>
+<h4 id="非对称加密难吗"><span style="color:rgb(230,3,130);font-size: 20px">2.非对称加密难吗?</span></h4>
+<p><img src="./images/使用Python处理非对称加密-测试大佬常用的处理方式1.png" /></p>
+<ul>
+<li>very easy!</li>
+<li>几乎每一种开发语言都能处理，同时也存在大量的工具</li>
+<li>Python中要进行非对称加密，使用rsa模块可以大大简化加密处理过程</li>
+</ul>
+<p><br /></p>
+<p><br /></p>
+<h3 id="二基本操作">二、基本操作🔨🔨</h3>
+<p><img src="./images/使用Python处理非对称加密-测试大佬常用的处理方式2.png" /></p>
+<h4 id="安装rsa"><span style="color:rgb(230,3,130);font-size: 20px">1.安装rsa</span></h4>
+<ul>
+<li><p>支持python 2.7 或者 python 3.5 以上版本</p></li>
+<li><p>使用豆瓣pypi源来安装rsa</p></li>
+</ul>
+<pre><code><code>pip install -i https://pypi.douban.com/simple rsa</code></pre>
+<p><br /></p>
+<h4 id="生成公私钥对"><span style="color:rgb(230,3,130);font-size: 20px">2.生成公私钥对</span></h4>
+<p><img src="./images/使用Python处理非对称加密-测试大佬常用的处理方式3.png" /></p>
+<pre><code><code>import rsa
+
+# 一、生成512位的公私钥对
+# a. lemon_pub为PublicKey对象, lemon_priv为PrivateKey对象
+# b. 512为秘钥的位数, 可以自定义指定, 例如: 128、256、512、1024、2048等
+lemon_pub, lemon_priv = rsa.newkeys(512)
+print(lemon_pub)
+print(lemon_priv)</code></pre>
+<p><br /></p>
+<h4 id="加密解密"><span style="color:rgb(230,3,130);font-size: 20px">3.加密解密</span></h4>
+<pre><code><code>import rsa
+
+# 1、接收者(柠檬小姐姐)生成512位公私钥对
+# a. lemon_pub为PublicKey对象, lemon_priv为PrivateKey对象
+# b. 512为秘钥的位数, 可以自定义指定, 例如: 128、256、512、1024、2048等
+lemon_pub, lemon_priv = rsa.newkeys(512)
+
+# 2、发送者(可优)使用接收者(柠檬小姐姐)的公钥去加密消息
+# rsa只能处理字节类型, 故字符串类型需要转化为字节类型
+love_talk = &quot;Lemon little girl, I love you very much!&quot;.encode(&quot;utf-8&quot;)
+cryto_info = rsa.encrypt(love_talk, lemon_pub)    # 使用接收者(柠檬小姐姐)的公钥加密
+
+# 3. 接收者(柠檬小姐姐)使用自己的私钥去解密消息
+talk_real = rsa.decrypt(cryto_info, lemon_priv)
+talk_real = talk_real.decode(&quot;utf-8&quot;)
+print(talk_real)
+</code></pre>
+<p><br /></p>
+<h3 id="三进阶操作">三、进阶操作💪🏽💪🏽</h3>
+<p><img src="./images/使用Python处理非对称加密-测试大佬常用的处理方式4.png" /></p>
+<h4 id="对加密过程进行封装">1.对加密过程进行封装</h4>
+<pre><code><code># 导入base64模块来进行base64编码
+import base64
+
+import rsa
+
+
+class HandleSign:
+    # 定义服务器公钥, 往往可以存放在公钥文件中
+    server_pub = &quot;&quot;&quot;
+        -----BEGIN PUBLIC KEY-----
+        MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQENQujkLfZfc5Tu9Z1LprzedE
+        O3F7gs+7bzrgPsMl29LemonPYvIG8C604CprLittlenJpnhWu2lGirlWZyLq6sBr
+        tuPorOc42+gInFfyhJAwdZB6Sqlove7bW+jNe5youDtU7very6Gx+muchGo8Dg+S
+        kKlZFc8Br7SHtbL2tQIDAQAB
+        -----END PUBLIC KEY-----
+        &quot;&quot;&quot;
+
+    @classmethod
+    def to_encrypt(cls, msg, pub_key=None):
+        &quot;&quot;&quot;
+        非对称加密
+        :param msg: 待加密字符串或者字节
+        :param pub_key: 公钥
+        :return: base64密文字符串
+        &quot;&quot;&quot;
+        if isinstance(msg, str):            # 如果msg为字符串, 则转化为字节类型
+            msg = msg.encode(&#39;utf-8&#39;)
+        elif isinstance(msg, bytes):        # 如果msg为字节类型, 则无需处理
+            pass
+        else:                               # 否则抛出异常
+            raise TypeError(&#39;msg必须为字符串或者字节类型!&#39;)
+
+        if not pub_key:                     # 如果pub_key为空, 则使用全局公钥
+            pub_key = cls.server_pub.encode(&quot;utf-8&quot;)
+        elif isinstance(pub_key, str):      # 如果pub_key为字符串, 则转化为字节类型
+            pub_key = pub_key.encode(&#39;utf-8&#39;)
+        elif isinstance(pub_key, bytes):    # 如果msg为字节类型, 则无需处理
+            pass
+        else:                               # 否则抛出异常
+            raise TypeError(&#39;pub_key必须为None、字符串或者字节类型!&#39;)
+
+        public_key_obj = rsa.PublicKey.load_pkcs1_openssl_pem(pub_key)  # 创建 PublicKey 对象
+
+        cryto_msg = rsa.encrypt(msg, public_key_obj)  # 生成加密文本
+        cipher_base64 = base64.b64encode(cryto_msg)   # 将加密文本转化为 base64 编码
+
+        return cipher_base64.decode()   # 将字节类型的 base64 编码转化为字符串类型
+
+
+if __name__ == &#39;__main__&#39;:
+    # 待加密字符串或者字节
+    love_talk = &quot;Lemon little girl, I love you very much!&quot;
+
+    # 调用to_encrypt类方法来进行加密
+    cryto_info = HandleSign.to_encrypt(love_talk)
+    print(cryto_info)
+</code></pre>
+<p><br /></p>
+<p><br /></p>
+<h3 id="四总结">四、总结💡💡</h3>
+<p><img src="./images/使用Python处理非对称加密-测试大佬常用的处理方式5.png" /></p>
+<ul>
+<li>本文介绍了Python中使用rsa模块进行非对称加密的相关操作</li>
+<li>对于使用Python进行非对称加密有帮助</li>
+<li>本文为可优原创, 如需转载请联系本人。有不足之处, 欢迎指点!</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

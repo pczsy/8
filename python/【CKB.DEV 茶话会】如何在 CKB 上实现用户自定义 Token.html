@@ -1,0 +1,125 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token</center></div><div class='banquan'>原文出处:本文由博客园博主NervosCommunity提供。<br/>
+原文连接:https://www.cnblogs.com/nervoscommunity/p/12010106.html</div><br>
+    <p>本贴内容主要来自于 CKB.DEV 茶话会第一期，本期主题是：如何在 CKB 上实现 UDT，分享人是：Cipher 王博。</p>
+<p>茶话会现场视频：<br />
+<a href="https://v.qq.com/x/page/x30304t25l4.html" class="uri">https://v.qq.com/x/page/x30304t25l4.html</a></p>
+<h2 id="ckb-的交易与合约模型">CKB 的交易与合约模型</h2>
+<p>因为 CKB 与以太坊的编程模型完全不同，因此有必要在开始之前向大家介绍一下 CKB 的交易与合约模型。</p>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token0.png" alt="file" /></p>
+<p>首先 CKB 的交易模型是 UTXO 结构，每一笔交易会销毁一部分 Cells，生成一部分新的 Cells，Cells 是 CKB 网络上最小的结构单位。</p>
+<p>CKB 的交易模型是和比特币类似的，但是在此基础上进行了扩展，在比特币上的销毁和生成规则是确定的，而 CKB 的核心进步点在于 CKB 上的脚本是用户可以自定义的。</p>
+<p>比如说，我们现在在 CKB 上用的签名算法是 SECP256K1，这个和比特币，以太坊使用的签名算法是一致的，但是在比特币和以太坊上这个签名算法是写在节点里面的，是无法更改的，而在 CKB 上不存在原生的签名算法，如果你想在 CKB 上实现另一种签名算法 SECP256R1，你只需要自己编写关于 SECP256R1 的脚本，然后写入 Lock Script 就可以实现了，而在以太坊上需要实现这一功能必须经过硬分叉。而在 CKB 上签名算法是随时可替换的。</p>
+<p>CKB 另一个较大的进步在于，在比特币上转账前后的余额必须一致，这一等式是固化在节点内的，因此比特币上只有原生的 BTC，无法实现其他的 UDT。而这一点在 CKB 上也是可以自定义的，也就是 CKB 内的 Type Script，也就是说用户可以在此基础上进行额外的转账规则的开发。比如用户可以自定义 Type Script 中的某一个字段在转账前后的余额必须一致，这实际上就可以在 CKB 上实现新的 UDT，因为这里面 Type Script 指定的对象可以不再局限于原生的 CKB Token，而可以是任意一种新创建的 UDT。</p>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token1.png" alt="file" /></p>
+<p>另外 CKB 和以太坊的设计模式是完全不同的。在以太坊上合约重点关注的是行为的意图，而不是行为的结果，相反的在 CKB 上，我们重点关注的是行为的结果。以太坊上的合约交互采用的是接口对接口的方式，而 CKB 的 Script 交互采用的是状态对状态的方式。</p>
+<h2 id="erc20-回顾与分析">ERC20 回顾与分析</h2>
+<p>这边我们再回顾一下 ERC20 的内容，经过分析，我们会发现 ERC20 是存在非常多问题的：</p>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token2.png" alt="file" /><br />
+<em>常见 ERC20 合约提供的方法和事件</em></p>
+<ul>
+<li>ERC20 仅定义了接口，未统一实现。你每创建一个新的 ERC20，都需部署一个新的合约，而用户很难一个个去了解每一个合约。另外由于每个新的合约都是开发者重新创建的，这导致很多的 ERC20 合约或故意或无意地出现了安全问题。</li>
+<li>ERC20 接口中用户的行为是耦合的。比如其中的 totalSupply，mint，burn 是管理员的行为；而 balanceOf，approve，transfer 是普通用户的行为，而 allowance，transferFrom 则是授权用户的行为。我们可以看到这一个 ERC20 的合约内至少耦合了三种用户的行为，是相对混乱的。</li>
+<li>ERC20 中的逻辑和数据是耦合的。合约的实现逻辑和用户地址下拥有的金额数据都是在这个合约内的，正因为这种耦合，因此以太坊上无法进行统一实现。</li>
+</ul>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token3.png" alt="file" /></p>
+<p>CKB 上实现 UDT 的设计思路：</p>
+<ul>
+<li>逻辑与状态分离，使用统一的业务代码。安全将得到极大的保障。</li>
+<li>用户行为、管理员行为、授权行为分离。</li>
+<li>仅提供最核心的 UDT 功能。指提供最核心的 UDT 功能，保障开发者对 UDT 灵活性的需求。</li>
+<li>采用面向状态，注重行为结果的设计模式，去定义 UDT 的行为。</li>
+</ul>
+<h2 id="最小化的-udt">最小化的 UDT</h2>
+<p>最小化 UDT 最核心的两大功能：一个是发币，这里需要定义 UDT 的基本信息，并保持 UDT 唯一性；另一个是转账，保证 UDT 前后的一致性。</p>
+<h3 id="发币create-action">发币：Create Action</h3>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token4.png" alt="file" /></p>
+<p>Input Cells ：填入 Cells，销毁这部分 CKB 的状态。可以是大家目前正在持有的 CKB，也可以是正在使用中的 CKB 等等。</p>
+<p>Output Cells：这边包括两部分，一个是 UDT_ID_CELL 用来描述这个 UDT 的逻辑规则、基本信息和唯一性。另一个是 UDT_BALANCE_CELL 用来描述这个 UDT 的余额，保证转账前后的一致性。</p>
+<p>UDT_ID_CELL 这边主要包含几个内容：</p>
+<ul>
+<li>Type Script：用于存放 UDT 创建的逻辑规则，和 UUID 用于描述这个 UDT 的唯一性；</li>
+<li>Lock Script：简单而言就是签名算法，解释谁可以解开这个 Cell；</li>
+<li>Data：用于存放 UDT 的定义数据。创建者信息，创建 UDT 数量，小数点尾数等等。</li>
+</ul>
+<p>UDT_BALANCE_CELL 这边主要包含几个内容：</p>
+<ul>
+<li>Type Script：用于存放 UDT 转账的逻辑规则，和 UUID 用于描述这个 UDT 的唯一性；</li>
+<li>Lock Script：简单而言就是签名算法，解释谁可以解开这个 Cell；</li>
+<li>Data：用于表示 UDT 的余额。</li>
+</ul>
+<h3 id="转账transfer-action">转账：Transfer Action</h3>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token5.png" alt="file" /></p>
+<p>UDT 的转账会相对容易，销毁一部分 UDT，生成一部分新的 UDT 即可实现转账。</p>
+<p>Input Cells ：<br />
+放入一部分 UDT_BALANCE_CELL(s) 作为 Input。</p>
+<p>Output Cells ：<br />
+放入一部分 UDT_BALANCE_CELL(s) 作为 Output。</p>
+<h2 id="扩展-minimal-udt">扩展 Minimal UDT</h2>
+<p>上面我们实现的是最小化 UDT，只设计了发币和转账这两个最基础的功能。那对于其他的复杂的功能要如何实现呢？</p>
+<p>增发/销毁：Mint/Burn Action</p>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token6.png" alt="file" /></p>
+<p>对于 UDT 的管理员，他可能需要对 UDT 进行一些增发和销毁的操作。这里就需要对于我们上面创建的 UDT_ID_CELL 进行一些修改。</p>
+<p>Input Cells ：</p>
+<ul>
+<li>输入 UDT_ID_CELL，当然只有之前 UDT_ID_CELL 中 Lock Script 规定的管理员才可以进行这样的操作，不是谁都可以进行这样的操作的。</li>
+<li>(optional) UDT_BALANCE_CELL：如果是销毁，就在这里输入需要销毁的 UDT 的地址和 UDT 数量。</li>
+</ul>
+<p>Output Cells：</p>
+<ul>
+<li>输出新的 UDT_ID_CELL，这是规则发生更改后，新生成的 UDT_ID_CELL；</li>
+<li>(optional) UDT_BALANCE_CELL：如果是增发，就在这里输入增发的 UDT 需要发送到的地址和 UDT 数量。</li>
+</ul>
+<h3 id="授权approvetransfer_from">授权：Approve/Transfer_from</h3>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token7.png" alt="file" /></p>
+<p>那么如何实现授权行为呢？一样的我们可以在最小 UDT 方案上进行扩展。</p>
+<p>Action Approve</p>
+<p>Input Cells ：<br />
+输入UDT_BALANCE_CELL</p>
+<p>Output Cells：<br />
+输出新的UDT_BALANCE_CELL_WITH_APPROVE，这是中间状态，表示这个 Cell 处于授权中的状态；</p>
+<ul>
+<li>Lock：UDT_APPROVE_LOCK：这是一个 Script，其中写入了授权的逻辑规则
+<ul>
+<li>授权方信息：授权方的公钥</li>
+<li>被授权方信息：被授权方的公钥</li>
+<li>授权金额</li>
+</ul></li>
+</ul>
+<p>这边的 UDT_APPROVE_LOCK 可以实现两种逻辑，一个是授权方可以用自己的私钥解开这个 Cell，使用其中的 UDT 金额；另一个是被授权方可以在授权金额的额度内，使用被授权方的私钥将这个 Cell 解开，使用其中的 UDT 金额。</p>
+<p>Action Transfer_from</p>
+<p>被授权方可以调用 Transfer_from，使用其中授权金额范围内的 UDT。</p>
+<p>Input Cells ：<br />
+输入 UDT_BALANCE_CELL_WITH_APPROVE</p>
+<p>Output Cells：<br />
+输出新的 UDT_BALANCE_CELL_WITH_APPROVE，可能授权金额没有完全使用，这是找零；<br />
+输出 UDT_BALANCE_CELL，这是被授权方转出的 UDT 部分。</p>
+<p>注意：UDT_BALANCE_CELL_WITH_APPROVE 中的被授权方的信息，可以是 Lock Script 也可以是 Type Script。所以这里的被授权方可以是一个地址，也可以是 N 个地址，也可以是另一个合约。</p>
+<p><img src="./images/【CKB.DEV 茶话会】如何在 CKB 上实现用户自定义 Token8.png" alt="file" /></p>
+<p>在分享的最后，Cipher 还向大家介绍了一个 Token Swap 的例子。</p>
+<h3 id="加入-nervos-community">加入 Nervos Community</h3>
+<p>Nervos Community 致力于成为最好的 Nervos 社区，我们将持续地推广和普 及 Nervos 技术，深入挖掘 Nervos 的内在价值，开拓 Nervos 的无限可能， 为每一位想要深入了解 Nervos Network 的人提供一个优质的平台。</p>
+<p>添加微信号：BitcoinDog 即可加入 Nervos Community，如果是程序员请备注，还会将您拉入开发者群。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

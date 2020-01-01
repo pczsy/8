@@ -1,0 +1,123 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修ThreadLocal 源码解读' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>ThreadLocal 源码解读</center></div><div class='banquan'>原文出处:本文由博客园博主JMCui提供。<br/>
+原文连接:https://www.cnblogs.com/jmcui/p/11994720.html</div><br>
+    <h2 id="一引入">一、引入</h2>
+<pre><code><code>public class Thread implements Runnable {
+    /* 前面略  */
+
+    /* ThreadLocal values pertaining to this thread. This map is maintained
+     * by the ThreadLocal class. */
+    ThreadLocal.ThreadLocalMap threadLocals = null;
+    /* 后面略  */
+ }</code></pre>
+<p>首先我们看到的是 Thread 中有一个属性 threadLocals，它的类型是 ThreadLocalMap，封装类型是 default（表示它只能在包内可见），jdk 是这么介绍它的：与此线程有关的 ThreadLocal 值，该映射由 ThreadLocal 类维护。 啥意思呢？那就来看看 ThreadLocalMap 是啥玩意！</p>
+<pre><code><code>public class ThreadLocal&lt;T&gt; {
+   /* 前面略  */
+
+    static class ThreadLocalMap {
+
+        /**
+         * The entries in this hash map extend WeakReference, using
+         * its main ref field as the key (which is always a
+         * ThreadLocal object).  Note that null keys (i.e. entry.get()
+         * == null) mean that the key is no longer referenced, so the
+         * entry can be expunged from table.  Such entries are referred to
+         * as &quot;stale entries&quot; in the code that follows.
+         */
+        static class Entry extends WeakReference&lt;ThreadLocal&lt;?&gt;&gt; {
+            /** The value associated with this ThreadLocal. */
+            Object value;
+
+            Entry(ThreadLocal&lt;?&gt; k, Object v) {
+                super(k);
+                value = v;
+            }
+        }
+   /* 后面略  */
+   }
+}</code></pre>
+<p>从类定义上可以看出 ThreadLocal 是支持泛型的，而 ThreadLocalMap 是 ThreadLocal 的一个内部类，封装类型也是 default（表示只能在包内可见），jdk 是这么介绍它的：ThreadLocalMap 是自定义的哈希映射，仅适用于维护线程局部值。并且为了存储容量可控，不至于内存泄漏，哈希表条目使用弱引用作为键（弱引用的对象的生命周期直到下一次垃圾回收之前被回收），ThreadLocalMap 使用静态内部类 Entry（可以类比 Map 中的 entry）来存储实际的 key 和 value。</p>
+<p>从上面这些介绍，我们可以大致想到，ThreadLocal 是一个与线程相关的类，用来存储维护线程局部值。</p>
+<h2 id="二sett-value-方法解读">二、set(T value) 方法解读</h2>
+<pre><code><code>    public void set(T value) {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null)
+            map.set(this, value);
+        else
+            createMap(t, value);
+    }</code></pre>
+<pre><code><code>    ThreadLocalMap getMap(Thread t) {
+        return t.threadLocals;
+    }</code></pre>
+<pre><code><code>    void createMap(Thread t, T firstValue) {
+        t.threadLocals = new ThreadLocalMap(this, firstValue);
+    }</code></pre>
+<p>可以看到 set(T value) 方法做的事情很简单，就是维护 Thread 的 threadLocals 属性，如果该属性不存在的话，就以当前 ThreadLocal 实例为 key 创建一个；该属性存在的话，则直接赋值。</p>
+<h2 id="三get-方法解读">三、get() 方法解读</h2>
+<pre><code><code>    public T get() {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null) {
+            ThreadLocalMap.Entry e = map.getEntry(this);
+            if (e != null) {
+                @SuppressWarnings(&quot;unchecked&quot;)
+                T result = (T)e.value;
+                return result;
+            }
+        }
+        return setInitialValue();
+    }</code></pre>
+<pre><code><code>    private T setInitialValue() {
+        T value = initialValue();
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null)
+            map.set(this, value);
+        else
+            createMap(t, value);
+        return value;
+    }</code></pre>
+<pre><code><code>    protected T initialValue() {
+        return null;
+    }</code></pre>
+<p>get() 的方法同样很简单，就是从 Thread 的 threadLocals 属性获取值，如果获取不到，则把 initialValue() 的值赋值给线程的 threadLocals 属性并返回。initialValue() 方法是一个 protected 类型的方法，默认返回 null，我们可以在创建 ThreadLocal 的时候重写它，表示所有线程的默认值。</p>
+<pre><code><code>    // java8 的方式
+    ThreadLocal&lt;Boolean&gt; threadLocal1 = ThreadLocal.withInitial(() -&gt; false);
+    // 
+    ThreadLocal&lt;Boolean&gt; threadLocal2 = new ThreadLocal&lt;Boolean&gt;() {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
+    };</code></pre>
+<h2 id="四总结">四、总结</h2>
+<ul>
+<li>ThreadLocal 用于存储维护线程的局部值。</li>
+<li>和 ThreadLocal 类似的还有一个叫 InheritableThreadLocal， InheritableThreadLocal 继承自 ThreadLocal，用于父子线程间共享共同的值，父线程中设置的值，子线程中可以访问到。</li>
+<li>上面看 ThreadLocalMap 的时候，我们知道 key 是弱引用，gc 的时候 key 会被回收，但是 value 和 ThreadLocalMap 的引用不会被回收，如果这种情况的 Thread 很多，而且一直没有执行完，就可能会出现内存泄漏，因此使用完 ThreadLocal 的时候尽量调用 ThreadLocal 的 remove() 方法。</li>
+<li>当使用线程池的时候，在调用 ThreadLocal 的 set 方法后，却没有调用 remove 的方法，如果同一个线程再去调用 get 方法可能拿到的值并不是当时 set 进去的（因为线程池的线程是复用的），可能导致程序数据异常之类的，因此使用完 ThreadLocal 的时候尽量调用 ThreadLocal 的 remove() 方法。</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,144 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python传入参数的几种方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python传入参数的几种方法</center></div><div class='banquan'>原文出处:本文由博客园博主小小程序员ol提供。<br/>
+原文连接:https://www.cnblogs.com/python960410445/p/11795028.html</div><br>
+    <p><strong>写在前面</strong></p>
+<p>Python唯一支持的参数传递方式是『共享传参』（call by sharing）</p>
+<p>多数面向对象语言都采用这一模式，包括Ruby、Smalltalk和Java（Java的引用类型是这样，基本类型按值传递）</p>
+<p>共享传参是指函数的各个形式参数获得实参中各个引用的副本；也就是说，函数内部的形参是实参的别名（alias）</p>
+<p>这种方案的结果是，函数可能会修改作为参数传入的可变对象，但是无法修改那些对象的标识（即不能把一个对象替换为另一个对象）</p>
+<p><strong>位置参数</strong></p>
+<p>位置参数是最简单的传入参数的方式，在其它的语言中也常常被使用</p>
+<p>演示一：</p>
+<pre><code><code>def func(a, b):
+print(a+b)
+func(1, 2)  #3</code></pre>
+<p>演示二：</p>
+<pre><code><code>def power(x, n):
+s = 1
+while(n &gt; 0):
+n -= 1
+s *= n
+return s
+power(2, 3) #8</code></pre>
+<p><strong>默认参数</strong></p>
+<p>默认参数就是在调用函数的时候使用一些包含默认值的参数</p>
+<pre><code><code>def power(x, n=2):
+s = 1
+while(n &gt; 0):
+n -= 1
+s *= n
+reutrn s
+power(3)    #9
+power(2, 3) #8</code></pre>
+<p>定义默认参数要牢记一点：默认参数必须指向不变对象！</p>
+<pre><code><code>#以下这个函数如果被多次调用会在默认添加多个END字符串
+def add_end(l = []):
+l.append(&#39;END&#39;)
+return l
+#为了避免这个问题，应该把传入的默认参数设置为不可变的
+def add_end(l = None):
+l = []
+l.append(&#39;END&#39;)
+return l</code></pre>
+<p><strong>可变参数</strong></p>
+<p>可变参数就是允许在调用参数的时候传入多个（≥0个）参数（类似于列表、字典）</p>
+<pre><code><code>#传入一个列表，严格地说这不是可变参数
+def calc(l):
+sum = 0
+for n in l:
+sum += n
+return sum
+&gt;&gt;&gt; calc([1,2,3])
+7
+#这才是可变参数，虽然在使用上和列表没有区别，但是参数nums接收到的是一个tuple（这些参数在传入时被自动组组装为一个元祖）
+def calc(*nums):
+sum = 0
+for n in nums:
+sum += n
+return sum
+&gt;&gt;&gt; calc(1,2,3)
+7
+&gt;&gt;&gt; my_ls = [1,2,3]
+&gt;&gt;&gt; calc(*my_ls)
+7</code></pre>
+<p><strong>关键字参数</strong></p>
+<p>可变参数允许传入0个～多个参数，而关键字参数允许在调用时以字典形式传入0个或多个参数（注意区别，一个是字典一个是列表）；在传递参数时用等号（=）连接键和值</p>
+<pre><code><code>#用两个星号表示关键字参数
+def person_info(name, age, **kw):
+print(&quot;name&quot;, name, &quot;age&quot;, age, &quot;other&quot;, kw)
+&gt;&gt;&gt; person_info(&quot;Xiaoming&quot;, 12)
+name Xiaoming age 12 other{}
+&gt;&gt;&gt; person_info(&quot;Dahuang&quot;, 35, city = &quot;Beijing&quot;)
+name Dahuang age 35 other {&#39;city&#39;:&#39;Beijing&#39;}</code></pre>
+<p><strong>命名关键字参数</strong></p>
+<p>命名关键字参数在关键字参数的基础上限制传入的的关键字的变量名</p>
+<p>和普通关键字参数不同，命名关键字参数需要一个用来区分的分隔符*，它后面的参数被认为是命名关键字参数</p>
+<pre><code><code>#这里星号分割符后面的city、job是命名关键字参数
+person_info(name, age, *, city, job):
+print(name, age, city, job)
+&gt;&gt;&gt; person_info(&quot;Alex&quot;, 17, city = &quot;Beijing&quot;, job = &quot;Engineer&quot;)
+Alex 17 Beijing Engineer    #看来这里不再被自动组装为字典</code></pre>
+<p>不过也有例外，如果参数中已经有一个可变参数的话，前面讲的星号分割符就不要写了（其实星号是写给Python解释器看的，如果一个星号也没有的话就无法区分命名关键字参数和位置参数了，而如果有一个星号即使来自变长参数就可以区分开来）</p>
+<pre><code><code>#Python学习交流QQ群：857662006 
+#args是变长参数，而city和job是命名关键字参数
+person_info(name, age, *args, city, job):
+print(name, age, args, city)
+&gt;&gt;&gt; person_info(&quot;Liqiang&quot;, 43, &quot;balabala&quot;, city = &quot;Wuhan&quot;, job = &quot;Coder&quot;)
+Liqiang 43 balabala Wuhan Coder</code></pre>
+<p><strong>参数组合</strong></p>
+<p>总结一下，在Python中一种可以使用5中传递参数的方式（位置参数、默认参数、变长参数、关键字参数、命名关键字参数）</p>
+<p>注意，这些参数在书写时要遵循一定的顺序即：位置参数、默认参数、变长参数、关键字参数、命名关键字参数（和本文的行文顺序一致）</p>
+<p>这里简单举两个例子</p>
+<pre><code><code>def f1(a, b, c=0, *args, **kw):
+print(&quot;a = &quot;, a, &quot;b = &quot;, b, &quot;args = &quot;, args, &quot;kw = &quot;,kw)
+def f2(a, b, c=0, *, d, **kw):
+print(&quot;a = &quot;, a, &quot;b = &quot;, b, &quot;c = &quot;, c, &quot;d = &quot;, d, &quot;kw = &quot;, kw)
+&gt;&gt;&gt; f1(1, 2)
+a = 1 b = 2 c = 0 args =() kw = {}
+&gt;&gt;&gt; f1(1, 2, c=3)
+a = 1 b = 2 c = 3 args = () kw = {}
+&gt;&gt;&gt; f1(1, 2, 3, &#39;a&#39;, &#39;b&#39;)
+a = 1 b = 2 c = 3 args = (&#39;a&#39;, &#39;b&#39;) kw = {}
+&gt;&gt;&gt; f1(1, 2, 3, &#39;a&#39;, &#39;b&#39;, x = 99)
+a = 1 b = 2 c = 3 args = (&#39;a&#39;, &#39;b&#39;) kw = {&#39;x&#39;:99}
+&gt;&gt;&gt; f2(1, 2, d = 99, ext = None)
+a = 1 b =2 c = 0 d = 99 kw = {&#39;ext&#39;:None}</code></pre>
+<p><strong>写在后面</strong></p>
+<p>关于Python参数传递，有以下几点提请注意：</p>
+<p>1）参数的传递是通过自动将对象赋值给本地变量名来实现的<br />
+函数参数在实际中只是Python赋值的另一个实例而已，因为引用可以是以指针的形式来实现的，所有的参数实际上都是通过指针进行传递的，作为参数被传递的对象从来不自动拷贝</p>
+<p>2）在函数内部的参数名的赋值不会影响调用者<br />
+在函数运行时，在函数头部的参数名时一个新的、本地的变量名，这个变量名是在函数的本地作用域内的，函数参数名和调用者作用域中的变量是没有区别的</p>
+<p>3）改变函数的可变对象参数的值也许会对调用者有影响<br />
+换句话说，因为参数是简单地赋值给传入的对象，函数就能够就地改变传入的可变对象，因此其结果会影响调用者；可变参数对函数来说可以做输入和输出的</p>
+<p>Python的通过赋值进行传递的机制与C++的引用参数选项不完全相同，但是实际中，它与C语言的参数传递模型相当类似：</p>
+<p>1）不可变参数“通过值”进行传递<br />
+像整数和字符串这样的对象是不可变对象，它们通过对象引用而不是拷贝进行传递的，但是因为无论如何都不可能在原处改变不可变对象，实际的效果就很像创建了一份拷贝</p>
+<p>2）可变对象是通过“指针”进行传递的<br />
+列表和字典这样的对象也是通过对象引用进行传递的，这一点与C语言使用指针传递数组很相似，可变对象能够在函数内部进行原处的改变，这一点和C数组很像</p>
+<p><img src="./images/Python传入参数的几种方法0.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Python传入参数的几种方法1.png" alt="在这里插入图片描述" /><br />
+总而言之，理解Python的变量、函数的关键就是理解『绑定』的概念——绑定就是绑定对象，理解了这一点就好办了</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

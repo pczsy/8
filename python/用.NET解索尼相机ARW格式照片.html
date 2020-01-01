@@ -1,0 +1,66 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修用.NET解索尼相机ARW格式照片' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>用.NET解索尼相机ARW格式照片</center></div><div class='banquan'>原文出处:本文由博客园博主.NET骚操作提供。<br/>
+原文连接:https://www.cnblogs.com/sdflysha/p/20191208-read-sony-arw-file-using-dotnet.html</div><br>
+    <h1 id="用.net解索尼相机arw格式照片">用.NET解索尼相机ARW格式照片</h1>
+<p>目前常用的照片格式是<code>.jpg</code>，它只能提供<code>8bit</code>的色彩深度，而目前主流的相机都能提供高达<code>12bit</code>-<code>14bit</code>的色彩深度，动态范围和后期处理能力也大大增加，这也是为什么不少摄影爱好者会优先使用相机提供原始格式，也就是<code>raw</code>格式，它记录了最多的信息。</p>
+<p>但相机的<code>raw</code>格式是厂商提供的，不像<code>jpg</code>格式，厂商与厂商之间的格式不一样，如索尼相机一般用<code>.ARW</code>格式、佳能相机用<code>.CR2</code>格式等等。正常读<code>raw</code>格式文件会用<code>Lightroom</code>、<code>Capture One</code>、<code>Camera Raw</code>之类的软件。但如果拿着相机拍了不少漂亮相片，回家自己想来点“简单”骚操作，转个码，然后用自己搭的<code>NAS</code>集成一下数据什么的，就需要用到最拿手的<code>C#</code>了。</p>
+<h1 id="想象中读arw格式的过程">想象中读<code>ARW</code>格式的过程</h1>
+<p>代码我也不太确定要怎么写，也许……代码就这样？</p>
+<pre><code><code>using var bmp = Bitmap.FromFile(@&quot;D:\A6000\2019-4-6\DSC05458.ARW&quot;);</code></pre>
+<p>不出所料果然读不了，报错了，异常信息如下：</p>
+<pre><code><code>System.OutOfMemoryException: Out of memory.
+   at System.Drawing.Image.FromFile(String filename, Boolean useEmbeddedColorManagement)
+   at System.Drawing.Image.FromFile(String filename)
+   at UserQuery.Main() in C:\Users\sdfly\AppData\Local\Temp\LINQPad6\_xonxdhlt\pzztkn\LINQPadQuery:line 3</code></pre>
+<p>请注意，这里抛的是<code>OutOfMemoryException</code>，看起来很奇怪——这里有必要说一句，根据微软官方提供的文档（https://docs.microsoft.com/en-us/dotnet/api/system.drawing.image.fromfile?view=netframework-4.8），如果<code>GDI+</code>不支持文件的像素格式，则就会抛<code>OutOfMemoryException</code>。</p>
+<h1 id="探寻解决办法">探寻解决办法</h1>
+<p>经过一翻<code>Google</code>和<code>Stackoverflow</code>的探索，发现原来索尼官方提供了<code>ARW</code>格式的解码器，下载地址如下：http://ids.update.sony.net/microsoft/SRD20_Installer0810a.exe</p>
+<p>下载后安装即可，之后可以在注册表中查看一下，注册表位置如下是<code>计算机\HKEY_CLASSES_ROOT\CLSID\{7ED96837-96F0-4812-B211-F13C24117ED3}\Instance\{C17F7FAD-D98F-4B2A-8FF2-90E8A5CC0253}</code>，发现该组件确实安装正确：<br />
+<img src="./images/用.NET解索尼相机ARW格式照片0.png" /></p>
+<p>安装完之后再使用<code>GDI+</code>的<code>API</code>调用一下，发现仍然会报一样的错。重启一下还是一样，调用<code>ImageCodecInfo.GetImageDecoders()</code>就能发现，其实在“内置”的解码器里面并没有索尼<code>ARW</code>文件：</p>
+<pre><code><code>*.BMP;*.DIB;*.RLE
+*.JPG;*.JPEG;*.JPE;*.JFIF
+*.GIF
+*.EMF
+*.WMF
+*.TIF;*.TIFF
+*.PNG
+*.ICO</code></pre>
+<p>又经过一翻搜寻，原来，索尼提供的这个安装包是集成于<code>WIC</code>，也就是<code>Windows Imaging Components</code>，因为必须要用<code>WIC</code>的<code>API</code>，<code>SharpDX.Direct2D1</code>和<code>WPF</code>都是基于<code>WIC</code>，按我的习惯肯定会用<code>SharpDX</code>，但这里为了方便大家我使用了<code>WPF</code>作为博客示例：</p>
+<pre><code><code>var decoder = BitmapDecoder.Create(new Uri(@&quot;D:\A6000\2019-4-6\DSC05458.ARW&quot;), BitmapCreateOptions.None, BitmapCacheOption.Default);
+var transformedBitmap = new TransformedBitmap(decoder.Frames[0], new ScaleTransform(0.3, 0.3));
+var jpg = new JpegBitmapEncoder();
+jpg.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(transformedBitmap));
+using var stream = new MemoryStream();
+jpg.Save(stream);
+Util.Image(stream.ToArray()).Dump();</code></pre>
+<p>该代码成功将索尼的<code>ARW</code>文件转换为<code>JPG</code>格式，注意代码中有个<code>0.3, 0.3</code>，是为了显示效果，我将<code>24M</code>像素的原图缩放了为<code>30% x 30%</code>，运行效果如下：<br />
+<img src="./images/用.NET解索尼相机ARW格式照片1.png" /></p>
+<h1 id="总结">总结</h1>
+<p>事实上除了厂商提供的库，还有许多第三方机构也提供解<code>raw</code>格式的库，如<code>libraw</code>等等。由于我<code>WIC</code>用得比较熟悉，我就用<code>WIC</code>来解了。</p>
+<p>本文用到的索尼<code>ARW</code>文件可以在我的百度网盘中下载：<a href="https://pan.baidu.com/s/1kTTpwMHIiprBK2hJGPajRw" class="uri">https://pan.baidu.com/s/1kTTpwMHIiprBK2hJGPajRw</a> 提取码: <code>8vpr</code>。</p>
+<p>喜欢的朋友 请关注我的微信公众号：【DotNet骚操作】</p>
+<p><img src="./images/用.NET解索尼相机ARW格式照片2.png" alt="DotNet骚操作" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

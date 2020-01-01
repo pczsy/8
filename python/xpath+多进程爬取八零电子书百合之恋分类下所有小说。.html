@@ -1,0 +1,120 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修xpath+多进程爬取八零电子书百合之恋分类下所有小说。' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>xpath+多进程爬取八零电子书百合之恋分类下所有小说。</center></div><div class='banquan'>原文出处:本文由博客园博主记住我忘记我提供。<br/>
+原文连接:https://www.cnblogs.com/nmsghgnv/p/11334613.html</div><br>
+    <p>&nbsp;</p>
+<p>代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 需要的库</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #0000ff;">from</span> lxml <span style="color: #0000ff;">import</span><span style="color: #000000;"> etree
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Pool
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 请求头</span>
+headers =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36</span><span style="color: #800000;">'</span><span style="color: #000000;">
+}
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 创建存储路径</span>
+pathname = <span style="color: #800000;">'</span><span style="color: #800000;">./八零电子书/</span><span style="color: #800000;">'</span>
+<span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> os.path.exists(pathname):
+    os.mkdir(pathname)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取书籍列表</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_booklist(url):
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+        response </span>= requests.get(url=url,headers=<span style="color: #000000;">headers)
+        etrees </span>=<span style="color: #000000;"> etree.HTML(response.text)
+        sum </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//a[@class="last"]/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)[0]
+        booklist </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="book_bg"]/a/@href</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        pool.map(get_book,booklist)
+        urls </span>= [<span style="color: #800000;">'</span><span style="color: #800000;">http://www.quanshuwang.com/list/3_{}.html</span><span style="color: #800000;">'</span>.format(i) <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(2,int(sum)+1<span style="color: #000000;">)]
+        pool.map(get_booklist,urls)
+    </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> Exception:
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">get_booklist failed</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取具体书籍</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_book(url):
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+        response </span>= requests.get(url=url, headers=<span style="color: #000000;">headers)
+        etrees </span>=<span style="color: #000000;"> etree.HTML(response.text)
+        mulu </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//a[@id="read_book"]/@href</span><span style="color: #800000;">'</span>)[1<span style="color: #000000;">]
+        get_mulu(mulu)
+    </span><span style="color: #0000ff;">except</span><span style="color: #000000;">  Exception:
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">get_book failed</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取书籍目录</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_mulu(url):
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+        response </span>= requests.get(url=url, headers=<span style="color: #000000;">headers)
+        etrees </span>=<span style="color: #000000;"> etree.HTML(response.text)
+        zhangjie </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@id="yulan"]/li/a/@href</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> zhangjie:
+            get_content(i)
+    </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> Exception:
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">get_mulu failed</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取书籍内容</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_content(url):
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;">:
+        response </span>= requests.get(url=url, headers=<span style="color: #000000;">headers)
+        etrees </span>=<span style="color: #000000;"> etree.HTML(response.text.encode(response.encoding).decode(response.apparent_encoding))
+        book_name </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//p[@class="text"]/a/text()</span><span style="color: #800000;">'</span>)[1<span style="color: #000000;">]
+        zhangjie </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="date"]/h1/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)[0]
+        contents </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@id="content"]/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span>(zhangjie+<span style="color: #800000;">'</span><span style="color: #800000;">..正在下载</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        f </span>= open(pathname+book_name+<span style="color: #800000;">'</span><span style="color: #800000;">.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">a+</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        f.write(zhangjie</span>+<span style="color: #800000;">'</span><span style="color: #800000;">\n\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">for</span> con <span style="color: #0000ff;">in</span><span style="color: #000000;"> contents:
+            f.write(con</span>+<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        f.close()
+    </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> Exception:
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">get_content failed</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 程序入口</span>
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">https://www.80txt.la/sort5/1.html</span><span style="color: #800000;">'</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 创建进程池</span>
+    pool =<span style="color: #000000;"> Pool()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 启动函数</span>
+    get_booklist(url)</pre>
+</div>
+<p>控制台输出</p>
+<div class="cnblogs_code">
+<pre><code>E:\anaconda\python.exe E:/练习/最后阶段/0809/<span style="color: #000000;">八零电子书.py
+1第一章 捡到个小雌性..正在下载
+</span>01<span style="color: #000000;"> 遗嘱..正在下载
+第一章 捡了东西不一定能换到钱..正在下载
+2第二章 摔出了地球..正在下载
+</span>02<span style="color: #000000;"> 异变..正在下载
+3第三章 这是个高科技世界..正在下载
+第二章 爷爷！您是我的亲爷爷..正在下载
+</span>03<span style="color: #000000;"> 手镯..正在下载
+第三章 不在新手村混的新手..正在下载
+4第四章 所谓杌力..正在下载
+第一章 我会打架..正在下载
+04长生..正在下载</span></pre>
+</div>
+<p>打开文件夹查看是否下载成功</p>
+<p><img src="./images/xpath+多进程爬取八零电子书百合之恋分类下所有小说。0.png" alt="" /></p>
+<p><img src="./images/xpath+多进程爬取八零电子书百合之恋分类下所有小说。1.png" alt="" /></p>
+<p>done。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

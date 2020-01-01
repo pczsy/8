@@ -1,0 +1,82 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【python3基础】命令行参数及 argparse' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【python3基础】命令行参数及 argparse</center></div><div class='banquan'>原文出处:本文由博客园博主wuliytTaotao提供。<br/>
+原文连接:https://www.cnblogs.com/wuliytTaotao/p/11795011.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#命令行参数及-argparse-包">命令行参数及 argparse 包</a><ul>
+        <li><a href="#argparse-解析-bool-参数错误做法">argparse 解析 bool 参数错误做法</a></li>
+        <li><a href="#argparse-解析-bool-参数正确做法-1">argparse 解析 bool 参数正确做法 1</a></li>
+        <li><a href="#argparse-解析-bool-参数正确做法-2">argparse 解析 bool 参数正确做法 2</a></li>
+        </ul></li>
+        <li><a href="#references">References</a></li>
+        </ul>
+    </div>
+</div>
+<p>在使用 argparse 解析 bool 参数时，需要设定 add_argument 的 action 参数为 'store_true' 或者 'store_false'，而不是设定 type 参数为 bool，具体原因是，如果设定 type=bool，那么无论该参数传 True 还是 False，最后都只能得到 True。【这设定反人类】</p>
+<hr />
+<h2 id="命令行参数及-argparse-包">命令行参数及 argparse 包</h2>
+<p>在我们需要控制不同分支代码的执行时，命令行参数最适用了，代码写好后只需在命令行设定不同的参数运行即可。</p>
+<p>在命令行参数的解析中，可以用到 argparse 包。</p>
+<p>入门 argparse 可以参考教程 <a href="https://docs.python.org/zh-cn/3.6/howto/argparse.html" class="uri">https://docs.python.org/zh-cn/3.6/howto/argparse.html</a></p>
+<p>给出一个最简单的 argparse 解析命令行参数的例子：（以下代码保存在 tmp.py 文件中）</p>
+<pre><code><code>import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument(&#39;--seed&#39;,  dest=&#39;seed&#39;, type=int, default=0)
+args = parser.parse_args()
+print(args)</code></pre>
+<p>通过在命令行执行<code>python3 tmp.py --seed 1</code>来改变 seed 参数的值，seed 参数的值可以通过<code>args.seed</code>获取。</p>
+<h3 id="argparse-解析-bool-参数错误做法">argparse 解析 bool 参数错误做法</h3>
+<p>argparse 对 bool 类型数据的传递，和其它类型如 int、float、str 不一样，如下所示：</p>
+<pre><code><code>import argparse
+parser = argparse.ArgumentParser()
+# 这种写法是错的，结果不是你所想象的
+parser.add_argument(&#39;--test&#39;,  dest=&#39;test&#39;, type=bool, default=False)
+args = parser.parse_args()
+ print(args)</code></pre>
+<p>如果我们在命令行执行<code>python3 tmp.py --test False</code>和<code>python3 tmp.py --test True</code>，我们会得到同样的结果，<code>args.test</code> 都会是 True。这有点反人类了。</p>
+<h3 id="argparse-解析-bool-参数正确做法-1">argparse 解析 bool 参数正确做法 1</h3>
+<p>在传递 bool 值时，正确的做法是：</p>
+<pre><code><code>import argparse
+parser = argparse.ArgumentParser()
+# action 的取值可以是 &#39;store_true&#39;、&#39;store_false&#39;，都是小写
+parser.add_argument(&#39;--test&#39;,  dest=&#39;test&#39;, action=&#39;store_true&#39;, default=False)
+parser.parse_args()
+ print(args)</code></pre>
+<p>之后如果需要 test 参数为真，那么就在命令行执行<code>python3 tmp.py --test</code>，否则，就不要带上 test 参数，如<code>python3 tmp.py</code>。</p>
+<h3 id="argparse-解析-bool-参数正确做法-2">argparse 解析 bool 参数正确做法 2</h3>
+<pre><code><code>import argparse
+  parser = argparse.ArgumentParser()  
+
+parser.add_argument(&#39;--test&#39;,  dest=&quot;test&quot;, action=&#39;store_true&#39;)
+ parser.add_argument(&#39;--no_test&#39;,  dest=&quot;test&quot;, action=&#39;store_false&#39;) 
+parser.set_defaults(test=False) 
+
+args = parser.parse_args()
+ print(args)</code></pre>
+<p>如果需要设置<code>args.test</code>为 True，那么执行<code>python3 tmp.py --test</code>；如果需要设置<code>args.test</code>为 False，执行 <code>python3 tmp.py --no_test</code>。</p>
+<h2 id="references">References</h2>
+<p><a href="https://stackoverflow.com/a/37411991/9750495">Parsing boolean values with argparse - Stack Overflow</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

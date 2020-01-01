@@ -1,0 +1,248 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修DRF Django REST framework 之 路由器与版本控制组件（七）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>DRF Django REST framework 之 路由器与版本控制组件（七）</center></div><div class='banquan'>原文出处:本文由博客园博主Nolinked提供。<br/>
+原文连接:https://www.cnblogs.com/pungchur/p/12043548.html</div><br>
+    <h2>路由器</h2>
+<p>一些Web框架提供了用于自动确定应如何将应用程序的URL映射到处理传入请求的逻辑的功能。</p>
+<p><span>而DRF的路由器组件也提供了一种简单，快速且一致的方式将视图逻辑映射到一组URL上。</span></p>
+<h3><span>路由器组件的使用</span>配合include</h3>
+<p><span>第一步：导入模块</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> rest_framework <span style="color: #0000ff;">import</span> routers</pre>
+</div>
+<p>第二步：实例化一个router对象</p>
+<div class="cnblogs_code">
+<pre><code>router = routers.SimpleRouter()</pre>
+</div>
+<p>第三步：将需要自动生成url的接口注册到router中</p>
+<div class="cnblogs_code">
+<pre><code>router.register(<span style="color: #800000;">'</span><span style="color: #800000;">books</span><span style="color: #800000;">'</span>, views.BookView)</pre>
+</div>
+<p>第四步：生成url</p>
+<div class="cnblogs_code">
+<pre><code>urlpatterns =<span style="color: #000000;"> [
+    re_path(</span><span style="color: #800000;">'</span><span style="color: #800000;">'</span>, include(<span style="color: #800000;">router.urls</span><span style="color: #000000;">)),
+]</span></pre>
+</div>
+<h3>路由器简单的使用</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> rest_framework <span style="color: #0000ff;">import</span><span style="color: #000000;"> routers
+
+router </span>=<span style="color: #000000;"> routers.SimpleRouter()
+router.register(</span><span style="color: #800000;">'</span><span style="color: #800000;">books</span><span style="color: #800000;">'</span><span style="color: #000000;">, BookView)
+router.register(</span><span style="color: #800000;">'</span><span style="color: #800000;">users</span><span style="color: #800000;">'</span><span style="color: #000000;">, UserView)
+urlpatterns </span>= router.urls</pre>
+</div>
+<p><span>&nbsp;<span class="cnblogs_code">register</span>&nbsp;方法有两个强制性参数</span><span>：</span></p>
+<ul>
+<li><span>&nbsp;<span class="cnblogs_code">prefix</span>&nbsp; &nbsp;&nbsp;-&nbsp; &nbsp;用于这组路由的URL前缀。</span></li>
+<li><span>&nbsp;<span class="cnblogs_code">viewset</span>&nbsp;&nbsp;-&nbsp; &nbsp;视图集类。</span></li>
+</ul>
+<p><span>（可选）其他参数：</span></p>
+<ul>
+<li><span><span>&nbsp;<span class="cnblogs_code">basename</span>&nbsp;- 用于创建的URL名称的基础。</span><span>如果未设置，则基名称将基于</span></span><code>queryset</code><span><span>视图集</span><span>的</span><span>属性</span><span>自动生成</span><span>（如果有）。</span></span></li>
+<li><span><span>请注意，如果视图集不包含</span></span><code>queryset</code><span>属性，则必须</span><code>basename</code><span><span>在注册视图</span><span>集</span><span>时进行设置。</span></span></li>
+</ul>
+<p><strong>在使用路由组件之前的url：</strong></p>
+<div class="cnblogs_code">
+<pre><code>urlpatterns =<span style="color: #000000;"> [
+
+    path(</span><span style="color: #800000;">"</span><span style="color: #800000;">books/</span><span style="color: #800000;">"</span><span style="color: #000000;">, views.BookView.as_view({
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">get</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">list</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">post</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">create</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+    })),
+    re_path(</span><span style="color: #800000;">'</span><span style="color: #800000;">books/(?P&lt;pk&gt;\d+)/</span><span style="color: #800000;">'</span><span style="color: #000000;">, views.BookView.as_view({
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">get</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">retrieve</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">put</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">update</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">delete</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">destroy</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    })),
+]</span></pre>
+</div>
+<p><strong>使用路由器之后的url：</strong></p>
+<div class="cnblogs_code">
+<pre><code>router =<span style="color: #000000;"> routers.DefaultRouter()
+router.register(</span><span style="color: #800000;">"</span><span style="color: #800000;">books</span><span style="color: #800000;">"</span><span style="color: #000000;">, views.BookView)
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    re_path(</span><span style="color: #800000;">''</span><span style="color: #000000;">, include(router.urls)),
+]</span></pre>
+</div>
+<p>可以发现简单了很多~</p>
+<h2>版本控制</h2>
+<p><span><span>API版本控制，可以更改不同客户端之间的行为方式。</span><span>REST框架提供了许多不同的版本控制方案例如：</span></span></p>
+<p class="md-end-block">某些客户端 使用低版本只维护不开发新功能 v1</p>
+<p class="md-end-block md-focus">主要的产品还要不断的更新迭代功能 v2</p>
+<p>API 版本控制允许我们在不同的客户端之间更改行为（同一个接口的不同版本会返回不同的数据）。 DRF提供了许多不同的版本控制方案。</p>
+<h3>DRF提供版本控制的五种方案</h3>
+<p>&nbsp;<span class="cnblogs_code">rest_framework</span>&nbsp;框架里的&nbsp;<span class="cnblogs_code">versioning.py</span>&nbsp;文件</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> BaseVersioning:
+    </span><span style="color: #0000ff;">pass</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 将版本信息放到请求头中</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> AcceptHeaderVersioning(BaseVersioning):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    GET /something/ HTTP/1.1
+    Host: example.com
+    Accept: application/json; <strong><span style="color: #33cccc;">version=1.0
+    </span></strong></span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">pass</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 将版本信息放到URL中</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> URLPathVersioning(BaseVersioning):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    To the client this is the same style as `NamespaceVersioning`.
+    The difference is in the backend - this implementation uses
+    Django's URL keyword arguments to determine the version.
+
+    An example URL conf for two views that accept two different versions.
+
+    urlpatterns = [
+        url(r'^(<span style="color: #33cccc;"><strong>?P&lt;version&gt;[v1|v2]</strong></span>+)/users/$', users_list, name='users-list'),
+        url(r'^(<strong><span style="color: #33cccc;">?P&lt;version&gt;[v1|v2]</span></strong>+)/users/(?P&lt;pk&gt;[0-9]+)/$', users_detail, name='users-detail')
+    ]
+
+    GET /1.0/something/ HTTP/1.1
+    Host: example.com
+    Accept: application/json
+    </span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">pass</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 将版本信息放在命名空间 namespace</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> NamespaceVersioning(BaseVersioning):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    To the client this is the same style as `URLPathVersioning`.
+    The difference is in the backend - this implementation uses
+    Django's URL namespaces to determine the version.
+
+    An example URL conf that is namespaced into two separate versions
+
+    # users/urls.py
+    urlpatterns = [
+        url(r'^/users/$', users_list, name='users-list'),
+        url(r'^/users/(?P&lt;pk&gt;[0-9]+)/$', users_detail, name='users-detail')
+    ]
+
+    # urls.py
+    urlpatterns = [
+        url(r'^v1/', include('users.urls', <strong><span style="color: #33cccc;">namespace='v1'</span></strong>)),
+        url(r'^v2/', include('users.urls', <strong><span style="color: #33cccc;">namespace='v2'</span></strong>))
+    ]
+
+    GET /1.0/something/ HTTP/1.1
+    Host: example.com
+    Accept: application/json
+    </span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">pass</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 将版本信息放在主机名里 Host</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> HostNameVersioning(BaseVersioning):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    GET /something/ HTTP/1.1
+    Host: <strong><span style="color: #33cccc;">v1</span></strong>.example.com
+    Accept: application/json
+    </span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">pass</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 将版本信息放在URL 查询参数里</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> QueryParameterVersioning(BaseVersioning):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    GET /something/?<strong><span style="color: #33cccc;">version=0.1</span></strong> HTTP/1.1
+    Host: example.com
+    Accept: application/json
+    </span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">pass</span></pre>
+</div>
+<h3>版本控制的使用</h3>
+<p>以URL为例：</p>
+<p>设计&nbsp;<span class="cnblogs_code">url</span>&nbsp;:</p>
+<div class="cnblogs_code">
+<pre><code>router =<span style="color: #000000;"> routers.DefaultRouter()
+
+router.register(</span><span style="color: #800000;">"</span><span style="color: #800000;">books</span><span style="color: #800000;">"</span><span style="color: #000000;">, views.BookView)
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 给url设置参数</span>
+    re_path(<span style="color: #800000;">'</span><span style="color: #800000;">(?P&lt;version&gt;[v1|v2]+)/</span><span style="color: #800000;">'</span><span style="color: #000000;">, include(router.urls)),
+]</span></pre>
+</div>
+<h3><strong><span style="font-size: 16px;">局部使用</span></strong></h3>
+<p>导入模块，使用就行了</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> rest_framework.versioning <span style="color: #0000ff;">import</span><span style="color: #000000;"> URLPathVersioning
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookView(ModelViewSet):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 指定版本控制类，固定写法</span>
+    versioning_class =<span style="color: #000000;"> URLPathVersioning
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取数据源, 固定写法</span>
+    queryset =<span style="color: #000000;"> models.Book.objects.all()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 序列化类, 固定写法</span>
+    serializer_class = BookSerializer</pre>
+</div>
+<h3><strong><span style="font-size: 16px;">全局使用</span></strong></h3>
+<p>以&nbsp;<span class="cnblogs_code">URLPathVersioning</span>&nbsp;为例，还是在项目的&nbsp;<span class="cnblogs_code">settings.py</span>&nbsp;中&nbsp;<span class="cnblogs_code">REST_FRAMEWORK</span>&nbsp;配置项下配置：</p>
+<div class="cnblogs_code">
+<pre><code>REST_FRAMEWORK =<span style="color: #000000;"> {
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 配置默认使用的版本控制类</span>
+    <span style="color: #800000;">'</span><span style="color: #800000;">DEFAULT_VERSIONING_CLASS</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">rest_framework.versioning.URLPathVersioning</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 默认的版本</span>
+    <span style="color: #800000;">'</span><span style="color: #800000;">DEFAULT_VERSION</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">v1</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 有效的版本</span>
+    <span style="color: #800000;">'</span><span style="color: #800000;">ALLOWED_VERSIONS</span><span style="color: #800000;">'</span>: [<span style="color: #800000;">'</span><span style="color: #800000;">v1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">v2</span><span style="color: #800000;">'</span><span style="color: #000000;">],
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 版本的参数名与URL conf中一致</span>
+    <span style="color: #800000;">'</span><span style="color: #800000;">VERSION_PARAM</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">version</span><span style="color: #800000;">'</span><span style="color: #000000;">, 
+}</span></pre>
+</div>
+<p>这样在视图中就可以通过访问&nbsp;<span class="cnblogs_code">request.version</span>&nbsp;来获取当前请求的具体版本，然后根据不同的版本来返回不同的内容：</p>
+<p>我们可以在视图中自定义具体的行为，下面以不同的版本返回不同的序列化类为例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookViewSet(ModelViewSet):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取数据源，固定写法</span>
+    queryset =<span style="color: #000000;"> models.Book.objects.all()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 指定序列化类，固定写法</span>
+    serializer_class =<span style="color: #000000;"> BookModelserializer
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 只要配置了版本，在视图中就能通过 request.version 获得当前版本号</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_serializer_class(self):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取当前序列化类的方法</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 根据版本的不同返回不同的序列化类</span>
+        <span style="color: #0000ff;">if</span> self.request.version == <span style="color: #800000;">'</span><span style="color: #800000;">v1</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> BookSerializerVersion1
+        </span><span style="color: #0000ff;">return</span> BookModelserializer</pre>
+</div>
+<h3>自定义</h3>
+<p><span><span>要实现自定义版本控制，请继承&nbsp;<span class="cnblogs_code">BaseVersioning</span>&nbsp;</span></span><span><span>并重写&nbsp;<span class="cnblogs_code">determine_version</span>&nbsp;</span></span><span><span>方法。</span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> MyVersion(versioning.BaseVersioning):
+    </span><span style="color: #0000ff;">def</span> determine_version(self, request, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">return</span> request.META.get(<span style="color: #800000;">'</span><span style="color: #800000;">version</span><span style="color: #800000;">'</span>, None)</pre>
+</div>
+<p>这样就能在局部或全局使用了！</p>
+<p><strong><span style="color: #33cccc;">~&gt;.&lt;~</span></strong></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

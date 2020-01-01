@@ -1,0 +1,208 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一张图讲解单机FastDFS图片服务器安装步骤（修订版）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一张图讲解单机FastDFS图片服务器安装步骤（修订版）</center></div><div class='banquan'>原文出处:本文由博客园博主ysfshine提供。<br/>
+原文连接:https://www.cnblogs.com/yuesf/p/11997407.html</div><br>
+    <p>前面已经讲 <a href="https://mp.weixin.qq.com/s/dBuUhBdKb_fRSbGC_4W1FQ">一张图秒懂微服务的网络架构</a>，通过此文章可以了解FastDFS组件中单机安装流程。</p>
+<h1 id="单机版架构图">单机版架构图</h1>
+<p><img src="./images/一张图讲解单机FastDFS图片服务器安装步骤（修订版）0.png" alt="file" /></p>
+<p>以下为单机FastDFS安装步骤</p>
+<h2 id="一环境准备">一、环境准备</h2>
+<p>CentOS 7.X</p>
+<p><a href="https://github.com/happyfish100/libfastcommon">libfastcommon</a> 请采用最新版本， 本次使用最新版本： libfastcommon-1.0.42.tar.gz</p>
+<p><a href="https://github.com/happyfish100/fastdfs">FastDFS</a> 请采用最新版本， 本次使用最新版本： fastdfs-6.04.tar.gz</p>
+<p><a href="https://github.com/happyfish100/fastdfs-nginx-module">fastdfs-nginx-module</a> 请采用最新版本， 本次使用最新版本：fastdfs-nginx-module-1.22.tar.gz</p>
+<p><a href="http://nginx.org/en/download.html">nginx</a> 请采用最新版本， 本次使用最新版本： nginx-1.16.1.tar.gz</p>
+<h2 id="二安装过程">二、安装过程</h2>
+<h3 id="安装-libfastcommon-1.0.42.tar.gz">1、安装 libfastcommon-1.0.42.tar.gz</h3>
+<pre><code><code>tar -zxvf libfastcommon-1.0.42.tar.gz
+cd libfastcommon-1.0.42/
+./make.sh
+./make.sh install</code></pre>
+<h3 id="安装-fastdfs">2、安装 FastDFS</h3>
+<pre><code><code>tar -zxvf  fastdfs-6.04.tar.gz
+cd fastdfs-6.04/
+./make.sh
+./make.sh install</code></pre>
+<h4 id="准备配置文件">准备配置文件</h4>
+<pre><code><code>cp /etc/fdfs/tracker.conf.sample /etc/fdfs/tracker.conf
+cp /etc/fdfs/storage.conf.sample /etc/fdfs/storage.conf
+cp /etc/fdfs/client.conf.sample /etc/fdfs/client.conf
+cd /opt/apps/fastdfs-6.04/conf
+cp http.conf mime.types /etc/fdfs/</code></pre>
+<h4 id="tracker-server-配置">Tracker Server 配置</h4>
+<pre><code><code>vim /etc/fdfs/tracker.conf</code></pre>
+<h5 id="修改配置如下">修改配置如下：</h5>
+<pre><code><code>#tracker server端口号
+port=22122
+#存储日志和数据的根目录
+base_path=/opt/fastdfs/tracker
+#HTTP服务端口
+http.server_port=80</code></pre>
+<h5 id="开放防火墙端口">开放防火墙端口</h5>
+<p>1、打开跟踪端口</p>
+<pre><code><code>vim /etc/sysconfig/iptables</code></pre>
+<p>2、添加以下端口行：</p>
+<pre><code><code>-A INPUT -m state --state NEW -m tcp -p tcp --dport 22122 -j ACCEPT</code></pre>
+<p>3、重启防火墙</p>
+<pre><code><code>service iptables restart</code></pre>
+<h5 id="启动tracker">启动Tracker</h5>
+<pre><code><code>/etc/init.d/fdfs_trackerd start</code></pre>
+<h4 id="storage-server-配置">Storage Server 配置</h4>
+<pre><code><code>vim /etc/fdfs/storage.conf</code></pre>
+<h5 id="修改配置如下-1">修改配置如下：</h5>
+<pre><code><code>#storage server端口号
+port=23000
+#数据和日志文件存储根目录
+base_path=/opt/fastdfs/storage
+#第一个存储目录
+store_path0=/opt/fastdfs/storepath0
+#tracker服务器IP和端口
+tracker_server=192.168.0.1:22122
+#http访问文件的端口(默认8888,看情况修改,和nginx中保持一致)
+http.server_port=8888</code></pre>
+<h5 id="开放防火墙端口-1">开放防火墙端口</h5>
+<p>1、打开跟踪端口</p>
+<pre><code><code>vim /etc/sysconfig/iptables</code></pre>
+<p>2、添加以下端口行：</p>
+<pre><code><code>-A INPUT -m state --state NEW -m tcp -p tcp --dport 23000 -j ACCEPT</code></pre>
+<p>3、重启防火墙</p>
+<pre><code><code>service iptables restart</code></pre>
+<h5 id="启动storage">启动Storage</h5>
+<pre><code><code>/etc/init.d/fdfs_storaged start</code></pre>
+<h5 id="查看集群状态">查看集群状态</h5>
+<pre><code><code> fdfs_monitor /etc/fdfs/storage.conf list
+</code></pre>
+<p>查看状态是否正常</p>
+<p>Storage 1:<br />
+id = 6.0.36.243<br />
+ip_addr = 6.0.36.243 (anantes-651-1-49-net.w2-0.abo.wanadoo.fr) ACTIVE</p>
+<h4 id="client配置">Client配置</h4>
+<pre><code><code>vim /etc/fdfs/client.conf
+</code></pre>
+<h5 id="修改配置如下-2">修改配置如下：</h5>
+<pre><code><code>#
+base_path=/opt/apps/fastdfs/client
+#tracker服务器IP和端口
+tracker_server=192.168.0.1:22122 
+</code></pre>
+<h5 id="上传一个图片测试是否能上传成功">上传一个图片测试是否能上传成功</h5>
+<pre><code><code> fdfs_upload_file /etc/fdfs/client.conf test.jpg</code></pre>
+<blockquote>
+<p>test.jpg 是测试本地上传的图片，路径请填写正确</p>
+</blockquote>
+<h3 id="安装nginx和-fastdfs-nginx-module">3、安装Nginx和 fastdfs-nginx-module</h3>
+<pre><code><code>#解压fastdfs-nginx-module
+tar -zxvf fastdfs-nginx-module-1.22.tar.gz
+cd fastdfs-nginx-module-1.22/
+cp ./src/mod_fastdfs.conf /etc/fdfs
+#解压nginx
+tar -zxvf nginx-1.16.1.tar.gz
+cd nginx-1.16.1/
+#安装nginx_http_image_filter_module
+yum -y install gd-devel
+yum -y install zlib zlib-devel openssl openssl--devel pcre pcre-devel
+#添加模块
+./configure --add-module=../fastdfs-nginx-module-1.22/src --prefix=/usr/local/nginx --with-http_image_filter_module 
+#编译nginx
+make
+#安装nginx
+make install</code></pre>
+<h4 id="查看是否安装成功">查看是否安装成功</h4>
+<pre><code><code>/usr/local/nginx/sbin/nginx -V</code></pre>
+<p>查看插件是否安装成功</p>
+<pre class="verilog"><code>[root@FastDFS nginx-1.16.1]# /usr/local/nginx/sbin/nginx -V
+nginx version: nginx/1.16.1
+built by gcc 4.8.5 20150623 (Red Hat 4.8.5-11) (GCC) 
+configure arguments: --add-module=../fastdfs-nginx-module-1.21/src --prefix=/usr/local/nginx --with-http_image_filter_module
+[root@FastDFS nginx-1.16.1]# 
+</code></pre>
+<h4 id="修改nginx访问">修改Nginx访问</h4>
+<pre><code><code>vim /etc/fdfs/mod_fastdfs.conf</code></pre>
+<p>修改配置如下：</p>
+<pre><code><code>#
+connect_timeout=10
+#tracker服务器IP和端口
+tracker_server=192.168.0.1:22122
+#是否启用group组名
+url_have_group_name=true
+#
+store_path0=/opt/fastdfs/storepath0</code></pre>
+<h4 id="修改nginx配置">修改Nginx配置：</h4>
+<pre><code><code>vim /usr/local/nginx/conf/nginx.conf</code></pre>
+<p>修改配置如下:</p>
+<pre><code><code>server {
+    listen       80;
+    server_name  localhost;
+
+    #charset koi8-r;
+
+    #access_log  logs/host.access.log  main;
+
+    location / {
+        root   html;
+        index  index.html index.htm;
+    }
+    #图片带压缩访问
+    location ~ /group1/M00/(.*)\.(jpg|gif|png)!format=([0-9]+)_([0-9]+) {
+        alias  /home/fastdfs/storage/data/;
+        ngx_fastdfs_module;
+        set $w $3;
+        set $h $4;
+
+        rewrite group1/M00(.+)\.(jpg|gif|png)!format=([0-9]+)_([0-9]+)$ group1/M00$1.$2 break;
+
+        image_filter resize $w $h;
+        image_filter_buffer 5M;
+    }
+    #主图访问
+    location ~ /group([0-9])/M00/(.+)\.?(.+) {
+        alias /home/fastdfs/storage/data/;
+        ngx_fastdfs_module;
+    }
+...
+}
+</code></pre>
+<h4 id="启动nginx">启动Nginx</h4>
+<pre><code><code>#启动
+/usr/local/nginx/sbin/nginx
+#停止
+/usr/local/nginx/sbin/nginx -s stop
+#重启
+/usr/local/nginx/sbin/nginx -s reload</code></pre>
+<p>通过以上配置完成FastDFS的搭建。</p>
+<h3 id="测试图片访问">测试图片访问</h3>
+<blockquote>
+<p>图片访问示例：</p>
+<p>主图访问</p>
+<p>http://192.168.0.1/group1/M00/00/03/BgAk813IvTCAIxxxAAD44NFKFPc908.png</p>
+<p>压缩图片 (主图后加 <code>!format=宽度_高度</code>)访问</p>
+<p>http://192.168.0.1/group1/M00/00/03/BgAk813IvTCAIxxxAAD44NFKFPc908.png!format=400_10</p>
+</blockquote>
+<h2 id="未解决的问题">未解决的问题</h2>
+<p>压缩图片使用主图后<code>?format=宽度_高度</code></p>
+<blockquote>
+<p>本文由博客一文多发平台 <a href="https://openwrite.cn?from=article_bottom">OpenWrite</a> 发布！</p>
+</blockquote>
+<p>再次感谢!!! 您已看完全文，欢迎关注微信公众号<code>猿码</code> ，你的支持是我持续更新文章的动力！</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

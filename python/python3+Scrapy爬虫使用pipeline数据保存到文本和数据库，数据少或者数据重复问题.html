@@ -1,0 +1,39 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python3+Scrapy爬虫使用pipeline数据保存到文本和数据库，数据少或者数据重复问题' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python3+Scrapy爬虫使用pipeline数据保存到文本和数据库，数据少或者数据重复问题</center></div><div class='banquan'>原文出处:本文由博客园博主WebLinuxStudy提供。<br/>
+原文连接:https://www.cnblogs.com/WebLinuxStudy/p/11726124.html</div><br>
+    <p><span style="font-family: 宋体; font-size: 16px;">爬取的数据结果是没有错的，但是在保存数据的时候出错了，出现重复数据或者数据少问题。那为什么会造成这种结果呢？</span></p>
+<p><span style="font-family: 宋体; font-size: 16px;">其原因是由于Spider的速率比较快，而scapy操作数据库操作比较慢，导致pipeline中的方法调用较慢，这样当一个变量正在处理的时候，一个新的变量过来，之前的变量的值就会被覆盖。</span></p>
+<p><span style="font-family: 宋体; font-size: 16px;">就比如pipline的速率是1TPS，而spider的速率是5TPS，那么数据库应该会有5条重复数据。</span></p>
+<p><span style="font-family: 宋体; font-size: 16px;">解决方案是对变量进行保存，在保存的变量进行操作，通过互斥确保变量不被修改。</span></p>
+<h4>下面将代码进行改造一下：</h4>
+<p>将 pipelines.py 中的 process_item 方法中的item改为深度拷贝，即</p>
+<p>def process_item(self, item, spider):</p>
+<p>&nbsp; &nbsp; &nbsp; copy_item = copy.deepcopy(item)</p>
+<p>&nbsp; &nbsp; &nbsp; 将下面的代码中item用copy_item替换</p>
+<h4>并在头部加载copy包</h4>
+<p>import copy</p>
+<h4>没有copy包的小伙伴可以在命令窗口进行下载</h4>
+<p>pip install copy</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

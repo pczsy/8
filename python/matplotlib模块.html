@@ -1,0 +1,282 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修matplotlib模块' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>matplotlib模块</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11739300.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#matplotlib简介">matplotlib简介</a></li>
+        <li><a href="#支持的图类型">支持的图类型</a></li>
+        <li><a href="#图像的标注">图像的标注</a></li>
+        <li><a href="#绘制折线图">绘制折线图</a></li>
+        <li><a href="#绘制条形图">绘制条形图</a></li>
+        <li><a href="#直方图">直方图</a></li>
+        <li><a href="#饼图">饼图</a></li>
+        <li><a href="#散点图">散点图</a></li>
+        <li><a href="#保存图标到文件">保存图标到文件</a></li>
+        </ul>
+    </div>
+</div>
+<h1 id="matplotlib简介">matplotlib简介</h1>
+<p>Matplotlib是一个强大的Python绘图和数据可视化的工具包。数据可视化也是我们数据分析的最重要的工作之一，可以帮助我们完成很多操作，例如：找出异常值、必要的一些数据转换等。完成数据分析的最终结果也许就是做一个可交互的数据可视化。</p>
+<p><strong>安装方式：</strong><code>pip install matplotlib</code></p>
+<p><strong>引用方法：</strong><code>import matplotlib.pyplot as plt</code></p>
+<pre><code><code>import numpy as np
+import pandas as pd
+from numpy.random import randn
+import matplotlib.pyplot as plt
+
+# 一般使用下面的这个语句设置字体,不然会乱码
+plt.rcParams[&#39;font.sans-serif&#39;] = [&#39;SimHei&#39;]
+plt.rcParams[&#39;axes.unicode_minus&#39;] = False</code></pre>
+<h1 id="支持的图类型">支持的图类型</h1>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">函数</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">plt.plot(x,y,fmt)</td>
+<td style="text-align: left;">坐标系</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.boxplot(data,notch,position)</td>
+<td style="text-align: left;">箱型图</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.bar(left,height,width,bottom)</td>
+<td style="text-align: left;">柱状图</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.barh(width,bottom,left,height)</td>
+<td style="text-align: left;">横向柱状图</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.polar(theta,r)</td>
+<td style="text-align: left;">极坐标系</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.pie(data,explode)</td>
+<td style="text-align: left;">饼图</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.psd(x,NFFT=256,pad_to,Fs)</td>
+<td style="text-align: left;">功率谱密度图</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.specgram(x,NFFT=256,pad_to,F)</td>
+<td style="text-align: left;">谱图</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.cohere(x,y,NFFT=256,Fs)</td>
+<td style="text-align: left;">X-Y相关性函数</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.scatter(x,y)</td>
+<td style="text-align: left;">散点图</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.step(x,y,where)</td>
+<td style="text-align: left;">步阶图</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.hist(x,bins,normed)</td>
+<td style="text-align: left;">直方图</td>
+</tr>
+</tbody>
+</table>
+<h1 id="图像的标注">图像的标注</h1>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">方法</th>
+<th style="text-align: left;">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">plt.title()</td>
+<td style="text-align: left;">设置图像标题</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.xlabel()</td>
+<td style="text-align: left;">设置x轴名称</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.ylabel()</td>
+<td style="text-align: left;">设置y轴名称</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.xlim()</td>
+<td style="text-align: left;">设置x轴范围</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.ylim()</td>
+<td style="text-align: left;">设置y轴范围</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.xticks()</td>
+<td style="text-align: left;">设置x轴刻度</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">plt.yticks()</td>
+<td style="text-align: left;">设置y轴刻度</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">plt.legend()</td>
+<td style="text-align: left;">设置曲线图例</td>
+</tr>
+</tbody>
+</table>
+<h1 id="绘制折线图">绘制折线图</h1>
+<ul>
+<li>线型linestyle(-,-.,--,..)</li>
+<li>点型marker(v,^,s,*,H,+,X,D,O,...)</li>
+<li>颜色color(b,g,r,y,k,w,...)</li>
+</ul>
+<pre><code><code># 修改背景为条纹
+plt.style.use(&#39;ggplot&#39;)
+
+np.random.seed(1)
+
+# 使用numpy的累加和，保证数据取值范围不会在（0，1）内波动
+plot_data1 = randn(40).cumsum()
+plot_data2 = randn(40).cumsum()
+plot_data3 = randn(40).cumsum()
+plot_data4 = randn(40).cumsum()
+
+plt.plot(plot_data1, marker=&#39;o&#39;, color=&#39;red&#39;, linestyle=&#39;-&#39;, label=&#39;红实线&#39;)
+plt.plot(plot_data2, marker=&#39;x&#39;, color=&#39;orange&#39;, linestyle=&#39;--&#39;, label=&#39;橙虚线&#39;)
+plt.plot(plot_data3, marker=&#39;*&#39;, color=&#39;yellow&#39;, linestyle=&#39;-.&#39;, label=&#39;黄点线&#39;)
+plt.plot(plot_data4, marker=&#39;s&#39;, color=&#39;green&#39;, linestyle=&#39;:&#39;, label=&#39;绿点图&#39;)
+
+# loc=&#39;best&#39;给label自动选择最好的位置
+plt.legend(loc=&#39;best&#39;)
+plt.show()</code></pre>
+<p><img src="./images/matplotlib模块0.png" /></p>
+<h1 id="绘制条形图">绘制条形图</h1>
+<pre><code><code># 柱状图
+data = [12,34,23,54]
+labels = [&#39;Jan&#39;,&#39;Fed&#39;,&#39;Mar&#39;,&#39;Apr&#39;]
+plt.xticks([0,1,2,3],labels)  # 设置x轴刻度
+plt.bar([0,1,2,3],data)  </code></pre>
+<pre><code><code>&lt;BarContainer object of 4 artists&gt;</code></pre>
+<p><img src="./images/matplotlib模块1.png" /></p>
+<pre><code><code># 横向柱状图
+data = [12,34,23,54]
+labels = [&#39;Jan&#39;,&#39;Fed&#39;,&#39;Mar&#39;,&#39;Apr&#39;]
+plt.yticks([0,1,2,3],labels)
+plt.barh([0,1,2,3],data)   </code></pre>
+<pre><code><code>&lt;BarContainer object of 4 artists&gt;</code></pre>
+<p><img src="./images/matplotlib模块2.png" /></p>
+<pre><code><code># DataFrame数组图
+df = pd.DataFrame({
+    &#39;Jan&#39;:pd.Series([1,2,3],index=[&#39;a&#39;,&#39;b&#39;,&#39;c&#39;]),
+    &#39;Fed&#39;:pd.Series([4,5,6],index=[&#39;b&#39;,&#39;a&#39;,&#39;c&#39;]),
+    &#39;Mar&#39;:pd.Series([7,8,9],index=[&#39;b&#39;,&#39;a&#39;,&#39;c&#39;]),
+    &#39;Apr&#39;:pd.Series([2,4,6],index=[&#39;b&#39;,&#39;a&#39;,&#39;c&#39;])
+})
+df.plot.bar()  # 水平柱状图，将每一行中的值分组到并排的柱子中的一组
+df.plot.barh(stacked=True,alpha=0.5)  # 横向柱状图，将每一行的值堆积到一起</code></pre>
+<pre><code><code>&lt;matplotlib.axes._subplots.AxesSubplot at 0x1dcc7928940&gt;</code></pre>
+<p><img src="./images/matplotlib模块3.png" /></p>
+<p><img src="./images/matplotlib模块4.png" /></p>
+<h1 id="直方图">直方图</h1>
+<pre><code><code># 修改背景为条纹
+plt.style.use(&#39;ggplot&#39;)
+
+mu1, mu2, sigma = 50, 100, 10
+# 构造均值为50的符合正态分布的数据
+x1 = mu1 + sigma * np.random.randn(10000)
+
+# 构造均值为100的符合正态分布的数据
+x2 = mu2 + sigma * np.random.randn(10000)
+
+fig = plt.figure()
+ax1 = fig.add_subplot(121)
+# bins=50表示每个变量的值分成50份，即会有50根柱子
+ax1.hist(x1, bins=50, color=&#39;darkgreen&#39;)
+
+ax2 = fig.add_subplot(122)
+ax2.hist(x2, bins=50, color=&#39;orange&#39;)
+
+fig.suptitle(&#39;两个正态分布&#39;,fontweight=&#39;bold&#39;, fontsize=15)
+ax1.set_title(&#39;绿色的正态分布&#39;)
+ax2.set_title(&#39;橙色的正态分布&#39;)
+plt.show()</code></pre>
+<p><img src="./images/matplotlib模块5.png" /></p>
+<h1 id="饼图">饼图</h1>
+<pre><code><code>plt.pie([10,20,30,40],labels=list(&#39;abcd&#39;),autopct=&quot;%.2f%%&quot;,explode=[0.1,0,0,0])
+plt.axis(&quot;equal&quot;)
+plt.show()</code></pre>
+<p><img src="./images/matplotlib模块6.png" /></p>
+<h1 id="散点图">散点图</h1>
+<pre><code><code>import random
+x = np.random.randn(100)
+y = np.random.randn(100)
+plt.scatter(x,y)</code></pre>
+<pre><code><code>&lt;matplotlib.collections.PathCollection at 0x1dcc9f30f28&gt;</code></pre>
+<p><img src="./images/matplotlib模块7.png" /></p>
+<h1 id="保存图标到文件">保存图标到文件</h1>
+<p><code>plt.savefig(filename.拓展名)</code></p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">参数</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">fname</td>
+<td style="text-align: left;">含有文件路径的字符串或者Python的文件型对象。</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">dpi</td>
+<td style="text-align: left;">图像分辨率，默认为100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">format</td>
+<td style="text-align: left;">显示设置文件格式(&quot;png&quot;,&quot;jpg&quot;,&quot;pdf&quot;,&quot;svg&quot;,&quot;ps&quot;,...)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">facecolor、edgecolor</td>
+<td style="text-align: left;">背景色，默认为&quot;W&quot;(白色)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">bbox_inches</td>
+<td style="text-align: left;">图表需要保存的部分。设置为”tight“，则尝试剪除图表周围空白部分</td>
+</tr>
+</tbody>
+</table>
+<p>文件类型是通过文件扩展名推断出来的。因此，如果你使用的是.pdf，就会得到一个PDF文件。</p>
+<p>savefig并非一定要写入磁盘，也可以写入任何文件型的对象，比如BytesIO：</p>
+<pre><code><code>from io import BytesIO
+buffer = BytesIO()
+plt.savefig(buffer)
+plot_data = buffer.getvalue()</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

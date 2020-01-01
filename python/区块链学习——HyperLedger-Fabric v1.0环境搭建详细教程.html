@@ -1,0 +1,136 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程</center></div><div class='banquan'>原文出处:本文由博客园博主GarudaAiacos提供。<br/>
+原文连接:https://www.cnblogs.com/grauda/p/12074861.html</div><br>
+    <blockquote>
+<p>相对与v0.6版本来说，1.0版本改变较大，此处不多说，只是将小白自己搭建1.0环境的过程分享给大家。希望对大家能有所帮助！<br />
+这一篇可能对前面的环境搭建会写的有些粗略，如有疑问，可阅读上一篇V0.6版本的环境搭建详细步骤。</p>
+</blockquote>
+<h1 id="一.环境准备">一.环境准备</h1>
+<blockquote>
+<p>云服务器（CentOS7.2）<br />
+Go语言环境<br />
+docker安装<br />
+docker-compose安装</p>
+</blockquote>
+<h1 id="二.环境搭建">二.环境搭建</h1>
+<h2 id="更新yum">更新yum</h2>
+<p>保证我们安装的软件包都是最新版本的；升级所有包同时也升级软件和系统内核</p>
+<pre><code><code>yum -y update</code></pre>
+<h2 id="安装go语言环境">安装Go语言环境</h2>
+<p>Go中文网：<a href="https://studygolang.com/dl" class="uri">https://studygolang.com/dl</a><br />
+选择Linux系统的'go1.13.5.linux-amd64.tar.gz'下载，使用Xftp上传至<code>/usr/local</code>目录下<br />
+然后使用以下命令进行解压：</p>
+<pre><code><code>tar -zxvf go1.13.5.linux-amd64.tar.gz</code></pre>
+<p>配置环境变量<code>vim /etc/profile</code>,在文件开头添加如下内容：</p>
+<pre><code><code>export PATH=$PATH:/usr/local/go/bin
+export GOROOT=/usr/local/go  
+export GOPATH=$HOME/go  
+export PATH=$PATH:$HOME/go/bin</code></pre>
+<p>重新加载配置文件：<code>source /etc/profile</code><br />
+使用<code>go env</code>命令验证<br />
+<img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程0.png" /></p>
+<h2 id="安装docker">安装Docker</h2>
+<h3 id="安装docker所需要的依赖">2.3.1 安装docker所需要的依赖</h3>
+<pre><code><code>yum install -y yum-utils device-mapper-persistent-data lvm2</code></pre>
+<h3 id="查看docker版本并安装">2.3.2 查看docker版本并安装</h3>
+<pre><code><code>yum list docker-ce --showduplicates | sort -r
+yum install docker-ce-18.03.1.ce</code></pre>
+<h3 id="启动docker设置开机启动并验证是否安装成功">2.3.3 启动docker，设置开机启动并验证是否安装成功</h3>
+<pre><code><code>systemctl start docker
+docker version</code></pre>
+<h2 id="安装docker-compose">安装docker-compose</h2>
+<h3 id="安装python-pip并进行升级查看版本">2.4.1 安装python-pip并进行升级,查看版本</h3>
+<pre><code><code>yum install -y python-pip
+pip install --upgrade pip
+pip --version</code></pre>
+<p><img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程1.png" /><br />
+下载docker-compose</p>
+<pre><code><code>curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose</code></pre>
+<p>进入<code>/usr/local/bin</code>目录下，修改下载的文件的权限</p>
+<pre><code><code>chmod +x docker-compose</code></pre>
+<h1 id="三.fabric源码以及镜像下载">三.fabric源码以及镜像下载</h1>
+<h2 id="下载fabric源码">下载fabric源码</h2>
+<p>如果你没有安装git的话，先下载git</p>
+<pre><code><code>yum install git</code></pre>
+<p>在Go的工作空间中创建fabric源码目录，进入创建的目录进行下载(这一步时间较长，如果失败可以重新尝试，或者可以更换源)</p>
+<pre><code><code>mkdir -p /root/go/src/github.com/hyperledger/
+cd /root/go/src/github.com/hyperledger/
+git clone https://github.com/hyperledger/fabric.git</code></pre>
+<p><img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程2.png" /><br />
+进入下载的<code>fabric</code>目录，然后查看我们所在的分支，再切换到v1.0.0分支</p>
+<pre><code><code>cd /usr/local/go/src/github.com/hyperledger/fabric/
+git branch
+git checkout v1.0.0</code></pre>
+<h2 id="删除0.6版本的容器以及镜像">删除0.6版本的容器以及镜像</h2>
+<p>如果你从来没启动过其他版本的fabric网络的话，可<a href="#下载镜像">忽略</a>此步骤<br />
+查看所有容器并删除(需要保证你的docker是启动状态)</p>
+<pre><code><code>docker ps -a
+docker rm -f $(docker ps -aq)</code></pre>
+<p>查看所有镜像并删除（需要保证你的docker是启动状态）</p>
+<pre><code><code>docker images -a
+docker rmi -f $(docker images -aq)</code></pre>
+<h2 id="下载fabric1.0.0镜像"><span id="下载镜像">下载fabric1.0.0镜像</span></h2>
+<p>回到我们上上一步，此时我们已经使用<code>git checkout v1.0.0</code>切换到了v1.0.0分支,进入以下目录,执行官方提供的批量下载镜像的脚本即可</p>
+<pre><code><code>cd /root/go/src/github.com/hyperledger/fabric/examples/e2e_cli/
+source download-dockerimages.sh -c x86_64-1.0.0 -f x86_64-1.0.0</code></pre>
+<p>等待下载完成后执行<code>docker images</code>命令查看下载的镜像,如下图：<br />
+<img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程3.png" /></p>
+<h1 id="四.启动与测试">四.启动与测试</h1>
+<h2 id="启动fabric网络">启动fabric网络</h2>
+<p>使用官方提供的自动化脚本进行启动和关闭，接下来我们启动官方提供的测试用例example02（注意：此时我们还在<code>/root/go/src/github.com/hyperledger/fabric/examples/e2e_cli/</code>目录下）</p>
+<pre><code><code>./network_setup.sh up</code></pre>
+<p>如果无报错，出现以下页面，则启动成功;如果有报错，则在<a href="#错误">最后</a>，有笔者在搭建时遇到的错误，可进行参考。<br />
+<img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程4.png" /></p>
+<h2 id="测试">测试</h2>
+<h3 id="查询a的余额-c指定通道-n指定链码名称">查询a的余额(-C:指定通道；-n:指定链码名称)</h3>
+<pre><code><code>peer chaincode query -C mychannel -n mycc -c &#39;{&quot;Args&quot;:[&quot;query&quot;,&quot;a&quot;]}&#39;</code></pre>
+<p><img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程5.png" /></p>
+<h3 id="调用链码a给b转账50元-o指定背书节点-tlstrue开启加密通信cafile指定证书文件的路径">调用链码，a给b转账50元(-o:指定背书节点； tls=true:开启加密通信；cafile：指定证书文件的路径)</h3>
+<pre><code><code>peer chaincode invoke -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n mycc -c &#39;{&quot;Args&quot;:[&quot;invoke&quot;,&quot;a&quot;,&quot;b&quot;,&quot;50&quot;]}&#39;</code></pre>
+<p><img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程6.png" /></p>
+<h3 id="再一次查询a的余额">再一次查询a的余额</h3>
+<p><img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程7.png" /></p>
+<h1 id="错误"><span id="错误">错误</span></h1>
+<blockquote>
+<p>这一部分只是记录笔者自己在搭建过程中遇到的错误，如有其他错误，请自行百度。</p>
+</blockquote>
+<p>错误1：</p>
+<blockquote>
+<p><img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程8.png" /><br />
+解决方案：修改<code>/etc/resolv.conf</code>文件,将<code>options</code>开头的一行注释掉，修改后的文件如下图：<br />
+<img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程9.png" /></p>
+</blockquote>
+<p>错误2：</p>
+<blockquote>
+<p><img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程10.png" /><br />
+解决方案：修改<code>/root/go/src/github.com/hyperledger/fabric/examples/e2e_cli/base/</code>目录下的<code>peer-bash.yaml</code>文件，修改名称为<code>e2e_cli_default</code>,修改完如下图：<br />
+<img src="./images/区块链学习——HyperLedger-Fabric v1.0环境搭建详细教程11.png" /></p>
+</blockquote>
+<blockquote>
+<p>最后呢，说明一下，作者也是刚入坑的小白，这篇文章也就是记录一下原始搭建的过程，方便以后查看。如果对你有帮助的话，非常荣幸，如果有不对的地方，欢迎留言指正！</p>
+</blockquote>
+<h4 id="参考">参考</h4>
+<p><a href="https://www.cnblogs.com/studyzy/p/7437157.html" target="_blank">深蓝居博客</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

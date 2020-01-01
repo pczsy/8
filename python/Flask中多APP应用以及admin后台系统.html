@@ -1,0 +1,99 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Flask中多APP应用以及admin后台系统' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Flask中多APP应用以及admin后台系统</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11617675.html</div><br>
+    <h2 id="一.多app">一.多APP</h2>
+<pre><code><code>from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.serving import run_simple
+from flask import Flask, current_app
+app1 = Flask(&#39;app01&#39;)
+app2 = Flask(&#39;app02&#39;)
+
+@app1.route(&#39;/index&#39;)
+def index():
+    return &quot;app01&quot;
+
+@app2.route(&#39;/index2&#39;)
+def index2():
+    return &quot;app2&quot;
+
+# http://localhost:5000/index
+# http:/localhost:5000/sec/index2
+dm = DispatcherMiddleware(app1, {
+    &#39;/sec&#39;: app2,
+})
+
+if __name__ == &quot;__main__&quot;:
+    run_simple(&#39;localhost&#39;, 5000, dm)</code></pre>
+<h2 id="二.flask-admin">二.flask-admin</h2>
+<h3 id="安装">安装</h3>
+<pre><code><code>pip3 install flask_admin</code></pre>
+<h3 id="简单使用">简单使用</h3>
+<pre><code><code>from flask import Flask
+from flask_admin import Admin
+
+app = Flask(__name__)
+#将app注册到adminzhong 
+admin = Admin(app)
+
+if __name__==&quot;mian&quot;:
+
+    app.run()
+#访问
+#127.0.0.1:5000/admin端口，会得到一个空白的页面</code></pre>
+<h3 id="将表模型注册到admin中">将表模型注册到admin中</h3>
+<pre><code><code>#在将表注册之前应该对app进行配置
+SQLALCHEMY_DATABASE_URI = &quot;mysql+pymysql://root:@127.0.0.1:3307/py9api?charset=utf8mb4&quot;
+SQLALCHEMY_POOL_SIZE = 5
+SQLALCHEMY_POOL_TIMEOUT = 30
+SQLALCHEMY_POOL_RECYCLE = -1
+
+#导入models文件的中的表模型
+from flask_admin.contrib.sqla import ModelView
+from api.models import Stock,Product,Images,Category,Wxuser,Banner
+
+admin.add_view(ModelView(Stock, db.session))
+admin.add_view(ModelView(Product, db.session))
+
+admin.add_view(ModelView(Category, db.session))</code></pre>
+<h3 id="如果有个字段是图片指端">如果有个字段是图片指端</h3>
+<pre><code><code>#配置上传文件的路径
+#导入from flask_admin.contrib.fileadmin import FileAdmin
+from flask_admin.contrib.fileadmin import FileAdmin,form
+file_path = op.join(op.dirname(__file__), &#39;static&#39;)
+admin = Admin(app)
+admin.add_view(FileAdmin(file_path, &#39;/static/&#39;, name=&#39;文件&#39;))
+
+#如果有个字段要是上传文件重写该方法的modleView类，假设imgae_url是文件图片的字段
+class ImagesView(ModelView):
+
+    form_extra_fields = {
+        &#39;image_url&#39;: form.ImageUploadField(&#39;Image&#39;,
+                                          base_path=file_path,
+                                          relative_path=&#39;uploadFile/&#39;
+                                          )
+    }
+
+admin.add_view(ImagesView(Images, db.session))</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

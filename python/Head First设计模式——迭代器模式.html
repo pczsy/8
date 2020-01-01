@@ -1,0 +1,345 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Head First设计模式——迭代器模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Head First设计模式——迭代器模式</center></div><div class='banquan'>原文出处:本文由博客园博主Spring2Sun提供。<br/>
+原文连接:https://www.cnblogs.com/SunSpring/p/11993801.html</div><br>
+    <p>前言：迭代器模式平时用的不多，因为不管C#还是Java都已经帮我封装了，但是你是否知道平时经常在用的东西本质是怎么回事呢。</p>
+<p>看完迭代器模式你就知道C# foreach循环是怎么实现的了，我的另一篇<span style="color: #0000ff;"><a class="postTitle2" href="https://www.cnblogs.com/SunSpring/p/9829298.html"><span style="color: #0000ff;">C# Foreach循环本质与枚举器</span></a></span>就讲解了foreach的本质，其中用到的就是迭代器模式。</p>
+<p>按照惯例，例子走起。（写了几个小时浏览器崩溃，我看见在自动保存啊，结果没内容，再撸一遍精简点的吧）</p>
+<p><img src="./images/Head First设计模式——迭代器模式0.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2><strong>一、餐馆合并菜单</strong></h2>
+<p>现在有两个餐馆和并，其中一个餐馆做早餐，一个做晚餐。他们都有自己管理菜单的方式，现在两个餐馆合并需要对菜单进行统一管理，先让我来看看他们原来的样子。</p>
+<p>两个菜单的菜单项都是一样的</p>
+<p>　　菜单项</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class MenuItme
+    {
+        //名字
+        public string Name { get; set; }
+        //描述
+        public string Description { get; set; }
+        //是否素菜
+        public bool Vegetarian { get; set; }
+        //价格
+        public double Price { get; set; }
+
+        public MenuItme(string name, string description, bool vegetarian, double price) {
+            Name = name;
+            Description=description;
+            Vegetarian = vegetarian;
+            Price = price;
+        }
+    }
+</pre>
+</div>
+<p>　　早餐菜单，使用List管理，不限制长度</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class BreakFastMenu
+    {
+        private List&lt;MenuItme&gt; menuItmes;
+        public BreakFastMenu()
+        {
+            menuItmes = new List&lt;MenuItme&gt;();
+            AddItem("梅菜扣肉饼", "好吃", false, 7);
+            //菜单项...
+        }
+
+        public void AddItem(string name, string description, bool vegetarian, double price)
+        {
+            MenuItme menuItme = new MenuItme(name, description, vegetarian, price);
+            menuItmes.Add(menuItme);
+        }
+
+        public List&lt;MenuItme&gt; GetMenuItmes()
+        {
+            return menuItmes;
+        }
+    }
+</pre>
+</div>
+<p>　　晚餐菜单，使用数组管理，限制长度为6</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class DinerMenu
+    {
+        static readonly int Max_Items = 6;
+        private int numberOfImtes = 0;
+        private MenuItme[] menuItmes;
+        public DinerMenu()
+        {
+            menuItmes = new MenuItme[Max_Items];
+            AddItem("爆炒癞蛤蟆", "讲究火候", false, 42);
+            //菜单项...
+        }
+
+        public void AddItem(string name, string description, bool vegetarian, double price)
+        {
+            MenuItme menuItme = new MenuItme(name, description, vegetarian, price);
+            if (numberOfImtes &gt;= Max_Items)
+            {
+                Console.WriteLine("菜单已满");
+            }
+            else
+            {
+                menuItmes[numberOfImtes] = menuItme;
+                numberOfImtes++;
+            }
+        }
+
+        public MenuItme[] GetMenuItmes()
+        {
+            return menuItmes;
+        }
+    }
+</pre>
+</div>
+<p>　　当两个餐馆合并后需要打印早餐和晚餐菜单给顾客用。</p>
+<div class="cnblogs_Highlighter">
+<pre><code>            BreakFastMenu breakFastMenu = new BreakFastMenu();
+            List&lt;MenuItme&gt; breakFastMenus = breakFastMenu.GetMenuItmes();
+
+            DinerMenu dinerMenu = new DinerMenu();
+            MenuItme[] dinerMenus = dinerMenu.GetMenuItmes();
+            //打印早餐
+            for (int i = 0; i &lt; breakFastMenus.Count; i++)
+            {
+                Console.WriteLine(breakFastMenus[i].Name);
+            }
+            //打印晚餐
+            for (int i = 0; i &lt; dinerMenus.Length; i++)
+            {
+                Console.WriteLine(dinerMenus[i].Name);
+            } 
+</pre>
+</div>
+<p>按照这种做法我们总是需要处理两个菜单，如果要打印素食，那么也需要循环遍历两个菜单。</p>
+<p>假如加入第三家餐厅合并，我们就需要循环处理三次，显然这种方式会让我们系统难以维护。</p>
+<p>接下来看我们如何进行改进</p>
+<h2><strong>二、改进菜单实现</strong></h2>
+<p>计模式就是要封装变化的部分，很明显，这里变化是：不同的集合类所造成的遍历，我们如何封装遍历集合</p>
+<p>不管早餐还是晚餐我们都要用到中括号[ ] 来取菜单项，集合长度来限制长度。</p>
+<p>现在我们要创建一个对象，将他称为迭代器（Iterator）,利用它来封装&ldquo;遍历集合内的每个对象的过程&rdquo;。</p>
+<p>　　对于List</p>
+<div class="cnblogs_Highlighter">
+<pre><code>            Iterator iterator = breakFastMenu.CreateIterator();
+            while (iterator.HasNext)
+            {
+                MenuItme menuItme = iterator.Next();
+
+            }
+</pre>
+</div>
+<p>　　</p>
+<p>　　对于数组</p>
+<div class="cnblogs_Highlighter">
+<pre><code>            Iterator iterator = dinerFastMenu.CreateIterator();
+            while (iterator.HasNext)
+            {
+                MenuItme menuItme = iterator.Next();
+
+            }</pre>
+</div>
+<p>现在两个集合的遍历都统一了，而这种方式正是迭代器模式。关于迭代器我们需要知道的第一件事情，就是它依赖于一个迭代器接口。</p>
+<p>这个接口可能有HasNext()方法高数我们是否在这个集合中还有更多的元素。</p>
+<p>Next()方法返回这个集合中的下一个对象。一旦我们有了这个接口，就可以为各种对象集合实现迭代器。</p>
+<p>现在我们对晚餐菜单进行改造，首先我们需要定义一个迭代器接口</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public interface Iterator
+    {
+        bool HasNext();
+        Object Next();
+    }</pre>
+</div>
+<p>　　加入一个晚餐菜单迭代器</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class DinerMenuIterator : Iterator
+    {
+        MenuItme[] menuItmes;
+        int position = 0;
+
+        public DinerMenuIterator(MenuItme[] menuItmes)
+        {
+            this.menuItmes = menuItmes;
+        }
+        public bool HasNext()
+        {
+            //由于数组是固定长度，不仅要检查数组，还要检查指定位置是否为空，如果为空后面就没有菜单项了
+            if (position &gt;= menuItmes.Length || menuItmes[position] == null)
+                return false;
+            else
+                return true;
+        }
+
+        public object Next()
+        {
+            MenuItme menuItme = menuItmes[position];
+            position++;
+            return menuItme;
+        }
+    }
+</pre>
+</div>
+<p>　　用迭代器改写晚餐菜单</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class DinerMenu
+    {
+        static readonly int Max_Items = 6;
+        private int numberOfImtes = 0;
+        private MenuItme[] menuItmes;
+        public DinerMenu()
+        {
+            menuItmes = new MenuItme[Max_Items];
+            AddItem("爆炒癞蛤蟆", "讲究火候", false, 42);
+            //菜单项...
+        }
+
+        public void AddItem(string name, string description, bool vegetarian, double price)
+        {
+            MenuItme menuItme = new MenuItme(name, description, vegetarian, price);
+            if (numberOfImtes &gt;= Max_Items)
+            {
+                Console.WriteLine("菜单已满");
+            }
+            else
+            {
+                menuItmes[numberOfImtes] = menuItme;
+                numberOfImtes++;
+            }
+        }
+        public Iterator CreateIterator()
+        {
+            return new DinerMenuIterator(menuItmes);
+        }
+        //public MenuItme[] GetMenuItmes()
+        //{
+        //    return menuItmes;
+        //}
+    }
+</pre>
+</div>
+<p>　　同理我们为早餐加入迭代器</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class BreakFastIterator: Iterator
+    {
+        List&lt;MenuItme&gt; menuItmes;
+        int position = 0;
+
+        public BreakFastIterator(List&lt;MenuItme&gt; menuItmes)
+        {
+            this.menuItmes = menuItmes;
+        }
+        public bool HasNext()
+        {
+            if (position &gt;= menuItmes.Count)
+                return false;
+            else
+                return true;
+        }
+
+        public object Next()
+        {
+            MenuItme menuItme = menuItmes[position];
+            position++;
+            return menuItme;
+        }
+    }
+</pre>
+</div>
+<p>　　用迭代器改写早餐菜单</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class BreakFastMenu
+    {
+        private List&lt;MenuItme&gt; menuItmes;
+        public BreakFastMenu()
+        {
+            menuItmes = new List&lt;MenuItme&gt;();
+            AddItem("梅菜扣肉饼", "好吃", false, 7);
+            //菜单项...
+        }
+
+        public void AddItem(string name, string description, bool vegetarian, double price)
+        {
+            MenuItme menuItme = new MenuItme(name, description, vegetarian, price);
+            menuItmes.Add(menuItme);
+        }
+        public Iterator CreateIterator()
+        {
+            return new BreakFastIterator(menuItmes);
+        }
+        //public List&lt;MenuItme&gt; GetMenuItmes()
+        //{
+        //    return menuItmes;
+        //}
+    }
+</pre>
+</div>
+<p>　　好了，让我们试一试迭代器工作情况</p>
+<p>&nbsp;<img src="./images/Head First设计模式——迭代器模式1.png" alt="" /></p>
+<h2><strong>三、迭代器模式</strong></h2>
+<p>&nbsp;经过第二步我们基本已经实现迭代器模式，最后我们再改良一下打印菜单，并对菜单进行统一接口的管理。</p>
+<p>定义一个Menu接口</p>
+<div class="cnblogs_Highlighter">
+<pre><code>     public interface Menu
+    {
+        Iterator CreateIterator();
+    }
+</pre>
+</div>
+<p>让早餐晚餐都实现Menu接口，并封装一个新的菜单打印</p>
+<div class="cnblogs_Highlighter">
+<pre><code>    public class NewMenu
+    {
+        Menu breakFastMenu;
+        Menu dinerMenu;
+        public NewMenu(Menu breakFastMenu, Menu dinerMenu) {
+            this.breakFastMenu = breakFastMenu;
+            this.dinerMenu = dinerMenu;
+        }
+
+        public void PrintMenu() {
+
+
+            Iterator breakFastIterator = breakFastMenu.CreateIterator();
+            Console.WriteLine("新菜单--------早餐");
+            PrintMenu(breakFastIterator);
+            Console.WriteLine("新菜单--------晚餐");
+            Iterator dinerIterator = dinerMenu.CreateIterator();
+            PrintMenu(dinerIterator);
+        }
+
+        private void PrintMenu(Iterator iterator) {
+            while (iterator.HasNext())
+            {
+                //取得下一个项
+                MenuItme menuItme = (MenuItme)iterator.Next();
+                Console.WriteLine(menuItme.Name);
+            }
+        }
+    }
+</pre>
+</div>
+<p>　　<img src="./images/Head First设计模式——迭代器模式2.png" alt="" /></p>
+<p>迭代器模式定义：</p>
+<p><span style="font-size: 16px; color: #333399;"><strong>迭代器模式：提供一种方法顺序访问一个集合对象中的各个元素，而又不暴露其内部的表示。</strong></span></p>
+<p><span style="font-size: 14px; color: #000000;">迭代器模式让我们能游走于集合内的每一个元素，而又不暴露其内部的表示。</span></p>
+<p><span style="font-size: 14px; color: #000000;">把游走的任务放在迭代器上，而不是集合上。这样简化了集合的接口和实现，也让责任各得其所。</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

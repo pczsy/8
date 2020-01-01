@@ -1,0 +1,3525 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修前端' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>前端</center></div><div class='banquan'>原文出处:本文由博客园博主corei5tj提供。<br/>
+原文连接:https://www.cnblogs.com/tangjian219/p/11566661.html</div><br>
+    <h1 id="前端html">前端HTML</h1>
+<h2 id="html">HTML</h2>
+<pre><code><code>web服务本质
+浏览器和server的交互
+import socket
+server = socket.socket()
+server.bind((&#39;127.0.0.1&#39;,8848))
+server.listen()
+try:
+    conn,addr = server.accept()
+    print(conn.recv(1024).decode(&#39;utf-8&#39;))
+    conn.send(b&quot;HTTP/1,1 200 OK \r\n\r\n&quot;)
+    conn.send(b&quot;hello&quot;)
+except Exception as e:
+    print(e)
+finally:
+    conn.close()
+    server.close()
+
+    
+ 　向浏览器发请求 --&gt; HTTP协议 --&gt; 服务端接收请求 --&gt; 服务端返回响应 --&gt; 服务端把HTML文件内容发给浏览器 --&gt; 浏览器渲染页面
+
+
+*****web端的组成*****
+HTML 一堆标签组成的内容 基础的排版和样式
+css  描述了标签的样式
+js   动态的效果
+
+
+*****HTML是什么？*****
+超文本标记语言（Hypertext Markup Language, HTML）是一种用于创建网页的标记语言
+本质上是浏览器可识别的规则，我们按照规则写网页，浏览器根据规则渲染我们的网页。对于不同的浏览器，对同一个标签可能会有不同的解释。(兼容性问题)
+
+
+*****标记*****
+标记:所有内容都是包裹在标签中&lt;&gt;  &lt;&gt;
+标记(标签)分类:
+    双边标记 &lt;body&gt;(开始标签) &lt;/body&gt;(闭合标签)
+    单边标记 &lt;meta&gt; 没有/的
+</code></pre>
+<h2 id="html文档结构">HTML文档结构</h2>
+<pre><code><code>&lt;!DOCTYPE html&gt; 
+&lt;html lang=&quot;zh-CN&quot;&gt;   #这个lang表示语言，zh-CN是中文的意思，就是说，你整个文档的内容以中文为主，如果以英文为主，就写成lang=&#39;en&#39;
+
+&lt;head&gt; 
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;title&gt;HTML文档结构&lt;/title&gt;  #网页标题
+&lt;/head&gt;
+&lt;body&gt; 
+    #内容部分
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+1.&lt;!DOCTYPE html&gt;声明为HTML5文档。
+2.&lt;html&gt;、&lt;/html&gt;是文档的开始标记和结束的标记。是HTML页面的根元素，在它们之间是文档的头部（head）和主体（body）。
+3.&lt;head&gt;、&lt;/head&gt;定义了HTML文档的开头部分。它们之间的内容不会在浏览器的文档窗口显示。包含了文档的元（meta）数据，配置信息等，是给浏览器看的，你看到的是在body标签里面写的。
+4.&lt;title&gt;、&lt;/title&gt;定义了网页标题，在浏览器标题栏显示。（修改一下title中的内容，然后看一下浏览器，你就会发现title是什么了）
+5.&lt;body&gt;、&lt;/body&gt;之间的文本是可见的网页主体内容。
+
+&lt;!--注释内容--&gt;  #找到一行内容ctrl+/就能注释，注释的内容不会在网页上显示出来</code></pre>
+<h2 id="body常用标签和特殊符号">body常用标签和特殊符号</h2>
+<pre><code><code>body标签
+    标题标签 &lt;h1&gt;标题内容&lt;h1&gt;....&lt;h6&gt;标题内容&lt;h6&gt;
+    标签分类:
+
+        块级标签(行外标签):独占一行,可以包含内敛标签和某些块级标签,div,p,h1-h6,hr,form
+        内敛标签(行内标签):不独占一行,不能包含块级标签,只能包含内敛标签 b,i,u,s,a,img,select,input,span,textarea
+        p标签(p标签内部不能包含块级标签和p标签)
+        
+#基本标签
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;HTML标签&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;a name=&quot;top&quot;&gt;这是顶部&lt;/a&gt;   &lt;!--设置锚点 在最底部有对应锚点--&gt;
+    &lt;!--数字表示字体的粗细--&gt;
+    &lt;h1&gt;标题&lt;/h1&gt;
+    &lt;h2&gt;标题&lt;/h2&gt;
+    &lt;h3&gt;标题&lt;/h3&gt;
+    &lt;h4&gt;标题&lt;/h4&gt;
+    &lt;h5&gt;标题&lt;/h5&gt;
+    &lt;h6&gt;标题&lt;/h6&gt;
+    
+    &lt;b&gt;加粗&lt;/b&gt;
+    &lt;i&gt;斜体&lt;/i&gt;
+    &lt;u&gt;下划线&lt;/u&gt;
+    &lt;s&gt;删除&lt;/s&gt;
+    &lt;p&gt;段落标签&lt;/p&gt;        &lt;!--独占一个段落--&gt;
+    
+    &lt;div&gt;我是div&lt;/div&gt;     &lt;!--div标签用来定义一个块级元素，并无实际的意义。主要通过CSS样式为其赋予不同的表现。--&gt;
+    
+    &lt;span&gt;我是span&lt;/span&gt;  &lt;!--span标签用来定义内联(行内)元素，并无实际的意义。主要通过CSS样式为其赋予不同的表现--&gt;
+    
+    &lt;img src=&quot;timg.jpg&quot; alt=&quot;图片未加载成功的提示&quot; title=&quot;鼠标悬浮提示信息&quot; width=&quot;宽&quot; height=&quot;高&quot;&gt;  &lt;!--长和高可以设置一个,会等比例缩放,src相对路径必须在同一目录下或绝对路径--&gt;  
+    
+    &lt;a href=&quot;http://baidu.com&quot; target=&quot;_blank&quot;&gt;百度一下&lt;/a&gt; &lt;!--超链接标签是指从一个网页指向一个目标的连接关系,target默认不写是_self 在原网页刷新覆盖,target=&quot;_blank&quot;是新开个网页--&gt;  
+    &lt;meta http-equiv=&quot;refresh&quot; content=&quot;2;
+URL = http://baidu.com&quot;&gt;   &lt;!--2秒后跳转到百度,在原来网页直接覆盖跳转--&gt;　
+    
+    &lt;!--无序列表--&gt;　　
+    &lt;!--type属性：
+        disc（实心圆点，默认值）
+        circle（空心圆圈）
+        square（实心方块）
+        none（无样式）--&gt;
+    &lt;ul type=&quot;disc&quot;&gt;
+        &lt;li&gt;第一项&lt;/li&gt;
+        &lt;li&gt;第二项&lt;/li&gt;
+        &lt;li&gt;第三项&lt;/li&gt;
+    &lt;/ul&gt;
+    
+    &lt;!--有序列表--&gt;　
+    &lt;!--type属性： 
+        1 数字列表，默认值
+        A 大写字母
+        a 小写字母
+        Ⅰ大写罗马
+        ⅰ小写罗马
+    start是从数字几开始--&gt;
+    &lt;ol type=&quot;1&quot; start=&quot;2&quot;&gt;
+        &lt;li&gt;第一项&lt;/li&gt;
+        &lt;li&gt;第二项&lt;/li&gt;
+        &lt;li&gt;第三项&lt;/li&gt;
+    &lt;/ol&gt;
+    
+    &lt;!--标题列表（就像大纲一样，有一个层级效果--&gt;
+    &lt;dl&gt;
+        &lt;dt&gt;标题1&lt;/dt&gt;
+        &lt;dd&gt;内容1&lt;/dd&gt;
+        &lt;dt&gt;标题2&lt;/dt&gt;
+        &lt;dd&gt;内容2&lt;/dd&gt;
+    &lt;/dl&gt;
+    
+    &lt;!--表格 border表示:边界,最外层边框宽度,cellspacing表示内容与内容之间的小表格间隙,注意表格书写的格式--&gt;
+    &lt;!--属性:
+        border: 表格边框.
+        cellpadding: 内边距 （内边框和内容的距离）
+        cellspacing: 外边距.（内外边框的距离）
+        width: 像素 百分比.（最好通过css来设置长宽）
+        rowspan: 单元格竖跨多少行,重复内容合并,在表格的内容中修改
+例如:&lt;td rowspan=&quot;4&quot;&gt;男&lt;/td&gt;,其他内容中的&quot;男&quot;可以删除
+        colspan: 单元格横跨多少列（即合并单元格）,同上(rowspan)
+    --&gt;
+    
+    &lt;table border=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+        &lt;caption&gt;去西天的成员&lt;/caption&gt; &lt;!--设置表格名--&gt;
+        &lt;thead&gt;   &lt;!--标题部分--&gt;
+            &lt;tr&gt;
+                &lt;th&gt;序号&lt;/th&gt;
+                &lt;th&gt;姓名&lt;/th&gt;
+                &lt;th&gt;性别&lt;/th&gt;
+                &lt;th&gt;爱好&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        
+         &lt;!--内容部分--&gt;
+        &lt;tbody&gt;
+            &lt;tr&gt;
+                &lt;td&gt;1&lt;/td&gt;
+                &lt;td&gt;八戒&lt;/td&gt;
+                &lt;td&gt;男&lt;/td&gt;
+                &lt;td&gt;翠兰&lt;/td&gt;
+            &lt;/tr&gt;
+
+            &lt;tr&gt;
+                &lt;td&gt;2&lt;/td&gt;
+                &lt;td&gt;悟空&lt;/td&gt;
+                &lt;td&gt;男&lt;/td&gt;
+                &lt;td&gt;桃子&lt;/td&gt;
+            &lt;/tr&gt;
+
+            &lt;tr&gt;
+                &lt;td&gt;3&lt;/td&gt;
+                &lt;td&gt;莎莎&lt;/td&gt;
+                &lt;td&gt;男&lt;/td&gt;
+                &lt;td&gt;水&lt;/td&gt;
+            &lt;/tr&gt;
+
+            &lt;tr&gt;
+                &lt;td&gt;4&lt;/td&gt;
+                &lt;td&gt;唐僧&lt;/td&gt;
+                &lt;td&gt;男&lt;/td&gt;
+                &lt;td&gt;白骨精&lt;/td&gt;
+            &lt;/tr&gt;
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+    &lt;a herf=&quot;#top&quot;&gt;回到顶部&lt;/a&gt;   &lt;!--和开头的设置锚点相对应herf和name--&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+常用特殊字符
+空格(html中默认是不显示空格的，也就是说通过空格键加了空格也没有多个空格的效果，加多少个都是显示一个空格效果，需要这些特殊字符才能显示出空格效果) 
+空格 &amp;nbsp;
+&gt;    &amp;gt;
+&lt;    &amp;lt;
+&amp;    &amp;amp;
+¥    &amp;yen;
+版权标识（写公司网站的时候会用到）   &amp;copy;
+注册（一个圆圈里面有个R）   &amp;reg;</code></pre>
+<h2 id="form表单和input">form表单和input</h2>
+<pre><code><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;input和form表单&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;!--action属性:值是一个网址,将数据提交到哪个网址去
+method属性:提交方法,默认是get,效果是在网址上可以看到提交的数据--&gt;
+&lt;form action=&quot;网址&quot; method=&quot;post/get 可以不写默认get&quot;&gt;
+    
+    &lt;!--readonly 是只读模式,输入不了--&gt;
+    &lt;p&gt;&lt;input type=&quot;text&quot; name=&quot;username&quot; value=&quot;1&quot; readonly placeholder=&quot;请输入用户名&quot;&gt;&lt;/p&gt;   &lt;!--第一种在文本框中显示提示信息,如果需要提交必须写name,value--&gt;
+    &lt;p&gt;&lt;input type=&quot;password&quot; name=&quot;password&quot; value=&quot;2&quot; placeholder=&quot;请输入密码&quot;&gt;&lt;/p&gt;
+    
+    用户名:&lt;input type=&quot;text&quot; name=&quot;username&quot; value=&quot;1&quot;&gt;   &lt;!--第二种在文本框外显示提示信息--&gt;
+    密码:&lt;input type=&quot;password&quot; name=&quot;password&quot; value=&quot;2&quot;&gt;  &lt;!--显示密文--&gt;
+
+&lt;!--单选 checked=&quot;checked&quot;设置默认--&gt;
+    &lt;p&gt;性别:
+        &lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;male&quot;&gt;男
+        &lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;famale&quot;&gt;女
+    &lt;/p&gt;
+ 
+&lt;!--多选 checked=&quot;checked&quot;设置默认--&gt;
+    &lt;p&gt;爱好:
+        &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;singing&quot;&gt;唱歌
+        &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;dancing&quot;&gt;跳
+        &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;rep&quot;&gt;rep
+        &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;basketball&quot;&gt;篮球
+    &lt;/p&gt;
+
+&lt;!--下拉选框单选--&gt;
+    &lt;select name=&quot;city&quot;&gt;
+        &lt;option value=&quot;1&quot;&gt;上海&lt;/option&gt;
+        &lt;option value=&quot;2&quot;&gt;南京&lt;/option&gt;
+        &lt;option value=&quot;3&quot;&gt;北京&lt;/option&gt;
+        &lt;option value=&quot;4&quot;&gt;广州&lt;/option&gt;
+    &lt;/select&gt;
+
+&lt;!--下拉选框多选--&gt;
+    &lt;p&gt;按住Ctrl进行多选&lt;/p&gt;
+    &lt;select name=&quot;city&quot; multiple=&quot;multiple&quot;&gt;
+        &lt;option value=&quot;1&quot;&gt;上海&lt;/option&gt;
+        &lt;option value=&quot;2&quot;&gt;南京&lt;/option&gt;
+        &lt;option value=&quot;3&quot;&gt;北京&lt;/option&gt;
+        &lt;option value=&quot;4&quot;&gt;广州&lt;/option&gt;
+    &lt;/select&gt;
+    
+&lt;!--日期选择--&gt;
+    &lt;p&gt;选择日期:
+        &lt;input type=&quot;date&quot; name=&quot;date&quot; value=&quot;date&quot;&gt;
+    &lt;/p&gt;
+
+&lt;!--隐藏输入框--&gt;  
+    &lt;p&gt;
+        &lt;input type=&quot;hidden&quot;&gt;
+    &lt;/p&gt;
+      
+&lt;!--文本选择框,可以在本地文件中选择上传的文件--&gt; 
+    &lt;p&gt;
+        &lt;input type=&quot;file&quot; name=&quot;file&quot; value=&quot;file&quot;&gt;
+    &lt;/p&gt;
+
+&lt;!--普通按钮--&gt;
+    &lt;p&gt;
+        &lt;input type=&quot;button&quot; value=&quot;普通按钮&quot;&gt;
+    &lt;/p&gt;
+
+&lt;!--重置按钮,在form表单中使用--&gt;
+    &lt;p&gt;
+        &lt;input type=&quot;reset&quot; value=&quot;重置&quot;&gt;
+    &lt;/p&gt;
+    
+&lt;!--多行文本输入框--&gt;
+    &lt;h5&gt;反馈:&lt;/h5&gt;
+    &lt;p&gt;
+        &lt;textarea cols=&quot;30&quot; rows=&quot;10&quot;&gt;&lt;/textarea&gt;
+    &lt;/p&gt;
+    
+
+&lt;!--提交按钮--&gt;
+    &lt;p&gt;
+        &lt;input type=&quot;submit&quot;&gt;
+    &lt;/p&gt;
+    
+    &lt;a href=&quot;mailto:邮箱号&quot;&gt;联系我们&lt;/a&gt;  &lt;!--发送邮件功能--&gt;       
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+input文本输入框,input标签如果想将数据提交到后台,那么必须写name属性
+input选择框,必须写name属性和value属性
+input选择框,name值相同的算是一组选择框</code></pre>
+<h2 id="label标签">label标签</h2>
+<pre><code><code>　　1.label 元素不会向用户呈现任何特殊效果。但是点击label标签里面的文本，那么和他关联的input标签就获得了光标，让你输入内容
+　　2.&lt;label&gt; 标签的 for 属性值应当与相关元素的 id 属性值相同。
+      
+第一种写法
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;label&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;p&gt;
+    &lt;label for=&quot;username&quot;&gt;用户名:&lt;/label&gt;
+    &lt;input type=&quot;text&quot; id=&quot;username&quot;&gt;
+    &lt;/p&gt;
+
+    &lt;p&gt;
+    &lt;label for=&quot;password&quot;&gt;密码:&lt;/label&gt;
+    &lt;input type=&quot;password&quot; id=&quot;password&quot;&gt;
+    &lt;/p&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+      
+第二种写法
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;label&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;p&gt;
+    &lt;label&gt;
+        用户名:&lt;input type=&quot;text&quot;&gt;
+    &lt;/label&gt;
+    &lt;/p&gt;
+
+    &lt;p&gt;
+    &lt;label&gt;
+        密码:&lt;input type=&quot;password&quot;&gt;
+    &lt;/label&gt;
+    &lt;/p&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h1 id="前端css">前端css</h1>
+<h2 id="css">css</h2>
+<pre><code><code>CSS（Cascading Style Sheet，层叠样式表)定义如何显示HTML元素，给HTML设置样式，让它更加美观。当浏览器读到一个样式表，它就会按照这个样式表来对文档进行格式化（渲染）。
+
+每个CSS样式由两个组成部分：选择器和声明。声明又包括属性和属性值。每个声明之后用分号结束。
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;www.css.com&lt;/title&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+        
+/*通过字典和body中的p标签关联起来,声明 字典中为样式属性名和属性值*/
+/*        p{*/
+/*            font-size: 30px;*/
+/*            color: aquamarine;*/
+/*            font-weight: bold*/
+/*        }*/
+
+/*通过字典和body中的span标签关联起来,声明 字典中为样式属性名和属性值*/
+        span{
+            font-size: 30px;
+            color: darkturquoise;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;!--给一行代码加样式属性,但很多代码需要的话就会很繁琐,维护起来也不方便--&gt;
+&lt;!--    &lt;p style=&quot;font-size: 30px;color: aquamarine;font-weight: bold&quot; &gt;--&gt;
+&lt;!--        www.css.com--&gt;
+&lt;!--    &lt;/p&gt;--&gt;
+
+
+    &lt;p&gt;
+&lt;!--通过span标签,给一段内容加样式属性,不影响span外的其他内容,但是少量代码需要加样式的话还可以,但是代码量大的话,重复功能多,
+维护和修改起来不方便,所以尽量不在span标签内部加样式属性,通过在head中添加对span标签的装饰--&gt;
+&lt;!--        &lt;span style=&quot;font-size: 30px;color: blanchedalmond;font-weight: lighter&quot;&gt;hello world&lt;/span&gt;--&gt;
+&lt;!--        www.&lt;span style=&quot;font-size: 30px;color: darkturquoise;&quot;&gt;css&lt;/span&gt;.com--&gt;
+
+        &lt;span&gt;www.&lt;/span&gt;css
+        &lt;span&gt;.com&lt;/span&gt;
+
+    &lt;/p&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+</code></pre>
+<h2 id="css的几种引用方式">css的几种引用方式</h2>
+<h3 id="行内样式内联式">行内样式(内联式)</h3>
+<pre><code><code>优点:不会产生额外的请求
+缺点:1.重复代码多,造成整个文件的体积变大
+     2.不利于维护
+     3.不符合结构与样式分离的结构
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;css应用方式&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;!--内联式--&gt;
+    &lt;p style=&quot;color: red;&quot;&gt;
+        css的引用方式:内联式
+    &lt;/p&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="内部样式嵌入式">内部样式(嵌入式)</h3>
+<pre><code><code>优点:能初步实现结构与样式的结构分离,不会产生额外请求
+缺点:1.代码复用
+    2.多个页面不适用与嵌入式
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;css应用方式&lt;/title&gt;
+    &lt;!--嵌入式--&gt;
+    &lt;style&gt;
+        span{
+            color: blue;
+        }
+    &lt;/style&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;span&gt;css的引用方式:内部样式(嵌入式)&lt;/span&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="外部样式">外部样式</h3>
+<pre><code><code>优点:1.易于代码维护
+     2.可以重复使用
+     3.可以共享文件中的属性(类似于模块,需要改该样式就可以听过link标签来关联)
+     4.实现了样式结构分离
+缺点:会产生额外请求(可以用其他工具消除请求),可以忽略
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;!--外部样式,建立另一个css文件并建立内容样式属性,通过link标签与样式文件关联起来--&gt;
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;index.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h4&gt;css的引用方式:外部样式&lt;/h4&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+index.css中的内容样式
+h4{
+    color: hotpink;
+}</code></pre>
+<h3 id="三种引入方式的优先级">三种引入方式的优先级</h3>
+<pre><code><code>浏览器会根据优先级来显示样式
+
+先显示行内样式,其次显示离装饰标签近的样式
+
+
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;css&lt;/title&gt;
+
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;index.css&quot;&gt;
+    
+    &lt;style&gt;
+        p{color: blue}
+    &lt;/style&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;p style=&quot;color:red&quot;&gt;lalala&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+&lt;!--结果是红色的lalala--&gt;
+
+
+
+
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;css&lt;/title&gt;
+
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;index.css&quot;&gt;
+    
+    &lt;style&gt;
+        p{color: blue}
+    &lt;/style&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;p&gt;lalala&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+&lt;!--结果是blue色的lalala--&gt;</code></pre>
+<h2 id="css选择器">css选择器</h2>
+<pre><code><code>每个CSS样式由两个组成部分：选择器和声明。声明又包括属性和属性值。每个声明之后用分号结束。
+css选择器分类
+一.基础选择器:
+    标签选择器
+    类选择器(常用)
+    id选择器(常用)
+二.高级选择器:
+    后代选择器
+    子代选择器
+    组合选择器
+    交集选择器
+    伪类选择器</code></pre>
+<h3 id="标签选择器">标签选择器</h3>
+<pre><code><code>标签选择器
+p{color: hotpink;}
+span{color: red;}
+p和span就是标签选择器,是对HTML文件中body内容中所有的p标签和span标签         进行添加样式
+如果p标签太多,就会一次性改很多    </code></pre>
+<h3 id="id选择器">id选择器</h3>
+<pre><code><code>表示唯一的,想修改多个内容,标签选择器满足不了.
+id=&quot;xx&quot;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;css选择器&lt;/title&gt;
+        &lt;link rel=&quot;stylesheet&quot; href=&quot;index.css&quot;&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;div&gt;
+            &lt;h3&gt;小猪佩奇&lt;/h3&gt;
+            &lt;p&gt;&lt;span id=&quot;peiqi&quot;&gt;小猪佩奇身上纹,掌声送给社会人&lt;/span&gt;&lt;/p&gt;
+            &lt;p&gt;小马宝莉衣上秀,掌声送给陈独秀&lt;/p&gt;
+            &lt;p&gt;小羊苏西吹口哨,塑料友谊真美妙&lt;/p&gt;
+            &lt;p&gt;要纹就纹喜羊羊,青青草原我最狂&lt;/p&gt;
+            &lt;img src=&quot;css图片/小猪佩奇1.png&quot; alt=&quot;小猪佩奇&quot; title=&quot;小猪佩奇&quot; width=&quot;330&quot;&gt;
+
+            &lt;p&gt;鲁迅走在路上，突然听到有人叫”迅哥儿！”回头只见一个唇红齿白的美少年。&lt;/p&gt;
+            &lt;p&gt;鲁迅问：”你是？”少年说：”迅哥儿，你忘了那金黄的圆月、碧绿的西瓜地、钢叉、项带银圈的少年了吗？”&lt;/p&gt;
+            &lt;p&gt;鲁迅兴奋的抓住他：”闰土！你是闰土！”&lt;/p&gt;
+            &lt;p&gt;”不，我是猹。”&lt;/p&gt;
+            &lt;p&gt;&lt;span id=&quot;runtu&quot;&gt;闰土和猹身上纹,掌声送给周树人&lt;/span&gt;&lt;/p&gt;
+
+            &lt;img src=&quot;css图片/周树人.png&quot; alt=&quot;闰土和猹&quot; title=&quot;闰土和猹&quot; width=&quot;400&quot;&gt;
+        &lt;/div&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+
+&lt;!--index.css文件下的选择器,#+id为id选择器--&gt;
+#peiqi{color: coral;}
+#runtu{color:darkcyan;}
+</code></pre>
+<h3 id="类选择器">类选择器</h3>
+<pre><code><code>不同标签设置共同属性,一个标签可以携带多个类,前提是要用空格隔开
+class=&quot;xx xx1&quot;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;css选择器&lt;/title&gt;
+        &lt;link rel=&quot;stylesheet&quot; href=&quot;index.css&quot;&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;div&gt;
+            &lt;h3 class=&quot;active&quot;&gt;小猪佩奇&lt;/h3&gt;
+            &lt;p&gt;小猪佩奇身上纹,掌声送给社会人&lt;/p&gt;
+            &lt;p&gt;&lt;span class=&quot;active size&quot;&gt;小马宝莉衣上秀,掌声送给陈独秀&lt;/span&gt;&lt;/p&gt;
+            &lt;p&gt;小羊苏西吹口哨,塑料友谊真美妙&lt;/p&gt;
+            &lt;p&gt;要纹就纹喜羊羊,青青草原我最狂&lt;/p&gt;
+            &lt;img src=&quot;css图片/小猪佩奇1.png&quot; alt=&quot;小猪佩奇&quot; title=&quot;小猪佩奇&quot; width=&quot;330&quot;&gt;
+
+            &lt;p&gt;鲁迅走在路上，突然听到有人叫”迅哥儿！”回头只见一个唇红齿白的美少年。&lt;/p&gt;
+            &lt;p&gt;鲁迅问：”你是？”少年说：”迅哥儿，你忘了那金黄的圆月、碧绿的西瓜地、钢叉、项带银圈的少年了吗？”&lt;/p&gt;
+            &lt;p&gt;鲁迅兴奋的抓住他：”闰土！你是闰土！”&lt;/p&gt;
+            &lt;p&gt;”不，我是猹。”&lt;/p&gt;
+            &lt;p&gt;闰土和猹身上纹,掌声送给周树人&lt;/p&gt;
+
+            &lt;img src=&quot;css图片/周树人.png&quot; alt=&quot;闰土和猹&quot; title=&quot;闰土和猹&quot; width=&quot;400&quot;&gt;
+        &lt;/div&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+
+&lt;!--index.css文件下的选择器, . 为类选择器--&gt;
+.active{color: blueviolet;}
+.size{font-size: 30px;}
+</code></pre>
+<h3 id="用好类选择器">用好类选择器</h3>
+<pre><code><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;index.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;!--需求:文本颜色为绿色,字体大小为:20px--&gt;
+    &lt;p class=&quot;color size&quot;&gt;小猪佩奇身上纹,掌声送给社会人&lt;/p&gt;
+
+&lt;!--需求:文本颜色为绿色,字体粗细为:粗--&gt;
+    &lt;p class=&quot;color weigth&quot;&gt;闰土和猹身上纹,掌声送给周树人&lt;/p&gt;
+
+&lt;!--需求:字体大小为:20px,字体粗细为:粗--&gt;
+    &lt;p class=&quot;size weigth&quot;&gt;小马宝莉衣上秀,掌声送给陈独秀&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+文本中有多个重复的样式,颜色重复了两个,字体大小重复了两个,字体粗细重复了两个,所以对它有相同的样式的,用类设置,不同标签设置共同属性
+
+&lt;!--index.css文件下的类选择器--&gt;
+.size{font-size: 20px}
+.color{color: green}
+.weigth{font-weight: bold}</code></pre>
+<h3 id="后代选择器">后代选择器</h3>
+<pre><code><code>div内所有嵌套的标签都会被修饰,div外的标签不会被装饰
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        div p{
+            color: red;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div&gt;
+        &lt;div&gt;
+            div标签2
+            &lt;p&gt;p标签&lt;/p&gt;
+        &lt;/div&gt;
+        div标签1
+
+    &lt;/div&gt;
+div标签0
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="子代选择器">子代选择器</h3>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        div&gt;p{
+            color: red;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div&gt;
+        &lt;div&gt;
+            div标签2
+            &lt;p&gt;p标签&lt;/p&gt;  &lt;!--p标签变色,其余的不变--&gt;
+        &lt;/div&gt;
+        div标签1
+    &lt;/div&gt;
+div标签0
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="毗邻选择器">毗邻选择器</h3>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        div+p{
+            color: red;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;p&gt;div上的标签&lt;/p&gt;
+    &lt;div&gt;
+        &lt;div&gt;
+            div标签2
+
+            &lt;p&gt;p标签&lt;/p&gt;
+        &lt;/div&gt;
+        div标签1
+    &lt;/div&gt;
+    &lt;p&gt;div下的标签&lt;/p&gt; &lt;!--变色,其余的不变--&gt;
+div标签0
+&lt;/body&gt;
+&lt;/html&gt;
+
+会选择与div标签下面标签离div得最近的p标签</code></pre>
+<h3 id="弟弟选择器">弟弟选择器</h3>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        div~p{
+            color: red;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;p&gt;div上的标签&lt;/p&gt;
+    &lt;div&gt;
+        &lt;div&gt;
+            div标签2
+            &lt;p&gt;p标签&lt;/p&gt;
+        &lt;/div&gt;
+        div标签1
+    &lt;/div&gt;
+    &lt;p&gt;div下的标签&lt;/p&gt; &lt;!--变色,其余的不变--&gt;
+
+div标签0
+&lt;/body&gt;
+&lt;/html&gt;
+
+与div标签同级的标签为弟弟标签(弟弟选择器)用div~p,同级的标签改变,其余的不变</code></pre>
+<h3 id="组合选择器">组合选择器</h3>
+<pre><code><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;test.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div&gt;div标签&lt;/div&gt;
+    &lt;p&gt;p标签&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+&lt;!--test.css文件--&gt;
+div,p{
+    color: blueviolet;
+    background-color: hotpink;
+    font-size: medium;
+}
+
+给div和p标签设置共同样式,给多个标签设置共同样式,用逗号隔开</code></pre>
+<h3 id="属性选择器">属性选择器</h3>
+<pre><code><code>通过标签属性来找到对应的标签
+通过属性来找写法:
+    [xxx]{color:red;} 找到有xxx属性的所有标签
+    [xxx=&#39;p2&#39;]{color:red;} 找到有xxx属性的并且属性值为p2的所有标签
+    p[title]{xx:xx;}  找到所有有title属性的p标签
+    p[title=&#39;p2&#39;]{xx:xx;} 找到所有有title属性的并且属性值为p2的p标签
+    示例:
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;Title&lt;/title&gt;
+        &lt;style&gt;
+            p[xxx=&#39;p2&#39;]{
+                color:red;
+            }
+        &lt;/style&gt;
+
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;p&gt;p1&lt;/p&gt;
+        &lt;p xxx=&quot;p2&quot;&gt;p2&lt;/p&gt;
+        &lt;p xxx=&quot;p3&quot;&gt;p3&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="伪类选择器">伪类选择器</h3>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        a:link{  /* a标签访问前设置样式 */
+            color: red;
+        }
+        a:active{  /* a标签鼠标点下去显示样式 */;
+            color: green;
+        }
+        a:visited{ /* a标签访问后显示样式 */
+            color: pink;
+        }
+        a:hover{ /* 鼠标悬浮到a标签时显示样式 */
+            color:purple;
+        }
+        div:hover{   /* 鼠标悬浮到div标签时显示样式 */
+            background-color: green;
+        }
+        input:focus{ /* input标签捕获光标时的样式显示 */
+            background-color: orange;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+
+    &lt;a href=&quot;http://www.94py.com/&quot;&gt;校草网&lt;/a&gt;
+
+    &lt;div&gt;
+
+    &lt;/div&gt;
+
+    &lt;input type=&quot;text&quot;&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+a:hover 其他标签{
+color: purple;
+}</code></pre>
+<h3 id="伪元素选择器">伪元素选择器</h3>
+<pre><code><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;style&gt;
+        div:first-letter{
+            color: green;
+            font-size: larger;
+        }
+        div:before{
+            content: &quot;!&quot;;
+            color: red;
+        }
+        div:after{
+            content: &quot;?&quot;;
+            color: purple;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div&gt;小猪佩奇身上纹,掌声送给社会人&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+#first-letter:文本内容首字母设置
+#before:在文本第一个位置添加内容或样式
+#after:在文本最后一个位置添加内容或样式
+</code></pre>
+<h3 id="css选择器权重">css选择器权重</h3>
+<pre><code><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;style&gt;
+       div .c1{
+            color: purple;
+        }
+        .c1{
+            color: red;
+        }
+        #d1{
+            color: greenyellow;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;c2&quot;&gt;
+        小猪佩奇身上纹,掌声送给社会人
+        &lt;div class=&quot;c1&quot; id=&quot;d1&quot;&gt;
+            闰土和猹身上纹,掌声送给周树人
+            &lt;p style=&quot;color: red&quot;&gt;要纹就纹喜羊羊,青青草原你最狂&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+小猪佩奇身上纹,掌声送给社会人为黑色
+闰土和猹身上纹,掌声送给周树人为绿色
+要纹就纹喜羊羊,青青草原你最狂为黄色
+
+div .c1为标签选择器和类选择器权重为10+1=11
+id选择器的权重为100
+内联样式选择器的权重为1000
+
+权重越高,对应选择器的样式会被优先显示
+组合选择器,各选择器的权重相加
+权重不进位,11类选择器组合到一起,也没有一个id选择器的优先级大,小就是小
+默认css样式是可以继承的,继承的权重为0
+权重相同的选择器,谁后写的,用谁的</code></pre>
+<h2 id="css样式">css样式</h2>
+<h3 id="高度宽度">高度宽度</h3>
+<pre><code><code>width宽度
+height高度
+    块级标签能设置高度宽度,内联标签不能设置高度宽度,内敛标签的高度宽度由标签内部的内容来决定.
+示例
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        div{
+            height: 100px;
+            width: 200px;
+            background-color: purple;
+        }
+        span{
+            height: 100px;
+            width: 200px;
+            background-color: yellow;
+        } 
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;div1&lt;/div&gt;
+&lt;span&gt;span1&lt;/span&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="字体属性">字体属性</h3>
+<pre><code><code>字体
+font-family:&#39;宋体&#39;,&#39;楷体&#39;...
+字体大小
+font-family: &#39;楷体&#39;,&#39;黑体&#39;;  /* 字体,从左往右找浏览器能够支持的字体 */
+font-size: 10px;           /* 设置字体大小,默认字体大小是16px */
+字重
+font-weight:bold;加粗
+
+字体颜色
+/*color: red;*/
+/*color: #668B8B;  */
+/*color: rgb(255, 170, 205);*/</code></pre>
+<p>字重设置的值</p>
+<p>font-weight用来设置字体的字重（粗细）。</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>normal</td>
+<td>默认值，标准粗细</td>
+</tr>
+<tr class="even">
+<td>bold</td>
+<td>粗体</td>
+</tr>
+<tr class="odd">
+<td>bolder</td>
+<td>更粗</td>
+</tr>
+<tr class="even">
+<td>lighter</td>
+<td>更细</td>
+</tr>
+<tr class="odd">
+<td>100~900</td>
+<td>设置具体粗细，400等同于normal，而700等同于bold</td>
+</tr>
+<tr class="even">
+<td>inherit</td>
+<td>继承父元素字体的粗细值</td>
+</tr>
+</tbody>
+</table>
+<h3 id="文字属性">文字属性</h3>
+<h4 id="文字对齐水平方向对齐">文字对齐(水平方向对齐)</h4>
+<pre><code><code>text-align: center;
+text-align: right;
+text-align: left;</code></pre>
+<p>text-align 属性规定元素中的文本的水平对齐方式。（letter-spacing）</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>left</td>
+<td>左边对齐 默认值</td>
+</tr>
+<tr class="even">
+<td>right</td>
+<td>右对齐</td>
+</tr>
+<tr class="odd">
+<td>center</td>
+<td>居中对齐</td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>垂直对齐</p>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        div{
+            width: 200px;
+            height: 200px;
+            border: 1px solid red;
+            text-align: center;
+            line-height:200px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div&gt;
+    &lt;span&gt;
+        xxxxx
+    &lt;/span&gt;
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h4 id="文字装饰">文字装饰</h4>
+<pre><code><code>text-decoration: none;
+text-decoration: overline;
+
+&lt;a href=&quot;&quot;&gt;百度&lt;/a&gt;
+示例
+a{
+    text-decoration: none;
+}</code></pre>
+<p>text-decoration 属性用来给文字添加特殊效果。</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>none</td>
+<td>默认。定义标准的文本。</td>
+</tr>
+<tr class="even">
+<td>underline</td>
+<td>定义文本下的一条线。</td>
+</tr>
+<tr class="odd">
+<td>overline</td>
+<td>定义文本上的一条线。</td>
+</tr>
+<tr class="even">
+<td>line-through</td>
+<td>定义穿过文本下的一条线。</td>
+</tr>
+<tr class="odd">
+<td>inherit</td>
+<td>继承父元素的text-decoration属性的值。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="首行缩进">首行缩进</h4>
+<pre><code><code>p{
+    text-indent: 32px;
+}
+示例
+&lt;p&gt;
+    唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.唧唧复唧唧,木兰当户织.
+&lt;/p&gt;</code></pre>
+<h3 id="背景属性">背景属性</h3>
+<pre><code><code>/*background-color: blue;*/ /* 设置背景颜色 */
+background-image: url(&quot;meinv.jpg&quot;);  /* 背景图片,url属性值为图片路径 */
+background-repeat: no-repeat; /* 图片是否平铺,默认是平铺的,占满整个标签 */
+/*background-position: right bottom; !* 图片位置 *!*/
+/*background-position: 100px 50px; !* 图片位置,100px是距离左边的距离,50px是距离上面的距离 *!*/</code></pre>
+<p>简写方式</p>
+<pre><code><code>background: yellow url(&quot;meinv.jpg&quot;) no-repeat 100px 50px;
+背景颜色 背景图片路径 是否平铺 图片位置</code></pre>
+<h3 id="边框属性">边框属性</h3>
+<pre><code><code>/*border-style: dotted;*/  样式
+/*border-color: red;*/   颜色
+/*border-width: 10px;*/  宽度
+简写形式:
+    /*border: 10px solid yellow;*/
+
+四个边框可以单独设置:
+    border-left:10px solid yellow ;
+    border-right:10px dashed red ;
+设置圆角
+    border-radius: 5%;  /* 设置圆角 */
+
+示例:
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        div{
+            /*border-style: dotted;*/
+            /*border-color: red;*/
+            /*border-width: 10px;*/
+            /*border: 10px solid yellow;*/
+            border-left:10px solid yellow ;
+            border-right:10px dashed red ;
+            border-radius: 5%; 
+            width: 200px;
+            height: 200px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>边框样式的值</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>none</td>
+<td>无边框。</td>
+</tr>
+<tr class="even">
+<td>dotted</td>
+<td>点状虚线边框。</td>
+</tr>
+<tr class="odd">
+<td>dashed</td>
+<td>矩形虚线边框。</td>
+</tr>
+<tr class="even">
+<td>solid</td>
+<td>实线边框。</td>
+</tr>
+</tbody>
+</table>
+<p>display</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>display:&quot;none&quot;</td>
+<td>HTML文档中元素存在，但是在浏览器中不显示。一般用于配合JavaScript代码使用。</td>
+</tr>
+<tr class="even">
+<td>display:&quot;block&quot;</td>
+<td>默认占满整个页面宽度，如果设置了指定宽度，则会用margin填充剩下的部分。</td>
+</tr>
+<tr class="odd">
+<td>display:&quot;inline&quot;</td>
+<td>按行内元素显示，此时再设置元素的width、height、margin-top、margin-bottom和float属性都不会有什么影响。</td>
+</tr>
+<tr class="even">
+<td>display:&quot;inline-block&quot;</td>
+<td>使元素同时具有行内元素和块级元素的特点。</td>
+</tr>
+</tbody>
+</table>
+<pre><code><code> 示例
+ &lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+
+        div{
+            height: 200px;
+            width: 200px;
+            border: 1px solid red;
+            /*display: inline;*/
+            /*display: inline-block;*/
+            display: none; /* 隐藏标签 */
+        }
+
+        span{
+            height: 200px;
+            width: 200px;
+            border: 1px solid green;
+            /*display: block;*/
+
+        }
+        p{
+            height: 200px;
+            width: 200px;
+            border: 1px solid yellow;
+            display: inline;
+
+        }
+
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;xxxxxxx&lt;/div&gt;
+&lt;span&gt;span1111&lt;/span&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>隐藏标签</p>
+<pre><code><code>/*display: none;*/   /* 隐藏标签,不占原来的位置 */
+visibility: hidden;  /* 原来的位置还占着 */</code></pre>
+<h3 id="盒子模型">盒子模型</h3>
+<pre><code><code>content:内容  width和height 是内容的高度宽度
+padding:内边距 内容和边框之间的距离
+border:边框
+margin:外边距 标签之间的距离,如果两个标签都设置了margin,选最大的值,作为双方之间的距离
+占用空间大小:content+padding+border
+示例
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        .c1{
+            width: 100px;
+            height: 100px;
+            border: 10px solid red;
+            /*padding: 20px 20px; !* 内边距,内容和边框之间的距离 *!*/
+            padding: 8px 2px 3px 6px; /* 上右下左 */
+            margin: 20px 10px;
+
+        }
+        .c2{
+            width: 100px;
+            height: 100px;
+            border: 10px solid green;
+            margin: 10px 2px 6px 8px; /* 外边距,与其他标签的距离,如果旁边没有标签,按照父级标签的位置进行移动 */
+        }
+        .c3{
+            width: 100px;
+            height: 100px;
+            border: 1px solid blue;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;c1&quot;&gt;
+    div1
+&lt;/div&gt;
+&lt;div class=&quot;c2&quot;&gt;
+    div2
+&lt;/div&gt;
+&lt;div class=&quot;c3&quot;&gt;
+    div3
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>四个方向单独设置padding</p>
+<pre><code><code>padding-left: 10px;
+padding-top: 8px;
+padding-right: 5px;
+padding-bottom: 5px;</code></pre>
+<p>四个方向单独设置margin</p>
+<pre><code><code>margin-top: 10px;
+margin-left: 100px;
+margin-bottom: 50px;
+margin-right: 200px;</code></pre>
+<h3 id="float浮动">float浮动</h3>
+<p>一般用来进行页面布局</p>
+<pre><code><code>浮动会脱离正常文档流
+会造成父级标签塌陷问题</code></pre>
+<h3 id="清除浮动两种方法解决塌陷问题">清除浮动两种方法(解决塌陷问题)</h3>
+<pre><code><code>clear: both; /* clear清除浮动 */ left\right
+
+方式1:
+    1.父级标签设置高度
+    缺点:使用不灵活,后期不易维护
+    应用:网页中固定高度区域,比如导航栏
+    
+    2.通过伪元素选择器来进行清楚浮动:写法如下
+        .clearfix:after{
+            content:&#39;&#39;;
+            display: block;
+            clear: both;
+        }
+     使用:在最后一个浮动元素后面加一个空的块级元素,并设置改属style,clear:both
+      缺点:结构冗余
+     
+示例:
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+
+    &lt;style&gt;
+
+        .c1{
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            float: left;
+        }
+        .c2{
+            width: 100px;
+            height: 100px;
+            background-color: green;
+            float: right;
+        }
+        .c3{
+            /*width: 100px;*/
+            height: 100px;
+            background-color: pink;
+            /*clear: both; !* clear清除浮动 *!*/
+        }
+
+        .clearfix:after{
+            content:&#39;&#39;;
+            display: block;
+            clear: both;
+        }
+
+        /* 浮动,会造成父级标签塌陷问题 */
+        /* 解决父级标签塌陷问题方式1 */
+        /*.cc{*/
+        /*    height: 100px;*/
+        /*}*/
+    &lt;/style&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!--ajsdfja;sdjfo;asjdfo--&gt;
+&lt;div class=&quot;cc clearfix&quot;&gt;
+    &lt;div class=&quot;c1&quot;&gt;div1&lt;/div&gt;
+    &lt;div class=&quot;c2&quot;&gt;div2&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;c3&quot;&gt;div3&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+    </code></pre>
+<p>用overflow:hidden清除浮动</p>
+<pre><code><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;style&gt;
+        .title{
+            overflow: hidden;
+            border: 1px solid red;
+        }
+
+        .left{
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            float: left;
+        }
+
+        .right{
+            width: 100px;
+            height: 100px;
+            background-color: green;
+            float: right;
+        }
+        .center{
+            width: 100%;
+            height: 200px;
+            background-color: purple;
+        }
+
+
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;title clearfix&quot;&gt;
+        &lt;div class=&quot;left&quot;&gt;左边&lt;/div&gt;
+        &lt;div class=&quot;right&quot;&gt;右边&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;center&quot;&gt;中间&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="clear">clear</h3>
+<p>clear属性规定元素的哪一侧不允许其他浮动元素。</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>left</td>
+<td>在左侧不允许浮动元素。</td>
+</tr>
+<tr class="even">
+<td>right</td>
+<td>在右侧不允许浮动元素。</td>
+</tr>
+<tr class="odd">
+<td>both</td>
+<td>在左右两侧均不允许浮动元素。</td>
+</tr>
+<tr class="even">
+<td>none</td>
+<td>默认值。允许浮动元素出现在两侧。</td>
+</tr>
+<tr class="odd">
+<td>inherit</td>
+<td>规定应该从父元素继承 clear 属性的值。</td>
+</tr>
+</tbody>
+</table>
+<p>overflow溢出</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>visible</td>
+<td>默认值。内容不会被修剪，会呈现在元素框之外。</td>
+</tr>
+<tr class="even">
+<td>hidden</td>
+<td>内容会被修剪，并且其余内容是不可见的。</td>
+</tr>
+<tr class="odd">
+<td>scroll</td>
+<td>内容会被修剪，但是浏览器会显示滚动条以便查看其余的内容。</td>
+</tr>
+<tr class="even">
+<td>auto</td>
+<td>如果内容被修剪，则浏览器会显示滚动条以便查看其余的内容。</td>
+</tr>
+<tr class="odd">
+<td>inherit</td>
+<td>规定应该从父元素继承 overflow 属性的值。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="定位">定位</h3>
+<pre><code><code>相对定位
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        .c{
+            width: 100px;
+            height: 200px;
+            background-color: red;
+        }
+        .c1{
+            width: 100px;
+            height: 200px;
+            background-color: green;
+            position: relative; /*相对于当前块 ,会占用原理空间*/
+            left: 80px;         /* 以左边为起点,向右移动100*/
+            top: 20px;          /*以上一步为起点和当前块为起点,向下移动20px*/
+        }
+        .c2{
+            width: 100px;
+            height: 200px;
+            background-color:pink;
+        } 
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;c&quot;&gt;嘻嘻嘻&lt;/div&gt;
+    &lt;div class=&quot;c1&quot;&gt;哈哈哈&lt;/div&gt;
+    &lt;div class=&quot;c2&quot;&gt;呵呵呵&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+绝对定位
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;style&gt;
+        .c{
+            width: 100px;
+            height: 200px;
+            background-color: red;}
+        .c1{
+            width: 100px;
+            height: 200px;
+            background-color: green;
+            position: absolute;
+            left: 20px;    /*以当期文档窗口移动,不占原来空间*/
+            top: 60px;
+        }
+        .c2{
+            width: 100px;
+            height: 200px;
+            background-color: yellow;}
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;c&quot;&gt;嘻嘻嘻&lt;/div&gt;
+    &lt;div class=&quot;c1&quot;&gt;哈哈哈&lt;/div&gt;
+    &lt;div class=&quot;c2&quot;&gt;呵呵呵&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="z-index和模态对话框">z-index和模态对话框</h3>
+<pre><code><code>那么谁在上面显示，谁被压在下面的呢，就是通过这个z-index来设置的。
+
+z-index 值表示谁压着谁，数值大的压盖住数值小的，
+只有定位了的元素，才能有z-index,也就是说，不管相对定位，绝对定位，固定定位，都可以使用z-index，而浮动元素float不能使用z-index
+z-index值没有单位，就是一个正整数，默认的z-index值为0如果大家都没有z-index值，或者z-index值一样，那么谁写在HTML后面，谁在上面压着别人，定位了元素，永远压住没有定位的元素。
+从父现象：父亲怂了，儿子再牛逼也没用
+
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;style&gt;
+        .c1{
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            position: fixed;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 998;
+
+
+        }
+        .c2{
+            position: fixed;
+            width: 300px;
+            height: 450px;
+            background-color: yellow;
+            z-index: 1000;
+
+            top: 50%;    /*此时黄色框在偏右下角的位置,要向中间移动*/
+            left: 50%;
+
+            margin-left: -150px; /*向左移动宽度的一半*/
+            margin-top: -225px; /*向上移动高度的一半*/
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;div class=&quot;c1&quot;&gt;lala&lt;/div&gt;
+    &lt;div class=&quot;c2&quot;&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="opacity">opacity</h3>
+<p>设置透明度,用来定义透明效果。取值范围是0~1，0是完全透明，1是完全不透明。</p>
+<h1 id="javascript">JavaScript</h1>
+<h2 id="javascript的引入方式">javascript的引入方式</h2>
+<pre class="javascript"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;js文件引入&lt;/title&gt;
+&lt;!-- &lt;script type=&quot;text/javascript&quot; src=&quot;index.js&quot;&gt;&lt;/script&gt;--&gt;   第一种
+&lt;!--可以写在head标签里 也可以写在body标签里--&gt;                       第二种
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+    alert(&#39;你好&#39;);&lt;!--每一句话的结尾必须有分号;alert弹窗,&quot;你好为弹窗中的内容&quot;--&gt;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="javascript变量与数据类型以及字符串和数值之间的装换">javascript变量与数据类型以及字符串和数值之间的装换</h2>
+<pre class="javascript"><code>1.变量
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;变量&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var x = 30;/*声明变量和变量赋值 变量初始化*/
+    var name = &#39;大郎&#39;;
+    alert(x)
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+2.变量数据类型
+        数值型 字符型 布尔 null undefined
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;变量数据类型&lt;/title&gt;
+&lt;!----&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    都是数值型
+    var a = 3;
+    var b = 1.234;
+    var c = -12;
+
+    通过typeof检查数据类型
+    alert(typeof a);
+    alert(typeof b);
+    alert(typeof c);
+
+
+    字符型
+    var name = &#39;大郎&#39;;
+    var str = &#39;啦啦啦&#39;;
+    alert(typeof name);
+    var n = &#39;eat &quot;apple&quot;&#39;;//结果为eat &quot;apple&quot;
+    alert(n);   
+    var str = &quot;i&#39;m \&quot;apple\&quot;&quot;;// 转义成字符串\&quot;apple\
+    alert(str); 
+    //也可以拼接,用+
+    
+    
+    布尔bool
+    var bool1 = 3&gt;4;
+    alert(bool1);
+
+    undefined
+    当一个变量单纯的声明没有被赋值的时候会出现undefined
+    var x;
+    alert(typeof x);
+
+    null
+    var y = null;
+    alert(y);
+    alert(typeof y);//object
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+3.数值与字符串的装换
+&lt;!--数字和字符串--&gt;
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var a = 5+&quot;tj&quot;;
+    alert(a);//5tj
+    alert(typeof a); //str
+
+    数值转字符串
+    var num = 123;
+    var str = num + &quot; &quot;;
+    alert(str);
+    alert(typeof str);//str
+
+    var num = 13;
+    var a = num.toString();
+    alert(a);
+    alert(typeof a);
+
+    字符串转数字
+    var mynum = Number(&quot;223&quot;);
+    alert(mynum);
+    alert(typeof mynum);
+    
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+3.字符串的操作方法
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var s = &quot;  wokant,iN,Ghao   &quot;;
+    alert(s.length);//返回长度
+    alert(s.trim());//说明长度,去出左右两边空格
+    alert(s.trimRight());//去除右边空格
+    alert(s.trimleft());//去除左边空格
+    alert(s.charAt(2));//返回第2个字符,超过索引最大值返回空字符串
+
+    var s1=&#39;hello&#39;;
+    var s2=&#39;world&#39;;
+    alert(s1.concat(s2));  //字符串拼接
+
+    alert(s.indexOf(&quot;wokan&quot;, 0));//语法.indexOf(substring, start) ,substring是要查找字符串中的元素,start是从索引为多少开始找,找到返回字符串的索引,找不到返回-1
+
+    alert(s.slice(0,9));//切片  .slice(起始位置, 终止位置)
+
+    alert(s.toLowerCase());//全部变小写
+    alert(s.toUpperCase());//全部变大写
+
+    alert(s.split(&#39;,&#39;,1))//分割,2位切割后返回的元素个数wokant,iN,Ghao 两个&quot;,&quot;,可以分割成3个元素,1代表会取第一个元素
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+</code></pre>
+<p>4.查看数据类型</p>
+<p>如果数据前没加new,该是什么数据类型就是什么数据类型,加了new就是object类型</p>
+<p><img src="C:\python学习笔记\assets\1568621007061.png" alt="1568621007061" /></p>
+<h2 id="javascript运算符">javascript运算符</h2>
+<pre class="javascript"><code>1.算数运算符
+
++ - * / % ++ --  i++,是i自加1，i--是i自减1   i++的这个加1操作优先级低，先执行逻辑，然后再自加1，而++i，这个加1操作优先级高，先自加1，然后再执行代码后面的逻辑
+
+示例:
+    var a = 100;
+    a++;或者++a; -- 101 a自增1
+
+    a++和++a的区别,示例:
+    var a = 102;
+    a++ == 102; -- true
+    a -- 103;
+    ++a == 103; -- false
+    a -- 104;
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;运算符&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var x = 10;
+    var y = 3;
+    var sum = x + y;
+    var en = x - y;
+    var or = x * y;
+    var op = x % y;  //取余
+    var p = x / y;
+    alert(sum);
+    alert(en);
+    alert(or);
+    alert(op);
+    alert(p)
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+有多个运算符遵循数学中的优先级顺序
+
+2.赋值运算符
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;运算符&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var x = 1;
+    x++;
+    alert(x)//2
+
+    var a = 5;
+    var b = 6;
+    a = b;
+    alert(a) //6也是先算等号右边
+
+    var c = 10;
+    c = c += 5;
+    alert(c) //15
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+3.比较运算符
+&gt; &gt;= &lt; &lt;= != == === !==
+
+==(弱等于)和===(强等于)两者的区别:
+    示例:
+        var a = 11;
+        var b = &#39;11&#39;;
+        a == b -- true
+         a === b; -- false</code></pre>
+<h2 id="javascript数组">Javascript数组</h2>
+<pre class="javascript"><code>&lt;!--数组--&gt;
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var list = [&quot;香蕉&quot;,&quot;苹果&quot;,&quot;牛奶&quot;,&quot;红牛&quot;,[&quot;1&quot;,2]];
+    alert(list);
+    alert(typeof list);//object
+    console.log(list);
+
+    var i = list[0];   //索引
+    console.log(i);    //取值
+
+    list[0] = &#39;榴莲&#39;;   //修改原数组0索引的值,改为榴莲
+    console.log(list);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+数组的操作方法
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var a = [1,2,23,62,35,200,&quot;abc&quot;];
+    alert(a[1]);         //打印索引为1的元素
+
+    alert(a.length);     //打印数组的长度或元素个数
+
+    a.push(&#39;la&#39;);         //在数组尾部追加元素
+    alert(a)
+
+    alert(a.pop());        //获取数组的尾部元素
+
+    a.unshift(&#39;滚&#39;);       //头部插入元素
+    alert(a)
+
+    a.shift();              //移除头部元素
+    alert(a)
+
+
+    alert(a.slice(1,3))      //切片
+
+    alert(a.reverse());       //数组在原来基础上反转
+
+    var b = a.join(&#39;_&#39;);        //将数组元素连接成字符串
+    alert(b)
+
+    var b = &#39;123&#39;;
+    var b1 = [1,2,6];
+    var c = a.concat(b);          //连接数组
+    var c1 = a.concat(b1);       //连接数组
+    alert(c1)
+
+    alert(a.sort())     //这样排序会按照数组的ASCII编码排序,得不到真正的排序
+
+    function sortNumber(a,b){
+        return a-b;
+    }
+    var s = [1,8,2,200,&#39;dd&#39;];
+    alert(s.sort(sortNumber))    //正确排序
+//如果想按照其他标准进行排序，就需要提供比较函数，也就是自己提供一个函数提供排序规则，该函数要比较两个值，然后返回一个用于说明这两个值的相对顺序的数字。比较函数应该具有两个参数 a 和 b，其返回值如下：1. 若 a 小于 b，在排序后的数组中 a 应该出现在 b 之前，则返回一个小于 0 的值。2. 若 a 等于 b，则返回 0。  3. 若 a 大于 b，则返回一个大于 0 的值
+
+　　　　　　
+    var s = [&#39;aa&#39;,&#39;bb&#39;,&#39;cc&#39;,&#39;dd&#39;];
+    alert(s.splice(1,2));         //打印返回被删除的元素,1代表从索引1开始,删除2个元素,包括索引为1的元素
+    alert(s)
+
+    var li = [1,&quot;dd&quot;,77,8,2];
+    li.splice(0,2,&#39;hello&#39;,&#39;world&#39;);   //删除在替换新元素:
+    alert(li)
+
+    索引取值
+    var a = {&#39;name&#39;:&#39;alex&#39;,&#39;age&#39;:48};
+    键可以不加引号:var a = {name:&#39;alex&#39;,age:48};
+    a[&#39;age&#39;]; -- 48
+    a.age; -- 48
+
+&lt;/script&gt;,,
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="javascript条件语句">javascript条件语句</h2>
+<pre class="javascript"><code>&lt;!--条件语句--&gt;
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var distance = 10;
+    var distance1 = 15;
+    if (distance1 &lt; distance){
+        console.log(&#39;啦啦啦&#39;)
+    }
+    else{
+        console.log(&#39;别啦啦了&#39;)
+    }
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+else if</code></pre>
+<h2 id="switch切换">switch切换</h2>
+<pre class="javascript"><code>&lt;!--switch--&gt;
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var day = new Date().getDay(); //示例化一个今天的日期对象，getDay()是获取天数的编号，0表示星期日
+    switch (day) {  //这里day这个参数必须是一个值或者是一个能够得到一个值的算式才行，这个值和后面写的case后面的值逐个比较，
+    // 满足其中一个就执行case对应的下面的语句，然后break，如果没有加break，还会继续往下判断
+    case 0: //如果day是0
+        console.log(&quot;Sunday&quot;); //执行它
+        break; //然后break跳出
+    case 1:
+        console.log(&quot;Monday&quot;);
+        break;
+    default:  //如果没有任何满足条件的，就执行它
+        console.log(&quot;...&quot;)
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+满足多个条件时
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    switch (4) {
+        case 1:case 2:case 3:
+            console.log(&quot;c&quot;);
+            break;
+        default:
+            console.log(&quot;no&quot;)
+    }
+    //打印no
+
+    switch (1) {
+        case 1:case 2:case 3:
+            console.log(&quot;c&quot;);
+            break;
+        default:
+            console.log(&quot;no&quot;)
+    }
+    //打印c
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="for循环">for循环</h2>
+<pre class="javascript"><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+1.  for (var i=0;i&lt;10;i++){
+        console.log(i);
+    }
+    
+2.  var li = [&#39;aa&#39;,&#39;bb&#39;,&#39;dd&#39;,&#39;cc&#39;];
+    for (var i in li){
+        console.log(i,li[i])
+    }
+   //结果:
+    0 aa
+    1 bb
+    2 dd
+    3 cc
+    
+3.  for (var i=0;i&lt;li.length;i++){
+         console.log(i,li[i])}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="while循环">while循环</h2>
+<pre class="javascript"><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var i=0;
+    while (i&lt;10) {
+        console.log(i);
+        i++;
+        if (i &gt; 5) {
+            break
+        }
+    }
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="三元运算">三元运算</h2>
+<pre class="javascript"><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var a = 1;
+    var b = 2;
+    var c = a &gt; b ? a : b; //如果a&gt;b这个条件成立，就把冒号前面的值给c，否则把冒号后面的值给c   
+//python中的：a = x if x&gt;y else y
+    alert(c)
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="函数">函数</h2>
+<pre class="javascript"><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    //函数的定义
+    function f1() {
+        console.log(&quot;hello world&quot;);
+    }
+    f1();  // 函数的调用
+
+    //带参数的函数
+    function f2(a,b,c) {
+        console.log(arguments);//参数
+        console.log(arguments.length);//有多少参数  3
+        console.log(a,b,c);//打印参数1 2 8
+    }
+    f2(1,2,8);
+
+    //带返回值的函数
+    function f3(a,b) {
+        return a+b;//函数只能返回一个值，如果要返回多个值，只能将其放在数组或对象中返回。例如:return[a,b]
+    }
+    var c = f3(1,2);
+    alert(c);
+
+
+    //匿名函数方式，多和其他函数配合使用
+    var sum = function (a,b) {
+        return a+b;
+    };
+    var s = sum(1,2);
+    alert(s);
+
+
+    //立即执行函数，页面加载到这里，这个函数就直接执行了，不需要被调用执行  
+    //python中写可以这么写：ret=(lambda x,y:x+y)(10,20) 然后print(ret)
+    sum = (function (a,b) {
+        return a+b;
+    })
+    (1,2);
+    alert(sum);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="函数的去全局变量和局部变量">函数的去全局变量和局部变量</h2>
+<pre class="javascript"><code>局部变量：
+    在JavaScript函数内部声明的变量（使用 var）是局部变量，所以只能在函数内部访问它（该变量的作用域是函数内部）。只要函数运行完毕，本地变量就会被删除。
+全局变量：
+    在函数外声明的变量是全局变量，网页上的所有脚本和函数都能访问它。
+变量生存周期：
+    JavaScript变量的生命期从它们被声明的时间开始。
+    局部变量会在函数运行以后被删除。
+    全局变量会在页面关闭后被删除。</code></pre>
+<h2 id="作用域">作用域</h2>
+<pre class="javascript"><code>首先在函数内部查找变量，找不到则到外层函数查找，逐步找到最外层。
+1.
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var city = &quot;beijing&quot;;
+    function f() {
+        var city = &quot;shanghai&quot;;
+        function inner() {
+            var city = &quot;hebei&quot;;
+            console.log(city)
+        }
+        inner()
+    }
+    f();//结果:hebei
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+2.
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var city = &quot;beijing&quot;;
+    function f() {
+        console.log(city);
+    }
+    function f1() {
+        var city = &quot;hebei&quot;;
+        return f;
+    }
+    var res = f1();
+    res();
+    //结果:beijing
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+3.闭包
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    var city = &quot;beijing&quot;;
+    function f() {
+        var city = &quot;hebei&quot;;
+        function f1() {
+            console.log(city);
+        }
+        return f1;
+    }
+    var res = f();
+    res();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="面向对象">面向对象</h2>
+<pre class="javascript"><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script&gt;
+    //定义一个类
+    function Person(name) {
+        this.name = name;//类属性,静态属性
+    }
+    //定义一个类方法
+    Person.prototype.func = function () {
+        console.log(this.name,&quot;真丑&quot;)
+    };
+    //实例化一个对象
+    var p = new Person(&quot;xiaojie&quot;);
+
+    //执行对象中的方法
+    p.func();
+
+    //执行类的静态属性
+    console.log(p.name);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="js正则regexp">js正则RegExp</h2>
+<pre class="js"><code>1.创建一个正则
+var reg = RegExp(&#39;正则表达式&#39;)   注意:在写字符串中所有带\的元字符都会被转义,应该写成\\
+var reg = /正则表达式/           内部元素就不会被转义
+reg.text(&#39;待检测的字符串&#39;)       如果字符串中含有符合表达式规则 的内容就会返回True,否则会返回false
+
+
+2.
+var exp = &#39;lalanb250&#39;;
+exp.match(/\d/)    从左到右匹配第一个数字   结果为2
+exp.match(/\d/g)   匹配所有符合规则的  返回一个数组
+
+3.
+var s = &#39;A he is a boy and she is An aaa&#39;   
+s.match(/a/)       从左到右匹配第一个 结果为a,索引为6
+s.match(/a/g)      匹配所有符合规则的,返回一个数组
+s.match(/a/i)      i表示不区分大小写
+
+
+/创建正则对象方式1
+// 参数1 正则表达式(不能有空格)
+// 参数2 匹配模式：常用g(全局匹配;找到所有匹配，而不是在第一个匹配后停止)和i(忽略大小写)
+
+// 用户名只能是英文字母、数字和_，并且首字母必须是英文字母。长度最短不能少于6位 最长不能超过12位。
+
+// 创建RegExp对象方式（逗号后面不要加空格），假如匹配用户名是只能字母开头后面是字母加数字加下划线的5到11位的
+var reg1 = new RegExp(&quot;^[a-zA-Z][a-zA-Z0-9_]{5,11}$&quot;); //注意，写规则的时候，里面千万不能有空格，不然匹配不出来你想要的内容，除非你想要的内容本身就想要空格，比如最后这个{5,11},里面不能有空格
+
+// 匹配响应的字符串
+var s1 = &quot;bc123&quot;;
+
+//RegExp对象的test方法，测试一个字符串是否符合对应的正则规则，返回值是true或false。
+reg1.test(s1);  // true
+
+// 创建方式2，简写的方式
+// /填写正则表达式/匹配模式（逗号后面不要加空格）
+var reg2 = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/; 
+
+reg2.test(s1);  // true
+
+注意，此处有坑：如果你直接写一个reg2.test()，test里面啥也不传，直接执行，会返回一个true，用其他的正则规则，可能会返回false，是因为，test里面什么也不传，默认传的是一个undefined，并且给你变成字符串undefined，所以能够匹配undefined的规则，就能返回true，不然返回false
+
+
+// String对象与正则结合的4个方法
+var s2 = &quot;hello world&quot;;
+
+s2.match(/o/g);         // [&quot;o&quot;, &quot;o&quot;]             查找字符串中 符合正则 的内容 ，/o/g后面这个g的意思是匹配所有的o,
+s2.search(/h/g);        // 0                      查找字符串中符合正则表达式的内容位置，返回第一个配到的元素的索引位置，加不加g效果相同
+s2.split(/o/g);         // [&quot;hell&quot;, &quot; w&quot;, &quot;rld&quot;]  按照正则表达式对字符串进行切割，得到一个新值，原数据不变
+s2.replace(/o/g, &quot;s&quot;);  // &quot;hells wsrld&quot;          对字符串按照正则进行替换
+
+// 关于匹配模式：g和i的简单示例
+var s1 = &quot;name:Alex age:18&quot;;
+
+s1.replace(/a/, &quot;哈哈哈&quot;);      // &quot;n哈哈哈me:Alex age:18&quot;
+s1.replace(/a/g, &quot;哈哈哈&quot;);     // &quot;n哈哈哈me:Alex 哈哈哈ge:18&quot;      全局匹配
+s1.replace(/a/gi, &quot;哈哈哈&quot;);    // &quot;n哈哈哈me:哈哈哈lex 哈哈哈ge:18&quot;  不区分大小写
+
+
+// 注意事项1：
+// 如果regExpObject带有全局标志g，test()函数不是从字符串的开头开始查找，而是从属性regExpObject.lastIndex所指定的索引处开始查找。
+// 该属性值默认为0，所以第一次仍然是从字符串的开头查找。
+// 当找到一个匹配时，test()函数会将regExpObject.lastIndex的值改为字符串中本次匹配内容的最后一个字符的下一个索引位置。
+// 当再次执行test()函数时，将会从该索引位置处开始查找，从而找到下一个匹配。
+// 因此，当我们使用test()函数执行了一次匹配之后，如果想要重新使用test()函数从头开始查找，则需要手动将regExpObject.lastIndex的值重置为 0。
+// 如果test()函数再也找不到可以匹配的文本时，该函数会自动把regExpObject.lastIndex属性重置为 0。
+
+var reg3 = /foo/g;
+// 此时 regex.lastIndex=0
+reg3.test(&#39;foo&#39;); // 返回true
+// 此时 regex.lastIndex=3
+reg3.test(&#39;xxxfoo&#39;); // 还是返回true
+// 所以我们在使用test()方法校验一个字符串是否完全匹配时，一定要加上^和$符号，把匹配规则写的确定一些，尽量不用上面这种的写法/xxx/。
+
+// 注意事项2(说出来你可能不信系列)：
+// 当我们不加参数调用RegExpObj.test()方法时, 相当于执行RegExpObj.test(undefined)，然后将这个undefined又转为字符串&quot;undefined&quot;,去进行匹配了, 并且/undefined/.test()默认返回true。
+var reg4 = /^undefined$/;
+reg4.test(); // 返回true
+reg4.test(undefined); // 返回true
+reg4.test(&quot;undefined&quot;); // 返回true</code></pre>
+<h2 id="date对象">Date对象</h2>
+<pre class="javascript"><code>//方法1：不指定参数
+var d1 = new Date(); //获取当前时间
+console.log(d1.toLocaleString());  //当前时间日期的字符串表示
+//方法2：参数为日期字符串
+var d2 = new Date(&quot;2004/3/20 11:12&quot;);
+console.log(d2.toLocaleString());
+var d3 = new Date(&quot;04/03/20 11:12&quot;);  #月/日/年(可以写成04/03/2020)
+console.log(d3.toLocaleString());
+//方法3：参数为毫秒数，了解一下就行
+var d3 = new Date(5000);  
+console.log(d3.toLocaleString());
+console.log(d3.toUTCString());  
+//方法4：参数为年月日小时分钟秒毫秒
+var d4 = new Date(2004,2,20,11,12,0,300);
+console.log(d4.toLocaleString());  //毫秒并不直接显示
+
+var a = new Date();
+alert(a.getFullYear()+&quot;-&quot;+a.getMonth()+&quot;-&quot;+a.getDate()+&quot; &quot;+a.getHours()+&quot;:&quot;+a.getMinutes()+&quot;星期&quot;+a.getDay())
+
+var d = new Date(); 
+//getDate()                 获取日
+//getDay ()                 获取星期 ，数字表示（0-6），周日数字是0
+//getMonth ()               获取月（0-11,0表示1月,依次类推）
+//getFullYear ()            获取完整年份
+//getHours ()               获取小时
+//getMinutes ()             获取分钟
+//getSeconds ()             获取秒
+//getMilliseconds ()        获取毫秒
+//getTime ()                返回累计毫秒数(从1970/1/1午夜),时间戳</code></pre>
+<h2 id="json对象">JSON对象</h2>
+<pre class="javascript"><code>var str = &#39;{&quot;name&quot;:&quot;tj&quot;,&quot;age&quot;:18}&#39;;
+var obj = {&quot;name&quot;:&quot;tj&quot;,&quot;age&quot;:18};
+var obj1 = JSON.parse(str);//将字符串转换为对象
+var str1 =JSON.stringify(obj);//将对象转换为字符串
+alert(obj1);
+alert(str1);</code></pre>
+<h1 id="bom和dom">BOM和DOM</h1>
+<h2 id="bom">BOM</h2>
+<pre><code><code>BOM（Browser Object Model）是指浏览器对象模型，它使 JavaScript 有能力与浏览器进行“对话”。
+window对象:
+    所有浏览器都支持 window 对象。它表示浏览器窗口。
+    所有 JavaScript 全局对象、函数以及变量均自动成为 window 对象的成员。
+　　 全局变量是 window 对象的属性。全局函数是 window 对象的方法。
+　　 接下来要讲的HTML DOM 的 document 也是 window 对象的属性之一。
+　　 一些常用的Window方法：（在浏览器调试器的console里面输入下面这些属性或者方法，就能看到对应的效果）
+window常用属性:
+    window.innerHeight - 浏览器窗口的内部高度
+    window.innerWidth - 浏览器窗口的内部宽度
+    window.open() - 打开新窗口
+    window.close() - 关闭当前窗口 (只能关闭用js的window.open()打开的页面，了解一下就行了)</code></pre>
+<h3 id="location对象">1.location对象*************</h3>
+<pre><code><code>window的子对象 : window.location
+属性:
+window.location.href //查看当前网页的url
+window.location.href=&#39;http://www.baidu.com&#39; //修改当前网页的url.修改之后会跳转
+方法:
+window.location.reload() //刷新页面</code></pre>
+<h3 id="navigator对象">2.navigator对象</h3>
+<pre class="js"><code>window.navigator 的一些属性可以获取客户端的一些信息。
+    userAgent：系统，浏览器)
+    platform：浏览器支持的系统，win/mac/linux
+console.log(navigator.userAgent);
+console.log(navigator.platform);</code></pre>
+<h3 id="history对象">3. history对象</h3>
+<pre class="js"><code>后退：
+history.back()
+history.go(-1)：0是刷新
+
+前进：
+history.forward()
+history.go(1)</code></pre>
+<h3 id="screen对象">4.screen对象</h3>
+<pre class="js"><code>screen.availWidth  //可用的屏幕宽度
+screen.availHeight //可用的屏幕高度</code></pre>
+<h3 id="定时器">5.定时器**************</h3>
+<ul>
+<li><p>setInterval</p>
+<pre class="js"><code>setInterval : 每隔一段时间就完成某个操作
+
+var tid = setIterval(&quot;func()&quot;,n) //每隔n毫秒就调用一次func函数
+var tid = setInterval(func,n)
+
+calearInterval(tid) //清除定时器</code></pre></li>
+<li><p>setTimeout</p>
+<pre class="js"><code>setTimeout : 每隔一段时间之后执行一次来完成某个操作
+var tid = setTimeout(fn,n) //n毫秒之后只调用一次fn函数
+var tid = setTimeout(&quot;fn()&quot;,n)
+
+clearTimeout(tid) //清楚定时器
+
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;style&gt;
+    .box{
+        width: 100px;
+        height: 100px;
+        background-color: lightcoral;
+    }
+&lt;/style&gt;
+&lt;body&gt;
+    &lt;div id=&quot;box&quot; class=&quot;box&quot;&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;script&gt;
+    // window.setTimeout(fn,2000)
+    // function fn() {
+    //     alert(&#39;两秒后弹出警告框...&#39;)
+    // }
+    setInterval(fn,500)  // 每0.5秒调用一次函数
+    function fn() {
+        var box = document.getElementById(&#39;box&#39;) //获取事件对象
+        box.classList.toggle(&#39;box&#39;) // 如果存在class=&#39;box&#39;就删除,不存在就添加
+    }
+&lt;/script&gt;
+&lt;/html&gt;</code></pre></li>
+</ul>
+<h3 id="onscroll事件">6.onscroll事件</h3>
+<pre class="js"><code>window.onscroll //在页面的滚动条滚动的时候触发的事件
+document.documentElement.scrollTop //针对获取浏览器的垂直滚动条的位置</code></pre>
+<pre class="js"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;style&gt;
+    div{
+        height: 2000px;
+    }
+    a{
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+    }
+&lt;/style&gt;
+&lt;body&gt;
+    &lt;div&gt;&lt;/div&gt;
+    &lt;a href=&quot;#&quot; id=&quot;back&quot;&gt;回到顶部&lt;/a&gt;
+&lt;/body&gt;
+&lt;script&gt;
+    window.onscroll = function () {
+        var a = document.getElementById(&#39;back&#39;)
+        console.log(document.documentElement.scrollTop)
+        if(document.documentElement.scrollTop&gt;500){
+            a.style.display = &#39;block&#39;
+        }else{
+            a.style.display = &#39;none&#39;
+        }
+    }
+&lt;/script&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="dom">DOM</h2>
+<pre class="javascript"><code>DOM （Document Object Model）是指文档对象模型，通过它，可以访问HTML文档的所有元素
+
+1.整个文档就是一棵树,数中的每一个节点都是一个对象:这个对象中维系着属性信息 文本信息 关系信息
+2.整个文档是从上到下依次加载的,当加载到script标签的时候,会有一个特殊的变量提升的解析方法,导致后定义的函数可以提前被调用
+</code></pre>
+<p><img src="C:\python学习笔记\assets\1568628280003.png" alt="1568628280003" /></p>
+<pre class="js"><code>DOM标准规定HTML文档中的每个成分都是一个节点(node)：
+    文档节点(document对象)：代表整个文档
+    元素节点(element 对象)：代表一个元素（标签）
+    文本节点(text对象)：代表元素（标签）中的文本
+    属性节点(attribute对象)：代表一个属性，元素（标签）才有属性
+    注释是注释节点(comment对象)
+
+JavaScript 可以通过DOM创建动态的 HTML：
+    JavaScript 能够改变页面中的所有 HTML 元素
+    JavaScript 能够改变页面中的所有 HTML 属性
+    JavaScript 能够改变页面中的所有 CSS 样式
+    JavaScript 能够对页面中的所有事件做出反应（鼠标点击事件，鼠标移动事件等）</code></pre>
+<h3 id="查找标签">查找标签</h3>
+<pre class="js"><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id=&quot;foo&quot;&gt;
+        父级标签
+        &lt;div id=&quot;son&quot;&gt;
+            儿子标签1
+            &lt;img src=&quot;&quot; alt=&quot;&quot;&gt;
+        &lt;/div&gt;
+        &lt;div id=&quot;son1&quot;&gt;
+            儿子标签2
+            &lt;a href=&quot;#&quot; class=&quot;href&quot;&gt;&lt;/a&gt;
+            &lt;a href=&quot;#&quot; class=&quot;href&quot;&gt;&lt;/a&gt;
+            &lt;a href=&quot;#&quot; class=&quot;href&quot;&gt;&lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+****************直接查找******************
+1.document.getElementById(&#39;foo&#39;);通过ID获取标签
+&lt;div id=&quot;foo&quot;&gt;
+        父级标签
+        &lt;div id=&quot;son&quot;&gt;
+            儿子标签1
+            &lt;img src=&quot;&quot; alt=&quot;&quot;&gt;
+        &lt;/div&gt;
+        &lt;div id=&quot;son1&quot;&gt;
+            儿子标签2
+            &lt;a href=&quot;#&quot; class=&quot;href&quot;&gt;&lt;/a&gt;
+            &lt;a href=&quot;#&quot; class=&quot;href&quot;&gt;&lt;/a&gt;
+            &lt;a href=&quot;#&quot; class=&quot;href&quot;&gt;&lt;/a&gt;
+        &lt;/div&gt;
+&lt;/div&gt;
+
+2.document.getElementsByClassName(&#39;href&#39;);通过类名获取id,返回数组
+HTMLCollection(3) [a.href, a.href, a.href]
+0: a.href
+1: a.href
+2: a.href
+length: 3
+
+3.document.getElementsByTagName(&#39;a&#39;);通过标签名直接获取,返回数组
+HTMLCollection(3) [a.href, a.href, a.href]
+0: a.href
+1: a.href
+2: a.href
+length: 3
+
+
+*************间接查找****************
+var s = document.getElementById(&#39;son1&#39;)
+s.parentElement            父节点标签元素
+s.children                 所有子标签
+s.firstElementChild        第一个子标签元素
+s.lastElementChild         最后一个子标签元素
+s.nextElementSibling       下一个兄弟标签元素
+s.previousElementSibling   上一个兄弟标签元素
+
+</code></pre>
+<h3 id="节点操作">节点操作</h3>
+<pre class="js"><code>1.创建节点（就是创建标签）
+语法:var divEle = document.createElement(&quot;div&quot;);
+
+var div1 = document.createElement(&#39;div&#39;);
+div1.innerText=&#39;啦啦&#39;
+
+var a1 = document.createElement(&#39;a&#39;);
+a1.href = &#39;http://www.baidu.com&#39;
+&quot;http://www.baidu.com&quot;
+
+2.添加节点
+var div3 = document.createElement(&#39;div&#39;);
+var div4 = document.createElement(&#39;div&#39;);
+div3.appendChild(div4);
+在div3中添加子元素div4
+
+3.删除节点
+语法：
+    获得要删除的元素，通过父元素调用该方法删除。
+    父节点.removeChild(要删除的节点)
+
+4.替换节点
+语法:
+    somenode.replaceChild(newnode, 某个节点);
+　　 somenode是父级标签，然后找到这个父标签里面的要被替换的子标签，然后用新的标签将该子标签替换掉
+   
+5.属性节点
+var divEle = document.getElementById(&quot;d1&quot;)
+divEle.innerText  #输入这个指令，一执行就能获取该标签和内部所有标签的文本内容
+divEle.innerHTML  #获取的是该标签内的所有内容，包括文本和标签
+
+设置文本节点的值
+var divEle = document.getElementById(&quot;d1&quot;)
+
+divEle.innerText=&quot;1&quot;  
+divEle.innerHTML=&quot;&lt;p&gt;2&lt;/p&gt;&quot; #能识别成一个p标签
+
+6.attribute操作
+var divEle = document.getElementById(&quot;d1&quot;);
+divEle.setAttribute(&quot;age&quot;,&quot;18&quot;)  #比较规范的写法
+divEle.getAttribute(&quot;age&quot;)
+divEle.removeAttribute(&quot;age&quot;)
+// 自带的属性还可以直接.属性名来获取和设置，如果是你自定义的属性，是不能通过.来获取属性值的
+imgEle.src
+imgEle.src=&quot;...&quot;
+
+
+7.获取值操作
+适用于以下标签，用户输入或者选择类型的标签：
+    1.input   
+    2.select
+    3.textarea 
+    
+var iEle = document.getElementById(&quot;i1&quot;);
+console.log(iEle.value);
+var sEle = document.getElementById(&quot;s1&quot;);
+console.log(sEle.value);
+var tEle = document.getElementById(&quot;t1&quot;);
+console.log(tEle.value);
+
+iEle.innerHTML获取标签的文本内容
+
+8.class的操作
+className  获取所有样式类名(字符串)
+首先获取标签对象
+标签对象.classList.remove(cls)  删除指定类
+classList.add(cls)  添加类
+classList.contains(cls)  存在返回true，否则返回false
+classList.toggle(cls)  存在就删除，否则添加，toggle的意思是切换，有了就给你删除，如果没有就给你加一个</code></pre>
+<h3 id="指定css操作">指定CSS操作</h3>
+<pre class="js"><code>var d = document.getElementById(&#39;d1&#39;)
+1.对于没有中横线的CSS属性一般直接使用style.属性名即可。如：
+d.style.backgroundColor = &#39;black&#39;
+d.style.width = &#39;100px&#39;
+d.style.height = &#39;200px
+d.style.height = &#39;200px&#39;
+
+2.对含有中横线的CSS属性，将中横线后面的第一个字母换成大写即可。如：
+d.style.marginTop
+d.style.borderLeftWidth
+d.style.zIndex
+d.style.fontFamily</code></pre>
+<h1 id="jquery">jquery</h1>
+<h2 id="jquery引入">jquery引入</h2>
+<pre><code><code>下载链接：jQuery官网  https://jquery.com/
+中文文档：jQuery AP中文文档
+
+&lt;script src=&quot;jquery.js&quot;&gt;&lt;/script&gt;
+
+&lt;script&gt;
+&lt;/script&gt;
+
+第二种方式,网络地址引入
+&lt;!--&lt;script src=&quot;https://cdn.bootcss.com/jquery/3.4.1/jquery.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h2 id="jquery对象和dom对象互相转换">jquery对象和dom对象互相转换</h2>
+<pre><code><code>/jQuery对象转成DOM对象，通过一个jQuery对象+[0]索引零，就变成了DOM对象，就可以使用JS的代码方法了，DOM对象转换成jQuery对象：$(DOM对象)，通过$符号包裹一下就可以了
+jquery对象 转换成 dom对象 :  $(&#39;#d1&#39;)[0] -- dom对象
+dom对象转换为jquery对象 :  $(dom对象) -- jquery对象
+</code></pre>
+<h2 id="标签查找">标签查找</h2>
+<h3 id="基础选择器">基础选择器</h3>
+<pre><code><code>基本选择器（同css）
+    id选择器：
+
+$(&quot;#id&quot;)  #不管找什么标签，用什么选择器，都必须要写$(&quot;&quot;)，引号里面再写选择器，通过jQuery找到的标签对象就是一个jQuery对象，用原生JS找到的标签对象叫做DOM对象，看我们上面的jQuery对象部分的内容
+    标签选择器：$(&quot;tagName&quot;)
+    class选择器：$(&quot;.className&quot;)
+    配合使用：$(&quot;div.c1&quot;)  // 找到有c1 class类的div标签
+    所有元素选择器：$(&quot;*&quot;)
+    组合选择器$(&quot;#id, .className, tagName&quot;)
+</code></pre>
+<h3 id="层级选择器">层级选择器</h3>
+<pre><code><code>x和y可以为任意选择器
+
+$(&quot;x y&quot;);// x的所有后代y（子子孙孙）
+$(&quot;x &gt; y&quot;);// x的所有儿子y（儿子）
+$(&quot;x + y&quot;)// 找到所有紧挨在x后面的y
+$(&quot;x ~ y&quot;)// x之后所有的兄弟y
+</code></pre>
+<h3 id="基本筛选器">基本筛选器</h3>
+<pre class="js"><code>:first // 第一个
+:last // 最后一个
+:eq(index)// 索引等于index的那个元素
+:even // 匹配所有索引值为偶数的元素，从 0 开始计数
+:odd // 匹配所有索引值为奇数的元素，从 0 开始计数
+:gt(index) // 匹配所有大于给定索引值的元素
+:lt(index) // 匹配所有小于给定索引值的元素
+:not(元素选择器)// 移除所有满足not条件的标签
+:has(元素选择器)// 选取所有包含一个或多个标签在其内的标签(指的是从后代元素找)
+示例写法:$(&#39;li:has(span)&#39;);
+    
+$(&quot;div:has(h1)&quot;)// 找到所有后代中有h1标签的div标签，意思是首先找到所有div标签，把这些div标签的后代中有h1的div标签筛选出来
+$(&quot;div:has(.c1)&quot;)// 找到所有后代中有c1样式类（类属性class=&#39;c1&#39;）的div标签
+$(&quot;li:not(.c1)&quot;)// 找到所有不包含c1样式类的li标签
+$(&quot;li:not(:has(a))&quot;)// 找到所有后代中不含a标签的li标签</code></pre>
+<h3 id="绑定选择器">绑定选择器</h3>
+<pre class="js"><code>// 绑定事件的方法
+$(&#39;#btn&#39;).click(function () {
+    $(&#39;.mode&#39;)[0].classList.remove(&#39;hide&#39;);
+    $(&#39;.shadow&#39;)[0].classList.remove(&#39;hide&#39;);
+    jquery写法:
+    $(&#39;.mode,.shadow&#39;).removeClass(&#39;hide&#39;);
+})</code></pre>
+<h3 id="属性选择器-1">属性选择器</h3>
+<pre class="js"><code>&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+用户名:&lt;input type=&quot;text&quot;&gt;
+密码:&lt;input type=&quot;password&quot;&gt;
+&lt;br&gt;
+性别:&lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;1&quot;&gt;男
+     &lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;2&quot;&gt;女
+&lt;br&gt;
+爱好:&lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot;&gt;抽烟
+     &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot;&gt;喝酒
+     &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot;&gt;烫头
+&lt;script src=&quot;jQuery下载.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+
+[attribute]
+[attribute=value]// 属性等于
+[attribute!=value]// 属性不等于
+示例:
+    $(&#39;[title]&#39;)
+
+// 示例,多用于input标签
+&lt;input type=&quot;text&quot;&gt;
+&lt;input type=&quot;password&quot;&gt;
+&lt;input type=&quot;checkbox&quot;&gt;
+$(&quot;input[type=&#39;checkbox&#39;]&quot;);// 取到checkbox类型的input标签
+$(&quot;input[type!=&#39;text&#39;]&quot;);// 取到类型不是text的input标签</code></pre>
+<h3 id="表单筛选器">表单筛选器</h3>
+<pre><code><code>:text
+:password
+:file
+:radio
+:checkbox
+
+:submit
+:reset
+:button
+简单示例:
+    
+    &lt;div&gt;
+        用户名: &lt;input type=&quot;text&quot;&gt;
+    &lt;/div&gt;
+
+    &lt;div&gt;
+        密码: &lt;input type=&quot;password&quot;&gt;
+    &lt;/div&gt;
+
+    &lt;div&gt;
+        sex:
+        &lt;input type=&quot;radio&quot; name=&quot;sex&quot;&gt;男
+        &lt;input type=&quot;radio&quot; name=&quot;sex&quot;&gt;女
+        &lt;input type=&quot;radio&quot; name=&quot;sex&quot;&gt;不详
+    &lt;/div&gt;
+    
+    找到type为text的input标签:$(&#39;:text&#39;)</code></pre>
+<h3 id="表单对象属性">表单对象属性</h3>
+<pre class="js"><code>:enabled    //查看可用标签
+:disabled   //查看不可用标签
+:checked    //查看单选框标签
+:selected   //查看多选框标签
+
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+用户名:&lt;input type=&quot;text&quot;&gt;
+密码:&lt;input type=&quot;password&quot; disabled&gt;
+&lt;br&gt;
+性别:&lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;1&quot;&gt;男
+     &lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;2&quot;&gt;女
+&lt;br&gt;
+爱好:&lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot;&gt;抽烟
+     &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot;&gt;喝酒
+     &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot;&gt;烫头
+&lt;br&gt;
+&lt;select name=&quot;&quot; id=&quot;s&quot;&gt;
+    &lt;option value=&quot;1&quot;&gt;八戒&lt;/option&gt;
+    &lt;option value=&quot;2&quot;&gt;莎莎&lt;/option&gt;
+    &lt;option value=&quot;3&quot;&gt;悟空&lt;/option&gt;
+    &lt;option value=&quot;4&quot;&gt;小白&lt;/option&gt;
+&lt;/select&gt;
+&lt;script src=&quot;jQuery下载.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+$(&#39;:selected&#39;) //获取选择的下拉选框标签
+$(&#39;:selected&#39;).text() //获取选择的下拉选框文本内容</code></pre>
+<h3 id="链式表达式">链式表达式</h3>
+<pre class="js"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;d1&quot;&gt;
+        &lt;ul class=&quot;u1&quot;&gt;
+            &lt;li class=&quot;c1&quot;&gt;北京&lt;/li&gt;
+            &lt;li&gt;上海&lt;/li&gt;
+            &lt;li class=&quot;c2&quot;&gt;天津&lt;/li&gt;
+            &lt;li&gt;河北&lt;/li&gt;
+            &lt;li&gt;唐山&lt;/li&gt;
+            &lt;li&gt;石家庄&lt;/li&gt;
+            &lt;li&gt;成都&lt;/li&gt;
+        &lt;/ul&gt;
+        &lt;ul&gt;
+            &lt;li class=&quot;city&quot;&gt;南京&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;script src=&quot;jQuery下载.js&quot;&gt;&lt;/script&gt;
+&lt;/html&gt;
+
+
+$(&#39;li:first&#39;).next().css(&#39;color&#39;,&#39;red&#39;).next().css(&#39;color&#39;,&#39;red&#39;)
+先找到第一个li标签,在找下一个标签(next),在添加样式,在找下一个标签,在添加样式</code></pre>
+<h3 id="筛选器方法">筛选器方法</h3>
+<pre class="js"><code>下一个
+    $(&quot;#id&quot;).next()
+    $(&quot;#id&quot;).nextAll()
+    $(&quot;#id&quot;).nextUntil(&quot;#i2&quot;)    #直到找到id为i2的标签就结束查找，不包含它
+    
+上一个
+    $(&quot;#id&quot;).prev()
+    $(&quot;#id&quot;).prevAll()
+    $(&quot;#id&quot;).prevUntil(&quot;#i2&quot;)
+
+&lt;ul&gt;
+    &lt;li&gt;八戒&lt;/li&gt;
+    &lt;li&gt;悟空&lt;/li&gt;
+    &lt;li class=&quot;c1&quot;&gt;小李&lt;/li&gt;
+    &lt;li&gt;小白&lt;/li&gt;
+    &lt;li&gt;峡谷先锋&lt;/li&gt;
+    &lt;li class=&quot;c2&quot;&gt;莎莎&lt;/li&gt;
+    &lt;li&gt;小强&lt;/li&gt;
+
+&lt;/ul&gt;
+
+示例:
+    $(&#39;li:first&#39;).next()  找到第一个标签的下一个标签
+    $(&#39;.c2&#39;).prevUntil(&#39;.c1&#39;);
+
+
+
+把筛选器封装成一个方法
+$(&#39;.c1:first&#39;) = $(&#39;.c1&#39;).first()
+.first() // 获取匹配的第一个元素
+.last() // 获取匹配的最后一个元素
+.not() // 从匹配元素的集合中删除与指定表达式匹配的元素
+.has() // 保留包含特定后代的元素，去掉那些不含有指定后代的元素。
+.eq() // 索引值等于指定值的元素</code></pre>
+<h2 id="操作标签">操作标签</h2>
+<h3 id="样式操作">样式操作</h3>
+<pre><code><code>样式类操作
+    addClass();// 添加指定的CSS类名.
+    removeClass();// 移除指定的CSS类名。
+    hasClass();// 判断样式存不存在
+    toggleClass();// 切换CSS类名，如果有就移除，如果没有就添加。</code></pre>
+<h3 id="css操作">css操作</h3>
+<pre><code><code>单个方式:$(&#39;div&#39;).css(&#39;background-color&#39;,&#39;green&#39;);
+多个方式:$(&#39;div&#39;).css({&#39;background-color&#39;:&#39;yellow&#39;,&#39;width&#39;:&#39;400px&#39;});</code></pre>
+<h3 id="位置操作">位置操作</h3>
+<pre><code><code>offset()// 获取匹配元素在当前窗口的相对偏移或设置元素位置
+position()// 获取匹配元素相对父元素的偏移，不能设置位置
+
+    .offset()方法允许我们检索一个元素相对于文档（document）的当前位置。和 .position()的差别在于： .position()获取相对于它最近的具有相对位置(position:relative或position:absolute)的父级元素的距离，如果找不到这样的元素，则返回相对于浏览器的距离
+
+示例:
+    $(&#39;.c2&#39;).offset(); 查看位置
+    $(&#39;.c2&#39;).offset({top:100,left:200}); 设置位置
+    
+    
+    代码:
+    &lt;!DOCTYPE html&gt;
+    &lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;Title&lt;/title&gt;
+
+        &lt;style&gt;
+            /*body{*/
+            /*    margin: 0;*/
+            /*}*/
+            .c1{
+                background-color: red;
+                height: 100px;
+                width: 100px;
+                display: inline-block;
+
+            }
+            .c2{
+                background-color: green;
+                height: 100px;
+                width: 100px;
+                display: inline-block;
+            }
+        &lt;/style&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;div class=&quot;cc&quot;&gt;
+        &lt;div class=&quot;c1&quot;&gt;&lt;/div&gt;&lt;div class=&quot;c2&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;script src=&quot;jquey.js&quot;&gt;&lt;/script&gt;
+    &lt;/body&gt;
+    &lt;/html&gt;
+$(window).scrollTop()  //滚轮向下移动的距离
+$(window).scrollLeft() //滚轮向左移动的距离</code></pre>
+<h3 id="尺寸">尺寸</h3>
+<pre><code><code>height() //盒子模型content的大小，就是我们设置的标签的高度和宽度
+width()
+innerHeight() //内容content高度 + 两个padding的高度
+innerWidth()
+outerHeight() //内容高度 + 两个padding的高度 + 两个border的高度，不包括margin的高度，因为margin不是标签的，是标签和标签之间的距离
+outerWidth()
+示例:
+    &lt;!DOCTYPE html&gt;
+    &lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;Title&lt;/title&gt;
+
+        &lt;style&gt;
+            .c1{
+                width: 100px;
+                height: 100px;
+                padding: 20px 30px;
+                border: 2px solid red;
+
+            }
+
+
+
+        &lt;/style&gt;
+
+    &lt;/head&gt;
+    &lt;body&gt;
+
+    &lt;div class=&quot;c1&quot;&gt;&lt;/div&gt;
+
+
+    &lt;/body&gt;
+    &lt;script src=&quot;jquery.js&quot;&gt;&lt;/script&gt;
+    &lt;/html&gt;
+    
+    操作:
+        $(&#39;.c1&#39;).height();
+        $(&#39;.c1&#39;).width();
+        $(&#39;.c1&#39;).innerWidth();
+        $(&#39;.c1&#39;).outerWidth();</code></pre>
+<h3 id="文本操作">文本操作</h3>
+<pre><code><code>html()// 取得第一个匹配元素的html内容，包含标签内容
+html(val)// 设置所有匹配元素的html内容，识别标签，能够表现出标签的效果
+text()// 取得所有匹配元素的内容，只有文本内容，没有标签
+text(val)// 设置所有匹配元素的内容，不识别标签，将标签作为文本插入进去
+示例:
+    取值  
+        $(&#39;.c1&#39;).html();
+        $(&#39;.c1&#39;).text();
+    设置值
+        $(&#39;.c1&#39;).text(&#39;&lt;a href=&quot;&quot;&gt;百度&lt;/a&gt;&#39;);
+        $(&#39;.c1&#39;).html(&#39;&lt;a href=&quot;&quot;&gt;百度&lt;/a&gt;&#39;);</code></pre>
+<h3 id="值操作">值操作</h3>
+<pre><code><code>取值:
+    文本输入框:$(&#39;#username&#39;).val();
+    input,type=radio单选框: $(&#39;[type=&quot;radio&quot;]:checked&#39;).val();,首先找到被选中的标签,再进行取值
+    input,type=checkbox多选框: 通过val方法不能直接获取多选的值,只能拿到一个,想拿到多个项的值,需要循环取值
+        var d = $(&#39;[type=&quot;checkbox&quot;]:checked&#39;);
+        for (var i=0;i&lt;d.length;i++){
+            console.log(d.eq(i).val());
+        }
+    单选下拉框select: -- $(&#39;#s1&#39;).val();
+    多选下拉框select: -- $(&#39;#s2&#39;).val(); -- [&#39;1&#39;,&#39;2&#39;]
+
+设置值
+    文本输入框: -- $(&#39;#username&#39;).val(&#39;xxx&#39;);
+    input,type=radio单选框: -- $(&#39;:radio&#39;).val([&#39;1&#39;]) 找到所有的radio,然后通过val设置值,达到一个选中的效果.
+    给单选或者多选框设置值的时候,只要val方法中的值和标签的value属性对应的值相同时,那么这个标签就会被选中.
+    此处有坑:$(&#39;:radio&#39;).val(&#39;1&#39;);这样设置值,不带中括号的,意思是将所有的input,type=radio的标签的value属性的值设置为1.
+    
+    input,type=checkbox多选框: -- $(&#39;:checkbox&#39;).val([&#39;1&#39;,&#39;2&#39;]);
+    
+    单选下拉框select: -- $(&#39;#s1&#39;).val([&#39;3&#39;]);
+    多选下拉框select: -- $(&#39;#s2&#39;).val([&#39;1&#39;,&#39;2&#39;]);
+    
+    统一一个方法:
+        选择框都用中括号设置值.
+        
+获取内容        
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+用户名:&lt;input type=&quot;text&quot;&gt;
+密码:&lt;input type=&quot;password&quot;&gt;
+&lt;br&gt;
+性别:&lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;1&quot;&gt;男
+     &lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;2&quot;&gt;女
+&lt;br&gt;
+爱好:&lt;label &gt;
+    &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;1&quot;&gt;抽烟
+    &lt;/label&gt;
+     &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;2&quot;&gt;喝酒
+     &lt;input type=&quot;checkbox&quot; name=&quot;hobby&quot; value=&quot;3&quot;&gt;烫头
+&lt;script src=&quot;jQuery下载.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+$(&#39;input[type=&quot;checkbox&quot;]:checked&#39;).eq(0).parent().text()  获取选中的多选框内容文本</code></pre>
+<h3 id="属性操作">属性操作</h3>
+<pre><code><code>设置属性: -- $(&#39;#d1&#39;).attr({&#39;age1&#39;:&#39;18&#39;,&#39;age2&#39;:&#39;19&#39;});
+        单个设置:$(&#39;#d1&#39;).attr(&#39;age1&#39;,&#39;18&#39;);
+查看属性值: -- $(&#39;#d1&#39;).attr(&#39;age1&#39;);
+删除属性: -- $(&#39;#d1&#39;).removeAttr(&#39;age1&#39;); 括号里面写属性名称
+prop和attr方法的区别:
+总结一下：
+    1.对于标签上有的能看到的属性和自定义属性都用attr
+    2.对于返回布尔值的比如checkbox、radio和option的是否被选中或者设置其被选中与取消选中都用prop。
+    具有 true 和 false 两个属性的属性，如 checked, selected 或者 disabled 使用prop()，其他的使用 attr()
+    checked示例:
+        attr():
+            查看值,checked 选中--&#39;checked&#39;  没选中--undefined
+                $(&#39;#nv&#39;).attr({&#39;checked&#39;:&#39;checked&#39;}); 
+            设置值,attr无法完成取消选中
+                $(&#39;#nv&#39;).attr({&#39;checked&#39;:&#39;undefined&#39;});
+                $(&#39;#nv&#39;).attr({&#39;checked&#39;:undefined});
+                
+         prop():
+            查看值,checked 选中--true  没选中--false
+                $(&#39;:checkbox&#39;).prop(&#39;checked&#39;);
+                
+                $(&#39;input[value=4]:checked&#39;).prop(&#39;checked&#39;) 
+                根据value查看选中的选项是否被选中,选中就返回true,否则返回undefined
+                
+        
+            设置值:
+                $(&#39;:checkbox&#39;).prop(&#39;checked&#39;,true);
+                $(&#39;:checkbox&#39;).prop(&#39;checked&#39;,false);</code></pre>
+<h3 id="文档处理">文档处理</h3>
+<pre><code><code>姿势1:添加到指定元素内部的后面
+    $(A).append(B)// 把B追加到A
+    $(A).appendTo(B)// 把A追加到B
+    append示例:
+        方式1: 
+            创建标签
+                var a = document.createElement(&#39;a&#39;);
+                $(a).text(&#39;百度&#39;);
+                $(a).attr(&#39;href&#39;,&#39;http://www.baidu.com&#39;);
+                $(&#39;#d1&#39;).append(a);
+        方式2:(重点)
+            $(&#39;#d1&#39;).append(&#39;&lt;a href=&quot;xx&quot;&gt;京东&lt;/a&gt;&#39;);
+    appendto示例
+        $(a).appendTo(&#39;#d1&#39;);
+        
+姿势2:添加到指定元素内部的前面
+    $(A).prepend(B)// 把B前置到A
+    $(A).prependTo(B)// 把A前置到B
+    
+姿势3:添加到指定元素外部的后面
+    $(A).after(B)// 把B放到A的后面
+    $(A).insertAfter(B)// 把A放到B的后面
+    
+姿势4:
+    $(A).before(B)// 把B放到A的前面
+    $(A).insertBefore(B)// 把A放到B的前面
+
+移除和清空元素
+    remove()// 从DOM中删除所有匹配的元素。
+    empty()// 删除匹配的元素集合中所有的子节点，包括文本被全部删除，但是匹配的元素还在
+    示例:
+        $(&#39;#d1&#39;).remove();
+        $(&#39;#d1&#39;).empty();
+        
+替换:
+    replaceWith()
+    replaceAll()
+     示例:
+        $(&#39;#d1&#39;).replaceWith(a);  用a替换前面的标签
+        $(a).replaceAll(&#39;#d1&#39;);   
+     </code></pre>
+<h3 id="克隆复制标签">克隆(复制标签)</h3>
+<pre><code><code>示例:
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;button class=&quot;btn&quot;&gt;屠龙宝刀,点击就送!&lt;/button&gt;
+
+&lt;/body&gt;
+&lt;script src=&quot;jquery.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+    $(&#39;.btn&#39;).click(function () {
+        // var btnEle = $(this).clone(); // 不带参数的克隆不能克隆绑定的事件
+        var btnEle = $(this).clone(true); // 参数写个true,就能复制事件
+        $(this).after(btnEle);
+    })
+&lt;/script&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="事件">事件</h3>
+<pre><code><code>绑定事件的两种方式:
+    // 绑定事件的方式1
+    // $(&quot;#d1&quot;).click(function () {
+    //     $(this).css(&#39;background-color&#39;,&#39;green&#39;);
+    // })
+
+    // 方式2
+    $(&#39;#d1&#39;).on(&#39;click&#39;,function () {
+        $(this).css(&#39;background-color&#39;,&#39;green&#39;);
+    })</code></pre>
+<h3 id="常用事件">常用事件</h3>
+<pre><code><code>click(function(){...})
+hover(function(){...})
+blur(function(){...})
+focus(function(){...})
+change(function(){...}) //内容发生变化，input，select等
+keyup(function(){...})  
+mouseover 和 mouseenter的区别是：mouseover事件是如果该标签有子标签，那么移动到该标签或者移动到子标签时会连续触发，mmouseenter事件不管有没有子标签都只触发一次，表示鼠标进入这个对象
+示例:
+    &lt;!DOCTYPE html&gt;
+    &lt;html lang=&quot;en&quot;&gt;
+    &lt;head&gt;
+        &lt;meta charset=&quot;UTF-8&quot;&gt;
+        &lt;title&gt;Title&lt;/title&gt;
+        &lt;style&gt;
+            #d1{
+                background-color: red;
+                height: 200px;
+                width: 200px;
+            }
+            #d2{
+                background-color: green;
+                height: 200px;
+                width: 200px;
+            }
+
+            .dd1{
+                background-color: yellow;
+                height: 40px;
+                width: 40px;
+            }
+            .dd2{
+                background-color: pink;
+                height: 40px;
+                width: 40px;
+            }
+        &lt;/style&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+
+    &lt;div id=&quot;d1&quot;&gt;
+        &lt;div class=&quot;dd1&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div id=&quot;d2&quot;&gt;
+        &lt;div class=&quot;dd2&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    用户名:&lt;input type=&quot;text&quot; id=&quot;username&quot;&gt;
+    &lt;br&gt;
+
+    &lt;!--&lt;select name=&quot;&quot; id=&quot;s1&quot;&gt;--&gt;
+    &lt;!--    &lt;option value=&quot;1&quot;&gt;上海&lt;/option&gt;--&gt;
+    &lt;!--    &lt;option value=&quot;2&quot;&gt;深圳&lt;/option&gt;--&gt;
+    &lt;!--    &lt;option value=&quot;3&quot;&gt;贵州&lt;/option&gt;--&gt;
+    &lt;!--&lt;/select&gt;--&gt;
+
+    &lt;input type=&quot;text&quot; id=&quot;xxx&quot;&gt;
+
+    &lt;/body&gt;
+    &lt;script src=&quot;jquery.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+        // 绑定事件的方式1
+        // $(&quot;#d1&quot;).click(function () {
+        //     $(this).css(&#39;background-color&#39;,&#39;green&#39;);
+        // })
+
+        // 方式2
+        // $(&#39;#d1&#39;).on(&#39;click&#39;,function () {
+        //     $(this).css(&#39;background-color&#39;,&#39;green&#39;);
+        // });
+        //
+        //获取光标触发的事件
+        // $(&#39;#username&#39;).focus(function () {
+        //     $(this).css(&#39;background-color&#39;,&#39;green&#39;);
+        // });
+        
+        // 失去光标触发的事件
+        // $(&#39;#username&#39;).blur(function () {
+        //     $(this).css(&#39;background-color&#39;,&#39;white&#39;);
+        // });
+        
+        // 域内容发生变化触发的事件,一般用于select标签
+        // $(&#39;#s1&#39;).change(function () {
+        //      // $(&#39;#d1&#39;).css(&#39;background-color&#39;,&#39;black&#39;);
+        //     console.log(&#39;xxxxx&#39;)
+        // });
+
+        // $(&#39;#xxx&#39;).change(function () {
+        //     console.log($(this).val());
+        // })
+
+        // 输入内容实时触发的事件,input事件只能on绑定
+        // $(&#39;#xxx&#39;).on(&#39;input&#39;,function () {
+        //     console.log($(this).val());
+        // });
+        //
+        // //绑定多个事件 事件名称空格间隔
+        // $(&#39;#xxx&#39;).on(&#39;input blur&#39;,function () {
+        //     console.log($(this).val());
+        // })
+
+
+        // 鼠标进入触发的事件
+        // $(&#39;#d1&#39;).mouseenter(function () {
+        //     $(this).css(&#39;background-color&#39;,&#39;green&#39;);
+        // });
+        // // 鼠标离开触发的事件
+        // $(&#39;#d1&#39;).mouseout(function () {
+        //     $(this).css(&#39;background-color&#39;,&#39;red&#39;);
+        // });
+
+        // hover事件 鼠标进进出出的事件
+        // $(&#39;#d1&#39;).hover(
+        //     // 鼠标进入
+        //     function () {
+        //         $(this).css(&#39;background-color&#39;,&#39;green&#39;);
+        //     },
+        //     // 鼠标离开
+        //     function () {
+        //         $(this).css(&#39;background-color&#39;,&#39;red&#39;);
+        //     }
+        // );
+
+
+        $(&#39;#d1&#39;).mouseenter(function () {
+            console.log(&#39;xxx&#39;);
+        });
+        $(&#39;#d2&#39;).mouseover(function () {
+            console.log(&#39;ooo&#39;);
+        });
+        
+        // 键盘按下
+           // $(window).keydown(function (e) {
+            //     console.log(e.keyCode);
+            //
+            // });
+         // 键盘抬起
+            $(window).keyup(function (e) {
+                console.log(e.keyCode);
+            });
+
+    &lt;/script&gt;
+    &lt;/html&gt;</code></pre>
+<h3 id="移除事件不常用">移除事件（不常用）</h3>
+<pre><code><code>.off( events [, selector ][,function(){}])
+off() 方法移除用 .on()绑定的事件处理程序。
+
+$(&quot;li&quot;).off(&quot;click&quot;)；就可以了</code></pre>
+<h3 id="事件冒泡">事件冒泡</h3>
+<pre><code><code>    // 事件冒泡,子标签和父标签(祖先标签)绑定了相同的事件,比如点击事件,那么当你点击子标签时,会一层一层的往上触发父级或者祖父级等等的事件
+    $(&#39;.c1&#39;).click(function () {
+        alert(&#39;父级标签!!!&#39;);
+
+    });
+    $(&#39;.c2&#39;).click(function (e) {
+        alert(&#39;子标签~~~&#39;);
+        // 阻止事件冒泡(阻止事件发生)
+        return false; //方式1
+        // e.stopPropagation() // 方式2
+    })</code></pre>
+<h3 id="事件委托">事件委托</h3>
+<pre class="js"><code>    &lt;div id=&quot;d1&quot;&gt;
+        &lt;button class=&quot;btn&quot;&gt;屠龙宝刀,点击就送!&lt;/button&gt;.
+        
+    &lt;/div&gt;
+
+    // 事件委托
+    $(&#39;#d1&#39;).on(&#39;click&#39;,&#39;.btn&#39;,function () {
+          // $(this)是你点击的儿子标签
+        var a= $(this).clone();
+        $(&#39;#d1&#39;).append(a);
+    });
+//中间的参数是个选择器，前面这个$(&#39;table&#39;)是父级标签选择器，选择的是父级标签，意思就是将子标签（子子孙孙）的点击事件委托给了父级标签
+//但是这里注意一点，你console.log(this)；你会发现this还是触发事件的那个子标签，这个记住昂
+
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;d1&quot;&gt;
+    &lt;button class=&quot;btn&quot;&gt;屠龙宝刀,点击就送!!!!&lt;/button&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;script src=&quot;jQuery下载.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+    $(&#39;#d1&#39;).on(&#39;click&#39;,&#39;.btn&#39;,function () {
+        var a = $(this).clone();//this表示儿子标签,如果在添加按钮,依然是一个儿子标签,在点击儿子标签按钮依然会触发父级标签
+        $(&#39;#d1&#39;).append(a)
+    })
+&lt;/script&gt;
+&lt;/html&gt;
+
+
+&lt;!--代码从上到下执行,当执型到事件时,给按钮添加绑定事件,然后如果在添加新的button按钮,就不会再绑定事件,
+所以,新的按钮不会有事件发生.--&gt;
+
+&lt;!--事件委托,把btn这个类选择器触发的点击事件委托给父级标签(基于事件冒泡,当点击当前标签时,会一层一层向上找),所以用事件委托,
+委托给父级标签来触发这个点击事件--&gt;</code></pre>
+<h1 id="bootstrap">bootstrap</h1>
+<pre class="js"><code>官网:https://www.bootcss.com/
+
+
+模板
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+    &lt;!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ --&gt;
+    &lt;title&gt;Bootstrap 101 Template&lt;/title&gt;
+
+    &lt;!-- Bootstrap --&gt;
+    &lt;link href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css&quot; rel=&quot;stylesheet&quot;&gt;
+
+    &lt;!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 --&gt;
+    &lt;!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 --&gt;
+    &lt;!--[if lt IE 9]&gt;
+      &lt;script src=&quot;https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js&quot;&gt;&lt;/script&gt;
+      &lt;script src=&quot;https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js&quot;&gt;&lt;/script&gt;
+    &lt;![endif]--&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;你好，世界！&lt;/h1&gt;
+    &lt;!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) --&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js&quot;&gt;&lt;/script&gt;
+    &lt;!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 --&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+
+例子:
+栅格系统
+栅格系统的嵌套
+需求:利用栅格分18个元素,可以先分3个格,3个格里按12个格在平均分6个
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot;
+          content=&quot;width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css&quot; &gt;
+    &lt;style&gt;
+        .col-md-4{
+            border: 1px solid black;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;div class=&quot;col-md-4&quot;&gt;
+            &lt;div class=&quot;row&quot;&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;col-md-4&quot;&gt;
+            &lt;div class=&quot;row&quot;&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;col-md-4&quot;&gt;
+            &lt;div class=&quot;row&quot;&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+                &lt;div class=&quot;col-md-2&quot;&gt;.col-md-6&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+找到需要的样式,复制!!!!</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

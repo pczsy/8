@@ -1,0 +1,144 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修软件设计的哲学：第十四章 选个好名字' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>软件设计的哲学：第十四章 选个好名字</center></div><div class='banquan'>原文出处:本文由博客园博主peida提供。<br/>
+原文连接:https://www.cnblogs.com/peida/p/12095125.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#例子不好的名字会导致错误">14.1例子：不好的名字会导致错误</a></li>
+        <li><a href="#创造一个形象">14.2 创造一个形象</a></li>
+        <li><a href="#名字要准确">14.3 名字要准确</a></li>
+        <li><a href="#保持一致性">14.4保持一致性</a></li>
+        <li><a href="#不同的观点go-style-guide">14.5 不同的观点：Go style guide</a></li>
+        <li><a href="#结论">14.6 结论</a></li>
+        </ul>
+    </div>
+</div>
+<p>为变量、方法和其他实体选择名称是软件设计中最被低估的方面之一。<strong>好的名称是文档的一种形式：它们使代码更容易理解。它们减少了对其他文档的需要，并使错误检测变得更容易。</strong> 相反，糟糕的名称选择会增加代码的复杂性，产生可能导致bug的歧义和误解。名称选择是复杂性递增原则的一个例子。为特定变量选择一个普通的名称，而不是尽可能最好的名称，可能不会对系统的整体复杂性产生太大的影响。然而，软件系统有成千上万个变量，为所有这些选择合适的名称将对复杂性和可管理性产生重大影响。</p>
+<h2 id="例子不好的名字会导致错误">14.1例子：不好的名字会导致错误</h2>
+<p>有时，即使是一个名字不好的变量也会造成严重的后果。我所修复过的最具挑战性的错误是由于错误的名字选择。在20世纪80年代末和90年代初，我和我的研究生创建了一个分布式操作系统，称为Sprite。在某种程度上，我们注意到文件有时会丢失数据：一个数据块突然变成了所有的0，即使文件没有被用户修改。这个问题不常发生，所以追踪起来特别困难。一些研究生试图找到这个bug，但是他们无法取得进展，最终放弃了。然而，我认为任何未解决的bug都是无法忍受的人身侮辱，所以我决定跟踪它。</p>
+<p>虽然花了六个月的时间，但我最终还是发现并修复了这个bug。这个问题实际上非常简单(大多数bug也是如此，只要您弄清楚它们)。文件系统代码将变量名块用于两个不同的目的。在某些情况下，块是指磁盘上的物理块号；在其他情况下，块引用文件中的逻辑块号。不幸的是，在代码中有一个块变量包含一个逻辑块号，但是在需要物理块号的上下文中偶然使用了它；结果，磁盘上一个不相关的块被0覆盖。</p>
+<p>在跟踪bug的过程中，包括我在内的几个人仔细阅读了错误代码，但我们从未注意到这个问题。当我们看到将变量块用作物理块号时，我们本能地认为它确实持有物理块号。我花了很长一段时间来测试，最终发现在一个特定的语句中肯定发生了错误，然后我才能够越过这个名字所造成的心理障碍，并检查它的价值到底来自哪里。如果对不同类型的块(如fileBlock和diskBlock)使用了不同的变量名，则不太可能发生错误，程序员应该知道在这种情况下不能使用fileBlock。</p>
+<p>不幸的是，大多数开发人员没有花很多时间考虑名称。他们倾向于使用第一个出现在脑海中的名字，只要它与它所命名的事物相当接近。例如，块与磁盘上的物理块和文件中的逻辑块非常匹配；这当然不是一个可怕的名字。尽管如此，它还是导致了大量的时间开销来跟踪一个细微的bug。因此，你不应该满足于那些“相当接近”的名字。花一些额外的时间来选择好的名字，这些名字要准确、明确、直观。额外的关注会很快得到回报，随着时间的推移，你会很快学会选择好的名字。</p>
+<h2 id="创造一个形象">14.2 创造一个形象</h2>
+<p>当选择一个名字时，目标是在读者的脑海中创造一个关于被命名的事物本质的形象。<strong>一个好的名字传达了很多关于底层实体是什么的信息，同样重要的是，它不是什么的信息。</strong> 当考虑一个特定的名字时，问问你自己:“如果某人单独看到这个名字，没有看到它的声明、文档或任何使用这个名字的代码，他们能猜出这个名字指的是什么吗？”有没有别的名字能让你更清楚地了解情况呢?“，当然，一个人的名字所能提供的信息是有限的；如果名称包含超过两三个单词，就会变得很笨拙。因此，我们面临的挑战是找到几个词来描述这个实体最重要的方面。</p>
+<p><strong>名称是一种抽象形式：它们提供了一种简化的方式来思考更复杂的底层实体。</strong> 与其他抽象形式一样，最好的名称是那些将注意力集中在底层实体最重要的方面，而忽略不太重要的细节的名称。</p>
+<h2 id="名字要准确">14.3 名字要准确</h2>
+<p><strong>好名字有两个属性：精确性和一致性。</strong> 让我们从精度开始。名字最常见的问题是太笼统或模糊；因此，读者很难知道这个名字指的是什么；读者可能会认为这个名字指的是与现实不同的东西，就像上面的block bug一样。考虑以下方法声明：</p>
+<p>“计数”这个词太泛了：计数什么？如果有人看到这个方法的调用，他们不太可能知道它做了什么，除非他们阅读了它的文档。像getActiveIndexlets或numIndexlets这样更精确的名称会更好：有了这些名称中的一个，读者可能不用看文档就能猜出方法返回的内容。</p>
+<pre><code><code>/**
+
+ * Returns the total number of indexlets this object is managing.
+
+ */
+
+int IndexletManager::getCount() {...}</code></pre>
+<p>以下是其他一些不够精确的名字的例子，取自学生的各种项目：</p>
+<ul>
+<li><p>构建GUI文本编辑器的项目使用名称x和y来表示文件中字符的位置。这些名字太普通了。它们可能意味着许多事情;例如，它们还可以表示屏幕上字符的坐标(以像素为单位)。单独看到名称x的人不太可能认为它指的是字符在一行文本中的位置。如果使用charIndex和lineIndex这样的名称，代码会更清晰，这些名称反映了代码实现的特定抽象。</p></li>
+<li>另一个编辑器项目包含以下代码：</li>
+</ul>
+<pre><code><code>// Blink state: true when cursor visible.
+
+private boolean blinkStatus = true;</code></pre>
+<p>blinkStatus这个名称并不能传达足够的信息。“status”这个词对于布尔值来说太模糊了：它没有给出关于真值或假值含义的任何线索。“blink”这个词也很模糊，因为它并不表示什么是blink。以下是更好的选择:</p>
+<pre><code><code>
+// Controls cursor blinking: true means the cursor is visible,
+
+// false means the cursor is not displayed.
+
+private boolean cursorVisible = true;</code></pre>
+<p>cursorVisible这个名字传达了更多的信息；例如，它允许读者猜测真值的含义(作为一般规则，布尔变量的名称应该总是谓词)。名称中不再有“blink”这个词，因此读者如果想知道光标为什么不总是可见，就必须查阅文档;这个信息不太重要。</p>
+<ul>
+<li>实施协商一致协议的项目包含以下代码：</li>
+</ul>
+<pre><code><code>// Value representing that the server has not voted (yet) for
+
+// anyone for the current election term.
+
+private static final String VOTED_FOR_SENTINEL_VALUE = &quot;null&quot;;</code></pre>
+<p>这个值的名称表明它是特殊的，但它没有说明特殊的含义是什么。更具体的名称如not_yet_会更好。</p>
+<ul>
+<li>在没有返回值的方法中使用了一个名为result的变量。这个名称有多个问题。首先，它会造成一种误导，即它将是方法的返回值。其次，它基本上不提供关于它实际持有的内容的任何信息，除了它是某个计算值之外。名称应该提供关于实际结果的信息，如mergedLine或totalChars。在确实具有返回值的方法中，使用名称result是合理的。这个名称仍然有点泛型，但是读者可以查看方法文档来了解它的含义，了解这个值最终将成为返回值是很有帮助的。</li>
+</ul>
+<blockquote>
+<p><strong>危险信号：模糊的名字</strong></p>
+<p>如果一个变量或方法名足够宽泛，可以引用许多不同的东西，那么它就不能向开发人员传递太多信息，底层实体更有可能被误用。</p>
+</blockquote>
+<p>与所有规则一样，选择精确名称的规则也有一些例外。例如，只要循环只跨几行代码，就可以使用i和j之类的通用名称作为循环迭代变量。如果您可以看到一个变量的整个使用范围，那么从代码中就可以看出该变量的含义，因此不需要很长的名称。例如，考虑以下代码：</p>
+<pre><code><code>for  (i = 0; i &lt; numLines; i++){      
+    ...
+}</code></pre>
+<p>从这段代码可以清楚地看出，i是用来遍历某个实体中的每一行的。如果循环太长，您无法一次全部看到它，或者如果很难从代码中找出迭代变量的含义，那么应该使用更具描述性的名称。</p>
+<p>名称也可能过于具体，比如在这个声明中，一个方法删除了一个范围的文本：</p>
+<pre><code><code>void delete(Range selection) {
+    ...
+}</code></pre>
+<p>参数名的选择太具体了，因为它表明被删除的文本总是在用户界面中被选择。但是，可以在选定的或未选定的任何文本范围上调用此方法。因此，参数名应该更通用，比如range。</p>
+<p>如果您发现很难为一个特定的变量找到一个精确、直观、不太长的名称，那么这就是一个危险信号。这表明该变量可能没有明确的定义或目的。当这种情况发生时，考虑替代因素。例如，您可能试图使用单个变量来表示多个事物;如果是这样，将表示分离成多个变量可能会使每个变量的定义更简单。选择好名字的过程可以通过识别弱点来改进设计。</p>
+<blockquote>
+<p><strong>危险信号：选择很难的名字</strong></p>
+<p>如果很难为创建底层对象的清晰图像的变量或方法找到一个简单的名称，那么这就暗示底层对象可能没有一个干净的设计。</p>
+</blockquote>
+<h2 id="保持一致性">14.4保持一致性</h2>
+<p><strong>好名字的第二个重要属性是一致性。</strong> 在任何程序中，都有一些反复使用的变量。例如，文件系统反复操作块号。对于这些常见用法，选择一个用于此目的的名称，并在任何地方使用相同的名称。例如，文件系统可能总是使用fileBlock来保存文件中块的索引。一致的命名减少了认知负担，其方式与重用公共类非常相似:一旦读者在一个上下文中看到了名称，他们就可以重用自己的知识，并在不同上下文中看到名称时立即做出假设。</p>
+<p><strong>一致性有三个要求：第一，总是为给定的目的使用通用名称；第二，不要把普通的名字用在与特定目的无关的任何事情上；第三，确保目的足够狭窄，所有具有名称的变量具有相同的行为。</strong> 这第三个要求在本章开头的文件系统错误中被违反了。文件系统对具有两种不同行为(文件块和磁盘块)的变量使用块；这导致了对变量含义的错误假设，从而导致了一个bug。</p>
+<p>有时你会需要多个变量来表示相同的东西。例如，复制文件数据的方法需要两个块号，一个用于源，一个用于目标。当发生这种情况时，为每个变量使用公共名称，但添加一个可区分的前缀，如srcFileBlock和dstFileBlock。</p>
+<p>循环是一致命名可以提供帮助的另一个领域。如果您对循环变量使用i和j之类的名称，则始终在最外层的循环中使用i，而在嵌套循环中使用j。这允许读者在看到给定名称时立即(安全地)假设代码中发生了什么。</p>
+<h2 id="不同的观点go-style-guide">14.5 不同的观点：Go style guide</h2>
+<p>并不是每个人都同意我对命名的看法。一些GO语言的开发者认为名字应该很短，通常只有一个字符。在一场关于Go名字选择的演讲中，Andrew Gerrand指出“冗长的名字掩盖了代码的作用。”他给出了这个代码示例，它使用了单字母变量名：</p>
+<pre><code><code>func RuneCount(b []byte) int {
+       i, n := 0, 0
+       for i &lt; len(b) {
+             if b[i] &lt; RuneSelf {
+                   i++
+             } else {
+                   _, size := DecodeRune(b[i:])
+                   i += size
+             }
+             n++
+       }
+       return n
+}</code></pre>
+<p>并认为它比下面的版本可读性更强，下面的版本使用了更长的名称：</p>
+<pre><code><code>func RuneCount(buffer []byte) int {
+       index, count := 0, 0
+       for index &lt; len(buffer) {
+             if buffer[index] &lt; RuneSelf {
+                   index++
+             } else {
+                   _, size := DecodeRune(buffer[index:])
+                   index += size
+             }
+             count++
+       }
+       return count
+}</code></pre>
+<p>就我个人而言，我并不觉得第二个版本比第一个版本更难读。如果有什么不同的话，那么name count对于变量的行为提供了比n更好的线索。在第一个版本中，我最后通读了代码，试图找出n的含义，而在第二个版本中，我觉得没有必要这样做。但是，如果在整个系统中始终使用n来引用count(而不是其他任何东西)，那么其他开发人员可能会清楚这个简短的名称。</p>
+<p>Go文化鼓励对多个不同的事物使用相同的短名称；ch表示字符或通道，d表示数据、差异或距离，等等。对我来说，像这样的模糊名称可能会导致混淆和错误，就像块示例中那样。</p>
+<p>总的来说，我认为<strong>可读性必须由读者决定，而不是作者</strong>。如果您编写的代码具有简短的变量名，并且读它的人发现它很容易理解，那么这是可以的。如果您开始收到关于您的代码太过神秘的抱怨，那么您应该考虑使用更长的名称(在Web上搜索“go语言的短名称”将识别出几个这样的抱怨)。类似地，如果我开始收到抱怨，说较长的变量名使我的代码难以阅读，那么我将考虑使用较短的变量名。</p>
+<p>Gerrand做了一个我同意的评论:“一个名字的声明和它的使用之间的距离越大，这个名字就应该越长。”前面关于使用循环变量i和j的讨论就是这个规则的一个例子。</p>
+<h2 id="结论">14.6 结论</h2>
+<p><strong>精心选择的名称有助于使代码更明。当一个人第一次遇到这个变量时，他们对它的行为的第一个猜测是正确的。</strong> 选择好的名字是在第3章中讨论的投资心态的一个例子：如果你提前花一点额外的时间来选择好的名字，将来在代码上工作就会更容易。此外，您将不太可能引入bug。开发一种命名技能也是一项投资。当你第一次决定不再满足于平庸的名字，你可能会发现它令人沮丧和耗时想出好名字。然而，当你获得更多的经验，你会发现它变得更容易。最终，你会发现，选择好名字几乎不需要额外的时间，所以你几乎可以免费获得这些好处。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

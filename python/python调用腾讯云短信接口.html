@@ -1,0 +1,90 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python调用腾讯云短信接口' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python调用腾讯云短信接口</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11755460.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#python调用腾讯云短信接口">python调用腾讯云短信接口</a><ul>
+        <li><a href="#账号注册">账号注册</a></li>
+        <li><a href="#python中封装腾讯云短信接口">python中封装腾讯云短信接口</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="python调用腾讯云短信接口">python调用腾讯云短信接口</h1>
+<h2 id="账号注册">账号注册</h2>
+<ol>
+<li><p>去<a href="https://cloud.tencent.com/">腾讯云官网</a>注册一个腾讯云账号，通过实名认证</p></li>
+<li><p>然后开通短信服务，创建短信应用，然后申请签名和模板</p></li>
+</ol>
+<h2 id="python中封装腾讯云短信接口">python中封装腾讯云短信接口</h2>
+<h4 id="安装依赖">安装依赖</h4>
+<p><code>pip install qcloudsms_py</code></p>
+<h4 id="架构">架构</h4>
+<pre><code><code>tx_msg
+  |-- __init__.py
+  |-- settings.py  # 配置
+  |-- sms.py  # 实现发送短信接口</code></pre>
+<h4 id="settings.py">settings.py</h4>
+<pre><code><code># 短信应用 SDK AppID 以1400开头
+appid = xxxxx
+# 短信应用 SDK AppKey
+appkey = &quot;xxxxxx&quot;
+# 短信模板ID，需要在短信控制台中申请
+template_id = xxxxx
+# 签名 参数使用的是`签名内容`，而不是`签名ID`
+sms_sign = &quot;xxxxx&quot;</code></pre>
+<h4 id="sms.py">sms.py</h4>
+<pre><code><code>from qcloudsms_py import SmsSingleSender
+from .settings import *
+import random
+
+# 短信发送成功的标识：发送后没有异常，响应的大字典中result值为0
+# {&#39;result&#39;: 0, &#39;errmsg&#39;: &#39;OK&#39;, &#39;ext&#39;: &#39;&#39;, &#39;sid&#39;: &#39;2028:f826a20b647e9cfa4100&#39;, &#39;fee&#39;: 1}
+def send_sms(mobile, code, exp):
+    ssender = SmsMultiSender(appid, appkey)
+    params = [code, exc]
+    mobile = (mobile, )
+
+    try:
+        response = ssender.send_with_param(86, mobile, template_id, params, sign=sms_sign, extend=&#39;&#39;, ext=&#39;&#39;)
+        # print(response)
+        detail = response[&#39;detail&#39;]
+
+    except Exception as e:
+        return False
+
+    if detail[0].get(&#39;result&#39;) != 0:
+        return False
+
+    return True
+
+def get_code(num):
+    &quot;&quot;&quot;发送几位验证码&quot;&quot;&quot;
+    code = &#39;&#39;
+    for i in range(num):
+        code += str(random.randint(0, 9))
+    return code</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

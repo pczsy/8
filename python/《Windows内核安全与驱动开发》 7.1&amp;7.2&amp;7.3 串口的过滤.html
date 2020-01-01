@@ -1,0 +1,425 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修《Windows内核安全与驱动开发》 7.1&amp;7.2&amp;7.3 串口的过滤' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>《Windows内核安全与驱动开发》 7.1&amp;7.2&amp;7.3 串口的过滤</center></div><div class='banquan'>原文出处:本文由博客园博主OneTrainee提供。<br/>
+原文连接:https://www.cnblogs.com/onetrainee/p/12006226.html</div><br>
+    <p><strong><a class="postTitle2" href="https://www.cnblogs.com/onetrainee/p/11993345.html">《Windows内核安全与驱动开发》阅读笔记 -- 索引目录 </a></strong></p>
+<p style="text-align: center;"><strong><span style="font-size: 18pt;">《Windows内核安全与驱动开发》 7.1&amp;7.2&amp;7.3 串口的过滤</span></strong></p>
+<p style="text-align: left;"><strong><span style="font-size: 14px;">一、设备绑定的内核API</span></strong></p>
+<ol>
+<li style="text-align: left;"><strong><span style="font-size: 14px;">进行过滤的最主要的方法是对一个____进行绑定。</span></strong></li>
+<li style="text-align: left;"><strong><span style="font-size: 14px;">我们可以首先认为：一个真实的设备对应一个_____。通过编程可以生成一个__的____，并绑定到一个___的设备上。一旦绑定，则本来操作系统发送给____的请求，就会发送到____上。</span></strong></li>
+<li style="text-align: left;"><strong><span style="font-size: 14px;">一个简单的API绑定函数是_____，必须是有____的设备，才能使用这个内核API进行绑定。</span></strong></li>
+<li style="text-align: left;"><strong><span style="font-size: 14px;">如果这个设备被其他设备绑定了，它们在一起组成一组设备，被称为____。实际上，IoAttachDevice总是会绑定___上最__层的那个设备。</span></strong></li>
+</ol>
+<p><strong><span style="font-size: 14px;">二、生成过滤设备并绑定 与 从名字获得设备对象</span></strong></p>
+<ol>
+<li><strong><span style="font-size: 14px;">在绑定一个设备之前，首先要知道如何生成一个用于____的设备，函数_____被用于生成过滤设备。</span></strong></li>
+<li><strong><span style="font-size: 14px;">在绑定一个设备之前，应该把这个设备对象的多个____和要绑定的目标对象一致，包括标志和特征。</span></strong></li>
+<li><strong><span style="font-size: 14px;">在知道一个设备名字的情况下，可以使用函数____来获得这个设备对象的指针。该函数的FileObject是一个返回参数，在获得这个设备对象的同时会获得一个____，就打开串口而言没什么用，但使用这个函数之后必须把这个对象____，否则会引起____。</span></strong></li>
+</ol>
+<p><strong><span style="font-size: 14px;">三、绑定所有串口</span></strong></p>
+<ol>
+<li><strong><span style="font-size: 14px;">串口x的设备名为____。</span></strong></li>
+</ol>
+<p><strong><span style="font-size: 14px;">四、请求的区分</span></strong></p>
+<ol>
+<li><strong><span style="font-size: 14px;">每个驱动程序只有__个驱动对象。</span></strong></li>
+<li><strong><span style="font-size: 14px;">每个驱动对象可以生成___个驱设备对象。</span></strong></li>
+<li><strong><span style="font-size: 14px;">若干个设备（它们可以属于__的驱动）依次绑定形成一个____，总是最__端的设备先收到请求。</span></strong></li>
+</ol>
+<p><strong><span style="font-size: 14px;">五、请求的结局</span></strong></p>
+<ol>
+<li><strong><span style="font-size: 14px;">对请求的过滤，有三种结局：____、_____、_____。</span></strong></li>
+<li><strong><span style="font-size: 14px;">处理第一种最简单，首先调用函数____跳过当前栈空间；然后调用____把这个请求发送给___的设备。请注意，因为____的设备已经被过滤设备所绑定，因此首先接收到IRP的是过滤设备的对象。</span></strong></li>
+</ol>
+<p><strong><span style="font-size: 14px;">六、写请求的数据</span></strong></p>
+<ol>
+<li><strong><span style="font-size: 14px;">一个写请求保存在那里呢？IRP有三种，一种是___，一种是___，一种是____。不同的__类别，IRP的缓冲不同。</span></strong></li>
+<li><strong><span style="font-size: 14px;">____是最有效率的解决方案。应用层的缓冲区地址直接放在___里，在内核层去访问。在____和_____一致的情况下，是完全正确的。但一旦内核进程进行____，这个访问就结束了。</span></strong></li>
+<li><strong><span style="font-size: 14px;">一种更简单的解决的方案是把__层的地址空间映射到__空间，这需要在__中增加一个映射。当然这不需要编程者手动去修改，通过构造__就能实现这个功能。其可以翻译为____。</span></strong></li>
+</ol><hr />
+<p style="text-align: center;">&nbsp;<strong><span style="font-size: 14px;">答案<br /></span></strong></p>
+<p style="text-align: left;"><strong><span style="font-size: 14px;"><span style="font-size: 14px;">一、设备绑定的内核API</span></span></strong></p>
+<ol>
+<li style="text-align: left;"><strong>设备对象</strong></li>
+<li style="text-align: left;"><strong>设备对象&nbsp; 虚拟 设备对象&nbsp; 真实 真实设备 虚拟设备</strong></li>
+<li style="text-align: left;"><strong>IoAttchDevice 名称</strong></li>
+<li style="text-align: left;"><strong>设备栈 设备栈 顶</strong></li>
+
+</ol>
+<p><strong>二、生成过滤设备并绑定 与 从名字获得设备对象</strong></p>
+<ol>
+<li><strong>过滤 IoCreateDevice</strong></li>
+<li><strong>子域</strong></li>
+<li><strong>IoGetDeviceObjectPointer 文件对象 关闭 内存泄漏</strong></li>
+
+</ol>
+<p><strong>三、绑定所有串口</strong></p>
+<ol>
+<li><strong>\Device\Serialx</strong></li>
+
+</ol>
+<p><strong>四、请求的区分</strong></p>
+<ol>
+<li><strong>一个</strong></li>
+<li><strong>若干</strong></li>
+<li><strong>设备栈 顶</strong></li>
+
+</ol>
+<p><strong>五、请求的结局</strong></p>
+<ol>
+<li><strong>请求被允许通过了 请求直接被否决了 过滤完成了这个请求</strong></li>
+<li><strong>IoSkipCurrentIrpStackLocation IoCallDriver 真实</strong></li>
+
+</ol>
+<p><strong>六、写请求的数据</strong></p>
+<ol>
+<li><strong>irp-&gt;MDLAddress irp-&gt;UserBuffer irp-&gt;AssociatedIrp.SystemBuffer</strong></li>
+<li><strong>UserBuffer UserBuffer 当前进程&nbsp; 发送请求进程&nbsp;&nbsp; 进程切换</strong></li>
+<li><strong>应用层 内核层 页表 MDL 内存描述符链</strong></li>
+
+</ol>
+<p>&nbsp;</p>
+<hr />
+<p style="text-align: center;">&nbsp;<strong><span style="font-size: 16px;">三个基本概念</span></strong></p>
+<p style="text-align: left;"><strong><span style="font-size: 14px;">一、过滤的概念</span></strong></p>
+<p style="text-align: left;"><strong><span style="font-size: 14px;">　　过滤的概念本质就是在一个驱动中对每个串口生成一个过滤设备，将每个过滤设备附加到对应的设备栈中。</span></strong></p>
+<p style="text-align: left;"><strong><span style="font-size: 14px;">　　消息自上而下发送，在到达串口前必须经过过滤设备，这样来对此进行过滤。</span></strong></p>
+<p style="text-align: left;"><strong><span style="font-size: 14px;">　　<img src="./images/《Windows内核安全与驱动开发》 7.1&amp;7.2&amp;7.3 串口的过滤0.png" alt="" /></span></strong></p>
+<p><strong><span style="font-size: 14px;"><span style="font-size: 14px;">二、设备栈的概念</span></span></strong></p>
+<p>&nbsp;　　<strong><span style="font-size: 14px;"><span style="font-size: 14px;"><span style="font-size: 14px;">拿一个函数来举个例子</span></span></span></strong></p>
+<div class="cnblogs_code">
+<pre><code><strong><span style="color: #000000;">NTSTATUS IoAttachDeviceToDeviceStackSafe(
+  IN PDEVICE_OBJECT SourceDevice,
+  IN PDEVICE_OBJECT TargetDevice,
+  OUT PDEVICE_OBJECT </span>*<span style="color: #000000;">AttachedToDeviceObject
+);</span></strong></pre>
+</div>
+<p><strong>　　其中之所以会输出 AttchedToDeviceObject，是因为当将过滤设备SourceDevice卸载时需要这个参数。</strong></p>
+<p><strong>　　<img src="./images/《Windows内核安全与驱动开发》 7.1&amp;7.2&amp;7.3 串口的过滤1.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>三、设备、驱动与IRP请求的概念</strong></p>
+<p><strong>　　如图，一个驱动对象可以只绑定一个分发函数来处理所有设备的请求。</strong></p>
+<p><strong>　　因为分发函数的第一个参数就是对应的设备对象，我们可以通过该成员来进行区分是来自该驱动对象的哪个设备的。</strong></p>
+<p><strong>　　<img src="./images/《Windows内核安全与驱动开发》 7.1&amp;7.2&amp;7.3 串口的过滤2.png" alt="" /></strong></p>
+<hr />
+<p style="text-align: center;">&nbsp;<span style="font-size: 16px;"><strong>利用过滤设备实现监控的代码</strong></span></p>
+<p style="text-align: left;"><span style="font-size: 14px;"><strong>该代码实现了一个驱动过滤的例子。</strong></span></p>
+<p style="text-align: left;"><span style="font-size: 14px;"><strong>一、实验效果</strong></span></p>
+<p style="text-align: left;"><span style="font-size: 14px;"><strong>使用超级终端，端口2来建立连接（windbg往往使用端口1，再测试时无法接收信息，后来端口2则可以收到请求）</strong></span></p>
+<p style="text-align: left;"><span style="font-size: 14px;"><strong><img src="./images/《Windows内核安全与驱动开发》 7.1&amp;7.2&amp;7.3 串口的过滤3.png" alt="" /></strong></span></p>
+<p>&nbsp;</p>
+<p><strong>二、源代码<br /></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">/*</span><span style="color: #008000;">********
+    作者:OneTrianee
+    编写时间:2019/12/8
+    编译环境：Win10+vs2019+"Empty WDM Driver"
+    代码作用：生成过滤设备，绑定端口监视输入数据
+    参考资料:《Windows内核安全与驱动开发》
+    注意事项：
+        1. 虚拟机中windbg往往会占用COM1，此时通信应该使用COM2(如果没有，关闭去虚拟机设置中开一个。)
+        2. 开机时绑定端口2成功，但是卸载之后再绑定就只能绑定端口1,暂时不清楚原因（接触绑定没发现问题..)
+    效果(DebugView)：
+        分发函数接收到请求了！！
+        comcap: Send Data: 61
+        分发函数接收到请求了！！
+        comcap: Send Data: 73
+**********</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+
+#include </span>&lt;ntddk.h&gt;<span style="color: #000000;">
+#include </span>&lt;ntstrsafe.h&gt;
+
+<span style="color: #008000;">//</span><span style="color: #008000;"> sleep 时用到的宏</span>
+<span style="color: #0000ff;">#define</span>  DELAY_ONE_MICROSECOND  (-10)
+<span style="color: #0000ff;">#define</span>  DELAY_ONE_MILLISECOND (DELAY_ONE_MICROSECOND*1000)
+<span style="color: #0000ff;">#define</span>  DELAY_ONE_SECOND (DELAY_ONE_MILLISECOND*1000)
+
+<span style="color: #0000ff;">#define</span>  CCP_MAX_COM_ID 32 <span style="color: #008000;">//</span><span style="color: #008000;"> 假设有32个端口</span>
+
+<span style="color: #008000;">//</span>
+<span style="color: #008000;">//</span><span style="color: #008000;"> 函数声明
+</span><span style="color: #008000;">//
+</span>NTSTATUS ccpDispatch(PDEVICE_OBJECT device, PIRP irp); <span style="color: #008000;">//</span><span style="color: #008000;"> 设备分发函数</span>
+<span style="color: #0000ff;">void</span> ccpUnload(PDRIVER_OBJECT drv); <span style="color: #008000;">//</span><span style="color: #008000;"> 动态卸载驱动函数</span>
+<span style="color: #0000ff;">void</span> ccpAttachAllComs(PDRIVER_OBJECT driver); <span style="color: #008000;">//</span><span style="color: #008000;"> 绑定所有串口函数</span>
+PDEVICE_OBJECT ccpOpenCom(ULONG id, NTSTATUS* status); <span style="color: #008000;">//</span><span style="color: #008000;"> 打开端口设备对象 </span>
+<span style="color: #000000;">NTSTATUS ccpAttachDevice(PDRIVER_OBJECT driver,
+    PDEVICE_OBJECT oldobj,
+    PDEVICE_OBJECT</span>*<span style="color: #000000;"> fltobj,
+    PDEVICE_OBJECT</span>*<span style="color: #000000;"> next
+); </span><span style="color: #008000;">//</span><span style="color: #008000;"> 将设备与驱动对象进行绑定
+
+</span><span style="color: #008000;">//</span>
+<span style="color: #008000;">//</span><span style="color: #008000;"> 设备栈:
+</span><span style="color: #008000;">//</span> 
+<span style="color: #008000;">//</span><span style="color: #008000;"> IRP消息 &darr;
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> ---------- 
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> |过滤设备| 
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> ----------
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> |端口设备|
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> ----------
+</span><span style="color: #008000;">//
+</span><span style="color: #0000ff;">static</span> PDEVICE_OBJECT s_fltobj[CCP_MAX_COM_ID] = { <span style="color: #800080;">0</span> }; <span style="color: #008000;">//</span><span style="color: #008000;"> 过滤设备</span>
+<span style="color: #0000ff;">static</span> PDEVICE_OBJECT s_nextobj[CCP_MAX_COM_ID] = { <span style="color: #800080;">0</span> }; <span style="color: #008000;">//</span><span style="color: #008000;"> 端口设备(绑定后会返回)</span>
+
+<span style="color: #008000;">/*</span><span style="color: #008000;">
+    函数名：ccpDispatch
+    函数作用：分发函数，分发设备的irp请求
+    参数1 - PDEVICE_OBJECT device：发送请求的目标设备
+    参数2 - PIRP irp: IRP请求内容
+</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+NTSTATUS ccpDispatch(PDEVICE_OBJECT device, PIRP irp) {
+    PIO_STACK_LOCATION irpsp </span>=<span style="color: #000000;"> IoGetCurrentIrpStackLocation(irp);
+    NTSTATUS status;
+    ULONG i, j;
+
+    </span><span style="color: #008000;">//</span>
+    <span style="color: #008000;">//</span><span style="color: #008000;"> 判断是发送给哪个过滤设备
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果设备存在，则打印出设备内容
+    </span><span style="color: #008000;">//
+</span>    DbgPrint(<span style="color: #800000;">"</span><span style="color: #800000;">分发函数接收到请求了！！\n</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+    </span><span style="color: #0000ff;">for</span> (i = <span style="color: #800080;">0</span>; i &lt; CCP_MAX_COM_ID; i++<span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">if</span> (s_fltobj[i] ==<span style="color: #000000;"> device) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 所有电源操作，全部直接放过。</span>
+            <span style="color: #0000ff;">if</span> (irpsp-&gt;MajorFunction ==<span style="color: #000000;"> IRP_MJ_POWER)
+            {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 直接发送，然后返回说已经被处理了。</span>
+<span style="color: #000000;">                PoStartNextPowerIrp(irp);
+                IoSkipCurrentIrpStackLocation(irp);
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> PoCallDriver(s_nextobj[i], irp);
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 我们只考虑写请求，如果为写请求，则打印出来</span>
+            <span style="color: #0000ff;">if</span> (irpsp-&gt;MajorFunction ==<span style="color: #000000;"> IRP_MJ_WRITE) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 获取长度</span>
+                ULONG len = irpsp-&gt;<span style="color: #000000;">Parameters.Write.Length;
+                </span><span style="color: #008000;">//</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;"> 获取缓冲区（三中一个)
+                </span><span style="color: #008000;">//
+</span>                PUCHAR buf =<span style="color: #000000;"> NULL;
+                </span><span style="color: #0000ff;">if</span> (irp-&gt;MdlAddress !=<span style="color: #000000;"> NULL)
+                    buf </span>= (PUCHAR)MmGetSystemAddressForMdlSafe(irp-&gt;<span style="color: #000000;">MdlAddress, NormalPagePriority);
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+                    buf </span>= (PUCHAR)irp-&gt;<span style="color: #000000;">UserBuffer;
+                </span><span style="color: #0000ff;">if</span> (buf ==<span style="color: #000000;"> NULL)
+                    buf </span>= (PUCHAR)irp-&gt;<span style="color: #000000;">AssociatedIrp.SystemBuffer;
+
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 打印内容</span>
+                <span style="color: #0000ff;">for</span> (j = <span style="color: #800080;">0</span>; j &lt; len; j++<span style="color: #000000;">) {
+                    DbgPrint(</span><span style="color: #800000;">"</span><span style="color: #800000;">comcap: Send Data: %2x\r\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, buf[j]);
+                }
+            }
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 这些请求直接下发即可。我们并不禁止或改变它。</span>
+<span style="color: #000000;">            IoSkipCurrentIrpStackLocation(irp);
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> IoCallDriver(s_nextobj[i], irp);
+        }
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果根本就不在被绑定的设备中，那是有问题的，直接返回错误参数。</span>
+    irp-&gt;IoStatus.Information = <span style="color: #800080;">0</span><span style="color: #000000;">;
+    irp</span>-&gt;IoStatus.Status =<span style="color: #000000;"> STATUS_INVALID_PARAMETER;
+    IoCompleteRequest(irp, IO_NO_INCREMENT);
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> STATUS_SUCCESS;
+}
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+    函数名：ccpAttchAllComs
+    函数功能：生成过滤设备，
+    参数1 - dirver：生成过滤设备需要指明其在哪个驱动中。
+</span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">void</span><span style="color: #000000;"> ccpAttachAllComs(PDRIVER_OBJECT driver) {
+    ULONG i;
+    PDEVICE_OBJECT com_ob;
+    NTSTATUS status;
+    </span><span style="color: #0000ff;">for</span> (i = <span style="color: #800080;">0</span>; i &lt; CCP_MAX_COM_ID; i++<span style="color: #000000;">) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 获取端口设备对象</span>
+        com_ob = ccpOpenCom(i, &amp;<span style="color: #000000;">status);
+        </span><span style="color: #0000ff;">if</span> (com_ob == NULL) <span style="color: #008000;">//</span><span style="color: #008000;"> 获取失败，继续获取下一个</span>
+            <span style="color: #0000ff;">continue</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+            DbgPrint(</span><span style="color: #800000;">"</span><span style="color: #800000;">绑定端口号%u成功!</span><span style="color: #800000;">"</span><span style="color: #000000;">, i);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 在这里绑定，并不管绑定是否成功</span>
+        ccpAttachDevice(driver, com_ob, &amp;s_fltobj[i], &amp;<span style="color: #000000;">s_nextobj[i]);
+    }
+
+}
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+    函数名：ccpOpenCom
+    函数功能：打开驱动端口设备
+    参数1 - ULONG id:打开的端口号ID，函数内自动给转换为设备名，然后打开
+    参数2 - NTSTATUS* status:操作状态
+    返回值 - PDEVICE_OBJECT：如果打开成功，返回端口设备句柄指针
+</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+PDEVICE_OBJECT ccpOpenCom(ULONG id, NTSTATUS</span>*<span style="color: #000000;"> status) {
+    UNICODE_STRING name_str;
+    </span><span style="color: #0000ff;">static</span> WCHAR name[<span style="color: #800080;">32</span>] = { <span style="color: #800080;">0</span><span style="color: #000000;"> };
+    PFILE_OBJECT fileobj </span>=<span style="color: #000000;"> NULL;
+    PDEVICE_OBJECT devobj </span>=<span style="color: #000000;"> NULL;
+
+    </span><span style="color: #008000;">//</span>
+    <span style="color: #008000;">//</span><span style="color: #008000;"> 将 ID 转换为相应的端口设备名UNICODE_STRING
+    </span><span style="color: #008000;">//
+</span>    memset(name, <span style="color: #800080;">0</span>, <span style="color: #0000ff;">sizeof</span>(WCHAR) * <span style="color: #800080;">32</span><span style="color: #000000;">);
+    RtlStringCchPrintfW(
+        (NTSTRSAFE_PWSTR)name, </span><span style="color: #800080;">32</span><span style="color: #000000;">,
+        (NTSTRSAFE_PWSTR)L</span><span style="color: #800000;">"</span><span style="color: #800000;">\\Device\\Serial%d</span><span style="color: #800000;">"</span><span style="color: #000000;">, id);
+    RtlInitUnicodeString(</span>&amp;<span style="color: #000000;">name_str, name);
+
+    </span><span style="color: #008000;">//</span>
+    <span style="color: #008000;">//</span><span style="color: #008000;"> 打开设备对象
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果打开成功，删除文件对象，防止内存泄漏
+    </span><span style="color: #008000;">//
+</span>    *status = IoGetDeviceObjectPointer(&amp;name_str, FILE_ALL_ACCESS, &amp;fileobj, &amp;<span style="color: #000000;">devobj);
+    </span><span style="color: #0000ff;">if</span> (*status ==<span style="color: #000000;"> STATUS_SUCCESS)
+        ObDereferenceObject(fileobj);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 返回端口设备句柄</span>
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> devobj;
+
+}
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+    函数名：
+    函数功能：生成过滤设备，并绑定串口设备，保存过滤设备fltobj和原栈顶设备next
+    参数1 - PDRIVER_OBJECT driver：生成过滤设备时所在的驱动对象
+    参数2 - PDEVICE_OBJECT oldobj：已生成的端口设备
+    参数3 - PDEVICE_OBJECT* fltobj：生成的过滤设备(保存在数组中)
+    参数4 - PDEVICE_OBJECT* next：原设备栈顶的设备
+</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+NTSTATUS ccpAttachDevice(PDRIVER_OBJECT driver,
+    PDEVICE_OBJECT oldobj,
+    PDEVICE_OBJECT</span>*<span style="color: #000000;"> fltobj,
+    PDEVICE_OBJECT</span>*<span style="color: #000000;"> next
+) {
+    NTSTATUS status;
+    PDEVICE_OBJECT topdev </span>=<span style="color: #000000;"> NULL;
+
+    </span><span style="color: #008000;">//</span>
+    <span style="color: #008000;">//</span><span style="color: #008000;"> 生成过滤设备，
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 注意生成设备的属性与被绑定设备一致
+    </span><span style="color: #008000;">//
+</span>    status =<span style="color: #000000;"> IoCreateDevice(driver,
+        </span><span style="color: #800080;">0</span><span style="color: #000000;">,
+        NULL,
+        oldobj</span>-&gt;<span style="color: #000000;">DeviceType,
+        </span><span style="color: #800080;">0</span><span style="color: #000000;">,
+        FALSE,
+        fltobj);
+    </span><span style="color: #0000ff;">if</span> (status !=<span style="color: #000000;"> STATUS_SUCCESS)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> status;
+
+    </span><span style="color: #008000;">//</span>
+    <span style="color: #008000;">//</span><span style="color: #008000;"> 拷贝重要的标志位
+    </span><span style="color: #008000;">//
+</span>    <span style="color: #0000ff;">if</span> (oldobj-&gt;Flags &amp;<span style="color: #000000;"> DO_BUFFERED_IO)
+        (</span>*fltobj)-&gt;Flags |=<span style="color: #000000;"> DO_BUFFERED_IO;
+    </span><span style="color: #0000ff;">if</span> (oldobj-&gt;Flags &amp;<span style="color: #000000;"> DO_DIRECT_IO)
+        (</span>*fltobj)-&gt;Flags |=<span style="color: #000000;"> DO_DIRECT_IO;
+    </span><span style="color: #0000ff;">if</span> (oldobj-&gt;Flags &amp;<span style="color: #000000;"> DO_BUFFERED_IO)
+        (</span>*fltobj)-&gt;Flags |=<span style="color: #000000;"> DO_BUFFERED_IO;
+    </span><span style="color: #0000ff;">if</span> (oldobj-&gt;Characteristics &amp;<span style="color: #000000;"> FILE_DEVICE_SECURE_OPEN)
+        (</span>*fltobj)-&gt;Characteristics |=<span style="color: #000000;"> FILE_DEVICE_SECURE_OPEN;
+    (</span>*fltobj)-&gt;Flags |=<span style="color: #000000;"> DO_POWER_PAGABLE;
+
+    </span><span style="color: #008000;">//</span>
+    <span style="color: #008000;">//</span><span style="color: #008000;"> 绑定过滤设备到端口的设备栈中
+    </span><span style="color: #008000;">//
+</span>    topdev = IoAttachDeviceToDeviceStack(*<span style="color: #000000;">fltobj, oldobj);
+    </span><span style="color: #0000ff;">if</span> (topdev ==<span style="color: #000000;"> NULL) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果绑定失败，则销毁设备，之后重新来过</span>
+        IoDeleteDevice(*<span style="color: #000000;">fltobj);
+        </span>*fltobj =<span style="color: #000000;"> NULL;
+        status </span>=<span style="color: #000000;"> STATUS_UNSUCCESSFUL;
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> status;
+    }
+    </span>*next = topdev; <span style="color: #008000;">//</span><span style="color: #008000;"> 存储原来栈顶的设备
+
+    </span><span style="color: #008000;">//</span>
+    <span style="color: #008000;">//</span><span style="color: #008000;"> 设置这个设备已京启动
+    </span><span style="color: #008000;">//
+</span>    (*fltobj)-&gt;Flags = (*fltobj)-&gt;Flags &amp; ~<span style="color: #000000;">DO_DEVICE_INITIALIZING;
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> STATUS_SUCCESS;
+}
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+    函数名：ccpUnload
+    函数作用：动态卸载驱动对象
+    参数1 - PDRIVER_OBJECT drv：需要卸载的驱动对象指针
+</span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">void</span><span style="color: #000000;"> ccpUnload(PDRIVER_OBJECT drv) {
+    ULONG i;
+    LARGE_INTEGER interval;
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 首先解除绑定</span>
+    <span style="color: #0000ff;">for</span> (i = <span style="color: #800080;">0</span>; i &lt; CCP_MAX_COM_ID; i++<span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">if</span> (s_nextobj[i] !=<span style="color: #000000;"> NULL)
+            </span><span style="color: #008000;">/*</span><span style="color: #008000;">
+                |--------|
+                |过滤设备|
+                |--------|
+                |next设备| // 将该层上面的过滤设备给卸载掉
+                |--------|
+                |xxxx设备|
+                |--------|
+                |端口设备|
+                |--------|
+            </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            IoDetachDevice(s_nextobj[i]);
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 睡眠5秒，等待所有irp处理结束</span>
+    interval.QuadPart = (<span style="color: #800080;">5</span> * <span style="color: #800080;">1000</span> *<span style="color: #000000;"> DELAY_ONE_MILLISECOND);
+    KeDelayExecutionThread(KernelMode, FALSE, </span>&amp;<span style="color: #000000;">interval);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 删除这些设备</span>
+    <span style="color: #0000ff;">for</span> (i = <span style="color: #800080;">0</span>; i &lt; CCP_MAX_COM_ID; i++<span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">if</span> (s_fltobj[i] !=<span style="color: #000000;"> NULL) {
+            IoDeleteDevice(s_fltobj[i]);
+        }
+    }
+}
+
+NTSTATUS DriverEntry(PDRIVER_OBJECT driver, PUNICODE_STRING reg_path) {
+    size_t i;
+    DbgPrint(</span><span style="color: #800000;">"</span><span style="color: #800000;">过滤设备安装成功!</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 所有分发函数都设置成一样的</span>
+    <span style="color: #0000ff;">for</span> (i = <span style="color: #800080;">0</span>; i &lt; IRP_MJ_MAXIMUM_FUNCTION; i++<span style="color: #000000;">) {
+        driver</span>-&gt;MajorFunction[i] =<span style="color: #000000;"> ccpDispatch;
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 支持动态卸载</span>
+    driver-&gt;DriverUnload =<span style="color: #000000;"> ccpUnload;
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 绑定所有串口</span>
+<span style="color: #000000;">    ccpAttachAllComs(driver);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 直接返回成功即可</span>
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> STATUS_SUCCESS;
+}</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

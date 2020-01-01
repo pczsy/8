@@ -1,0 +1,103 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python爬虫-房天下-登录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python爬虫-房天下-登录</center></div><div class='banquan'>原文出处:本文由博客园博主朱春雨提供。<br/>
+原文连接:https://www.cnblogs.com/zhuchunyu/p/11509477.html</div><br>
+    <h3 id="房天下-登录">房天下-登录</h3>
+<p>本次爬取的网址为:<code>https://passport.fang.com</code></p>
+<p>一、分析请求</p>
+<p>输入用户名和密码，点击登录按钮</p>
+<p><img src="./images/python爬虫-房天下-登录0.png" /></p>
+<p>请求的参数为:</p>
+<pre><code><code>uid: 123456789
+pwd: 64ccd4212d87e6cc149d0545ad1d46263ef70eb7cd66543419dc639ff4842c4a8cd1f84a519933040ba2c2aa9045934d4c33c72c006fe98ef51a3bd643aa40cb28a2fce9c5b40c49881db90c0bf372188a98747308071a995d19caf3ef63ab402ff81865159717b495b2f393b079fda964c8872297b7360f5c58e951e59f42d1
+Service: soufun-passport-web
+AutoLogin: 1</code></pre>
+<p><code>uid</code>就是输入的用户名，<code>pwd</code>是将密码加密后的数据。我们只要找出密码的加密方式就可以模拟登录了。</p>
+<p>二、密码加密方式破解</p>
+<p>这次我们以<code>pwd</code>作为关键字，进行搜索</p>
+<p><img src="./images/python爬虫-房天下-登录1.png" /></p>
+<p>找到加密位置之后，我们打上断点，重新点击登录</p>
+<p><img src="./images/python爬虫-房天下-登录2.png" /><br />
+找到密码加密的函数，查看内容</p>
+<p><img src="./images/python爬虫-房天下-登录3.png" /></p>
+<p>这里呢使用<code>execjs</code>这个库去解决，实现起来非常简单。我们将js文件内容全部复制一份到我们本地的js文件。</p>
+<p><img src="./images/python爬虫-房天下-登录4.png" /></p>
+<p>至于<code>execjs</code>怎么使用，你可以看我写的一篇博客，非常简单。前提你的安装<code>execjs</code>和<code>node</code>环境。最后我们通过execjs调用函数<code>getPassword</code>就可以拿到加密的字符串了。</p>
+<pre class="python"><code>import execjs
+import requests
+
+
+class FangTX:
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.headers = {
+            &quot;user-agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36&quot;,
+            &quot;Origin&quot;: &quot;https://passport.fang.com&quot;,
+            &quot;Referer&quot;: &quot;https://passport.fang.com/&quot;
+        }
+
+    def login(self, username, password, auto_login=1):
+        &#39;&#39;&#39;
+        :param username:  账户名
+        :param password:  密码
+        :param auto_login:  是否自动登录 0为否 1为是
+        :return:
+        &#39;&#39;&#39;
+        api = &quot;https://passport.fang.com/login.api&quot;
+        password = self._get_encrypt_password(password)
+        headers = self.headers.copy()
+        data = {
+            &quot;uid&quot;: username,
+            &quot;pwd&quot;: password,
+            &quot;Service&quot;: &quot;soufun-passport-web&quot;,
+            &quot;AutoLogin&quot;: auto_login
+        }
+        result = self.session.post(url=api, data=data, headers=headers).json()
+        print(result)
+
+    def _get_encrypt_password(self, password):
+        if not hasattr(self, &quot;ctx&quot;):
+            self._get_ctx()
+
+        return self.ctx.call(&quot;getPassword&quot;, password)
+
+    def _get_ctx(self):
+        # ./a.js就是复制下来的js文件
+        js_code = &quot;&quot;
+        with open(&quot;./a.js&quot;, &quot;r&quot;, encoding=&quot;utf-8&quot;) as f:
+            for line in f:
+                js_code += line
+        self.ctx = execjs.compile(js_code)
+
+
+    def test(self):
+        # self.login(&quot;18716758177&quot;, &quot;123456&quot;)
+        pass
+
+if __name__ == &#39;__main__&#39;:
+    ftx = FangTX()
+    ftx.test()
+</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

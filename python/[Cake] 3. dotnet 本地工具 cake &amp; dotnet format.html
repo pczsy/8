@@ -1,0 +1,194 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[Cake] 3. dotnet 本地工具 cake &amp; dotnet format' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[Cake] 3. dotnet 本地工具 cake &amp; dotnet format</center></div><div class='banquan'>原文出处:本文由博客园博主blackheart提供。<br/>
+原文连接:https://www.cnblogs.com/linianhui/p/cake-with-dotnet-local-tool.html</div><br>
+    <p>在上一篇<a href="https://www.cnblogs.com/linianhui/p/cake-with-dotnet-tool.html">[Cake] 2. dotnet 全局工具 cake</a>中介绍了通过.Net Core 2.1 的全局工具<code>dotnet tool</code>命令来简化cake的安装和使用。<strong>因为是全局安装，则无法适应每个项目对特定版本的要求</strong>。随着.Net Core 3.0中增加的对本地工具（项目级别）的支持，使得这一问题得以解决。</p>
+<h1 id="cake的安装和还原">1. cake的安装和还原</h1>
+<pre><code><code># 创建一个本地的工具清单文件
+dotnet new tool-manifest
+
+# 安装本地工具 
+dotnet tool install cake.tool --version 0.35.0</code></pre>
+<p><code>dotnet new tool-manifest</code>命令会在当前目录下创建一个<code>.config/dotnet-tools.json</code>的文件。当我们执行<code>dotnet tool install cake.tool</code>时，就会把<code>cake.tool</code>的相关信息写入到这个文件。</p>
+<pre class="json"><code>{
+  &quot;version&quot;: 1,
+  &quot;isRoot&quot;: true,
+  &quot;tools&quot;: {
+    &quot;cake.tool&quot;: {
+      &quot;version&quot;: &quot;0.35.0&quot;,
+      &quot;commands&quot;: [
+        &quot;dotnet-cake&quot;
+      ]
+    },
+    &quot;dotnet-format&quot;: {
+      &quot;version&quot;: &quot;3.1.37601&quot;,
+      &quot;commands&quot;: [
+        &quot;dotnet-format&quot;
+      ]
+    }
+  }
+}</code></pre>
+<p>之后就可以执行<code>dotnet cake</code>(或者<code>dotnet tool run dotnet-cake</code>)命令了。</p>
+<pre><code><code>$ dotnet cake --help
+
+Usage: Cake.exe [script] [--target=value] [--verbosity=value]
+                [--showdescription] [--dryrun] [..]
+
+Example: Cake.exe
+Example: Cake.exe build.cake --verbosity=quiet
+Example: Cake.exe build.cake --showdescription
+
+Options:
+    --target &lt;TARGET&gt;    Target task to invoke. Script must support this explicitly.
+    --verbosity=value    Specifies the amount of information to be displayed.
+                         (Quiet, Minimal, Normal, Verbose, Diagnostic)
+    --debug              Performs a debug.
+    --showdescription    Shows description about tasks.
+    --showtree           Shows the task dependency tree.
+    --dryrun             Performs a dry run.
+    --exclusive          Execute a single task without any dependencies.
+    --bootstrap          Download/install modules defined by #module directives
+    --version            Displays version information.
+    --info               Displays additional information about Cake execution.
+    --help               Displays usage information.</code></pre>
+<p>当我们在CI/CD或者另外一个环境上时，只需要执行</p>
+<pre><code><code>dotnet tool restore</code></pre>
+<p>就可以把<code>.config/dotnet-tools.json</code>文件中配置的相关工具安装在本地了。</p>
+<h1 id="dotnet-format-格式化">2. dotnet format 格式化</h1>
+<p>介绍一下另外一个非常有用的工具<a href="https://github.com/dotnet/format">dotnet-format</a>。看下官方介绍：</p>
+<blockquote>
+<p>dotnet-format is a code formatter for dotnet that applies style preferences to a project or solution. Preferences will be read from an .editorconfig file, if present, otherwise a default set of preferences will be used. At this time dotnet-format is able to format C# and Visual Basic projects with a subset of supported .editorconfig options.</p>
+</blockquote>
+<p>它会使用<a href="https://editorconfig.org/">.editorconfig</a>中的格式化配置，来统一项目的文件编码和格式。 安装方式同上面的cake一样。</p>
+<pre><code><code># 安装
+dotnet tool install dotnet-format
+
+# 检查并保存
+dotnet format
+
+# 只检查不保存，检查失败则返回非0的exit code
+dotnet format --check --dry-run</code></pre>
+<p>结合CI使用非常方便，当你push的代码不符合格式要求时就直接失败了（一个失败的示例：<a href="https://github.com/linianhui/cake.example/commit/471f58754c390cb9946a5282c6d73275b90549d9/checks?check_suite_id=361927437" class="uri">https://github.com/linianhui/cake.example/commit/471f58754c390cb9946a5282c6d73275b90549d9/checks?check_suite_id=361927437</a>）。</p>
+<p>示例，它会提示出那些地方不符合<code>.editorconfig</code>的要求：</p>
+<pre><code><code>$ dotnet format --check --dry-run
+  1-src/Cake.Example/Animals/Cat.cs(17,2): Add final newline.
+  1-src/Cake.Example/Animals/Dog.cs(17,2): Add final newline.
+  1-src/Cake.Example/IAnimal.cs(14,2): Add final newline.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(18,2): Add final newline.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(18,2): Add final newline.
+  1-src/Cake.Example/Animals/Cat.cs(1,31): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(2,2): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(3,18): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(4,12): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(5,19): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(6,38): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(7,6): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(8,22): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(9,15): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(10,23): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(11,32): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(12,29): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(13,10): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(14,25): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(15,10): Fix end of line marker.
+  1-src/Cake.Example/Animals/Cat.cs(16,6): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(1,31): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(2,2): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(3,18): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(4,11): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(5,19): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(6,38): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(7,6): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(8,22): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(9,15): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(10,23): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(11,32): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(12,29): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(13,10): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(14,25): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(15,10): Fix end of line marker.
+  1-src/Cake.Example/Animals/Dog.cs(16,6): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(1,23): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(2,2): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(3,18): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(4,13): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(5,19): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(6,29): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(7,6): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(8,22): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(9,16): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(10,23): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(11,32): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(12,23): Fix end of line marker.
+  1-src/Cake.Example/IAnimal.cs(13,6): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(1,28): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(2,13): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(2,13): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(4,42): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(5,2): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(6,32): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(7,6): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(8,15): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(9,39): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(10,10): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(11,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(11,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(13,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(13,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(15,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(16,10): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/CatTest.cs(17,6): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(1,28): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(2,13): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(2,13): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(4,42): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(5,2): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(6,32): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(7,6): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(8,15): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(9,39): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(10,10): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(11,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(11,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(13,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(13,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(15,40): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(16,10): Fix end of line marker.
+  2-test/Cake.Example.Tests/AnimalsTests/DotTest.cs(17,6): Fix end of line marker.
+  Formatted code file &#39;Cat.cs&#39;.
+  Formatted code file &#39;Dog.cs&#39;.
+  Formatted code file &#39;IAnimal.cs&#39;.
+  Formatted code file &#39;CatTest.cs&#39;.
+  Formatted code file &#39;DotTest.cs&#39;.
+  Format complete in 3529ms.</code></pre>
+<p><code>dotnet-foramt</code>支持的<code>.editorconfig</code>信息比较丰富，具体的参考 <a href="https://github.com/dotnet/format/wiki/Supported-.editorconfig-options" class="uri">https://github.com/dotnet/format/wiki/Supported-.editorconfig-options</a> 的说明，这里也贴一个我在使用的<code>.editorconfig</code>：<br />
+<a href="https://github.com/linianhui/code.guide/blob/master/csharp/.editorconfig" class="uri">https://github.com/linianhui/code.guide/blob/master/csharp/.editorconfig</a></p>
+<h1 id="参考">3. 参考</h1>
+<p>源码： <a href="https://github.com/linianhui/cake.example" class="uri">https://github.com/linianhui/cake.example</a></p>
+<p>我的<code>.editorconfig</code> : <a href="https://github.com/linianhui/code.guide/blob/master/csharp/.editorconfig" class="uri">https://github.com/linianhui/code.guide/blob/master/csharp/.editorconfig</a></p>
+<p><a href="https://editorconfig.org/" class="uri">https://editorconfig.org/</a></p>
+<p><a href="https://github.com/dotnet/format/wiki/Supported-.editorconfig-options" class="uri">https://github.com/dotnet/format/wiki/Supported-.editorconfig-options</a></p>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/core/whats-new/dotnet-core-3-0#local-tools" class="uri">https://docs.microsoft.com/en-us/dotnet/core/whats-new/dotnet-core-3-0#local-tools</a></p>
+<p><a href="https://github.com/dotnet/format" class="uri">https://github.com/dotnet/format</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

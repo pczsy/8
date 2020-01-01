@@ -1,0 +1,484 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Flask模板渲染' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Flask模板渲染</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11766038.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#flask模板渲染">Flask模板渲染</a><ul>
+        <li><a href="#jinja2模板引擎简介">Jinja2模板引擎简介</a><ul>
+        <li><a href="#模板">模板</a></li>
+        <li><a href="#jinja2">Jinja2</a></li>
+        </ul></li>
+        <li><a href="#模板变量">模板变量</a><ul>
+        <li><a href="#变量">变量</a></li>
+        <li><a href="#控制结构">控制结构</a></li>
+        <li><a href="#宏类似python代码中的函数">宏，类似Python代码中的函数</a></li>
+        <li><a href="#模板继承">模板继承</a></li>
+        <li><a href="#包含include">包含(Include)</a></li>
+        </ul></li>
+        <li><a href="#过滤器">过滤器</a><ul>
+        <li><a href="#链式调用">链式调用</a></li>
+        <li><a href="#常见内建过滤器">常见内建过滤器</a></li>
+        <li><a href="#列表操作">列表操作</a></li>
+        <li><a href="#语句块过滤">语句块过滤</a></li>
+        <li><a href="#自定义过滤器">自定义过滤器</a></li>
+        </ul></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="flask模板渲染">Flask模板渲染</h1>
+<h2 id="jinja2模板引擎简介">Jinja2模板引擎简介</h2>
+<h3 id="模板">模板</h3>
+<p>视图函数的主要作用是生成请求的响应,这是最简单请求.实际上,视图函数有两个作用:</p>
+<ul>
+<li>处理业务逻辑</li>
+<li>返回响应内容</li>
+</ul>
+<p>在大型应用中,把业务逻辑和表现内容放在一起,会增加代码的复杂度和维护成本.</p>
+<ul>
+<li>模板其实是一个包含响应文本的文件,其中用占位符(变量)表示动态部分,告诉模板引擎其具体的值需要从使用的数据中获取</li>
+<li>使用真实值替换变量,再返回最终得到的字符串,这个过程称为'渲染'</li>
+<li>Flask是使用Jinja2这个模板引擎来渲染模板</li>
+</ul>
+<p>使用模板的好处</p>
+<ul>
+<li>视图函数只负责业务逻辑和数据处理(业务逻辑方面)</li>
+<li>而模板则取到视图函数的数据结果进行展示(试图展示方面)</li>
+<li>代码结构清晰,耦合度低</li>
+</ul>
+<h3 id="jinja2">Jinja2</h3>
+<h4 id="两个概念">两个概念</h4>
+<ul>
+<li>Jinja2:是Python下一个被广泛应用的模板引擎,是由Python实现的模板语言,他的设计思想来源于Django的模板引擎,并扩展了其语法和一系列强大的功能,其是Flask内置的模板语言</li>
+<li>模板语言:是一种被设计来自动生成文档的简单文本格式,在模板语言中,一般都会把一些变量传给模板,替换模板的特定位置上预先定义好的占位变量名</li>
+</ul>
+<h4 id="渲染模板函数">渲染模板函数</h4>
+<ul>
+<li>Flask提供的render_template函数封装了该模板引擎</li>
+<li>render_template函数的第一个参数是模板的文件名,后面的参数都是键值对,表示模板中变量对应的真实值</li>
+</ul>
+<h2 id="模板变量">模板变量</h2>
+<h3 id="变量">变量</h3>
+<ul>
+<li><p>代码中传入字符串,列表,字典到模板中</p>
+<pre><code><code>@app.route(&#39;/&#39;)
+def index():
+    # 往模板中传入的数据
+    my_str = &#39;Hello Word&#39;          # 字符串
+    my_int = 10                    # 数字
+    my_array = [3, 4, 2, 1, 7, 9]  # 列表
+    my_dict = {                    # 字典
+        &#39;name&#39;: &#39;xiaoming&#39;,
+        &#39;age&#39;: 18,
+        &#39;weight&#39;: 125,
+    }
+    return render_template(&#39;temp_demo1.html&#39;,
+                           my_str=my_str,
+                           my_int=my_int,
+                           my_array=my_array,
+                           my_dict=my_dict
+                           )</code></pre></li>
+<li><p>模板中代码</p>
+<pre class="html"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+我的模板html内容
+&lt;br/&gt;{{ my_str }}
+&lt;br/&gt;{{ my_int }}
+&lt;br/&gt;{{ my_array }}
+&lt;br/&gt;{{ my_dict }}
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+&lt;!--
+运行结果：
+我的模板html内容
+Hello Word
+10
+[3, 4, 2, 1, 7, 9]
+{&#39;name&#39;: &#39;xiaoming&#39;,&#39;age&#39;: 18,&#39;weight&#39;: 125}
+--&gt;</code></pre></li>
+<li><p>列表、字典的取值运算</p>
+<pre class="html"><code>&lt;!--算数运算--&gt;
+&lt;br/&gt; my_int + 10 的和为：{{ my_int + 10 }}
+
+&lt;!--列表取值
+  1. list[index]
+  2. list.index
+--&gt;
+&lt;br/&gt; my_int + my_array第0个值的和为：{{ my_int + my_array[0] }}
+&lt;br/&gt; my_array 第0个值为：{{ my_array[0] }}
+&lt;br/&gt; my_array 第1个值为：{{ my_array.1 }}
+
+&lt;!--字典取值
+  1. dict.key
+  2. dice[key]
+  3. dict.get(key)
+--&gt;
+&lt;br/&gt; my_dict 中 name 的值为：{{ my_dict[&#39;name&#39;] }}
+&lt;br/&gt; my_dict 中 age 的值为：{{ my_dict.age }}
+&lt;br/&gt; my_dict 中 weight 的值为：{{ my_dict.get(&#39;weight&#39;) }}
+
+
+&lt;!--
+运行结果：
+my_int + 10 的和为：20 
+my_int + my_array第0个值的和为：13 
+my_array 第0个值为：3 
+my_array 第1个值为：4 
+my_dict 中 name 的值为：xiaoming 
+my_dict 中 age 的值为：18
+my_dict 中 weight 的值为：125
+
+--&gt;</code></pre></li>
+</ul>
+<h3 id="控制结构">控制结构</h3>
+<h4 id="条件控制语句">条件控制语句</h4>
+<p>Jinja2语法中的if语句跟Python中的if语句相似，后面的布尔值或者返回布尔值的表达式将决定代码中那个流程会被执行：</p>
+<pre class="html"><code>{% if user %}
+    Hello, {{ user }}
+{% else %}
+    Hello, Stranger!
+{% endif %}</code></pre>
+<h4 id="for循环">for循环</h4>
+<p>我们可以在Jinja2中使用循环来迭代任何列表或者生成器函数</p>
+<pre><code><code>&lt;ul&gt;
+    {% for comment in comment %}
+        &lt;li&gt;{{ comment }}&lt;/li&gt;
+    {% endfor %}
+&lt;/ul&gt;</code></pre>
+<p>循环和if语句可以组合使用</p>
+<pre class="html"><code>{% for post in posts if post.text %}
+    &lt;div&gt;
+        &lt;h1&gt;{{ post.title }}&lt;/h1&gt;
+        &lt;p&gt;{{ post.text | safe }}&lt;/p&gt;
+    &lt;/div&gt;
+{% endfor %}</code></pre>
+<p><strong>在一个for循环块中你可以访问这些特殊的变量</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>变量</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>loop.inde</td>
+<td>当前循环迭代的次数(从1开始)</td>
+</tr>
+<tr class="even">
+<td>loop.index0</td>
+<td>当前循环迭代的次数(从0开始)</td>
+</tr>
+<tr class="odd">
+<td>loop.revindex</td>
+<td>到循环结束需要迭代的次数(从1开始)</td>
+</tr>
+<tr class="even">
+<td>loop.revindex0</td>
+<td>到循环结束需要迭代的次数(从0开始)</td>
+</tr>
+<tr class="odd">
+<td>loop.frist</td>
+<td>如果是第一次迭代,为True</td>
+</tr>
+<tr class="even">
+<td>loop.last</td>
+<td>如果是最后一次迭代,为True</td>
+</tr>
+<tr class="odd">
+<td>loop.length</td>
+<td>序列中的项目数</td>
+</tr>
+<tr class="even">
+<td>loop.cycle</td>
+<td>在一串序列间期取值的辅助函数</td>
+</tr>
+</tbody>
+</table>
+<h3 id="宏类似python代码中的函数">宏，类似Python代码中的函数</h3>
+<h4 id="定义宏">定义宏</h4>
+<pre class="html"><code>{% macro input() %}
+  &lt;input type=&quot;text&quot;
+         name=&quot;username&quot;
+         value=&quot;&quot;
+         size=&quot;30&quot;/&gt;
+{% endmacro %}</code></pre>
+<h4 id="调用宏">调用宏</h4>
+<pre class="html"><code>{{ input() }}</code></pre>
+<h4 id="定义带参数的宏">定义带参数的宏</h4>
+<pre class="html"><code>{% macro input(name,value=&#39;&#39;,type=&#39;text&#39;,size=20) %}
+    &lt;input type=&quot;{{ type }}&quot;
+           name=&quot;{{ name }}&quot;
+           value=&quot;{{ value }}&quot;
+           size=&quot;{{ size }}&quot;/&gt;
+{% endmacro %}</code></pre>
+<h4 id="调用宏并传递参数">调用宏，并传递参数</h4>
+<pre class="html"><code>{{ input(value=&#39;name&#39;,type=&#39;password&#39;,size=40)}}</code></pre>
+<h4 id="把宏单独抽取出来封装成html文件其它模板中导入使用">把宏单独抽取出来，封装成html文件，其它模板中导入使用</h4>
+<p>文件名可以自定义macro.html</p>
+<pre class="html"><code>{% macro function() %}
+    &lt;input type=&quot;text&quot; name=&quot;username&quot; placeholde=&quot;Username&quot;&gt;
+    &lt;input type=&quot;password&quot; name=&quot;password&quot; placeholde=&quot;Password&quot;&gt;
+    &lt;input type=&quot;submit&quot;&gt;
+{% endmacro %}</code></pre>
+<p><strong>在其它模板文件中先导入，再调用</strong></p>
+<pre class="html"><code>{% import &#39;macro.html&#39; as func %}
+{% func.function() %}</code></pre>
+<h3 id="模板继承">模板继承</h3>
+<p>在模板中,可能会遇到以下情况:</p>
+<ul>
+<li>多个模板具有完全相同的顶部和底部内容</li>
+<li>多个模板中具有相同的模板代码内容,但是内容中部分值不同</li>
+<li>多个模板中具有完全相同的html代码块内容</li>
+</ul>
+<p>像遇到这种情况,可以使用Jinja2模板中的继承来进行实现</p>
+<p>模板继承是为了重用模板中的公共内容.一般Web开发中,继承主要使用在网站的顶部菜单,底部.这些内容可以定义在父模板中,子模板直接继承,不需要重写</p>
+<h4 id="定义标签的内容">定义标签的内容</h4>
+<pre class="html"><code>{% block top %} 
+
+{% endblock%}</code></pre>
+<ul>
+<li>相当于在父模板中挖个坑,当子模板继承父模板时候,可以进行填充</li>
+<li>子模板使用extends指令声明这个模板继承自哪个模板</li>
+<li>父模板中定义的块在子模板中被重新定义,在子模板中调用父模板的内容可以使用super()</li>
+</ul>
+<pre><code><code>from flask import Flask,render_template
+
+app = Flask(__name__)
+
+
+@app.route(&#39;/parent&#39;)
+def parent():
+    return render_template(&#39;parent.html&#39;)
+
+@app.route(&#39;/child&#39;)
+def child():
+    return render_template(&#39;child.html&#39;)
+
+
+if __name__ == &#39;__main__&#39;:
+    app.run(debug=True)</code></pre>
+<h4 id="父模板parent.html">父模板：parent.html</h4>
+<pre class="html"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+&lt;h2&gt;我是头部&lt;/h2&gt;
+&lt;hr&gt;
+
+{# 将父模板中需要重写的内容使用block包含起来 #}
+{% block content %}
+&lt;h2&gt;我是父模板内容&lt;/h2&gt;
+{% endblock %}
+&lt;hr&gt;
+
+&lt;h2&gt;我是底部&lt;/h2&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h4 id="子模板child.html">子模板：child.html</h4>
+<pre class="html"><code>{# 1 使用extends关键字集成模板 #}
+{% extends &#39;06_one.html&#39; %}
+
+{#  重写block #}
+{% block content %}
+
+    &lt;h2&gt;我是子模板内容&lt;/h2&gt;
+{% endblock %}</code></pre>
+<ul>
+<li>模板继承使用时注意点：
+<ul>
+<li>不支持多继承。</li>
+<li>为了便于阅读，在子模板中使用extends时，尽量写在模板的第一行。</li>
+<li>不能在一个模板文件中定义多个相同名字的block标签。</li>
+<li>当在页面中使用多个block标签时，建议给结束标签起个名字，当多个block嵌套时，阅读性更好。</li>
+</ul></li>
+</ul>
+<h3 id="包含include">包含(Include)</h3>
+<p>Jinja2模板中，除了宏和继承，还支持一种代码重用的功能，叫包含(Include)。它的功能是将另一个模板整个加载到当前模板中，并直接渲染。</p>
+<h5 id="示例">示例：</h5>
+<p>include的使用</p>
+<pre class="html"><code>{% include &#39;hello.html&#39; %}</code></pre>
+<p>包含在使用时，如果包含的模板文件不存在时，程序会抛出TemplateNotFound异常，可以加上ignore missing关键字。如果包含的模板文件不存在，会忽略这条include语句。</p>
+<h5 id="示例-1">示例：</h5>
+<p>include的使用加上关键字ignore missing</p>
+<pre class="html"><code>{% include &#39;hello.html&#39; ignore missing %}</code></pre>
+<ul>
+<li>宏、继承、包含：
+<ul>
+<li>宏(Macro)、继承(Block)、包含(include)均能实现代码的复用。</li>
+<li>继承(Block)的本质是代码替换，一般用来实现多个页面中重复不变的区域。</li>
+<li>宏(Macro)的功能类似函数，可以传入参数，需要定义、调用。</li>
+<li>包含(include)是直接将目标模板文件整个渲染出来。</li>
+</ul></li>
+</ul>
+<h2 id="过滤器">过滤器</h2>
+<p>过滤器本质就是函数。</p>
+<p>有时候我们不仅仅只是需要输出变量的值，我们还需要修改变量的显示，甚至格式化、运算等等，而在模板中是不能直接调用Python中的某些方法，那么这就用到了过滤器</p>
+<p>使用方法：</p>
+<ul>
+<li>过滤器的使用方法为：变量名 | 过滤器.
+<ul>
+<li>{{ variable | filter_name(*args)}}</li>
+</ul></li>
+<li>如果没有任何参数传给过滤器，则可以把括号省略掉
+<ul>
+<li>{{variable | filter_name}}</li>
+</ul></li>
+<li>如：'',这个过滤器的作用:把变量variable的值首字母首字母转化为大写,其余字母转化为小写</li>
+</ul>
+<h3 id="链式调用">链式调用</h3>
+<p>在Jinja2中,过滤器支持链式调用,示例如下:</p>
+<pre class="html"><code>{{&#39;hello word&#39; | reverse | upper}}</code></pre>
+<p>输出结果为：</p>
+<p><strong>DROW OLLEH</strong></p>
+<h3 id="常见内建过滤器">常见内建过滤器</h3>
+<ul>
+<li><p>safe：禁用转义</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;&lt;em&gt;hello&lt;/em&gt;&#39; | safe }}&lt;/p&gt;</code></pre></li>
+<li><p>capitalize：把变量值的首字母转成大写，其余字母转小写</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;hello&#39; | capitalize }}&lt;/p&gt;</code></pre></li>
+<li><p>lower：把值转成小写</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;HELLO&#39; | lower }}&lt;/p&gt;</code></pre></li>
+<li><p>upper：把值转成大写</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;hello&#39; | upper }}&lt;/p&gt;</code></pre></li>
+<li><p>title：把值中的每个单词的首字母都转成大写</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;hello&#39; | title }}&lt;/p&gt;</code></pre></li>
+<li><p>reverse：字符串反转</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;olleh&#39; | reverse }}&lt;/p&gt;</code></pre></li>
+<li><p>format：格式化输出</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;%s is %d&#39; | format(&#39;name&#39;,17) }}&lt;/p&gt;</code></pre></li>
+<li><p>striptags：渲染之前把值中所有的HTML标签都删掉</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;&lt;em&gt;hello&lt;/em&gt;&#39; | striptags }}&lt;/p&gt;</code></pre></li>
+<li><p>truncate: 字符串截断</p>
+<pre class="html"><code>&lt;p&gt;{{ &#39;hello every one&#39; | truncate(9)}}&lt;/p&gt;</code></pre></li>
+</ul>
+<h3 id="列表操作">列表操作</h3>
+<ul>
+<li><p>first：取第一个元素</p>
+<pre class="html"><code>&lt;p&gt;{{ [1,2,3,4,5,6] | first }}&lt;/p&gt;</code></pre></li>
+<li><p>last：取最后一个元素</p>
+<pre class="html"><code>&lt;p&gt;{{ [1,2,3,4,5,6] | last }}&lt;/p&gt;</code></pre></li>
+<li><p>length：获取列表长度</p>
+<pre class="html"><code>&lt;p&gt;{{ [1,2,3,4,5,6] | length }}&lt;/p&gt;</code></pre></li>
+<li><p>sum：列表求和</p>
+<pre class="html"><code>&lt;p&gt;{{ [1,2,3,4,5,6] | sum }}&lt;/p&gt;</code></pre></li>
+<li><p>sort：列表排序</p>
+<pre class="html"><code>&lt;p&gt;{{ [6,2,3,1,5,4] | sort }}&lt;/p&gt;</code></pre></li>
+</ul>
+<h3 id="语句块过滤">语句块过滤</h3>
+<pre class="html"><code>{% filter upper %}
+    #一大堆文字#
+{% endfilter %}</code></pre>
+<h3 id="自定义过滤器">自定义过滤器</h3>
+<p>过滤器本质是函数，当模板内置的过滤器不能满足需求，可以自定义过滤器。自定义过滤器有两种方式实现。</p>
+<ul>
+<li>一种是通过Flask应用对象的add_template_filter方法</li>
+<li>通过装饰器来实现自定义过滤器</li>
+</ul>
+<p><strong>重要:自定义过滤器名称如果和内置过滤器重名,会覆盖内置的过滤器</strong></p>
+<h4 id="需求添加列表反转的过滤器">需求：添加列表反转的过滤器</h4>
+<p><strong>方式一</strong></p>
+<p>通过调用应用程序实例的 add_template_filter 方法实现自定义过滤器。该方法第一个参数是函数名，第二个参数是自定义的过滤器名称：</p>
+<pre><code><code>def do_listreverse(li):
+    # 通过原列表创建一个新列表
+    temp_li = list(li)
+    # 将新列表进行返转
+    temp_li.reverse()
+    return temp_li
+
+app.add_template_filter(do_listreverse,&#39;lireverse&#39;)</code></pre>
+<p><strong>方式二</strong></p>
+<p>用装饰器来实现自定义过滤器。装饰器传入的参数是自定义的过滤器名称。</p>
+<pre><code><code>@app.template_filter(&#39;lireverse&#39;)
+def do_listreverse(li):
+    # 通过原列表创建一个新列表
+    temp_li = list(li)
+    # 将新列表进行返转
+    temp_li.reverse()
+    return temp_li</code></pre>
+<p><strong>在html中使用该自定义过滤器</strong></p>
+<pre class="html"><code>&lt;br/&gt; my_array 原内容：{{ my_array }}
+&lt;br/&gt; my_array 反转：{{ my_array | lireverse }}
+
+&lt;!--
+运行结果:
+my_array 原内容：[3, 4, 2, 1, 7, 9] 
+my_array 反转：[9, 7, 1, 2, 4, 3]
+--&gt;</code></pre>
+<p><strong>完整代码：</strong></p>
+<pre><code><code>from flask import Flask, render_template
+
+app = Flask(__name__)
+
+# 1.自定义列表反转函数
+@app.template_filter(&#39;list_reverse&#39;)
+# 方法二:使用装饰器
+def list_reverse(list):
+    # list = []
+    list.reverse()
+    return list
+
+# 2.将自定义的函数添加到flask过滤器中
+app.add_template_filter(list_reverse, &#39;list_reverse&#39;)
+
+
+@app.route(&#39;/&#39;)
+def index():
+    list = [1, 3, 4, 5, 2]  # 2,5,4,3,1
+    return render_template(&#39;test.html&#39;, list=list)
+
+
+if __name__ == &#39;__main__&#39;:
+    app.run(debug=True)</code></pre>
+<pre class="html"><code>&lt;!--test.html--&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h2&gt;自定义过滤器&lt;/h2&gt;
+&lt;br&gt;
+{{ list }}
+&lt;br&gt;
+{{ list | list_reverse }}
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

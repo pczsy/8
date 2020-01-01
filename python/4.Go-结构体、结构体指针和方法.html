@@ -1,0 +1,141 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修4.Go-结构体、结构体指针和方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>4.Go-结构体、结构体指针和方法</center></div><div class='banquan'>原文出处:本文由博客园博主zhang_derek提供。<br/>
+原文连接:https://www.cnblogs.com/derek1184405959/p/11306081.html</div><br>
+    <h3><span style="color: #ff00ff;">&nbsp;4.1.结构体</span></h3>
+<p>结构体：将一个或多个变量组合到一起形成新的类型，这个类型就是结构体，结构体是值类型</p>
+<p>定义结构体和赋值</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+type People struct {
+	Name string
+	Age int
+}
+
+func main()  {
+	var peo People
+	fmt.Println(peo)           //{ 0}
+	fmt.Printf("%p",&amp;peo)     //0x110040f0
+
+	//赋值
+	//第一种
+	peo = People{"derek",20}
+	fmt.Println(peo)      //{derek 20}
+	//第二种
+	peo2 := People{Age:12,Name:"jack"}
+	fmt.Println(peo2)     //{jack 12}
+
+	//第三种
+	peo.Name = "alice"
+	peo.Age = 25
+	fmt.Println(peo)     //{alice 25}
+}
+</pre>
+</div>
+<h3>&nbsp;<span style="color: #ff00ff;">4.2.结构体指针</span></h3>
+<p>由于结构体是值类型，在方法传递时希望传递结构体地址，可以使用结构体指针完成</p>
+<p>可以结合new()函数创建结构体指针</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+type People struct {
+	Name string
+	Age int
+}
+
+func main()  {
+	peo := new(People)
+	fmt.Println(peo)              //&amp;{ 0}
+	fmt.Println(peo == nil)       //false
+
+	peo.Name = "derek"
+	peo.Age = 22
+	fmt.Println(peo)              //&amp;{derek 22}
+
+	peo2 := peo
+	fmt.Println(peo2)            //&amp;{derek 22}
+
+	peo2.Name = "Jack"
+	fmt.Println(peo, peo2)       //&amp;{Jack 22} &amp;{Jack 22}
+}
+</pre>
+</div>
+<h3><span style="color: #ff00ff;">&nbsp;</span><span style="color: #ff00ff;">4.3.方法</span></h3>
+<p>方法和函数语法比较像，区别是函数属于包，通过包调用函数，而方法属于结构体，通过结构体变量调用</p>
+<p>默认是函数，隶属于包，所以需要添加标识，告诉编译器这个方法属于哪个结构体　</p>
+<p>&nbsp;（1）创建方法</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+type People struct {
+	Name string
+	Weight int
+}
+
+func (p People) run() {
+	fmt.Println(p.Name,"正在跑步，当前体重为：",p.Weight)
+}
+
+func main()  {
+	peo := People{"derek",120}
+	peo.run()       //derek 正在跑步，当前体重为： 120
+}
+</pre>
+</div>
+<p>（2）修改值，用指针</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+type People struct {
+	Name string
+	Weight int
+}
+
+func (p *People) run() {
+	fmt.Println(p.Name,"正在跑步，当前体重为：",p.Weight)
+	//运行一次run方法，体重减去1
+	p.Weight -= 1
+}
+
+func main()  {
+	peo := People{"derek",120}
+	peo.run()       //derek 正在跑步，当前体重为： 120
+	fmt.Println("跑完步后的体重为：",peo.Weight)        //跑完步后的体重为： 119
+}
+</pre>
+</div>
+<p>　</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

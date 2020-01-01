@@ -1,0 +1,36 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django对接SQL Server服务' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django对接SQL Server服务</center></div><div class='banquan'>原文出处:本文由博客园博主大琦。提供。<br/>
+原文连接:https://www.cnblogs.com/daqi-work/p/11214165.html</div><br>
+    <p>1.环境描述<br />环境：Win7 + Django2.1.10 + SQL Server 2014 + Python3.6 + PyCharm 2017.2.3 x64</p>
+<p>2.安装插件<br />由于Django默认是不支持SQL Server的，所以需要安装第三方插件来启动SQL Server</p>
+<p>插件为: pyodbc (4.0.26) 和 django-pyodbc-azure (2.1.0.0)</p>
+<p>3.配置settings.py文件<br />// An highlighted block<br />DATABASES = {<br />    'default': {<br />        'ENGINE': 'sql_server.pyodbc',<br />        'NAME': 'demo',   #需要连接的数据库名字<br />        'USER': '***',     #连接数据库的用户名<br />        'PASSWORD': '***',   #对应的用户密码<br />        'HOST': 'localhost', # IP 地址<br />        'PORT': '1433',   #端口号<br />        'OPTIONS': {<br />            'driver': 'SQL Server Native Client 11.0',  # 驱动 <br />            'MARS_Connection': True, <br />        },</p>
+<p>    }<br />}<br />4.可能会出现的错误</p>
+<p>django.db.utils.OperationalError: ('08001', '[08001] [Microsoft][SQL Server Native Client 11.0]TCP 提供程序: 由于目标计算机积极拒绝，无法连接。\r\n (10061) (SQLDriverConnect); [08001] [Microsoft][SQL Server Native Client 11.0]登录超时已过期 (0); [08001] [Microsoft][SQL Server Native Client 11.0]无效的连接字符串属性 (0); [08001] [Microsoft][SQL Server Native Client 11.0]与 SQL Server 建立连接时发生了与网络相关的或特定于实例的错误。找不到或无法访问服务器。请检查实例名称是否正确以及 SQL Server 是否配置为允许远程连接。有关详细信息，请参阅 SQL Server 联机丛书。 (10061)')</p>
+<p>这是因为SQL Server数据库的默认端口1433并未开启</p>
+<p>解决方案：</p>
+<p>1.右击我的电脑选择管理<br /><img src="./images/Django对接SQL Server服务0.png" alt="在这里插入图片描述" /><br />2.点击服务和应用程序下的SQL Server配置管理器，然后点击图片中所示位置<br /><img src="./images/Django对接SQL Server服务1.png" alt="在这里插入图片描述" /><br />3.双击TCP/IP,出现如下画面<br /><img src="./images/Django对接SQL Server服务2.png" alt="在这里插入图片描述" /><br />下拉到最后位置，如图片位置填写上1433，保存即可，然后再运行Django,进行数据库迁移即可。<br /><img src="./images/Django对接SQL Server服务3.png" alt="在这里插入图片描述" /></p>
+<p>&nbsp;</p>
+<p>笔者的问题是这样解决的，希望能给大家一点帮助，如果大家有其他的问题，欢迎留言。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

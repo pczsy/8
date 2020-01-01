@@ -1,0 +1,60 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修scrapy-redis数据去重与分布式框架' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>scrapy-redis数据去重与分布式框架</center></div><div class='banquan'>原文出处:本文由博客园博主爱吃猫的鱼i提供。<br/>
+原文连接:https://www.cnblogs.com/zwp-627/p/11296153.html</div><br>
+    <h3>&nbsp;</h3>
+<h3>数据去重</h3>
+<ul>
+<li>生成指纹：利用hashlib的sha1，对request的请求体、请求url、请求方法进行加密，返回一个40位长度的16进制的字符串，称为指纹</li>
+</ul>
+<div class="cnblogs_code">
+<pre><code>fp =<span style="color: #000000;"> hashlib.sha1()
+fp.update(to_bytes(request.method))
+fp.update(to_bytes(canonicalize_url(request.url)))
+fp.update(request.body </span><span style="color: #0000ff;">or</span> b<span style="color: #800000;">''</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">return</span> fp.hexdigest()</pre>
+</div>
+<ul>
+<li>进队：（队列对requests对象去重，zset对指纹去重）<ol>
+<li>如果请求需要过滤，并且当前请求的指纹已经在指纹集合中存在了，就不能进入队列了</li>
+<li>如果请求需要过滤，并且请求的指纹是一个新的指纹，进入队列</li>
+<li>如果不需要过滤，直接进入队列</li>
+</ol></li>
+</ul>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> enqueue_request(self, request):
+    </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> request.dont_filter <span style="color: #0000ff;">and</span><span style="color: #000000;"> self.df.request_seen(request):
+        self.df.log(request, self.spider)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> False
+    self.queue.push(request)
+    </span><span style="color: #0000ff;">return</span> True</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>分布式爬虫</h3>
+<ul>
+<li>类继承RedisSpider、RedisCrawlSpider</li>
+<li>使用redis_key，在redis数据库中存储start_urls的键名称</li>
+</ul>
+<p>每台电脑从redis数据库中对应的redis_key名称中获取url，发起请求。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

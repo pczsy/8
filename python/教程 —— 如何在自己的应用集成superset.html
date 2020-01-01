@@ -1,0 +1,168 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修教程 —— 如何在自己的应用集成superset' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>教程 —— 如何在自己的应用集成superset</center></div><div class='banquan'>原文出处:本文由博客园博主JadePeng提供。<br/>
+原文连接:https://www.cnblogs.com/xiaoqi/p/intergate-superset.html</div><br>
+    <p>Superset 是apache的一个孵化项目，定位为一款现代的，准商用BI系统</p>
+<h2 id="superset">superset</h2>
+<blockquote>
+<p>Apache Superset (incubating) is a modern, enterprise-ready business intelligence web application</p>
+</blockquote>
+<p>Superset 是apache的一个孵化项目，定位为一款现代的，准商用BI系统。</p>
+<p>Superset（Caravel）是由Airbnb（知名在线房屋短租公司）开源的数据分析与可视化平台（曾用名Caravel、Panoramix），该工具主要特点是可自助分析、自定义仪表盘、分析结果可视化（导出）、用户/角色权限控制，还集成了一个SQL编辑器，可以进行SQL编辑查询等。</p>
+<p>通过superset，可以制作漂亮的统计图表。</p>
+<h3 id="预览">预览</h3>
+<p><img src="./images/教程 —— 如何在自己的应用集成superset0.png" alt="_images/bank_dash.png" /></p>
+<hr />
+<p><img src="./images/教程 —— 如何在自己的应用集成superset1.png" alt="_images/explore.png" /></p>
+<hr />
+<p><img src="./images/教程 —— 如何在自己的应用集成superset2.png" alt="_images/sqllab.png" /></p>
+<hr />
+<p><img src="./images/教程 —— 如何在自己的应用集成superset3.png" alt="_images/deckgl_dash.png" /></p>
+<h2 id="superset安装">superset安装</h2>
+<p>我们这里直接使用docker</p>
+<pre><code><code>git clone https://github.com/apache/incubator-superset/
+cd incubator-superset/contrib/docker
+# prefix with SUPERSET_LOAD_EXAMPLES=yes to load examples:
+docker-compose run --rm superset ./docker-init.sh
+# you can run this command everytime you need to start superset now:
+docker-compose up</code></pre>
+<p>等构建完成后，访问 http://localhost:8088 即可。</p>
+<p>想要在自己的应用集成，首先要解决认证</p>
+<h2 id="superset-认证分析">superset 认证分析</h2>
+<p>superset基于flask-appbuilder开发，security基于flask_appbuilder.security，翻阅其代码，</p>
+<p>找到入口： <code>superset/__init__.py</code>:</p>
+<pre class="python"><code>custom_sm = app.config.get(&#39;CUSTOM_SECURITY_MANAGER&#39;) or SupersetSecurityManager
+if not issubclass(custom_sm, SupersetSecurityManager):
+    raise Exception(
+        &quot;&quot;&quot;Your CUSTOM_SECURITY_MANAGER must now extend SupersetSecurityManager,
+         not FAB&#39;s security manager.
+         See [4565] in UPDATING.md&quot;&quot;&quot;)
+
+appbuilder = AppBuilder(
+    app,
+    db.session,
+    base_template=&#39;superset/base.html&#39;,
+    indexview=MyIndexView,
+    security_manager_class=custom_sm,
+    update_perms=get_update_perms_flag(),
+)
+
+security_manager = appbuilder.sm</code></pre>
+<p>默认使用<code>SupersetSecurityManager</code>,继承自<code>SecurityManager</code>：</p>
+<pre class="python"><code>class SupersetSecurityManager(SecurityManager):
+
+    def get_schema_perm(self, database, schema):
+        if schema:
+            return &#39;[{}].[{}]&#39;.format(database, schema)
+
+    def can_access(self, permission_name, view_name):
+        &quot;&quot;&quot;Protecting from has_access failing from missing perms/view&quot;&quot;&quot;
+        user = g.user
+        if user.is_anonymous:
+            return self.is_item_public(permission_name, view_name)
+        return self._has_view_access(user, permission_name, view_name)
+        
+        ...</code></pre>
+<p>我们再来看SecurityManager及父类，发现，登录是通过auth_view来控制的，默认是AUTH_DB，也就是AuthDBView。</p>
+<pre class="python"><code>
+&quot;&quot;&quot; Override if you want your own Authentication LDAP view &quot;&quot;&quot;
+      authdbview = AuthDBView
+      
+        if self.auth_type == AUTH_DB:
+            self.user_view = self.userdbmodelview
+            self.auth_view = self.authdbview()
+    
+ @property
+    def get_url_for_login(self):
+        return url_for(&#39;%s.%s&#39; % (self.sm.auth_view.endpoint, &#39;login&#39;))</code></pre>
+<p>再来看authdbview：</p>
+<pre class="python"><code>class AuthDBView(AuthView):
+    login_template = &#39;appbuilder/general/security/login_db.html&#39;
+
+    @expose(&#39;/login/&#39;, methods=[&#39;GET&#39;, &#39;POST&#39;])
+    def login(self):
+        if g.user is not None and g.user.is_authenticated:
+            return redirect(self.appbuilder.get_url_for_index)
+        form = LoginForm_db()
+        if form.validate_on_submit():
+            user = self.appbuilder.sm.auth_user_db(form.username.data, form.password.data)
+            if not user:
+                flash(as_unicode(self.invalid_login_message), &#39;warning&#39;)
+                return redirect(self.appbuilder.get_url_for_login)
+            login_user(user, remember=False)
+            return redirect(self.appbuilder.get_url_for_index)
+        return self.render_template(self.login_template,
+                               title=self.title,
+                               form=form,
+                               appbuilder=self.appbuilder)</code></pre>
+<p>对外提供'/login/'接口，读取HTTP POST里的用户名，密码，然后调用auth_user_db验证，验证通过调用login_user生成认证信息。</p>
+<p>因此，我们可以自定义AuthDBView，改为从我们自己的应用认证即可。</p>
+<h2 id="使用jwt来验证superset">使用jwt来验证superset</h2>
+<p>自定义CustomAuthDBView，继承自AuthDBView，登录时可以通过cookie或者url参数传入jwt token，然后验证通过的话，自动登录，。</p>
+<pre class="python"><code>import jwt
+import json
+class CustomAuthDBView(AuthDBView):
+    login_template = &#39;appbuilder/general/security/login_db.html&#39;
+
+    @expose(&#39;/login/&#39;, methods=[&#39;GET&#39;, &#39;POST&#39;])
+    def login(self):
+        token = request.args.get(&#39;token&#39;)
+        if not token:
+            token = request.cookies.get(&#39;access_token&#39;)
+        if token is not None:
+            jwt_payload = jwt.decode(token,&#39;secret&#39;,algorithms=[&#39;RS256&#39;])
+            user_name = jwt_payload.get(&quot;user_name&quot;)
+            user = self.appbuilder.sm.find_user(username=user_name)
+            if not user:
+               role_admin = self.appbuilder.sm.find_role(&#39;Admin&#39;)
+               user = self.appbuilder.sm.add_user(user_name, user_name, &#39;aimind&#39;, user_name + &quot;@aimind.com&quot;, role_admin, password = &quot;aimind&quot; + user_name)
+            if user:
+                login_user(user, remember=False)
+                redirect_url = request.args.get(&#39;redirect&#39;)
+                if not redirect_url:
+                    redirect_url = self.appbuilder.get_url_for_index
+                return redirect(redirect_url)
+            else:
+                return super(CustomAuthDBView,self).login()
+        else:
+            flash(&#39;Unable to auto login&#39;, &#39;warning&#39;)
+            return super(CustomAuthDBView,self).login()
+</code></pre>
+<p>如果用户不存在，通过self.appbuilder.sm.add_user自动添加用户。</p>
+<p>然后再引入这个CustomAuthDBView，</p>
+<pre class="python"><code>class CustomSecurityManager(SupersetSecurityManager):
+    authdbview = CustomAuthDBView</code></pre>
+<p>最后，再引入这个CustomSecurityManager,在superset_config.py 里增加：</p>
+<pre class="python"><code>from aimind_security import CustomSecurityManager
+CUSTOM_SECURITY_MANAGER = CustomSecurityManager</code></pre>
+<h2 id="在应用里集成superset">在应用里集成superset</h2>
+<p>集成就简单了，访问，'SUPER_SET_URL/login/?token=jwt_token' 即可，可以通过iframe无缝集成。</p>
+<hr />
+<blockquote>
+<p>作者：Jadepeng<br />
+出处：jqpeng的技术记事本--<a href="http://www.cnblogs.com/xiaoqi" class="uri">http://www.cnblogs.com/xiaoqi</a><br />
+您的支持是对博主最大的鼓励，感谢您的认真阅读。<br />
+本文版权归作者所有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接，否则保留追究法律责任的权利。</p>
+</blockquote>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

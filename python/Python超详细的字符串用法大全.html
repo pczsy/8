@@ -1,0 +1,129 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python超详细的字符串用法大全' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python超详细的字符串用法大全</center></div><div class='banquan'>原文出处:本文由博客园博主python学习者0提供。<br/>
+原文连接:https://www.cnblogs.com/xxpythonxx/p/11745415.html</div><br>
+    <p><strong>字符串拼接</strong></p>
+<p>实际场景：把列表中的数据拼接成一个字符串</p>
+<p>解决方案：使用 str.join() 方法</p>
+<pre><code><code>&gt;&gt;&gt; li = [&#39;cxk&#39;, &#39;cxk&#39;, &#39;kk&#39;, &#39;caibi&#39;]
+&gt;&gt;&gt; &#39;&#39;.join([str(i) for i in li])
+&#39;cxkcxkkkcaibi&#39;</code></pre>
+<p>推荐使用生成器表达式，如果列表很大，可以节省很多内存空间</p>
+<pre><code><code>&gt;&gt;&gt; &#39;&#39;.join(str(i) for i in li)
+&#39;3cxkkkcaibi&#39;</code></pre>
+<p><strong>拆分含有多种分隔符的字符串</strong></p>
+<p>实际场景：把某个字符串依据分割符号拆分不同的字段，该字符串包含多种不同的分隔符</p>
+<pre><code><code>s = &quot;ab;fd/ft|fs,f\tdf.fss*dfd;fs:uu}fsd&quot;</code></pre>
+<p>1.使用 python 中的 split() 方法，由于 split 一次处理一个分隔符，例如：</p>
+<pre><code><code>&gt;&gt;&gt; res = s.split(&#39;;&#39;)
+&gt;&gt;&gt; res
+[&#39;ab&#39;, &#39;fd/ft|fs,f\tdf.fss*dfd&#39;, &#39;fs:uu}fsd&#39;]</code></pre>
+<p>所以我们需要根据字符串中的分隔符，依次分割，可以是 map 函数！</p>
+<pre><code><code>&gt;&gt;&gt; list(map(lambda x: x.split(&quot;|&quot;), res))
+[[&#39;ab&#39;], [&#39;fd/ft&#39;, &#39;fs,f\tdf.fss*dfd&#39;], [&#39;fs:uu}fsd&#39;]]</code></pre>
+<p>结果变成了一个二维列表，而我们想要的结果是一维列表，怎么办？</p>
+<p>创建一个临时列表保存结果。</p>
+<pre><code><code># Python学习交流QQ群：857662006 
+&gt;&gt;&gt; t = []
+&gt;&gt;&gt; list(map(lambda x: t.extend(x.split(&quot;|&quot;)), res))
+[None, None, None]
+&gt;&gt;&gt; t
+[&#39;ab&#39;, &#39;fd/ft&#39;, &#39;fs,f\tdf.fss*dfd&#39;, &#39;fs:uu}fsd&#39;]</code></pre>
+<p>结果符合我们的预期！接下来继续处理剩余的分隔符，重复动作，用 for 循环搞定！</p>
+<p>最终代码如下：</p>
+<pre><code><code>def my_split(s, ds):
+    res = [s]
+
+    for d in ds:
+        t = []
+        list(map(lambda x: t.extend(x.split(d)), res))
+        res = t
+    return res</code></pre>
+<p>将字符串和字符串中所有的分隔符传入，结果如下:</p>
+<pre><code><code>s = &quot;ab;fd/ft|fs,f\tdf.fss*dfd;fs:uu}fsd&quot;
+print(my_split(s, &quot;;/|,.}:*\t&quot;))
+运行结果：[&#39;ab&#39;, &#39;fd&#39;, &#39;ft&#39;, &#39;fs&#39;, &#39;f&#39;, &#39;df&#39;, &#39;fss&#39;, &#39;dfd&#39;, &#39;fs&#39;, &#39;uu&#39;, &#39;fsd&#39;]</code></pre>
+<p>2.使用 re 模块的中 split() 方法</p>
+<p>re() 也给我们提供了 split() 方法，可以一次性分隔字符串！</p>
+<pre><code><code>import re
+
+s = &quot;ab;fd/ft|fs,f\tdf.fss*dfd;fs:uu}fsd&quot;
+print(re.split(&#39;[;/|,.}:*\t]&#39;, s))</code></pre>
+<p>结果一致，是不是很简单粗暴！</p>
+<p>判读字符串a是否以字符串b开头或结尾<br />
+实际场景：比如某目录下有一系列文件：<br />
+<img src="./images/Python超详细的字符串用法大全0.png" alt="在这里插入图片描述" /><br />
+编写程序给其中所有 .txt 文件和 .py 文件加上用户可执行权限</p>
+<p>解决方案：</p>
+<p>使用字符串 str.startswith() 和 str.endswith()</p>
+<p>找出以 .txt 和 .py 结尾的文件，其接受一个元组</p>
+<pre><code><code>&gt;&gt;&gt; import os
+&gt;&gt;&gt; os.listdir(&quot;.&quot;)
+[&#39;app&#39;, &#39;config&#39;, &#39;requirements.txt&#39;, &#39;run.py&#39;, &#39;__pycache__&#39;, &#39;gunicorn.conf.py&#39;, &#39;chromedriver&#39;, &#39;login_after2.png&#39;, &#39;readme.txt&#39;, &#39;slide.png&#39;, &#39;test.py&#39;, &#39;logs&#39;, &#39;chrome-linux.zip&#39;, &#39;gunicorn.pid&#39;, &#39;asgi.py&#39;, &#39;chrome-linux&#39;]
+
+&gt;&gt;&gt; [name for name in os.listdir(&quot;.&quot;) if name.endswith((&quot;.txt&quot;, &quot;.py&quot;))]
+[&#39;requirements.txt&#39;, &#39;run.py&#39;, &#39;gunicorn.conf.py&#39;, &#39;readme.txt&#39;, &#39;test.py&#39;, &#39;asgi.py&#39;]</code></pre>
+<p><strong>调整字符串中文本的格式</strong></p>
+<p>实际案列：例如在日志文件中，其中日期格式为'yyyy-mm-dd':</p>
+<p>我们想把其中的日期改为美国日期格式'mm/dd/yyyy'.比如 2019-06-12 改成 06/12/2019 格式</p>
+<p>解决方案：使用 re 中的 sub() 方法做字符串替换</p>
+<p>利用正则表达式中的捕获组，捕获每个部分的内容，然后在替换在替换的字符串中调整各个捕获组的顺序！</p>
+<p>代码如下：</p>
+<pre><code><code>import re
+
+with open(&quot;info.log&quot;, &quot;r&quot;, encoding=&quot;utf-8&quot;) as f:
+    file = f.read()
+
+print(re.sub(&#39;(\d{4})-(\d{2})-(\d{2})&#39;, r&#39;\2/\3/\1&#39;, file))</code></pre>
+<p>捕获组中每组需要用括号括起来，然后默认从左至右分为组1， 组2…</p>
+<p>下一个参数是我们要替换的格式，用 1，2，3 分别表示组1， 组2…</p>
+<p>运行结果如下：<br />
+<img src="./images/Python超详细的字符串用法大全1.png" alt="在这里插入图片描述" /></p>
+<p><strong>对字符串进行左，右，居中对齐</strong></p>
+<p>解决方案：</p>
+<p>1.使用字符串中的 str.ljust(), str.rjust(), str.center() 进行左右居中对齐！<br />
+以上三种方法的基本用法：</p>
+<pre><code><code>&gt;&gt;&gt; s = &#39;abc&#39;
+&gt;&gt;&gt; s.ljust(20, &#39;=&#39;)
+&#39;abc=================&#39;
+&gt;&gt;&gt; s.ljust(20)
+&#39;abc           &#39;</code></pre>
+<p>三种方法都可以设置默认填充值</p>
+<p>2.使用内置的 format() 方法</p>
+<pre><code><code>&gt;&gt;&gt; format(s, &quot;&gt;20&quot;)
+&#39;                 abc&#39;
+&gt;&gt;&gt; format(s, &quot;&lt;20&quot;)
+&#39;abc                 &#39;
+&gt;&gt;&gt; format(s, &quot;^20&quot;)
+&#39;        abc         &#39;</code></pre>
+<p><strong>删除字符串中不需要的字符</strong></p>
+<p>实际案例：</p>
+<p>过滤掉用户输入中前后多余的空白字符：“ nick2008@gmail.com ”</p>
+<p>过滤掉某 windows 下编辑文本中的 “\r” ：“hello world \r\n”</p>
+<p>去掉文本中的 unicode 组合符号（音调）：nǐ hǎo mā</p>
+<p>解决方案：</p>
+<p>使用 str.strip(), str.lstrip(), str.rstrip() 方法去掉字符串两端字符</p>
+<p>使用 str.replace() 或者正则中的 re.sub()</p>
+<p>使用字符串中 str.translate() 方法，可以同时删除多个不同的字符</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

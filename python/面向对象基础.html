@@ -1,0 +1,917 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修面向对象基础' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>面向对象基础</center></div><div class='banquan'>原文出处:本文由博客园博主CoderJerry提供。<br/>
+原文连接:https://www.cnblogs.com/yangyuanhu/p/11287038.html</div><br>
+    <h4 id="本章目录">本章目录:</h4>
+<h5 id="一.什么是面向对象编程oop">一.什么是面向对象编程(OOP)</h5>
+<h5 id="二.类与对象">二.类与对象</h5>
+<h5 id="三.创建类和对象">三.创建类和对象</h5>
+<h5 id="四.初始化方法-__init__">四.初始化方法 <code>__init__</code></h5>
+<h5 id="五.属性查找">五.属性查找</h5>
+<h5 id="六.绑定方法与非绑定方法">六.绑定方法与非绑定方法</h5>
+<h5 id="七.对象之间交互">七.对象之间交互</h5>
+<h5 id="八.封装">八.封装</h5>
+<h5 id="九.继承">九.继承</h5>
+<h5 id="十.多态">十.多态</h5>
+<h5 id="十一.面向对象开发流程">十一.面向对象开发流程</h5>
+<h1 id="一.面向对象初识">一.面向对象初识</h1>
+<h3 id="什么是面向过程">什么是面向过程</h3>
+<p>首先明确一点,在面向对象之前我们一直都是按照面向过程的方式来编写程序!</p>
+<p>面向过程的程序设计：核心是过程二字，过程指的是解决问题的步骤，即先干什么再干什么......面向过程的设计就好比精心设计好一条流水线，是一种机械式的思维方式。</p>
+<p><strong>优点是：复杂度的问题流程化，进而简单化（一个复杂的问题，分成一个个小的步骤去实现，实现小的步骤将会非常简单）</strong></p>
+<p><strong>缺点是：一套流水线或者流程就是用来解决一个问题，生产汽水的流水线无法生产汽车，即便是能，也得是大改，改一个组件，牵一发而动全身。</strong></p>
+<p><strong>应用场景：一旦完成基本很少改变的场景，著名的例子有Linux內核，git，以及Apache HTTP Server等。</strong></p>
+<h3 id="为什么需要面向对象">为什么需要面向对象?</h3>
+<p>当今时代背景下,通常应用程序对扩展性和维护性要求都是非常高的,为什么?想想qq,微信,是不是不断的在添加新功能?,也就是说一款应用程序诞生后,都需要不断的更新维护</p>
+<h3 id="什么是面向对象编程">什么是面向对象编程</h3>
+<p>面向对象编程——Object Oriented Programming，简称OOP，是一种程序设计思想。</p>
+<p>它将对象作为程序的基本单元</p>
+<p style="color:red">将数据和处理数据的程序封装到对象中</p>
+<p>以提高软件的重用性、灵活性和扩展性为首要目的</p>
+<h3 id="面向对象编程优缺点">面向对象编程优缺点</h3>
+<p>案例分析1:把大象装进冰箱如何实现</p>
+<p>案例分析2:要开一家公司</p>
+<p><strong>面向对象编程的优点:</strong></p>
+<ul>
+<li>程序员的角色发送了改变,从一个操作者,变成了指挥者,不再需要关心,每个功能具体的实现细节,从而可以专注处理业务逻辑,是一种思想上的转变</li>
+<li>大大提高了程序的扩展性,当一个对象发生了修改时,对其他对象时没有任何影响的,对象之间相互独立,耦合度变得更低了</li>
+<li>提高了程序的灵活性,例如游戏中,每个玩家的操作都是自由的,而不是机械般固定的!你可以买武器,也可以买护甲</li>
+</ul>
+<p><strong>缺点</strong>:</p>
+<ul>
+<li>编程的复杂度远高于面向过程，不了解面向对象而立即上手基于它设计程序，极容易出现过度设计的问题。一些扩展性要求低的场景使用面向对象会徒增编程难度,如果用面向对象来设计linux,估计现在都没写完</li>
+<li>无法向面向过程的程序设计流水线式的可以很精准的预测问题的处理流程与结果，面向对象的程序一旦开始就由对象之间的交互解决问题，即便是上帝也无法准确地预测最终结果。</li>
+</ul>
+<p><strong>应用场景</strong>:</p>
+<ul>
+<li>需求经常变化的软件，一般需求的变化都集中在用户层，互联网应用，企业内部软件，游戏等都是面向对象的程序设计大显身手的好地方</li>
+</ul>
+<p>用一个例子来说明面向对象与面向过程的区别:</p>
+<p>​ 话说三国时期曹军于官渡大败袁绍,酒席之间,曹操诗兴大发,吟道:喝酒唱歌,人生真爽! 众将直呼:&quot;丞相好诗&quot;,于是命印刷工匠刻板印刷以流传天下;</p>
+<p>​ 待工匠刻板完成,交与曹操一看,曹操感觉不妥,说道:&quot;喝酒唱歌,此话太俗,应改为'对酒当歌'较好&quot;,于是名工匠重新刻板,当时还没有出现活字印刷术,如果样板要改,只能重新刻板,工匠眼看连夜刻版之工，彻底白费，心中叫苦不迭。可也只得照办。</p>
+<p>​ 版样再次出来请曹操过目，曹操细细一品，觉得还是不好，说”人生真爽太过直接，应该改问语才够意境，因此应改为‘对酒当歌，人生几何？’“，于是....</p>
+<p>​ 在活字印刷术还没出现之前，如果版样有改动，只能重新雕刻。而且在印刷完成后，这个样板就失去了它的价值，如果需要其他样板只能重新雕刻。而活字印刷术的出现就大大改善了印刷技术。如上例”喝酒唱歌，人生真爽“，如果用活字印刷，只需要改四个字就可，其余工作都未白做。岂不快哉!!</p>
+<p>​ 活字印刷也反应了OOP。当要改动时，只需要修改部分，此为 可维护；当这些字用完后，并非就完全没有价值了，它完全可以在后来的印刷中重复使用，此乃 可复用；此诗若要加字，只需另刻字加入即可，这就是 可扩展；字的排列可以横排，也可以竖排，此是 灵活性好。</p>
+<p>上述案列反应了OOP的优点,即可维护性高,扩展性强,复用性高! 这些特点非常适用于用户需求变化频繁的互联网应用程序,这是学习OOP的重要原因</p>
+<p>但是OOP设计的程序需涉及类与对象,相应的复杂度会提高!</p>
+<p>并非所有程序都需要较高的扩展性,例如系统内核,一旦编写完成,基本不会再修改,使用面向过程来设计则更适用</p>
+<h1 id="二.类与对象-1">二.类与对象</h1>
+<p>类和对象是面向对象编程中最核心的两个概念</p>
+<h3 id="对象是什么">对象是什么</h3>
+<p>对象是特征与技能的结合体</p>
+<p>如:演员张一山,姓名和职业是他的特征,演戏是他的行为,按照这样的定义,生活中到处都是对象</p>
+<p>在程序中:</p>
+<p>用变量来表示对象的特征,用函数表示对象的技能</p>
+<p style="color:red">将这些变量和函数结合在一起,形成一个整体,就是对象,这是面向对象的精髓所在!</p>
+<p>对象的另一种理解方式</p>
+<p>变量的作用数存储数据,函数的作用数处理数据</p>
+<p style="color:red">对象是将数据与处理数据的函数绑定在一起</p>
+<h3 id="类是什么">类是什么</h3>
+<p>类就是类型,类别,种类; 是一系列对象中相似特征与技能的结合体</p>
+<p>在生活中是一种抽象概念,例如人类,是不具体的</p>
+<p>如某个对象属于人类,可以通过类别,了解这个对象具备的特征和技能</p>
+<p>反过来看类就是对象的模板,同一类的对象,具备相同的特征和行为</p>
+<h3 id="为什么需要类">为什么需要类</h3>
+<p>现实生活中,通过对对象的分析总结,得到类型;用类型来标识不同对象之间的差异;</p>
+<p>在程序中,同样用于标识不同对象之间的差异</p>
+<p>另一个重要的功能是作为对象的模板,例如学生类,无论是哪个学生都具备学习这个方法,既然是相同的就没必要为每个对象单独编写,学生类负责提供这些相同的方法;</p>
+<p>OOP第一步要做的就是定义需要的类</p>
+<h1 id="三.创建类和对象-1">三.创建类和对象</h1>
+<h2 id="定义类">定义类</h2>
+<p>以学生类Student为例，在Python中，定义类通过<code>class</code>关键字：</p>
+<pre><code><code>class Student:
+    pass</code></pre>
+<p><code>class</code>后面紧接着是类名，即<code>Student</code>，遵循python编码规范,类名通常是大写开头的单词,多个单词时使用驼峰命名法</p>
+<h3 id="创建对象">创建对象</h3>
+<p>创建对象也称之为实例化,定义好<code>Student</code>类后,就可以根据<code>Student</code>类创建出<code>Student</code>的实例，创建实例通过类名加上()实现：</p>
+<pre><code><code>stu1 = Student()
+print(stu1)
+#输出 &lt;__main__.Student object at 0x10b11d588&gt;
+print(Student)
+#输出 &lt;class &#39;__main__.Student&#39;&gt;</code></pre>
+<p>根据输出可以看到</p>
+<p>变量名<code>stu1</code>指向一个<code>Student</code>类的实例,<code>0x10b11d588</code>是实例的内存地址,每个实例的地址都不相同,</p>
+<p><code>Student</code>本身则是一个类<code>(class)</code></p>
+<h3 id="对象的属性操作">对象的属性操作</h3>
+<p>对象是特征(属性)与行为(方法)的结合体</p>
+<p><code>stu</code>这个对象目前不具备任属性和方法,要为其添加属性可以在创建对象后使用点语法<code>(变量名加 . )</code>比如为<code>stu</code>对象添加name属性</p>
+<pre><code><code>stu1.name = &quot;Jerry&quot;</code></pre>
+<p>同样通过点语法来获取对象的属性值</p>
+<pre><code><code>print(stu1.name)
+#输出 Jerry</code></pre>
+<h1 id="四.初始化方法init">四.初始化方法init</h1>
+<h3 id="什么是初始化方法">什么是初始化方法</h3>
+<p>用于为对象的属性设置初始值的函数</p>
+<h3 id="为什么需要初始化方法">为什么需要初始化方法</h3>
+<p>在类的实例(对象)中,一些属性是必须存在的,就可以使用初始化函数来完成,比如<code>Student</code>对象中的<code>name</code>属性,它是必须的,用于唯一标识一个学生</p>
+<h3 id="尝试一下">尝试一下</h3>
+<pre><code><code>class Student:
+    def __init__ (self,name):
+        print(&quot;init run&quot;)
+        self.name = name</code></pre>
+<p><strong>执行过程:</strong></p>
+<p>在创建对象时<code>Student(&quot;jack&quot;)</code>会申请新的内存空间用于保存对象数据,接着<strong>自动调init函数</strong></p>
+<p><strong>注意:</strong></p>
+<p><code>__init__</code>函数要求第一个参数必须是self,该参数表示需要被初始化的对象本身,这样就可以将name属性绑定到对象上</p>
+<p>可以将self改为其他任意的名称,但为了保证易读性通常是self,额外的参数须位于self之后</p>
+<p>有了<code>__init__</code>方法，在创建实例的时候，就不能传入空的参数了，必须传入与<code>__init__</code>方法匹配的参数，但<code>self</code>不需要传，Python解释器自己会把实例变量传进去：</p>
+<pre><code><code># stu1 = Student()
+# 以上代码将抛出异常:TypeError: __init__() missing 1 required positional argument: &#39;name&#39;
+stu1 = Student(&quot;jack&quot;)
+# 输出 init run
+print(stu1.name)
+# 输出 jack</code></pre>
+<p>小结:</p>
+<ul>
+<li>init函数用于为对象属性设置初始值</li>
+<li>在创建对象时会自动调用</li>
+<li>自动传入对象本身</li>
+</ul>
+<h1 id="五.属性查找顺序">五.属性查找顺序</h1>
+<p>可以将类中的内容都称之为属性,变量称为数据属性,函数就叫函数属性</p>
+<p>类中可以声明变量来表示数据属性,为<code>Student</code>类添加数据属性和函数属性</p>
+<pre><code><code>class Student:
+    school = &quot;Tsinghua&quot; #数据属性
+    
+    def say_hello(self):#函数属性
+        print(&quot;hello i am a student&quot;)
+    
+    def __init__ (self,name): #初始化函数
+        self.name = name
+   </code></pre>
+<p>也可以使用点语法在创建对象后为对象增加数据属性</p>
+<pre><code><code>stu = Student(&quot;Maria&quot;)
+stu.age = 20</code></pre>
+<p>问题1:在类中声明的数据属性和创建对象后为增加的数据属性,有什么区别?</p>
+<p>​ 类中的数据属性是所有对象共享的</p>
+<p>​ 创建对象后为增加的数据属性,是这个对象特有的,去其他对象无关</p>
+<p>问题2:类中声明的数据属性和创建对象后为增加的数据属性,其访问属性是怎样的?</p>
+<p>​ 优先查找对象自己的名称空间,如果没有则在类中找,如果类中也没有则到父类中找,直到找到为止,如果父类中也没有则抛出异常</p>
+<p>!!!注意!!!</p>
+<p>此处父类可能也有父类,会一直沿着继承关系查找到最终的父类Object,该继承关系,后续会详细讨论!</p>
+<p>案列:网页中折叠此处</p>
+<pre><code><code>stu1 = Student(&quot;Jack&quot;)
+stu2 = Student(&quot;Rose&quot;)
+
+#1.类中的数据属性是所有对象共享的
+print(stu1.school)
+print(stu2.school)
+#输出 Tsinghua
+#输出 Tsinghua
+
+#2.类中的数据属性访问的是同一块内存
+print(id(stu1.school))
+print(id(stu2.school))
+#输出 4470412656
+#输出 4470412656
+
+#3.类的函数属性是绑定给对象使用的,bound method称为绑定方法,每个对象的绑定方法内存地址不一样
+print(stu1.say_hello)
+print(stu2.say_hello)
+#输出 &lt;bound method Student.say_hello of &lt;__main__.Student object at 0x10cc405f8&gt;&gt;
+#输出 &lt;bound method Student.say_hello of &lt;__main__.Student object at 0x10cc40630&gt;&gt;
+
+
+#4.优先访问对象自己的名称空间 
+# 修改stu1的学习属性为北京大学 会在自stu1的名称空间增加school属性
+stu1.school = &quot;Beijing&quot;
+print(stu1.__dict__)
+print(stu2.__dict__)
+#输出 {&#39;name&#39;: &#39;Jack&#39;, &#39;school&#39;: &#39;Beijing&#39;}
+#输出 {&#39;name&#39;: &#39;Rose&#39;}
+
+#4.1再次查看学校属性
+print(stu1.school)
+print(stu2.school)
+#输出 Beijing
+#输出 Tsinghua
+
+#__dict__用于访问对象的名称空间 本质是一个字典类型数据,存储名称与值的映射关系</code></pre>
+<p>属性查找顺序:对象-&gt;类-&gt;父类</p>
+<h1 id="六.绑定方法与非绑定方法-1">六.绑定方法与非绑定方法</h1>
+<h3 id="什么是方法">什么是方法?</h3>
+<p>先理清方法,函数,技能的关系:</p>
+<p>生活中对象的技能在程序中用函数表示</p>
+<p>函数在面向对象中称之为方法,换种称呼而已!</p>
+<p>如此说来,绑定方法也就是绑定函数</p>
+<h3 id="为什么要绑定">10为什么要绑定?</h3>
+<p>在使用面向对象之前,数据与处理数据的函数是独立的没有任何联系,在调用函数时需要手动传入参数,如果要处理的数据有很多,参数的传递就是一个非常麻烦的事情,</p>
+<p>原始的处理方式:函数 传参</p>
+<p>​ 问题1 调用函数时传入参数,如果要处理的数据有很多,编写了很多重复的代码,代码的阅读性很差</p>
+<p>​ 问题2 后期如果每次处理的数据个数变多了,函数需要修改参数列表,导致以前写的所有代码都需要修改,扩展性非常差</p>
+<p>​ 问题3 如果传入了错误的数据,比如需要整型却传入了字符串,造成函数无法正常工作</p>
+<p>绑定方法的处理方式:</p>
+<p>​ 1.调用方法时传入对象,对象中包含了需要的所有数据,减少重复代码</p>
+<p>​ 2.后期数据变化时,修改类对象中的属性,方法中增加相应的处理代码,而方法参数不会发生变化,提高了扩展性</p>
+<p>​ 3.方法与对象进行绑定,没有对象则无法使用方法,并且在创建对象的初始化方法中,已经确定了各个属性数据时正确的,如此一来避免了传入使用错误数据执行函数造成的问题</p>
+<p>简单的说,就是将数据与处理数据的函数绑定在一起,没有数据则根本不需要处理数据的函数,反过来要执行处理数据的函数则必须提供要被处理的数据</p>
+<h3 id="类中定义的函数分成两大类">类中定义的函数分成两大类</h3>
+<p><strong>一：绑定方法</strong></p>
+<p>​ 1.绑定到对象的方法：没有被任何装饰器装饰的方法。</p>
+<pre><code><code>   在类中定义的函数默认都是绑定到对象的方法</code></pre>
+<p>​ 特点:参数的第一个必须是self 表示当前对象本身,使用对象来调用,调用时会自动传入对象</p>
+<p>​ 2.绑定到类的方法：用classmethod装饰器装饰的方法。</p>
+<p>​ 特点:参数的第一个必须是cls表示当前类本身,使用类名来调用,调用时会自动传入类</p>
+<p><strong>二：非绑定方法：用staticmethod装饰器装饰的方法</strong></p>
+<p>​ 特点:不与类或对象绑定，类和对象都可以调用，但是没有自动传值那么一说。就是一个普通函数</p>
+<p>​ 不过由于作用域在类中所以需要使用类或对象类调用</p>
+<pre><code><code>class Student:
+    school = &quot;Tsinghua&quot; 
+    
+    def say_hello(self):# 绑定到对象的方法
+        print(self)
+        print(&quot;hello i am a student my name is %s&quot; % self.name)
+    
+    def __init__ (self,name): #绑定到对象的方法
+        self.name = name
+    @classmethod     # 绑定到类的方法
+    def school_info(cls):
+        print(cls)
+        print(&quot;the student from %s&quot; % cls.school)
+    
+        
+stu1 = Student(&quot;Jack&quot;)
+print(stu1)
+#输出 &lt;__main__.Student object at 0x1063112e8&gt;
+
+#1.调用对象绑定方法
+stu1.say_hello()
+#输出 &lt;__main__.Student object at 0x1063112e8&gt;
+#输出 hello i am a student my name is Jack
+
+#查看对象绑定方法
+print(stu1.say_hello)
+#输出 &lt;bound method Student.say_hello of &lt;__main__.Student object at 0x10552b2e8&gt;&gt;
+#含义 这个绑定方法是Student类中的say_hello函数,绑定到地址为0x10552b2e8的Student对象
+
+#绑定方法本质上也是函数 只要能找到它就能调用它所以你可以这样来调用它 
+Student.say_hello(stu1)
+#输出 &lt;__main__.Student object at 0x103818390&gt;
+#输出 hello i am a student my name is Jack
+
+
+print(Student)
+#输出 &lt;class &#39;__main__.Student&#39;&gt;
+#2.调用类绑定方法
+Student.school_info()
+#输出 &lt;class &#39;__main__.Student&#39;&gt;
+#输出 the student from Tsinghua
+
+#查看类绑定方法
+print(Student.school_info)
+#输出 &lt;bound method Student.school_info of &lt;class &#39;__main__.Student&#39;&gt;&gt;
+#含义 这个绑定方法是Student类中的school_info函数,绑定到Student这个类
+</code></pre>
+<p>绑定到类的方法与绑定到对象的方法总结</p>
+<p>异同点:</p>
+<p>​ 相同</p>
+<p>​ 绑定方法调用时都有自动传参的效果</p>
+<p>​ 绑定到谁给谁就由谁来调用</p>
+<p>​ 不同</p>
+<p>​ 绑定到类的方法自动传入当前类</p>
+<p>​ 绑定到对象的方法自动传入当前对象</p>
+<p><strong>另外:</strong></p>
+<p>​ 绑定方法中的self 和 cls参数名 是可以随意修改的,但是self和cls是约定俗成的写法,为了提高可读性不建议修改</p>
+<h3 id="练习">练习</h3>
+<p>1.创建Student类</p>
+<p>2.拥有以下属性:<br />
+姓名 性别 年龄 学校 班级</p>
+<p>3.拥有以下方法</p>
+<p>​ save(name) 其作用是将这个对象序列化到文件中</p>
+<p>​ get_obj(name) 其作用是根据name从文件中反序列化为得到一个对象</p>
+<p>​ 分析save方法和get_obj 应该作为绑定给对象还是绑定给类</p>
+<h1 id="七.对象之间交互练习">七.对象之间交互练习</h1>
+<p>需求设计王者荣耀中的英雄类,每个英雄对象可以对其他英雄对象使用技能</p>
+<p>具备以下属性</p>
+<p>英雄名称,等级,血量</p>
+<p>和Q_hurt,W_hurt,E_hurt 三个属性,表示各技能的伤害量</p>
+<p>具备以下技能</p>
+<p>Q W E</p>
+<p>三个技能都需要一个敌方英雄作为参数,当敌方血量小于等于0时角色死亡</p>
+<p>代码实现:</p>
+<h1 id="八.oop三大特性之封装">八.OOP三大特性之封装</h1>
+<h3 id="什么是封装">1.什么是封装</h3>
+<p>封装指的是隐藏对象的属性和实现细节，仅对外公开接口，控制程序中属性的访问权限；</p>
+<p>python中的权限分为两种</p>
+<p>​ 1.公开 外界可以直接访问和修改</p>
+<p>​ 2.私有 外界不能直接访问和修改,在当前类中可以直接修改和访问</p>
+<h3 id="为什么需要封装">2.为什么需要封装</h3>
+<p>一.<strong>封装属性</strong></p>
+<p>对于属性而言,封装就为了限制属性的访问和修改,其目的是为了<strong>保护数据安全</strong></p>
+<p>例如:</p>
+<p>学生对象拥有,姓名,性别,年龄,和身份证号,分数;其中身份证是一个相对隐私的数据,不应该让外界访问到;</p>
+<p>分数属性,是一个非常关键的数据,决定学员能不能正常毕业,不应被随意修改;</p>
+<p>二.<strong>封装方法</strong></p>
+<p>一个大的功能很多情况下是由很多个小功能组合而成的,而这些内部的小功能对于用户而言是没有意义的,所以封装方法的目的是为了<strong>隔离复杂度</strong>;</p>
+<p>例如:</p>
+<p>电脑的开机功能,内部需要启动BIOS,读取系统配置,启动硬盘,载入操作系统,等等一系列复杂的操作,但是用户不需要关心这些实现逻辑,只要按下开机键等待开机即可;</p>
+<h3 id="如何封装">3.如何封装</h3>
+<p>在属性名前添加两个下划线<code>__</code>,将其设置为私有的</p>
+<p>1.封装数据属性实例:网页中折叠</p>
+<pre><code><code>class Student:
+    def __init__(self,name,gender,age,id,score): # 初始化函数
+        self.name = name
+        self.gender = gender
+        self.age = age
+        self.__id = id  # 将id设置为私有的
+        self.__score = score # 将score设置为私有的
+    def test(self):
+        print(self.__id)
+        print(self.__score)
+
+        
+stu = Student(&quot;Jack&quot;,&quot;man&quot;,20,&quot;320684198901010001&quot;,780)
+#1.访问私有属性测试
+#print(stu.id) #    直接访问到隐私数据
+#print(stu.__id) # 换种写法
+#以上两行代码均输出相似的错误 
+#Traceback (most recent call last):
+#  File &quot;/Users/jerry/PycharmProjects/备课/写课件/test.py&quot;, line 102, in &lt;module&gt;
+#    print(stu.id)
+#AttributeError: &#39;Student&#39; object has no attribute &#39;id&#39;
+#错误含义 在Student类的对象中没有一个id或__id属性
+
+#2.修改私有属性测试
+stu.score = 1 # 直接修改私有属性 由于语法特点,相当于给stu对象增加score属性
+stu.__score = 2 #   直接修改私有属性 由于语法特点,相当于给stu对象增加__score属性
+print(stu.score)
+print(stu.__score)
+#输出 1 
+#输出 2
+
+#看起来已经被修改了 调用函数来查看私有属性是否修改成功
+stu.test()
+#输出 320684198901010001
+#输出 780
+# 私有的数据没有被修改过</code></pre>
+<p>思考:封装可以<strong>明确地区分内外</strong>，封装的属性<strong>可以直接在内部使用</strong>，而<strong>不能被外部直接使用</strong>，然而定义属性的目的终归是要用，外部要想用类隐藏的属性，需要为其提供接口，让外部能够间接地使用到隐藏起来的属性，那这么做的意义何在?</p>
+<p>答:可以在接口附加上对该数据操作的限制，以此完成对数据属性操作的严格控制。</p>
+<pre><code><code>class Teacher:
+    def __init__(self,name,age):
+        # self.__name=name
+        # self.__age=age
+        self.set_info(name,age)
+
+    def tell_info(self):
+        print(&#39;姓名:%s,年龄:%s&#39; %(self.__name,self.__age))
+    def set_info(self,name,age):
+        if not isinstance(name,str):
+            raise TypeError(&#39;姓名必须是字符串类型&#39;)
+        if not isinstance(age,int):
+            raise TypeError(&#39;年龄必须是整型&#39;)
+        self.__name=name
+        self.__age=age
+
+
+t=Teacher(&#39;egon&#39;,18)
+t.tell_info()
+
+t.set_info(&#39;egon&#39;,19)
+t.tell_info()</code></pre>
+<p>2.封装函数属性实例:网页中折叠</p>
+<pre><code><code>#取款是功能,而这个功能有很多功能组成:插卡、密码认证、输入金额、打印账单、取钱
+#对使用者来说,只需要知道取款这个功能即可,其余功能我们都可以隐藏起来
+#这么做即隔离了复杂度,同时也提升了安全性
+class ATM:
+    def __card(self):
+        print(&#39;插卡&#39;)
+    def __auth(self):
+        print(&#39;用户认证&#39;)
+    def __input(self):
+        print(&#39;输入取款金额&#39;)
+    def __print_bill(self):
+        print(&#39;打印账单&#39;)
+    def __take_money(self):
+        print(&#39;取款&#39;)
+
+    def withdraw(self):
+        self.__card()
+        self.__auth()
+        self.__input()
+        self.__print_bill()
+        self.__take_money()
+
+a=ATM()
+a.withdraw()</code></pre>
+<h3 id="python封装实现原理">4.python封装实现原理</h3>
+<pre><code><code>#其实这仅仅这是一种变形操作且仅仅只在类定义阶段发生变形
+#类中所有双下划线开头的名称如__x都会在类定义时自动变形成：_类名__x的形式：
+
+class A:
+    __N=0 #类的数据属性就应该是共享的,但是语法上是可以把类的数据属性设置成私有的如__N,会变形为_A__N
+    def __init__(self):
+        self.__X=10 #变形为self._A__X
+    def __foo(self): #变形为_A__foo
+        print(&#39;from A&#39;)
+    def bar(self):
+        self.__foo() #只有在类内部才可以通过__foo的形式访问到.
+
+#A._A__N是可以访问到的，
+#这种，在外部是无法通过__x这个名字访问到。
+a = A()
+print(a.__dict__)
+#输出 {&#39;_A__X&#39;: 10}
+
+#定义运行阶段的赋值操作
+a.__Y = 1
+print(a.__dict__)
+#输出 {&#39;_A__X&#39;: 10, &#39;__Y&#39;: 1}    __y并没有发生变形
+
+&quot;&quot;&quot;
+变形原理总结:
+1.这种机制也并没有真正意义上限制我们从外部直接访问属性，知道了类名和属性名就可以拼出名字：_类名__属性，然后就可以访问了，如a._A__N，即这种操作并不是严格意义上的限制外部访问，仅仅只是一种语法意义上的变形，主要用来限制外部的直接访问。
+2.变形的过程只在类的定义时发生一次,在定义后的赋值操作，不会变形
+&quot;&quot;&quot;</code></pre>
+<p>5.隐藏的函数不会被子类覆盖</p>
+<h3 id="封装之property">6.封装之property</h3>
+<h4 id="property是什么">property是什么</h4>
+<p>property是一个装饰器,将一个方法伪装成普通属性,其特殊之处在于,该方法会在修改属性值时自动执行</p>
+<p>与之对应的是setter与deleter装饰器:</p>
+<p>​ setter装饰的方法会在修改属性值时自动执行</p>
+<p>​ deleter装饰的方法会在删除属性值自动执行</p>
+<h4 id="为什么需要property">为什么需要property</h4>
+<p>当我们将一个属性设置为私有之后,就无法直接访问它们了,需要为其创建两个方法,一个用于访问,一个用于修改 ,但是对于使用者而言,私有的和普通都是属性,然而一个可以用点来访问,用等号来修改,另一个却要调用函数来存取,这就违反了<strong>统一访问原则</strong></p>
+<h4 id="使用property">使用property</h4>
+<pre><code><code>class Foo:
+    def __init__(self,val):
+        self.__NAME=val #将所有的数据属性都隐藏起来
+
+    @property
+    def name(self):
+        return self.__NAME #obj.name访问的是self.__NAME(这也是真实值的存放位置)
+
+    @name.setter
+    def name(self,value):
+        if not isinstance(value,str):  #在设定值之前进行类型检查
+            raise TypeError(&#39;%s must be str&#39; %value)
+        self.__NAME=value #通过类型检查后,将值value存放到真实的位置self.__NAME
+
+    @name.deleter
+    def name(self):
+        raise TypeError(&#39;Can not delete&#39;)
+
+f=Foo(&#39;Jack&#39;) 
+
+print(f.name) # 访问property属性
+#输出 Jack
+f.name=&quot;Rose&quot; # 修改property属性 抛出异常&#39;TypeError: 10 must be str&#39;
+
+del f.name # 删除property属性 抛出异常&#39;TypeError: Can not delete&#39; </code></pre>
+<p>总结:property的作用是避免使用普通属性和私有属性时的方式发生变化</p>
+<h1 id="九.oop三大特性之继承">九.OOP三大特性之继承</h1>
+<p>什么是继承</p>
+<p>为什么需要继承</p>
+<p>存在继承后的属性查找顺序</p>
+<p>派生</p>
+<p>在子类重用父类方法</p>
+<p>经典类与新式类</p>
+<p>菱形继承的问题</p>
+<p>mro列表</p>
+<h3 id="什么是继承">1.什么是继承</h3>
+<p>继承是一种关系,通过继承关系,一个对象可以直接使用另一个对象拥有的内容,例如王思聪继承王建林,王思聪就可以使用王健林拥有的财产!</p>
+<p>被继承的一方称之为父,即王健林; 继承的一方称之为子,即王思聪</p>
+<p>OOP继承描述的是两个类之间的关系,通过继承,一个类可以直接使用另一个类中已定义的方法和属性;</p>
+<p>被继承的称之为父类或基类,继承父类的类称之为子类;</p>
+<p><strong>在python3中创建类时必然继承另一个类,如果没有显式的指定父类,则默认继承object类; object是根类 所有类都直接或间接的继承object</strong></p>
+<h3 id="为什么需要继承">2.为什么需要继承</h3>
+<p>1.减少代码重复</p>
+<p>2.为多态提供必要的支持,(关于多态下节会详细讨论!)</p>
+<h3 id="使用继承">3.使用继承:</h3>
+<p>在类名后面的括号中指定要继承的父类名称​ <code>class 类名(父类名):</code></p>
+<p>案例:在选课系统中,有老师和学生两种角色,老师拥有姓名,性别,年龄,学生也拥有姓名,性别,年龄,使用面向对象编程思想,可以将老师和学生定义为两个为不同的类</p>
+<pre><code><code>class Teacher:
+    def __init__(self,name,gender,age):
+        self.name = name
+        self.gender = gender
+        self.age = age
+    def say_hi(self):
+        print(&quot;hi my name is %s age is %s gender is %s&quot; % (self.name,self.age,self.gender))
+        
+class Student:
+    def __init__(self,name,gender,age):
+        self.name = name
+        self.gender = gender
+        self.age = age
+    def say_hi(self):
+        print(&quot;hi my name is %s age is %s gender is %s&quot; % (self.name,self.age,self.gender))
+#创建两个对象
+t1 = Teacher(&quot;Jack&quot;,&quot;man&quot;,20)
+t1.say_hi()
+s1 = Student(&quot;Maria&quot;,&quot;woman&quot;,20)
+s1.say_hi()</code></pre>
+<p>两个类中的内容完全一致,则可以通过继承来重用代码</p>
+<pre><code><code>class Teacher:
+    def __init__(self,name,gender,age):
+        self.name = name
+        self.gender = gender
+        self.age = age
+    def say_hi(self):
+        print(&quot;hi my name is %s age is %s gender is %s&quot; % (self.name,self.age,self.gender))
+
+class Student(Teacher):  #指定Teacher类继承Student类
+    pass
+
+#创建两个对象
+t1 = Teacher(&quot;Jack&quot;,&quot;man&quot;,20)
+t1.say_hi()
+s1 = Student(&quot;Maria&quot;,&quot;woman&quot;,20)
+s1.say_hi()</code></pre>
+<h3 id="继承与抽象">4.继承与抽象</h3>
+<h5 id="问题">问题:</h5>
+<p>继承描述的是子类与父类之间的关系,在上面的例子中,<code>Student</code>继承<code>Teacher</code>完成了代码的重用,但是很明显老师类不是学生类的父类,学生类也不属于老师类,这样的继承关系在逻辑上是错误的;OOP的概念来自于现实世界,所以继承应当遵循现实世界的逻辑;</p>
+<p>现在暂且不考虑逻辑错误,来看这样一个情况:</p>
+<p><code>Teacher</code>和<code>Student</code>由于存在相同的属性,为了减少重复代码,让两个逻辑上没有继承关系的类,产生了继承关系,如果后期<code>Teacher</code>类中增加了教学的方法,由于继承关系的存在,学生类也会拥有教学的方法,这是不合理的;</p>
+<h5 id="答">答:</h5>
+<p>​ 应当将<code>Teacher</code>与<code>Student</code>中完全相同的部分抽取出来,放到另一个类中,并让<code>Teacher与Student</code>去继承它,这个类称之为<code>公共父类</code> ,但是这个类与实际的业务需求是无关的在现实中也不实际存在,它的作用仅仅是存储相同代码以减少重复;这一过程我们称之为<strong>抽象</strong>;</p>
+<p><strong>综上所述,正确思路是:先抽象在继承</strong></p>
+<pre><code><code># 抽取老师和学生的相同内容 形成一个新的类,作为它们的公共父类
+class Person:
+    def __init__(self,name,gender,age):
+        self.name = name
+        self.gender = gender
+        self.age = age
+    def say_hi(self):
+        print(&quot;hi my name is %s age is %s gender is %s&quot; % (self.name,self.age,self.gender))
+class Teacher(Person):  #指定Teacher类继承Person类
+    pass
+class Student(Person):  #指定Student类继承Person类
+    pass
+
+#创建两个对象
+t1 = Teacher(&quot;Jack&quot;,&quot;man&quot;,20)
+t1.say_hi()
+s1 = Student(&quot;Maria&quot;,&quot;woman&quot;,20)
+s1.say_hi()</code></pre>
+<p>抽象最主要的作用是划分类别（可以隔离关注点，降低复杂度）,每个类之干自己的事情,多个类相同的事情交给父类来干</p>
+<h6 id="继承的另一种使用场景"><strong>继承的另一种使用场景:</strong></h6>
+<p>在开发程序的过程中，如果我们定义了一个类A，然后又想新建立另外一个类B，但是类B的大部分内容与类A的相同时</p>
+<p>不需要从头开始写一个类B，这就用到了类的继承的概念。</p>
+<p>通过继承的方式新建类B，让B继承A，B会‘遗传’A的所有属性(数据属性和函数属性)，实现代码重用</p>
+<p style="color:red">用已经有的类建立一个新的类，这样就重用了已经有的软件中的一部分甚至大部分，大大节省了编程工作量，这就是常说的软件重用，不仅可以重用自己的类，也可以继承别人的，比如标准库，来定制新的数据类型，大大缩短了软件开发周期，对大型软件开发来说，意义重大</p>
+<h3 id="存在继承关系后的属性查找">5.存在继承关系后的属性查找</h3>
+<p>一个类必然继承另一个类,被继承的类也有可能继承了其他类,相当于C继承B,B又继承A</p>
+<p>此时查找属性的顺序是:</p>
+<p>​ <strong>对象本身的名称空间 - &gt; 类的名称空间 -&gt; 父类的名称空间 -&gt; 父类的父类名称空间 -&gt;...object类</strong></p>
+<p>会沿着继承关系一直往后查找,直到找到为止,由于object是所有类的根类,所以如果找不着最后都会查找object类!</p>
+<pre><code><code>class Foo:
+    def f1(self):
+        print(&#39;Foo.f1&#39;)
+
+    def f2(self):
+        print(&#39;Foo.f2&#39;)
+        self.f1()
+
+class Bar(Foo):
+    def f1(self):
+        print(&#39;Bar.f1&#39;)
+
+
+b=Bar()
+b.f1()
+#输出 Bar.f1
+b.f2()
+#输出 Foo.f2</code></pre>
+<h3 id="派生与覆盖">6.派生与覆盖</h3>
+<h5 id="什么是派生">什么是派生</h5>
+<p>当父类提供的属性无法完全满足子类的需求时,子类可以增加自己的属性或非法,或者覆盖父类已经存在的属性,此时子类称之为父类的派生类;</p>
+<h5 id="什么是覆盖">什么是覆盖</h5>
+<p>在子类中如果出现于父类相同的属性名称时,根据查找顺序,优先使用子类中的属性,这种行为也称为<code>覆盖</code></p>
+<p>从<code>Person</code>类派生出来的<code>Teacher</code>类</p>
+<pre><code><code># 抽取老师和学生的相同内容 形成一个新的类,作为它们的公共父类
+class Person:
+    def __init__(self,name,gender,age):
+        self.name = name
+        self.gender = gender
+        self.age = age
+    def say_hi(self):
+        print(&quot;my name is %s age is %s gender is %s&quot; % (self.name,self.age,self.gender))
+class Teacher(Person):  #指定Teacher类继承Person类
+    # Teacher类从Person类中继承到了say_hi方法 但是,老师打招呼时应当说出自己的职业是老师,所以需要
+    # 定义自己的不同的实现方式
+    def say_hi(self):
+        print(&quot;hi i am a Teacher&quot;)
+        #print(&quot;my name is %s age is %s gender is %s&quot; % (self.name,self.age,self.gender))
+        #上一行代码与父类中完全相同,可以直接调用父类提供的方法
+        Person.say_hi(self)
+# 创建Teacher对象
+t1 = Teacher(&quot;Jack&quot;,&quot;man&quot;,20)
+t1.say_hi()
+#输出 hi i am a Teacher
+#     my name is Jack age is 20 gender is man</code></pre>
+<p>在子类中，新建的重名的函数属性，在编辑函数内功能的时候，有可能需要重用父类中重名的那个函数功能，应该使用调用普通函数的方式，即：类名.func()，此时就与调用普通函数无异了，因此即便是self参数也要为其传值</p>
+<h3 id="子类中重用父类的方法">7.子类中重用父类的方法</h3>
+<p>很多情况下 子类中的代码与父类中仅有小部分不同,却不得不在子类定义新的方法,这时候可以在子类中调用父类已有的方法,来完成大部分工作,子类仅需编写一小部分与父类不同的代码即可</p>
+<p>在子类中有两种方式可以重用父类中的代码</p>
+<p>1.使用类名直接调用 ,该方式与继承没有关系,即时没有继承关系,也可以调用</p>
+<p>2.使用super()</p>
+<pre><code><code>class Vehicle: #定义交通工具类
+     Country=&#39;China&#39;
+     def __init__(self,name,speed,load,power):
+         self.name=name
+         self.speed=speed
+         self.load=load
+         self.power=power
+
+     def run(self):
+         print(&#39;开动啦...&#39;)
+
+class Subway(Vehicle): #地铁
+    def __init__(self,name,speed,load,power,line):
+        #super(Subway,self) 就相当于实例本身 在python3中super()等同于super(Subway,self)
+        super().__init__(name,speed,load,power)
+        self.line=line
+
+    def run(self):
+        print(&#39;地铁%s号线欢迎您&#39; %self.line)
+        super(Subway,self).run()
+
+class Mobike(Vehicle):#摩拜单车
+    pass
+
+line13=Subway(&#39;中国地铁&#39;,&#39;180m/s&#39;,&#39;1000人/箱&#39;,&#39;电&#39;,13)
+line13.run()</code></pre>
+<p><strong>即使没有直接继承关系，super仍然会按照mro继续往后查找</strong></p>
+<p>而第一种方式明确指定了要到哪一个类中去查找,找不到则直接抛出异常</p>
+<pre><code><code>#A没有继承B,但是A内super会基于C.mro()继续往后找
+class A:
+    def test(self):
+        super().test()
+class B:
+    def test(self):
+        print(&#39;from B&#39;)
+class C(A,B):
+    pass
+
+c=C()
+c.test() #打印结果:from B
+
+
+print(C.mro())
+#[&lt;class &#39;__main__.C&#39;&gt;, &lt;class &#39;__main__.A&#39;&gt;, &lt;class &#39;__main__.B&#39;&gt;, &lt;class &#39;object&#39;&gt;]</code></pre>
+<p>*当你使用super()函数时,Python会在MRO列表上继续搜索下一个类。如果每个重定义的方法统一使用super()并只调用它一次,那么控制流最终会遍历完整个MRO列表,每个方法也只会被调用一次<strong>(注意注意注意：使用super调用的所有属性，都是从MRO列表当前的位置往后找，千万不要通过看代码去找继承关系，一定要看MRO列表)</strong></p>
+<h3 id="组合">9.组合</h3>
+<p><strong>软件重用的重要方式除了继承之外还有另外一种方式，即：组合</strong></p>
+<p><strong>组合指的是，在一个类中以另外一个类的对象作为数据属性，称为类的组合</strong></p>
+<pre><code><code>class Equip: #武器装备类
+     def fire(self):
+         print(&#39;release Fire skill&#39;)
+
+class Riven: #英雄Riven的类,一个英雄需要有装备,因而需要组合Equip类
+     camp=&#39;Noxus&#39;
+     def __init__(self,nickname):
+         self.nickname=nickname
+         self.equip=Equip() #用Equip类产生一个装备,赋值给实例的equip属性
+r1=Riven(&#39;锐雯雯&#39;)
+r1.equip.fire() #可以使用组合的类产生的对象所持有的方法</code></pre>
+<p><strong>组合与继承都是有效地利用已有类的资源的重要方式。但是二者的概念和使用场景皆不同，</strong></p>
+<p><strong>1.继承的方式</strong></p>
+<p><strong>通过继承建立了派生类与基类之间的关系，它是一种'是'的关系，比如白马是马，人是动物。</strong></p>
+<p><strong>当类之间有很多相同的功能，提取这些共同的功能做成基类，用继承比较好，比如老师是人，学生是人</strong></p>
+<p><strong>2.组合的方式</strong></p>
+<p><strong>用组合的方式建立了类与组合的类之间的关系，它是一种‘有’的关系,比如教授有生日，教授教python和linux课程，教授有学生s1、s2、s3...</strong></p>
+<h3 id="继承实现的原理">10.继承实现的原理</h3>
+<h5 id="继承顺序">1.继承顺序</h5>
+<p>在Java和C#中子类只能继承一个父类，而Python中子类可以同时继承多个父类，如A(B,C,D)</p>
+<p>如果继承关系为非菱形结构，则会按照先找B这一条分支，然后再找C这一条分支，最后找D这一条分支的顺序直到找到我们想要的属性</p>
+<p>如果继承关系为菱形结构，那么属性的查找方式有两种，分别是：深度优先和广度优先</p>
+<p><img src="./images/面向对象基础0.png" alt="经典类查找顺序" /></p>
+<p><img src="./images/面向对象基础1.png" alt="新式类查找顺序" /></p>
+<p>这里谈到的广度优先不是简单的从左到右,像图中标识的依然会按照深度一层一层上找,但是如果下一个要找的类与继承列表中的其他类存在相同父类(就像<code>E</code> 与 <code>F</code>有共同父类<code>G</code>),则不会查找公共父类,这一次深度查找结束,开始下一条查找路径(<code>C -&gt; F</code>),</p>
+<h5 id="继承实现原理">2.继承实现原理</h5>
+<p>对于你定义的每一个类，python通过一个算法算出一个查找顺序存放在(MRO)列表中，这个MRO列表就是一个简单的所有基类的线性顺序列表，例如:</p>
+<pre><code><code>F.mro() #等同于F.__mro__
+[&lt;class &#39;__main__.F&#39;&gt;, &lt;class &#39;__main__.D&#39;&gt;, &lt;class &#39;__main__.B&#39;&gt;, &lt;class &#39;__main__.E&#39;&gt;, &lt;class &#39;__main__.C&#39;&gt;, &lt;class &#39;__main__.A&#39;&gt;, &lt;class &#39;object&#39;&gt;]</code></pre>
+<p>为了实现继承,python会在MRO列表上从左到右开始查找基类,直到找到第一个匹配这个属性的类为止。<br />
+而这个MRO列表的构造是通过一个C3线性化算法来实现的。不需要深究这个算法的原理,它实际上就是合并所有父类的MRO列表并遵循如下三条准则:<br />
+1.子类会先于父类被检查<br />
+2.多个父类会根据它们在列表中的顺序被检查<br />
+3.如果对下一个类存在两个合法的选择,选择第一个父类</p>
+<h3 id="接口了解">11.接口(了解)</h3>
+<h5 id="什么是接口">什么是接口?</h5>
+<p>usb就是一种接口,电源插座也是接口,接口其实是一套协议规范;</p>
+<h5 id="为什么需要接口">为什么需要接口?</h5>
+<p>电脑提供USB接口,可以使用任何遵循USB接口协议的设备,其他设备只要按照USB协议的要求来设计产品,就能够被电脑使用,而电脑根本不需要关心这个设备具体是如何实现功能的</p>
+<p>1.让使用者无需关心对象的类是什么，只需要的知道这些对象都具备某些功能就可以了，这极大地降低了使用者的使用难度。</p>
+<p>2.使得外部使用者可以不加区分的处理所有接口兼容的对象</p>
+<p>2.1：就好象linux的泛文件概念一样，所有东西都可以当文件处理，不必关心它是内存、磁盘、网络还是屏幕（当然，对底层设计者，当然也可以区分出“字符设备”和“块设备”，然后做出针对性的设计：细致到什么程度，视需求而定）。</p>
+<p>2.2：再比如：我们有一个汽车接口，里面定义了汽车所有的功能，然后由本田汽车的类，奥迪汽车的类，大众汽车的类，他们都实现了汽车接口，这样就好办了，大家只需要学会了怎么开汽车，那么无论是本田，还是奥迪，还是大众我们都会开了，开的时候根本无需关心我开的是哪一类车，操作手法（函数调用）都一样</p>
+<h5 id="接口的使用">接口的使用</h5>
+<p>在python中根本就没有一个叫做interface的关键字，如果非要去模仿接口的概念</p>
+<p>1.可以借助第三方模块：</p>
+<p><a href="http://pypi.python.org/pypi/zope.interface" class="uri">http://pypi.python.org/pypi/zope.interface</a></p>
+<p>2.也可以使用继承来间接的实现接口</p>
+<p>继承的两种用途</p>
+<p>​ 一：继承基类的方法，并且做出自己的改变或者扩展（代码重用）;</p>
+<p>​ 二：声明某个子类兼容于某基类，定义一个接口类（模仿java的Interface），接口类中定义了一些接口名（就是函数名）但并未实现具体的功能，子类继承接口类，并且实现接口中的功能</p>
+<pre><code><code>class IOInterface:#定义接口Interface类来模仿接口的概念，python中压根就没有interface关键字来定义一个接口。
+    def read(self): #定接口函数read
+        pass
+
+    def write(self): #定义接口函数write
+        pass
+
+
+class Txt(Interface): #文本，具体实现read和write
+    def read(self):
+        print(&#39;文本数据的读取方法&#39;)
+
+    def write(self):
+        print(&#39;文本数据的读取方法&#39;)
+
+class Sata(Interface): #磁盘，具体实现read和write
+    def read(self):
+        print(&#39;硬盘数据的读取方法&#39;)
+
+    def write(self):
+        print(&#39;硬盘数据的读取方法&#39;)
+
+class Process(Interface):
+    def read(self):
+        print(&#39;进程数据的读取方法&#39;)
+
+    def write(self):
+        print(&#39;进程数据的读取方法&#39;)</code></pre>
+<p>上面的代码只是看起来像接口,但是子类完全可以不用去实现接口，没有强制性的要求子类必须实现父类的方法,这就用到了抽象类</p>
+<h3 id="抽象类-挪到多态">12.抽象类 挪到多态</h3>
+<h5 id="什么是抽象类">什么是抽象类</h5>
+<p>什么叫做抽象?</p>
+<p>​ 不具体,不清晰的就是抽象的,当我们知道某些对象具备一些功能,但是并不清楚这些功能是如何实现的,那对于我们而言这个功能就是抽象的; 抽象类也一样,如果这个类中的方法是不具体(没有实现功能的代码)的抽象的,那么这个类也是抽象的;</p>
+<p>抽象类是一个特殊的类，它的特殊之处在于只能被继承，不能被实例化,且有存在没有实现的方法;</p>
+<h5 id="为什么使用抽象类">为什么使用抽象类?</h5>
+<p>​ 抽象类可以实现强制性要求子类必须实现父类声明的方法,这样一来只要一个类是这个抽象类的子类,那么他必然实现了抽象类中的方法,对于使用者而言,只要知道抽象类中的方法,就可以无差别的使用,这个抽象类的任何子类,大大降低了使用成本!</p>
+<h5 id="实战">实战</h5>
+<pre><code><code>#_*_coding:utf-8_*_
+#一切皆文件
+import abc #利用abc模块实现抽象类
+
+class All_file(metaclass=abc.ABCMeta):
+    all_type=&#39;file&#39;
+    @abc.abstractmethod #定义抽象方法，无需实现功能
+    def read(self):
+        &#39;子类必须定义读功能&#39;
+        pass
+
+    @abc.abstractmethod #定义抽象方法，无需实现功能
+    def write(self):
+        &#39;子类必须定义写功能&#39;
+        pass
+
+# class Txt(All_file):
+#     pass
+#
+# t1=Txt() #报错,子类没有定义抽象方法
+
+class Txt(All_file): #子类继承抽象类，但是必须定义read和write方法
+    def read(self):
+        print(&#39;文本数据的读取方法&#39;)
+
+    def write(self):
+        print(&#39;文本数据的读取方法&#39;)
+
+class Sata(All_file): #子类继承抽象类，但是必须定义read和write方法
+    def read(self):
+        print(&#39;硬盘数据的读取方法&#39;)
+
+    def write(self):
+        print(&#39;硬盘数据的读取方法&#39;)
+
+class Process(All_file): #子类继承抽象类，但是必须定义read和write方法
+    def read(self):
+        print(&#39;进程数据的读取方法&#39;)
+
+    def write(self):
+        print(&#39;进程数据的读取方法&#39;)
+
+wenbenwenjian=Txt()
+
+yingpanwenjian=Sata()
+
+jinchengwenjian=Process()
+
+#这样大家的使用方法时完全一致的,也就是一切皆文件的思想
+wenbenwenjian.read()
+yingpanwenjian.write()
+jinchengwenjian.read()
+
+print(wenbenwenjian.all_type)
+print(yingpanwenjian.all_type)
+print(jinchengwenjian.all_type)</code></pre>
+<p>补充:</p>
+<p>​ 抽象类中既可以包含抽象方法也可以包含普通方法和属性!</p>
+<p>​ 这和接口不同,接口仅仅是协议,所以接口中不应该包含任何具体的实现代码!</p>
+<h1 id="十.oop三大特性之多态">十.OOP三大特性之多态</h1>
+<h3 id="什么是多态">1.什么是多态</h3>
+<p>多态指的是一类事物有多种形态</p>
+<p>例如:</p>
+<p>动物有多种形态:</p>
+<p>人，狗，猪</p>
+<p>在程序中多态指的是,不同对象可以响应相同方法,并可以有自己不同的实现方式</p>
+<h3 id="为什么需要多态">2.为什么需要多态</h3>
+<p>案例分析:</p>
+<pre><code><code>import abc
+class Animal(metaclass=abc.ABCMeta): #同一类事物:动物
+    @abc.abstractmethod
+    def talk(self):
+        pass
+
+class People(Animal): #动物的形态之一:人
+    def talk(self):
+        print(&#39;say hello&#39;)
+
+class Dog(Animal): #动物的形态之二:狗
+    def talk(self):
+        print(&#39;say wangwang&#39;)
+
+class Pig(Animal): #动物的形态之三:猪
+    def talk(self):
+        print(&#39;say aoao&#39;)
+        
+peo=People()
+dog=Dog()
+pig=Pig()
+
+#peo、dog、pig都是动物,只要是动物肯定有talk方法
+#于是我们可以不用考虑它们三者的具体是什么类型,而直接使用
+peo.talk()
+dog.talk()
+pig.talk()
+
+#更进一步,我们可以定义一个统一的接口来使用
+def func(obj):
+    obj.talk()
+func(peo)
+func(dog)
+func(pig)</code></pre>
+<p>通过上述案列可以直观的体会到多态的好处,并且它并不是一个新的知识点,python默认就是支持多态的</p>
+<p>那么多态的带来的好处是什么?</p>
+<p>1.增加了程序的灵活性</p>
+<p>　　<em>以不变应万变，不论对象千变万化，使用者都是同一种形式去调用，如func(animal)</em></p>
+<p>2.增加了程序额可扩展性</p>
+<p>　　<em>通过继承animal类创建了一个新的类，使用者无需更改自己的代码，还是用func(animal)去调用</em> 　</p>
+<pre><code><code>class Cat(Animal): #动物的另外一种形态：猫
+    def talk(self):
+        print(&#39;say miao&#39;)
+def func(animal): #对于使用者来说，自己的代码根本无需改动
+    animal.talk()
+cat1=Cat() #实例出一只猫
+func(cat1) #甚至连调用方式也无需改变，就能调用猫的talk功能
+say miao
+&#39;&#39;&#39;
+这样我们新增了一个形态Cat，由Cat类产生的实例cat1，使用者可以在完全不需要修改自己代码的情况下。使用和人、狗、猪一样的方式调用cat1的talk方法，即func(cat1)
+&#39;&#39;&#39;</code></pre>
+<p>继承一章中指出,继承为多态提供了不要的支持,所有的动物 <code>cat dog pig</code> 它们都要先继承<code>Animal</code>类,这样一来,才能保证,它们都能响应talk方法,不至于在调用时发生异常;</p>
+<p>当然如果子类的设计者,完全按照Animal中规定的内容去实现子类,即使没有继承关系的存在,使用者也一样可以像使用其他对象一样使用这个子类对象, 这需要设计者在设计实现类时更加谨慎!</p>
+<h3 id="鸭子类型">3.鸭子类型</h3>
+<p>　　Python崇尚鸭子类型，即‘如果看起来像、叫声像而且走起路来像鸭子，那么它就是鸭子’</p>
+<p>python程序员通常根据这种标准来编写程序。例如，如果想编写现有对象的自定义版本，可以继承该对象</p>
+<p>也可以创建一个外观和行为像，但与它无任何关系的全新对象，后者通常用于保存程序组件的松耦合度。</p>
+<p>例1：利用标准库中定义的各种‘与文件类似’的对象，尽管这些对象的工作方式像文件，但他们没有继承内置文件对象的方法</p>
+<pre><code><code>#二者都像鸭子,二者看起来都像文件,因而就可以当文件一样去用
+class TxtFile:
+    def read(self):
+        pass
+
+    def write(self):
+        pass
+
+class DiskFile:
+    def read(self):
+        pass
+    def write(self):
+        pass</code></pre>
+<p>例2：其实大家一直在享受着多态性带来的好处，比如Python的序列类型有多种形态：字符串，列表，元组，多态性体现如下</p>
+<pre><code><code>#str,list,tuple都是序列类型
+s=str(&#39;hello&#39;)
+l=list([1,2,3])
+t=tuple((4,5,6))
+
+#我们可以在不考虑三者类型的前提下使用s,l,t
+s.__len__()
+l.__len__()
+t.__len__()
+
+len(s)
+len(l)
+len(t)</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

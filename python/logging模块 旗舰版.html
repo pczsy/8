@@ -1,0 +1,213 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修logging模块 旗舰版' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>logging模块 旗舰版</center></div><div class='banquan'>原文出处:本文由博客园博主changxin7提供。<br/>
+原文连接:https://www.cnblogs.com/changxin7/p/11291090.html</div><br>
+    <h4 id="函数式简单配置">函数式简单配置</h4>
+<pre><code><code>import logging  
+logging.debug(&#39;debug message&#39;)  
+logging.info(&#39;info message&#39;)  
+logging.warning(&#39;warning message&#39;)  
+logging.error(&#39;error message&#39;)  
+logging.critical(&#39;critical message&#39;) </code></pre>
+<p>默认情况下Python的logging模块将日志打印到了标准输出中，且只显示了大于等于WARNING级别的日志，这说明默认的日志级别设置为WARNING（日志级别等级CRITICAL &gt; ERROR &gt; WARNING &gt; INFO &gt; DEBUG），默认的日志格式为日志级别：Logger名称：用户输出消息。</p>
+<p>**灵活配置日志级别，日志格式，输出位置:</p>
+<pre><code><code>import logging  
+logging.basicConfig(level=logging.DEBUG,  
+                    format=&#39;%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s&#39;,  
+                    datefmt=&#39;%a, %d %b %Y %H:%M:%S&#39;,  
+                    filename=&#39;/tmp/test.log&#39;,  
+                    filemode=&#39;w&#39;)  
+  
+logging.debug(&#39;debug message&#39;)  
+logging.info(&#39;info message&#39;)  
+logging.warning(&#39;warning message&#39;)  
+logging.error(&#39;error message&#39;)  
+logging.critical(&#39;critical message&#39;)</code></pre>
+<pre><code><code>logging.basicConfig()函数中可通过具体参数来更改logging模块默认行为，可用参数有：
+
+filename：用指定的文件名创建FiledHandler，这样日志会被存储在指定的文件中。
+filemode：文件打开方式，在指定了filename时使用这个参数，默认值为“a”还可指定为“w”。
+format：指定handler使用的日志显示格式。
+datefmt：指定日期时间格式。
+level：设置rootlogger（后边会讲解具体概念）的日志级别
+stream：用指定的stream创建StreamHandler。可以指定输出到sys.stderr,sys.stdout或者文件(f=open(‘test.log’,’w’))，默认为sys.stderr。若同时列出了filename和stream两个参数，则stream参数会被忽略。
+
+format参数中可能用到的格式化串：
+%(name)s Logger的名字
+%(levelno)s 数字形式的日志级别
+%(levelname)s 文本形式的日志级别
+%(pathname)s 调用日志输出函数的模块的完整路径名，可能没有
+%(filename)s 调用日志输出函数的模块的文件名
+%(module)s 调用日志输出函数的模块名
+%(funcName)s 调用日志输出函数的函数名
+%(lineno)d 调用日志输出函数的语句所在的代码行
+%(created)f 当前时间，用UNIX标准的表示时间的浮 点数表示
+%(relativeCreated)d 输出日志信息时的，自Logger创建以 来的毫秒数
+%(asctime)s 字符串形式的当前时间。默认格式是 “2003-07-08 16:49:45,896”。逗号后面的是毫秒
+%(thread)d 线程ID。可能没有
+%(threadName)s 线程名。可能没有
+%(process)d 进程ID。可能没有
+%(message)s用户输出的消息</code></pre>
+<p>参数详解</p>
+<h4 id="logger对象配置">logger对象配置</h4>
+<pre><code><code>import logging
+
+logger = logging.getLogger()
+# 创建一个handler，用于写入日志文件
+fh = logging.FileHandler(&#39;test.log&#39;,encoding=&#39;utf-8&#39;) # 再创建一个handler，用于输出到控制台 ch = logging.StreamHandler() formatter = logging.Formatter(&#39;%(asctime)s - %(name)s - %(levelname)s - %(message)s&#39;)
+fh.setLevel(logging.DEBUG)fh.setFormatter(formatter) ch.setFormatter(formatter) 
+logger.addHandler(fh) #logger对象可以添加多个fh和ch对象 logger.addHandler(ch) logger.debug(&#39;logger debug message&#39;) logger.info(&#39;logger info message&#39;) logger.warning(&#39;logger warning message&#39;) logger.error(&#39;logger error message&#39;) logger.critical(&#39;logger critical message&#39;)</code></pre>
+<p>logging库提供了多个组件：Logger、Handler、Filter、Formatter。Logger对象提供应用程序可直接使用的接口，Handler发送日志到适当的目的地，Filter提供了过滤日志信息的方法，Formatter指定日志显示格式。另外，可以通过：logger.setLevel(logging.Debug)设置级别,当然，也可以通过</p>
+<p>fh.setLevel(logging.Debug)单对文件流设置某个级别。</p>
+<h4 id="logger的配置文件">logger的配置文件</h4>
+<p>有的同学习惯通过logger的对象配置去完成日志的功能，没问题，但是上面这种方式需要创建各种对象，比如logger对象，fileHandler对象，ScreamHandler对象等等，比较麻烦，那么下面给你提供一种字典的方式，创建logger配置文件，这种才是工作中经常使用的实现日志功能的方法，真正的做到 ----- 拿来即用（简单改改）。</p>
+<pre><code><code>&quot;&quot;&quot;
+logging配置
+&quot;&quot;&quot;
+
+import os
+import logging.config
+
+# 定义三种日志输出格式 开始
+
+standard_format = &#39;[%(asctime)s][%(threadName)s:%(thread)d][task_id:%(name)s][%(filename)s:%(lineno)d]&#39; \
+                  &#39;[%(levelname)s][%(message)s]&#39; #其中name为getlogger指定的名字
+
+simple_format = &#39;[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]%(message)s&#39;
+
+id_simple_format = &#39;[%(levelname)s][%(asctime)s] %(message)s&#39;
+
+# 定义日志输出格式 结束
+
+logfile_dir = os.path.dirname(os.path.abspath(__file__))  # log文件的目录
+
+logfile_name = &#39;all2.log&#39;  # log文件名
+
+# 如果不存在定义的日志目录就创建一个
+if not os.path.isdir(logfile_dir):
+    os.mkdir(logfile_dir)
+
+# log文件的全路径
+logfile_path = os.path.join(logfile_dir, logfile_name)
+
+# log配置字典
+LOGGING_DIC = {
+    &#39;version&#39;: 1,
+    &#39;disable_existing_loggers&#39;: False,
+    &#39;formatters&#39;: {
+        &#39;standard&#39;: {
+            &#39;format&#39;: standard_format
+        },
+        &#39;simple&#39;: {
+            &#39;format&#39;: simple_format
+        },
+    },
+    &#39;filters&#39;: {},
+    &#39;handlers&#39;: {
+        #打印到终端的日志
+        &#39;console&#39;: {
+            &#39;level&#39;: &#39;DEBUG&#39;,
+            &#39;class&#39;: &#39;logging.StreamHandler&#39;,  # 打印到屏幕
+            &#39;formatter&#39;: &#39;simple&#39;
+        },
+        #打印到文件的日志,收集info及以上的日志
+        &#39;default&#39;: {
+            &#39;level&#39;: &#39;DEBUG&#39;,
+            &#39;class&#39;: &#39;logging.handlers.RotatingFileHandler&#39;,  # 保存到文件
+            &#39;formatter&#39;: &#39;standard&#39;,
+            &#39;filename&#39;: logfile_path,  # 日志文件
+            &#39;maxBytes&#39;: 1024*1024*5,  # 日志大小 5M
+            &#39;backupCount&#39;: 5,
+            &#39;encoding&#39;: &#39;utf-8&#39;,  # 日志文件的编码，再也不用担心中文log乱码了
+        },
+    },
+    &#39;loggers&#39;: {
+        #logging.getLogger(__name__)拿到的logger配置
+        &#39;&#39;: {
+            &#39;handlers&#39;: [&#39;default&#39;, &#39;console&#39;],  # 这里把上面定义的两个handler都加上，即log数据既写入文件又打印到屏幕
+            &#39;level&#39;: &#39;DEBUG&#39;,
+            &#39;propagate&#39;: True,  # 向上（更高level的logger）传递
+        },
+    },
+}
+
+
+def load_my_logging_cfg():
+    logging.config.dictConfig(LOGGING_DIC)  # 导入上面定义的logging配置
+    logger = logging.getLogger(__name__)  # 生成一个log实例
+    logger.info(&#39;It works!&#39;)  # 记录该文件的运行状态
+
+if __name__ == &#39;__main__&#39;:
+    load_my_logging_cfg()</code></pre>
+<p>logger配置文件</p>
+<pre><code><code>注意注意注意：
+
+
+#1、有了上述方式我们的好处是：所有与logging模块有关的配置都写到字典中就可以了，更加清晰，方便管理
+
+
+#2、我们需要解决的问题是：
+    1、从字典加载配置：logging.config.dictConfig(settings.LOGGING_DIC)
+
+    2、拿到logger对象来产生日志
+    logger对象都是配置到字典的loggers 键对应的子字典中的
+    按照我们对logging模块的理解，要想获取某个东西都是通过名字，也就是key来获取的
+    于是我们要获取不同的logger对象就是
+    logger=logging.getLogger(&#39;loggers子字典的key名&#39;)
+
+    
+    但问题是：如果我们想要不同logger名的logger对象都共用一段配置，那么肯定不能在loggers子字典中定义n个key   
+ &#39;loggers&#39;: {    
+        &#39;l1&#39;: {
+            &#39;handlers&#39;: [&#39;default&#39;, &#39;console&#39;],  #
+            &#39;level&#39;: &#39;DEBUG&#39;,
+            &#39;propagate&#39;: True,  # 向上（更高level的logger）传递
+        },
+        &#39;l2: {
+            &#39;handlers&#39;: [&#39;default&#39;, &#39;console&#39; ], 
+            &#39;level&#39;: &#39;DEBUG&#39;,
+            &#39;propagate&#39;: False,  # 向上（更高level的logger）传递
+        },
+        &#39;l3&#39;: {
+            &#39;handlers&#39;: [&#39;default&#39;, &#39;console&#39;],  #
+            &#39;level&#39;: &#39;DEBUG&#39;,
+            &#39;propagate&#39;: True,  # 向上（更高level的logger）传递
+        },
+
+}
+
+    
+#我们的解决方式是，定义一个空的key
+    &#39;loggers&#39;: {
+        &#39;&#39;: {
+            &#39;handlers&#39;: [&#39;default&#39;, &#39;console&#39;], 
+            &#39;level&#39;: &#39;DEBUG&#39;,
+            &#39;propagate&#39;: True, 
+        },
+
+}
+
+这样我们再取logger对象时
+logging.getLogger(__name__)，不同的文件__name__不同，这保证了打印日志时标识信息不同，但是拿着该名字去loggers里找key名时却发现找不到，于是默认使用key=&#39;&#39;的配置</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

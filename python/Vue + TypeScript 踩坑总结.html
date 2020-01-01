@@ -1,0 +1,544 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Vue + TypeScript 踩坑总结' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Vue + TypeScript 踩坑总结</center></div><div class='banquan'>原文出处:本文由博客园博主xing.org1^提供。<br/>
+原文连接:https://www.cnblogs.com/padding1015/p/12013722.html</div><br>
+    <h1 id="vuets-踩坑记录与方案总结">Vue+TS 踩坑记录与方案总结</h1>
+<h2 id="前言">前言</h2>
+<p>vue 和 TypeScript 结合的情况下，很多写法和我们平时的写法都不太一样，这里总结我项目开发过程中遇到的问题和问题的解决方案<br />
+<strong>有些问题可能还没解决，欢迎各位大佬给与提点。</strong><br />
+另外，使用本文前可以先看<a href="https://cn.vuejs.org/v2/guide/typescript.html">vue 官方文档关于 typescript 的使用讲解</a></p>
+<p><a href="https://xingorg1.github.io/xingorg1Note/webNote/vue/files/vue+ts_%E8%B8%A9%E5%9D%91%E6%80%BB%E7%BB%93.html">点击跳转-源码地址</a></p>
+<h2 id="整个-vue-项目的目录结构">整个 vue 项目的目录结构</h2>
+<ul>
+<li>大体用 vue-cli 创建的项目，结构基本不变。</li>
+</ul>
+<p>这里只写我后来为了解决问题改动的地方</p>
+<h3 id="main.ts-中提示import-app-from-.app.vue处找不到-app.vue-这个模块">main.ts 中，提示<code>import App from './App.vue'</code>处，找不到 App.vue 这个模块</h3>
+<p>解决方案：<br />
+1、将 shims-vue.d.ts 文件一分为二。<br />
+2、在 shims-vue.d.ts 文件同级目录下新建 vue.d.ts（名字不一定叫 vue，如 xxx.d.ts 也可以），然后此文件包含代码如下</p>
+<pre><code><code>// vue.d.ts
+declare module &#39;*.vue&#39; {
+  import Vue from &#39;vue&#39;
+  export default Vue
+}</code></pre>
+<p>3、而原来的 shims-vue.d.ts 代码修改、新增如下：</p>
+<pre><code><code>// shims-vue.d.ts
+import Vue from &#39;vue&#39;
+import VueRouter, { Route } from &#39;vue-router&#39;
+import { Store } from &#39;vuex&#39;
+
+declare module &#39;vue/types/vue&#39; {
+  interface Vue {
+    $router: VueRouter;
+    $route: Route;
+    $store: Store&lt;any&gt;;
+    // 以下是在main.ts中挂载到Vue.prototype上的变量
+    $api: any;
+    $mock: any;
+    $configs: any;
+  }
+}
+</code></pre>
+<h3 id="main.ts-中往-vue-的原型-prototype-上挂载全局变量">main.ts 中，往 Vue 的原型 prototype 上挂载全局变量</h3>
+<p>1、main.ts 配置</p>
+<pre><code><code>// main.ts
+import api from &quot;./api/request&quot;;
+import mock from &quot;./api/mock&quot;;
+import configs from &quot;./utils/config&quot;;
+
+Vue.prototype.$api = api;
+Vue.prototype.$mock = mock;
+Vue.prototype.$configs = configs;</code></pre>
+<p>2、shims-vue.d.ts 配置</p>
+<pre><code><code>// shims-vue.d.ts 新增如下
+declare module &#39;vue/types/vue&#39; {
+  interface Vue {
+    // ...
+    // 以下是在main.ts中挂载到Vue.prototype上的变量
+    $api: any;
+    $mock: any;
+    $configs: any;
+  }
+}
+</code></pre>
+<h2 id="全局组件注册">全局组件注册</h2>
+<p>注册</p>
+<pre><code><code>// main.ts
+import Page from &quot;@/components/page.vue&quot;;
+import AllComponent from &quot;@/common/AllComponent.vue&quot;;
+Vue.component(&quot;Page&quot;, Page);
+Vue.component(&quot;all-component&quot;, AllComponent);</code></pre>
+<p>使用</p>
+<pre class="html"><code>写法一：
+&lt;Page /&gt;
+写法二：
+&lt;all-component /&gt;</code></pre>
+<h2 id="sfc-单-vue-文件组件的基本写法和结构">SFC 单 vue 文件组件的基本写法和结构</h2>
+<p>一個简陋的 demo，展示 ts 下的 vue 文件中，对于相关功能的使用，重点关注<code>&lt;Script&gt;</code>里的代码</p>
+<pre class="html"><code>&lt;template&gt;
+  &lt;!-- 结构示例，指令基础用法同vue --&gt;
+  &lt;div class=&quot;minos-system-setting&quot; v-if=&quot;hideHeader&quot;&gt;
+    &lt;h3&gt;结构示例&lt;/h3&gt;
+    &lt;span&gt;{{ selfKey1 }}&lt;/span&gt;
+    &lt;ul&gt;
+      &lt;li :key=&quot;item&quot; v-for=&quot;item in fatherKey&quot;&gt;{{ item }}&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;button @click=&quot;addText&quot;&gt;追加文字&lt;/button&gt;
+    &lt;AnotherVue
+      :class=&quot;[&#39;default-class&#39;, selfKey1.length &gt; 10 ? &#39;one&#39; : &#39;two&#39;]&quot;
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script lang=&quot;ts&quot;&gt;
+  import { Component, Vue, Prop, Watch } from &quot;vue-property-decorator&quot;;
+  import { Route } from &quot;vue-router&quot;;
+  import AnotherVue from &quot;@/components/AnotherVue.vue&quot;;
+  @Component({
+    // 组件注册
+    components: {
+      AnotherVue
+      // &#39;another-vue&#39;: AnotherVue
+    },
+    // 过滤器
+    filters: {
+      filterFn1() {}
+    },
+    // 属性传递
+    props: {
+      hideHeader: {
+        type: Boolean,
+        required: false,
+        default: false // 默认属性的默认值
+      }
+    }
+  })
+  export default class ComponentName extends Vue {
+    @Prop({
+      type: Boolean,
+      required: false,
+      default: false // 默认属性的默认值
+    })
+    private hideHeader!: boolean | undefined;
+    @Prop() private fatherKey: string[]; // 其他没有默认值的传值
+    selfKey1: string = &quot;自己的一个变量&quot;;
+    // 生命周期
+    created() {}
+    mounted() {}
+    // 计算属性
+    get computedKey() {
+      return this.selfKey1.length;
+    }
+    // 监听器
+    @Watch(&quot;computedKey&quot;)
+    getcomputedKey(newVal) {
+      console.log(newVal);
+    }
+    // 导航守卫函数
+    private beforeRouteEnter(to: Route, from: Route, next: () =&gt; void): void {
+      console.log(&quot;beforeRouteEnter&quot;, to, from, next);
+      next();
+    }
+    // 方法
+    addText() {
+      this.selfKey1 += &quot;，追加文字！&quot;;
+    }
+  }
+&lt;/script&gt;
+&lt;style lang=&quot;scss&quot; scoped&gt;
+  @import &quot;@/assets/styles/demo.scss&quot;;
+&lt;/style&gt;</code></pre>
+<h2 id="computed-计算属性的写法">computed 计算属性的写法</h2>
+<pre><code><code>// 计算属性
+get computedKey() {
+  return this.selfKey1.length
+}</code></pre>
+<h2 id="watch-监听器的使用">watch 监听器的使用</h2>
+<h3 id="同一个-vue-页面中使用">同一个 vue 页面中使用</h3>
+<pre><code><code>import { Component, Vue, Prop, Watch } from &#39;vue-property-decorator&#39;
+
+@Watch(&#39;boxHeight&#39;)
+getboxHeight(val) { // get+上边括号里的名字
+    // xxx
+}</code></pre>
+<h3 id="父子两个-vue-页面传值后使用-watch-监听">父子两个 vue 页面传值后使用 watch 监听</h3>
+<p>子组件监听从父组件传过来的值<br />
+1、父组件用属性传值【前提是父组件引入子组件、注册并调用了】</p>
+<pre><code><code>&lt;ziZuJian :oneKey=&quot;oneKeyObj&quot; /&gt;</code></pre>
+<p>2、子组件要使用的工具引入工作</p>
+<pre><code><code>import { Component, Vue, Prop, Watch } from &quot;vue-property-decorator&quot;;</code></pre>
+<p>3、子组件 Prop 接受</p>
+<pre><code><code>export default class ZiZuJian extends Vue {
+  @Prop() private oneKey: object
+}</code></pre>
+<p>4、子组件 Watch 监听</p>
+<pre><code><code>@Watch(&#39;oneKey&#39;)
+getoneKey(newVal,oldVal) {
+  // 监听成功后要做
+  log(newVal)
+  this.myfunction(newVal)
+}</code></pre>
+<p>5、父组件（内部）改动值，会被子组件监听</p>
+<pre><code><code>export default class FuZuJian extends Vue {
+  oneKeyObj = {}
+  ...
+  mounted(){
+    $.ajax().then(()=&gt;{
+      // 适时情况下改动props传递的值，就会被子组件监听到改变
+      oneKeyObj = {
+        name : &#39;测试&#39;
+      }
+      oneKeyObj.age = 18
+    })
+  }
+}</code></pre>
+<h2 id="watch-监听-store-中的数据改变">Watch 监听 store 中的数据改变</h2>
+<p>主要思路是计算属性获取 state 里的数据，watch 再监听计算属性</p>
+<pre><code><code>import { Component, Vue, Prop, Watch } from &#39;vue-property-decorator&#39; // 引入Watch
+get stateSomeKey() { // 计算属性
+  // 监听state下的stateSomeKey对象中的keyName属性，return返回该值
+  return this[&#39;$store&#39;].state.stateSomeKey.keyName
+}
+@Watch(&#39;stateSomeKey&#39;) // 与上边计算属性同名
+getstateSomeKey(val) { // get+上边括号里的名字
+  // 监听到变化后，执行对应的内容
+  this.myFunction()
+  ...
+}</code></pre>
+<p>其中，第七行，监听器那里也可以這麽写</p>
+<pre><code><code>@Watch(&#39;stateSomeKey&#39;) // 与上边计算属性同名
+watchMenuState(val) { // 这里可以这么写：或用watch+上边括号里的名字也可以（虽然不太确定为什么，只是代码这么写成功了）
+  // 下同
+  // ...
+}</code></pre>
+<h2 id="vuets-中使用-filter-过滤器">vue+ts 中，使用 filter 过滤器</h2>
+<p>定义：（在@Component 里边，写 filters，注意 s 单词）</p>
+<pre class="html"><code>&lt;script lang=&quot;ts&quot;&gt;
+  import { Component, Vue, Prop } from &quot;vue-property-decorator&quot;;
+  @Component({
+    filters: {
+      filterValue(value) {
+        return Number(value).toLocaleString();
+      }
+      // otherFilterFn(value) { 其他filter示例
+      //   return ...
+      // }
+    },
+    components: {}
+  })
+  export default class Container extends Vue {
+    // ...
+  }
+&lt;/script&gt;</code></pre>
+<p>使用：同之前，正常使用：</p>
+<pre class="html"><code>&lt;span v-if=&quot;showSpan&quot;&gt;{{showValue | filterValue}}&lt;/span&gt;</code></pre>
+<h2 id="自定义指令-过滤器待补充">自定义指令 过滤器【待补充】</h2>
+<pre><code><code>// 待补充</code></pre>
+<h2 id="watch-监听-router-的变化">watch 监听 router 的变化</h2>
+<p>1、shims-vue.d.ts 的设置</p>
+<pre><code><code>// shims-vue.d.ts
+import Vue from &#39;vue&#39;
+import VueRouter, {Route} from &#39;vue-router&#39;;
+
+declare module &#39;vue/types/vue&#39; {
+  interface Vue {
+    $router: VueRouter; // 这表示this下有这个东西
+    $route: Route;
+  }
+}</code></pre>
+<p>2、main.ts 的设置</p>
+<pre><code><code>// main.ts
+import { Component } from &quot;vue-class-component&quot;;
+Vue.config.productionTip = false;
+Component.registerHooks([
+  &quot;beforeRouteEnter&quot;, //进入路由之前
+  &quot;beforeRouteLeave&quot;, //离开路由之前
+  &quot;beforeRouteUpdate&quot;
+]);</code></pre>
+<p>3、需要监听路由钩子的 SCF 组件：</p>
+<pre class="html"><code>&lt;script lang=&quot;ts&quot;&gt;
+  // xxx.vue 的script标签内
+  import { Component, Vue, Prop, Watch } from &quot;vue-property-decorator&quot;;
+  import { Route, RawLocation } from &#39;vue-router&#39;;
+  // # 下边两段，看你需要什么了：
+
+  // 1/监听路由变化
+  @Watch(&#39;$route&#39;,{ immediate: true })
+  private changeRouter(route: Route){
+    console.log(route)
+  }
+
+  // 2/定义路由钩子函数
+  private beforeRouteEnter(to: Route, from: Route, next: () =&gt; void): void {
+    console.log(&#39;beforeRouteEnter&#39;, to, from, next)
+    next(); // 没有next将不会进入路由内部，跟vue文档用法一致
+  }
+  private beforeRouteUpdate(to: Route, from: Route, next: () =&gt; void): void {
+    console.log(&#39;beforeRouteUpdate&#39;); // 暂时不生效，版本问题
+    next();
+  }
+  private beforeRouteLeave(to: Route, from: Route, next: () =&gt; void): void {
+    console.log(&#39;beforeRouteLeave&#39;);
+    next();
+  }
+&lt;/script&gt;</code></pre>
+<p>监听路由的第二种写法 (如果只是想更新视图的话可以考虑监听路由)</p>
+<pre><code><code>@Watch(&#39;$route&#39;)
+routeWatch() {
+    this.loadData();
+}</code></pre>
+<h2 id="main.ts-中注册路由导航守卫并在组件中使用路由钩子函数">main.ts 中注册路由导航守卫并在组件中使用路由钩子函数</h2>
+<p>基本同上<br />
+1、shims-vue.d.ts 的设置</p>
+<pre><code><code>// shims-vue.d.ts
+import Vue from &#39;vue&#39;
+import VueRouter, {Route} from &#39;vue-router&#39;;
+
+declare module &#39;vue/types/vue&#39; {
+  interface Vue {
+    $router: VueRouter; // 这表示this下有这个东西
+    $route: Route;
+  }
+}</code></pre>
+<p>2、main.ts 的设置</p>
+<pre><code><code>// main.ts
+import { Component } from &quot;vue-class-component&quot;;
+Component.registerHooks([
+  &quot;beforeRouteEnter&quot;, //进入路由之前
+  &quot;beforeRouteLeave&quot;, //离开路由之前
+  &quot;beforeRouteUpdate&quot;
+]);</code></pre>
+<p>3、需要监听路由钩子的 SCF 组件：</p>
+<pre class="html"><code>&lt;script lang=&quot;ts&quot;&gt;
+  // xxx.vue 的script标签内
+  import { Component, Vue, Prop, Watch } from &quot;vue-property-decorator&quot;;
+  import { Route, RawLocation } from &#39;vue-router&#39;;
+  // # 下边两段，看你需要什么了：
+
+  // 1/监听路由变化
+  @Watch(&#39;$route&#39;,{ immediate: true })
+  private changeRouter(route: Route){
+    console.log(route)
+  }
+
+  // 2/定义路由钩子函数
+  private beforeRouteEnter(to: Route, from: Route, next: () =&gt; void): void {
+    console.log(&#39;beforeRouteEnter&#39;, to, from, next)
+    next(); // 没有next将不会进入路由内部，跟vue文档用法一致
+  }
+  private beforeRouteUpdate(to: Route, from: Route, next: () =&gt; void): void {
+    console.log(&#39;beforeRouteUpdate&#39;); // 暂时不生效，版本问题
+    next();
+  }
+  private beforeRouteLeave(to: Route, from: Route, next: () =&gt; void): void {
+    console.log(&#39;beforeRouteLeave&#39;);
+    next();
+  }
+&lt;/script&gt;</code></pre>
+<h2 id="父子传值---子组件修改触发父组件的方法执行">父子传值 - 子组件修改触发父组件的方法执行</h2>
+<p><strong>父组件内部：</strong><br />
+1、调用子组件、并绑定传值：</p>
+<pre class="html"><code>&lt;ZiZuJian @chuanDiGuoQu=&quot;FuQinZiJiYong&quot;&gt;&lt;/ZiZuJian&gt;</code></pre>
+<p>准备好一会会被子组件触发的函数：</p>
+<pre><code><code>FuQinZiJiYong(){
+  console.log(&#39;我是父亲内部待被触发的方法&#39;)
+}</code></pre>
+<p><strong>子组件 ZiZuJian 内部</strong>在需要触发的地方执行$emit</p>
+<pre><code><code>export default class Menu extends Vue {
+  // 在需要触发的地方，执行如下代码
+  this.$emit(&#39;chuanDiGuoQu&#39;, &#39;&#39;)
+}</code></pre>
+<p>最后还有另一种网友总结很麻烦的写法：<a href="https://blog.csdn.net/weixin_43713680/article/details/86708415">参见地址</a></p>
+<h2 id="prop-默认参数">@Prop 默认参数</h2>
+<p>第一种：github 找到的 demo 这样。如下代码中<code>hideHeader</code>就是由默认参数的父组件传过来的属性</p>
+<pre><code><code>export default class ComponentName extends Vue {
+  @Prop({
+    type: Boolean,
+    required: false,
+    default: false // 默认属性的默认值
+  })
+  private hideHeader!: boolean | undefined
+}</code></pre>
+<p>第二种：vue 原生的写法，并写到了@component 构造器中就好了：<br />
+如果不传值此函数默认就是 true，传 false 就是 false 了。并且能严格判断只能传 Boolean 类型。挺好。</p>
+<pre><code><code>@Component({
+  props: {
+    hideHeader: {
+      type: Boolean,
+      required: false,
+      default: false // 默认属性的默认值
+    }
+  }
+})</code></pre>
+<h2 id="中央总线注册与使用待解决">中央总线注册与使用【待解决】</h2>
+<pre><code><code>// 待解决</code></pre>
+<h2 id="vue-ts-中使用-vue-echarts">vue + ts 中使用 vue-echarts</h2>
+<p>安装</p>
+<pre class="bash"><code>npm i -S vue-echarts echarts</code></pre>
+<p>main.ts 中引入并注册</p>
+<pre><code><code>// main.ts
+// 引用
+import ECharts from &quot;vue-echarts&quot;;
+// 用到的模块要单独引用
+import &quot;echarts/lib/chart/line&quot;; // 线图为例，其他图一样
+import &quot;echarts/lib/component/title.js&quot;; // 标题
+import &quot;echarts/lib/component/legend&quot;; // 图例
+import &quot;echarts/lib/component/tooltip&quot;; // 提示框
+import &quot;echarts/lib/component/toolbox&quot;; // 工具（如下载功能与按钮）
+
+// 注册
+Vue.component(&quot;v-chart&quot;, ECharts);</code></pre>
+<p>vue.config.js 中设置</p>
+<pre><code><code>// vue.config.js
+module.exports = {
+  // For Vue CLI 3+, add vue-echarts and resize-detector into transpileDependencies in vue.config.js like this:
+  transpileDependencies: [&quot;vue-echarts&quot;, &quot;resize-detector&quot;]
+};</code></pre>
+<p>tsconfig.json 中也要设置</p>
+<pre class="json"><code>// tsconfig.json
+{
+  &quot;compilerOptions&quot;: {
+    &quot;types&quot;: [&quot;webpack-env&quot;, &quot;echarts&quot;]
+  }
+}</code></pre>
+<p>SFC 应用</p>
+<pre class="html"><code>&lt;v-chart :options=&quot;echartsOptions&quot; id=&quot;myCharts&quot; ref=&quot;myCharts&quot; /&gt;</code></pre>
+<h2 id="vue-ts-中使用-element-ui">vue + ts 中使用 Element-ui</h2>
+<pre><code><code>// main.ts
+import ElementUI from &quot;element-ui&quot;;
+Vue.use(ElementUI);</code></pre>
+<h2 id="全局-scss-变量">全局 scss 变量</h2>
+<p>在 assets/styles 下新建_variable.scss 文件，用于存放 scss 变量。<br />
+然后再 vue.config.js 中设置全局变量</p>
+<pre><code><code>// vue.config.js
+module.exports = {
+  css: {
+    loaderOptions: {
+      sass: {
+        prependData: `
+          @import &quot;@/assets/styles/_variable.scss&quot;;
+        `
+      }
+    }
+  }
+};</code></pre>
+<h2 id="alias-别名设置">alias 别名设置</h2>
+<p>同时解决问题<code>alias 配置的路径别名，在 vscode 中报错模块查找失败</code>和问题<code>vue-cli 配置了 resolve alias 来声明的路径别名，在引用了 ts 后，vscode 会报错不能识别、模块查找失败</code>。其中，vscode 报错在 win 环境还需要一个插件安装，解决方案见下边<br />
+vue.config.js 配置</p>
+<pre><code><code>// vue.config.js
+module.exports = {
+  chainWebpack: config =&gt; {
+    // 别名配置
+    config.resolve.alias
+      .set(&quot;comp&quot;, resolve(&quot;src/components&quot;))
+      .set(&quot;css&quot;, resolve(&quot;src/assets/styles&quot;));
+    // ...同上，路径核对好就行
+  }
+};</code></pre>
+<p>jsconfig.json 配置。注意这里的名字要和上边 set 后边的名字保持一致</p>
+<pre><code><code>// jsconfig.json
+{
+  &quot;compilerOptions&quot;: {
+    &quot;paths&quot;: {
+      &quot;@/*&quot;: [
+        &quot;src/*&quot; // 这个本来就有
+      ],
+      // 后边追加
+      &quot;comp/*&quot;: [
+        &quot;src/components/*&quot;
+      ],
+      &quot;css/*&quot;: [
+        &quot;src/assets/styles/*&quot;
+      ],
+      // ... 同上，路径核对好就行
+    },
+  }
+};</code></pre>
+<p>SCF 使用设定的别名</p>
+<pre><code><code>// main.ts
+import MyError from &quot;view/error/Error.vue&quot;;</code></pre>
+<pre class="css"><code>/* SCF单页中scss路径引用 */
+@import &quot;css/_variable.scss&quot;;</code></pre>
+<h2 id="请求接口的代理设置">请求接口的代理设置</h2>
+<p>vue.config.js 配置</p>
+<pre><code><code>// vue.config.js
+module.exports = {
+  devServer: {
+    proxy: {
+      &quot;/api&quot;: {
+        target: &quot;http://11.11.11.111/&quot;, // 示例ip地址，也可以填域名，需要的是后端接口地址的相同部分
+        changeOrigin: true,
+        pathRewrite: {
+          &quot;^/api&quot;: &quot;&quot;
+        }
+      }
+    }
+  }
+};</code></pre>
+<p>axios 请求地址时的写法：<br />
+注意<code>/api</code>一定要有，且在路径的最前边，代替相同的路径。</p>
+<pre><code><code>axios
+  .get(&quot;/api/wo/de/di/zhi&quot;) // 前边的&#39;/api&#39;一定要有，它代表的就是vue.config.js中proxy.target的路径
+  .then(() =&gt; {
+    // 接口成功...
+  });</code></pre>
+<h2 id="本地服务域名修改">本地服务域名修改</h2>
+<p>vue.config.js 配置</p>
+<pre><code><code>// vue.config.js
+module.exports = {
+  devServer: {
+    disableHostCheck: true, // 用域名代替localhost,禁用主机检查
+    host: &quot;www.haha.com&quot;
+    // 另外端口也可以在这里改，只不过我写到了package.json总，见下边
+  }
+};</code></pre>
+<p>package.json dev 命令的配置</p>
+<pre class="bash"><code>{
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;npm run serve&quot;,
+    &quot;serve&quot;: &quot;vue-cli-service serve --port 80 --open&quot;, # 端口设置为80，--open运行完毕后自动打开地址
+  }
+}</code></pre>
+<p>本地 host 配置</p>
+<pre class="bash"><code>127.0.0.1 www.haha.com # 这里注意和vue.config.js中的host的值对应</code></pre>
+<p>此时，<code>npm run dev</code>成功后，浏览器跑项目输入地址<code>http://www.haha.com</code>即可</p>
+<h2 id="vue-ts-在-vscode-中的问题">vue + ts 在 vscode 中的问题</h2>
+<h3 id="vue-cli-配置了-resolve-alias-来声明的路径别名在引用了-ts-后vscode-会报错不能识别模块查找失败">vue-cli 配置了 resolve alias 来声明的路径别名，在引用了 ts 后，vscode 会报错不能识别、模块查找失败：</h3>
+<p>1、扩展商店安装插件 - Path Intellisense</p>
+<p>2、配置代码（vscode setting.json 中设置）</p>
+<pre class="json"><code>&quot;path-intellisense.mappings&quot;: {
+  &quot;@&quot;: &quot;\${workspaceRoot}/src&quot;
+}</code></pre>
+<p>3、在 package.json 统计目录下创建 jsconfig.json 文件，并填入下边代码</p>
+<pre class="json"><code>// jsconfig.json
+{
+  &quot;compilerOptions&quot;: {
+    &quot;paths&quot;: {
+      &quot;@/*&quot;: [&quot;src/*&quot;]
+    }
+  }
+}</code></pre>
+<p>2019/12/09 ...持续更新中...</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

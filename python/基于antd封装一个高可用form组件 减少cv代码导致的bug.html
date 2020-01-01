@@ -1,0 +1,220 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修基于antd封装一个高可用form组件 减少cv代码导致的bug' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>基于antd封装一个高可用form组件 减少cv代码导致的bug</center></div><div class='banquan'>原文出处:本文由博客园博主amigod提供。<br/>
+原文连接:https://www.cnblogs.com/amigod/p/antd-form-component-rebuild.html</div><br>
+    <h2 id="引言">引言</h2>
+<p>在开发中台过程中 我们的原型中有很多表单，antd有表单组件，但是粒度比较细，就单纯组件而言，无可厚非，但是在开发过程中，可能会造成代码不够聚合，有些表单公共逻辑无法提取，copy paste比较多，所以可以加以封装，搞一个兼容性和扩展性都契合项目本身的组件。</p>
+<h2 id="主要思路">主要思路</h2>
+<p>我简单查阅了一番资料，参考了一下别人的封装方式，决定以<code>Col</code>和<code>FormItem</code>作为基本单元，进行表单的搭建，主要原因</p>
+<ul>
+<li>可以将<code>FormItem</code>的信息和<code>Col</code>的信息以对象方式传入，这样我们可以更加专注于组件的包含的信息 减少CV代码可能导致的bug</li>
+<li><code>Col</code>可以进行布局的调整，可以调整表单单元位置和所占宽度</li>
+<li>表单的组件形式是不定的，可能是input也有可能是select,所以可以进行外部传入，通用属性可以内部修改</li>
+<li>复用性高，可以用它来实现一个纯提交表单 和列表组件结合成可搜索表单 或者其他任何项目里需要自定义的一个表单</li>
+</ul>
+<h2 id="实现细节">实现细节</h2>
+<h3 id="抽象的formiteminfo">抽象的<code>FormItemInfo</code></h3>
+<pre><code><code>export interface FormItemInfo {
+  name: string, //label
+  id: string, // 属性
+  colLayOut?: object,// 列布局
+  formItemLayout?: object,// 表单项布局
+  Comp?: any, // 传入的组件 不传默认input
+  ruleArr?: RuleObj[],// 验证规则
+  initialValue?: string, // 初始值
+  required?: boolean, // 是否必填
+  CompExtraProps?: object // 传入组件额外属性
+  isDetail?: boolean //是否需要被getFieldDecorator托管
+}
+</code></pre>
+<h3 id="baseform组件">baseForm组件</h3>
+<pre><code><code> * @param name 表单项label
+ * @param id 属性字段名
+ * @param colLayOut 列布局
+ * @param formItemLayout 表单项布局
+ * @param Comp 传入的组件 不传默认input
+ * @param ruleArr 验证规则 长度只需传入｛max:xxx｝验证信息是统一的
+ * @param initialValue 初始值 编辑时推荐使用antd的mapPropsToFields 不要手动设置回显值
+ * @param required 是否必填 默认否 因为要统一写验证提示
+ * @param CompExtraProps 组件额外属性
+  const mapToFormItem = (val: FormItemInfo) =&gt; {
+ ......
+ // 是否传入组件
+    const hasCompType = Comp &amp;&amp; Comp.type
+    // 根据组件类型 给出提示文字
+    const msg = getMsgByCompType(hasCompType &amp;&amp; hasCompType.name, name)
+    // 判断是不是select组件 是的话 调整宽度样式
+    const mixStyle = fixStyleByCompType(hasCompType &amp;&amp; hasCompType.name)
+    // 生成验证规则
+    const rules = getFormRules(ruleArr || [], required || false, name)
+
+  return (
+      &lt;Col {...(colLayOut || defaultColSpan)} key={id}&gt;
+        {!isDetail ?
+          &lt;FormItem label={name} key={id} {...(formItemLayout || {})}&gt;
+            {/*用cloneElement方法给传入的组件加新属性*/}
+            {
+              getFieldDecorator(id, {
+                initialValue: initialValue || &#39;&#39;,
+                rules,
+              })(Comp ? React.cloneElement(Comp, { placeholder: msg, ...mixStyle, ...CompExtraProps }) : &lt;Input type=&quot;text&quot; placeholder={msg}/&gt;)
+            }
+          &lt;/FormItem&gt; : &lt;FormItem label={name} key={id} {...(formItemLayout || {})}&gt; {Comp}&lt;/FormItem&gt;}
+      &lt;/Col&gt;
+    )
+｝</code></pre>
+<h3 id="统一方法">统一方法</h3>
+<ul>
+<li>根据组件类型 给出提示文字</li>
+</ul>
+<pre><code><code>  /**根据组件类型 给出提示文字
+   * @param type 组件类型 根据传入组件的函数名判断 在map里维护
+   * @param name label名称
+   * @returns 提示文字
+   * */
+  const getMsgByCompType = (name: string, type?: string): string =&gt; {
+    if (!type) {
+      return `请输入${name}`
+    }
+    const map: { [props: string]: string } = {
+      Select: &#39;请选择&#39;,
+      Input: &#39;请输入&#39;,
+      default: &#39;请输入&#39;,
+    }
+    return `${map[type] || map.default}${name}`
+  }
+
+</code></pre>
+<ul>
+<li>生成验证规则</li>
+</ul>
+<pre><code><code>  // 生成验证规则
+ * @param ruleArr 验证规则 长度只需传入｛max:xxx｝验证信息是统一的
+ * @param name 表单项label
+ * @param required 是否必填 默认否 因为要统一写验证提示
+  const getFormRules = (val: RuleObj[], required: boolean, name: string) =&gt; {
+    // 根据max生成最长输入提示
+    const ruleArr: object[] = []
+    val.forEach(item =&gt; {
+      if (&#39;max&#39; in item) {
+        ruleArr.push({ ...item, message: `输入信息不能超过${item.max}字` })
+      } else {
+        ruleArr.push(item)
+      }
+    })
+    // 根据name生成报错提示
+    return [{ required: required, message: `${name}不能为空` }, ...ruleArr]
+</code></pre>
+<ul>
+<li>根据组件类型 给出统一样式修改</li>
+</ul>
+<pre><code><code>  /**根据组件类型 给出统一样式修改
+   * @param type 组件类型 根据传入组件的函数名判断 在map里维护
+   * @returns 样式对象
+   * */
+  const fixStyleByCompType = (type?: string): object =&gt; {
+    if (!type) {
+      return {}
+    }
+    const map: { [props: string]: object } = {
+      Select: { style: { width: &#39;100%&#39; } },
+      default: {},
+    }
+    return map[type] || map.default
+  }</code></pre>
+<p>注意：<strong>当出现表单显示一个详情文字或者一个按钮 此时需要用<code>isDetail</code>干掉<code>getFieldDecorator托管</code></strong></p>
+<h3 id="实现提交表单submitform">实现提交表单SubmitForm</h3>
+<pre><code><code> * @param form -`antd`的form
+ * @param title - 主标题
+ * @param subTitle - 分组标题
+ * @param FormItemInfos - 二维数组 顺序和数量和分组标题对应 存放表单项信息
+ * @param isLoading - `dva-loading` 执行effects过程中的loading
+ * @param onSubmit - 传入的submit方法
+ * @param buttonArea - 可选 不传默认数提交和取消 传入覆盖
+ * @param children - 在表单下面 按钮区域上面的传入内容
+ * @param formLayOutType - 布局方式 详情见`getLayOutByType`方法
+ * @returns ReactNode
+......
+ &lt;Form onSubmit={onSubmit}&gt;
+
+        &lt;SubmitLayOut subTitle={subTitle} title={title} renderFormArea={renderFormArea}&gt;
+          {children}
+          {buttonArea?buttonArea: &lt;Row type=&quot;flex&quot; gutter={24} justify=&quot;center&quot;&gt;
+            &lt;Col&gt;
+              &lt;Button type=&quot;primary&quot; htmlType=&quot;submit&quot; loading={isLoading}&gt;提交&lt;/Button&gt;
+            &lt;/Col&gt;
+            &lt;Col&gt;
+              &lt;Button type=&quot;default&quot; onClick={() =&gt; router.go(-1)}&gt;取消&lt;/Button&gt;
+            &lt;/Col&gt;
+          &lt;/Row&gt;}
+        &lt;/SubmitLayOut&gt;
+
+    &lt;/Form&gt;</code></pre>
+<p>对<code>BaseForm</code>的调用在<code>renderFormArea</code>方法里</p>
+<pre><code><code>// 水平和垂直布局
+export enum FormLayOutType {
+  normal = &#39;normal&#39;,
+  vertical = &#39;vertical&#39;
+}
+
+const renderFormArea = (idx: number) =&gt; {
+    // 在这边加上normal表单的layout
+    const FormItemInfo = FormItemInfos[idx]
+  // 根据传入参数 返回布局类型
+    const _FormItemInfo = getLayOutByType(formLayOutType||FormLayOutType.normal, FormItemInfo)
+    return &lt;BaseForm formItems={_FormItemInfo} form={form}/&gt;
+  }</code></pre>
+<p><code>FormItemInfos</code>这里是二维数组，二维分别承载分组信息和表单项信息 而且在这里用<code>getLayOutByType</code>封装常用的水平 垂直布局方式</p>
+<p>这里结合了我们业务里的表单布局 大标题 和小标题对表单区域进行分组，我将布局单独搞了个<code>SubmitLayOut</code>组件 将渲染逻辑和样式组件在其中实现 这样也方便更换成其他<code>LayOut</code></p>
+<pre><code><code>// SubmitLayOut
+ * @param title - 主标题
+ * @param subTitle - 分组标题
+ * @param renderFormArea - 根据分组的顺序 渲染表单区域
+ * @param children - 传入内容
+......
+  &lt;Card title={title} bordered={false} className={styles[&quot;special-card&quot;]}&gt;
+      &lt;List itemLayout=&quot;vertical&quot; className=&quot;special-list&quot;&gt;
+        {subTitle.map((item,idx) =&gt; {
+          return (
+            &lt;&gt;
+              &lt;Meta title={item}/&gt;
+              &lt;List.Item&gt;
+                {renderFormArea(idx)}
+              &lt;/List.Item&gt;
+            &lt;/&gt;
+          )
+        })}
+      &lt;/List&gt;
+      {children}
+    &lt;/Card&gt;
+
+</code></pre>
+<h2 id="结语">结语</h2>
+<p>后续还实现了<code>serachForm</code>等业务相关性高的组件，所以个人觉得封装的思路主要是</p>
+<ul>
+<li>底层组件越纯粹越好</li>
+<li>中层可以实现一些适用性比较高的具体业务组件和通用方法</li>
+<li>高层就具体要页面的细节的方方面面了</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

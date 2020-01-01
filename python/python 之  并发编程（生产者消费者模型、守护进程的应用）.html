@@ -1,0 +1,168 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python 之  并发编程（生产者消费者模型、守护进程的应用）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python 之  并发编程（生产者消费者模型、守护进程的应用）</center></div><div class='banquan'>原文出处:本文由博客园博主small_white-提供。<br/>
+原文连接:https://www.cnblogs.com/mylu/p/11228473.html</div><br>
+    <h3 class="md-end-block md-heading md-focus"><span class="md-plain">9.8 生产者消费者模型</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">该模型中包含两类重要的角色：</span></p>
+<p class="md-end-block md-p"><span class="md-plain">1、生产者：将负责造数据的任务比喻为生产者<span class="md-softbreak"> <span class="md-plain">2、消费者：接收生产者造出的数据来做进一步的处理的被比喻成消费者</span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">实现生产者消费者模型三要素：1、生产者 2、消费者 3、队列</span></p>
+<p class="md-end-block md-p"><span class="md-plain">什么时候用该模型：</span></p>
+<p class="md-end-block md-p"><span class="md-plain">程序中出现明显的两类任何，一类任务是负责生产，另外一类任务是负责处理生产的数据的</span></p>
+<p class="md-end-block md-p"><span class="md-plain">该模型的好处：</span></p>
+<p class="md-end-block md-p"><span class="md-plain">1、实现了生产者与消费者解耦和</span></p>
+<p class="md-end-block md-p"><span class="md-plain">2、平衡了生产力与消费力，即生产者可以一直不停地生产，消费者可以不停地处理，因为二者不再直接沟通的，而是跟队列沟通，从而提高程序整体处理数据的速度</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> random
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process,Queue
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> consumer(name,q):
+    </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+        res</span>=<span style="color: #000000;">q.get()
+        time.sleep(random.randint(</span>1,3<span style="color: #000000;">))
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">\033[46m消费者===》%s 吃了 %s\033[0m</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(name,res))
+​
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> producer(name,q,food):
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(5<span style="color: #000000;">):
+        time.sleep(random.randint(</span>1,2<span style="color: #000000;">))
+        res</span>=<span style="color: #800000;">'</span><span style="color: #800000;">%s%s</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(food,i)
+        q.put(res)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">\033[45m生产者者===》%s 生产了 %s\033[0m</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(name,res))
+​
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    q</span>=Queue()                                       <span style="color: #008000;">#</span><span style="color: #008000;">1、共享的盆</span>
+<span style="color: #000000;">   
+    p1</span>=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">包子</span><span style="color: #800000;">'</span>))  <span style="color: #008000;">#</span><span style="color: #008000;">2、生产者们</span>
+    p2=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">刘清政</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">泔水</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    p3</span>=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">杨军</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">米饭</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+​
+    c1</span>=Process(target=consumer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">alex</span><span style="color: #800000;">'</span>,q))         <span style="color: #008000;">#</span><span style="color: #008000;">3、消费者们</span>
+    c2=Process(target=consumer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">xxx</span><span style="color: #800000;">'</span><span style="color: #000000;">,q))
+​
+    p1.start()
+    p2.start()
+    p3.start()
+    c1.start()
+    c2.start()</span></pre>
+</div>
+<h4 class="md-end-block md-heading"><span class="md-plain">9.81 守护进程的应用</span></h4>
+<p class="md-end-block md-p"><span><strong>问题：</strong><span class="md-plain">消费者c1和c2在取空了q之后，则一直处于死循环中且卡在q.get()这一步</span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">解决方式无非是让生产者在生产完毕后，往队列中再发一个结束信号，这样消费者在接收到结束信号后就可以break退出死循环</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> random
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process,Queue
+​
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> consumer(name,q):
+    </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+        res</span>=<span style="color: #000000;">q.get()
+        </span><span style="color: #0000ff;">if</span> res <span style="color: #0000ff;">is</span> None:<span style="color: #0000ff;">break</span><span style="color: #000000;">
+        time.sleep(random.randint(</span>1,3<span style="color: #000000;">))
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">\033[46m消费者===》%s 吃了 %s\033[0m</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(name,res))
+​
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> producer(name,q,food):
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(5<span style="color: #000000;">):
+        time.sleep(random.randint(</span>1,2<span style="color: #000000;">))
+        res</span>=<span style="color: #800000;">'</span><span style="color: #800000;">%s%s</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(food,i)
+        q.put(res)
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">\033[45m生产者者===》%s 生产了 %s\033[0m</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(name,res))
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">q.put(None)</span>
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">1、共享的盆</span>
+    q=<span style="color: #000000;">Queue()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">2、生产者们</span>
+    p1=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">包子</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    p2</span>=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">刘清政</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">泔水</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    p3</span>=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">杨军</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">米饭</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">3、消费者们</span>
+    c1=Process(target=consumer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">alex</span><span style="color: #800000;">'</span><span style="color: #000000;">,q))
+    c2</span>=Process(target=consumer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">梁书东</span><span style="color: #800000;">'</span><span style="color: #000000;">,q))
+​
+    p1.start()
+    p2.start()
+    p3.start()
+    c1.start()
+    c2.start()
+​
+    p1.join()</span><span style="color: #008000;">#</span><span style="color: #008000;"> 在生产者生产完毕后，往队列的末尾添加一个结束信号None</span>
+<span style="color: #000000;">    p2.join()
+    p3.join()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 有几个消费者就应该放几个结束信号</span>
+    q.put(None)<span style="color: #008000;">#</span><span style="color: #008000;">队列是共享的，主进程同样可以往队列里放None</span>
+    q.put(None)</pre>
+</div>
+<p class="md-end-block md-p"><span><strong>升级版：</strong><span class="md-plain">设置<span><strong>守护进程</strong><span class="md-plain">,向队列发送结束信号，解决管道取空阻塞问题</span></span></span></span></p>
+<p class="md-end-block md-p"><span><strong>JoinableQueue([maxsize])</strong><span class="md-plain">：这就像是一个Queue对象，但队列允许项目的使用者通知生成者项目已经被成功处理。通知进程是使用共享的信号和条件变量来实现的。</span></span></p>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">maxsize是队列中允许最大项数，省略则无大小限制</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">q.task_done()：使用者使用此方法发出信号，表示q.get()的返回项目已经被处理。如果调用此方法的次数大于从队列中删除项目的数量，将引发ValueError异常</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">q.join():生产者调用此方法进行阻塞，直到队列中所有的项目均被处理。阻塞将持续到队列中的每个项目均调用q.task_done（）方法为止</span></p>
+</li>
+</ul>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> random
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process,JoinableQueue
+​
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> consumer(name,q):
+    </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+        res</span>=<span style="color: #000000;">q.get()
+        </span><span style="color: #0000ff;">if</span> res <span style="color: #0000ff;">is</span> None:<span style="color: #0000ff;">break</span><span style="color: #000000;">
+        time.sleep(random.randint(</span>1,3<span style="color: #000000;">))
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">\033[46m消费者===》%s 吃了 %s\033[0m</span><span style="color: #800000;">'</span> %<span style="color: #000000;">(name,res))
+        q.task_done()   </span><span style="color: #008000;">#</span><span style="color: #008000;">向q.join()发送一次信号,证明一个数据已经被取走了</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> producer(name,q,food):
+..........
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">1、共享的盆</span>
+    q=<span style="color: #000000;">JoinableQueue()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">2、生产者们</span>
+    p1=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">包子</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    p2</span>=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">刘清政</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">泔水</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    p3</span>=Process(target=producer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">杨军</span><span style="color: #800000;">'</span>,q,<span style="color: #800000;">'</span><span style="color: #800000;">米饭</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">3、消费者们</span>
+    c1=Process(target=consumer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">alex</span><span style="color: #800000;">'</span><span style="color: #000000;">,q))
+    c2</span>=Process(target=consumer,args=(<span style="color: #800000;">'</span><span style="color: #800000;">梁书东</span><span style="color: #800000;">'</span><span style="color: #000000;">,q))
+    c1.daemon</span>=<span style="color: #000000;">True
+    c2.daemon</span>=<span style="color: #000000;">True
+​
+    p1.start()
+    p2.start()
+    p3.start()
+    c1.start()
+    c2.start()
+​
+    p1.join()</span><span style="color: #008000;">#</span><span style="color: #008000;"> 确定生产者确确实实已经生产完毕</span>
+<span style="color: #000000;">    p2.join()
+    p3.join()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 在生产者生产完毕后，拿到队列中元素的总个数，然后直到元素总数变为0，q.join()这一行代码才算运行完毕</span>
+<span style="color: #000000;">    q.join()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">q.join()一旦结束就意味着队列确实被取空，消费者已经确确实实把数据都取干净了</span>
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">主进程结束</span><span style="color: #800000;">'</span>)</pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

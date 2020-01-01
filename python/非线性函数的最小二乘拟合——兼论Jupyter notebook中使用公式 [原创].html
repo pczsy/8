@@ -1,0 +1,130 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]</center></div><div class='banquan'>原文出处:本文由博客园博主helesheng提供。<br/>
+原文连接:https://www.cnblogs.com/helesheng/p/12066919.html</div><br>
+    <p><span style="font-size: 18px;">突然有个想法，利用机器学习的基本方法&mdash;&mdash;线性回归，来学习一阶RC电路的阶跃响应，从而得到RC电路的结构特征&mdash;&mdash;时间常数<span style="font-family: 宋体;">&tau;</span>（即R*C）。回答无疑是肯定的，但问题是怎样通过最小二乘法、正规方程，以更多的采样点数来降低信号采集噪声对<span style="font-family: 宋体;">&tau;</span>估计值的影响。另外，由于最近在捣鼓Jupyter和numpy这些东西，正好尝试不用matlab而用Jupyter试试看。结果是意外的好用，尤其是在Jupyter脚本中插入LaTeX格式的公式的功能，真是太方便了！尝试了直接把纸上手写的公式转换到Jupyter脚本中的常见工具软件。<br /></span></p>
+<p><span style="font-size: 18px;">以下原创内容欢迎网友转载，但请注明出处： <a href="https://www.cnblogs.com/helesheng">https://www.cnblogs.com/helesheng</a></span></p>
+<p><span style="font-size: 18pt;"><strong>一、理论推导</strong></span></p>
+<p><span style="font-size: 18px;"><strong>1</strong><strong>．线性回归分析及正规方程</strong></span></p>
+<p><span style="font-size: 18px;">传统意义说，线性回归问题是用最小二乘法（即正规方程），解决线性方程组的均方误差最小化问题。已知输出输入<strong><em>X</em></strong>是由多个变量构成的行向量，<strong><em>W</em></strong>是系数向量（列向量），b为偏置</span></p>
+<p style="text-align: center;"><span style="font-size: 18px;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]0.png" alt="" width="253" height="43" />&nbsp;</span></p>
+<p><span style="font-size: 18px;">&nbsp;在机器学习中，把每次的输入x作为一行组成更大的矩阵，即每一行代表一个样本，该矩阵称为设计矩阵<strong><em>X</em></strong><sup>(train)</sup>。若样本数为k，则<strong><em>X</em></strong><sup>(train)</sup>有k行，每个样本都会得到一个输出y，将y集合成一个列向量<strong><em>Y</em></strong><sup>(train)</sup>，k个相同的b也组成列向量<strong><em>b</em></strong>。为简化表达，将<strong><em>b</em></strong>简化为附加在系数列向量<strong><em>W</em></strong>最后的常数b，<strong><em>X</em></strong><sup>(train)</sup>则在每行的最后增加一个1，<strong><em>W</em></strong>（列向量）的最后增加一个待估计的b。为了使估计的结果：</span></p>
+<p><span style="font-size: 18px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]1.png" alt="" width="160" height="48" /></span></p>
+<p><span style="font-size: 18px;">&nbsp;</span><span style="font-size: 18px;">&nbsp;和<strong><em>Y</em></strong><sup>(train)</sup>之差的平方和最小，有正规方程可以求解<strong><em>W</em></strong>:</span></p>
+<p style="text-align: center;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]2.png" alt="" width="571" height="63" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;</p>
+<p><span style="font-size: 18px;">&nbsp;<strong>2.</strong><strong>一阶RC电路的阶跃响应</strong></span></p>
+<p><span style="font-size: 18px;">一阶RC电路的电路模型如下图所示。</span></p>
+<p style="text-align: center;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]3.png" alt="" width="380" height="220" />&nbsp;</p>
+<p style="text-align: center;"><span style="font-size: 18px;">图1 一阶RC电路</span></p>
+<p><span style="font-size: 18px;">幅度为Vcc的阶跃信号从Vin处输入，在Vout处测量输出。解微分方程可得自变量为时间t的响应函数。&nbsp;</span></p>
+<p style="text-align: center;"><span style="font-size: 18px;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]4.png" alt="" width="343" height="89" /></span></p>
+<p><span style="font-size: 18px;">&nbsp;其中时间常数<span style="font-family: 宋体;">&tau;</span> = R*C。我希望通过测量阶跃信号输入条件下，实际RC电路的响应曲线V(t)，并通过V(t)来估计时间常数<span style="font-family: 宋体;">&tau;</span>。如果做纯理论推导，只要知道任意时刻t0的输出电压V(t0)就可以解方程（2）得到<span style="font-family: 宋体;">&tau;</span>。但在实际电路中电压V(t0)的测量往往受到诸多干扰的影响，并不准确。是否可以测量多个t值时刻对应的V(t)，并利用正规方程（1）得到一个统计意义上最优的估计<img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]5.png" alt="" width="15" height="23" />呢？是接下来要解决的问题。</span></p>
+<p><span style="font-size: 18px;"><strong>3.</strong><strong>非线性函数的最小二乘估计</strong></span></p>
+<p><span style="font-size: 18px;">仔细观察适用正规方程的目标函数（0）式的特点，可以发想让非线性的要让（2）式能够使用正规方程，必须让：</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">1）&nbsp;&nbsp;&nbsp;&nbsp; 含有待估计的变量<span style="font-family: 宋体;">&tau;</span>的函数充当（0）式中的系数W，而设计矩阵<strong><em>X</em></strong><sup>(train)</sup>则可以由含有时间t或测量电压V(t)的函数充当。</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">2）&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;W和<strong><em>X</em></strong><sup>(train)</sup>之间的关系必须是简单的相乘。</span></p>
+<p><span style="font-size: 18px;">&nbsp;显然，只有用时间t的序列充当设计矩阵<strong><em>X</em></strong><sup>(train)</sup>，才有可能使W和<strong><em>X</em></strong><sup>(train)</sup>之间的关系必须是相乘。至于其他的非线性部分则可以通过等效变换，变换到等式的另一侧来充当<strong><em>Y</em></strong><sup>(train)</sup>。综上，可以将（2）式变换为（3）式。</span></p>
+<p style="text-align: center;"><span style="font-size: 18px;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]6.png" alt="" width="371" height="88" /></span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">（3）式的整个左边可以计算得到<strong><em>Y</em></strong><sup>(train)</sup>；（3）式右边的时间t的序列在构成设计矩阵<strong><em>X</em></strong><sup>(train)</sup>，1/&tau;则构成相当于（0）式中的系数矩阵W。这样就可以通过正规方程（2）式来求解统计意义上最优的估计<img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]7.png" alt="" width="14" height="21" />了。当然，从（3）式也可以看出，经过线性校正的模型中系数向量W只有一个元素&mdash;&mdash;是个标量，偏置b也是恒等于0的。</span></p>
+<p><span style="font-size: 18pt;">&nbsp;<strong>二、仿真模型</strong></span></p>
+<p><span style="font-size: 18px;">想利用最近正在尝试使用的Jupyter和numpy替代熟悉的Matlab，验证上述非线性函数最小二乘估计的想法。下面先建立一个模型：</span></p>
+<p><span style="font-size: 18px;">1）&nbsp;&nbsp;&nbsp;&nbsp; 输入为幅度Vcc为3.3V的阶跃信号；</span></p>
+<p><span style="font-size: 18px;">2）&nbsp;&nbsp;&nbsp;&nbsp; 时间常数&tau;为0.1秒；</span></p>
+<p><span style="font-size: 18px;">3）&nbsp;&nbsp;&nbsp;&nbsp; 简单模拟采样间隔的随机性：是间隔等于delta1=0.0015秒和delta1=0.0011秒的两个序列的叠加。</span></p>
+<p><span style="font-size: 18px;">4）&nbsp;&nbsp;&nbsp;&nbsp; 采样总长度为n=5倍<span style="font-family: 宋体;">&tau;</span>；</span></p>
+<p><span style="font-size: 18px;">5）&nbsp;&nbsp;&nbsp;&nbsp; 信号上叠加了幅度约为20mV的白噪声&mdash;&mdash;至于为什么是20mV，将在后续部分详细介绍。</span></p>
+<p><span style="font-size: 18px;">利用python和numpy进行数值仿真的代码如下：</span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('1f5ef596-eb75-418e-8625-bf1fb4a6d9bc')"><span style="font-size: 18px;"><img id="code_img_closed_1f5ef596-eb75-418e-8625-bf1fb4a6d9bc" class="code_img_closed" src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]8.png" alt="" /><img id="code_img_opened_1f5ef596-eb75-418e-8625-bf1fb4a6d9bc" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('1f5ef596-eb75-418e-8625-bf1fb4a6d9bc',event)" src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]9.png" alt="" /></span>
+<div id="cnblogs_code_open_1f5ef596-eb75-418e-8625-bf1fb4a6d9bc" class="cnblogs_code_hide">
+<pre><code><span style="font-size: 18px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> numpy as np
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> matplotlib.pyplot as plt
+</span><span style="color: #008080;"> 3</span> tao=0.1<span style="color: #008000;">#</span><span style="color: #008000;">时间常数</span>
+<span style="color: #008080;"> 4</span> vcc=3.3<span style="color: #008000;">#</span><span style="color: #008000;">电源电压</span>
+<span style="color: #008080;"> 5</span> n=5<span style="color: #008000;">#</span><span style="color: #008000;">时长取时间常数tao的n倍</span>
+<span style="color: #008080;"> 6</span> delta1=0.0015<span style="color: #008000;">#</span><span style="color: #008000;">第一种采样间隔</span>
+<span style="color: #008080;"> 7</span> delta2=0.0011<span style="color: #008000;">#</span><span style="color: #008000;">第一种采样间隔</span>
+<span style="color: #008080;"> 8</span> t1=delta1*np.arange(np.ceil(n*tao/<span style="color: #000000;">delta1))
+</span><span style="color: #008080;"> 9</span> t2=delta2*np.arange(np.ceil(n*tao/<span style="color: #000000;">delta2))
+</span><span style="color: #008080;">10</span> t=np.append(t1,t2)<span style="color: #008000;">#</span><span style="color: #008000;">为演示最小二乘拟合的功能，故意结合两种采样率下的时间点</span>
+<span style="color: #008080;">11</span> t.sort()<span style="color: #008000;">#</span><span style="color: #008000;">对t进行排序</span>
+<span style="color: #008080;">12</span> <span style="color: #000000;">plt.plot(t)
+</span><span style="color: #008080;">13</span> s=vcc*(1-np.exp(-t/tao))<span style="color: #008000;">#</span><span style="color: #008000;">理论的波形曲线</span>
+<span style="color: #008080;">14</span> plt.plot(t,s)<span style="color: #008000;">#</span><span style="color: #008000;">注意这里的plot函数使用了x轴和y轴两个轴，因为s中的数据不是均匀的</span>
+<span style="color: #008080;">15</span> N_amp=np.exp(-n)*<span style="color: #000000;">vcc
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">N_amp
+</span><span style="color: #008080;">17</span> noise = np.random.uniform(-N_amp, N_amp, (len(t)))<span style="color: #008000;">#</span><span style="color: #008000;">噪声：正负np.exp(-5)*3.3之间均匀分布</span>
+<span style="color: #008080;">18</span> s_nr=s+noise<span style="color: #008000;">#</span><span style="color: #008000;">加入噪声后的信号</span>
+<span style="color: #008080;">19</span> <span style="color: #000000;">plt.plot(t,s_nr)
+</span><span style="color: #008080;">20</span> yt=np.log(vcc/(vcc-<span style="color: #000000;">s_nr))
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">plt.plot(t,yt)
+</span><span style="color: #008080;">22</span> yt=<span style="color: #000000;">np.mat(yt)
+</span><span style="color: #008080;">23</span> yt=<span style="color: #000000;">yt.T
+</span><span style="color: #008080;">24</span> x=np.mat(t)<span style="color: #008000;">#</span><span style="color: #008000;">将X转换为矩阵数据类型</span>
+<span style="color: #008080;">25</span> x=x.T<span style="color: #008000;">#</span><span style="color: #008000;">正规方程中的x应该是个列向量</span>
+<span style="color: #008080;">26</span> w=(np.linalg.inv(x.T*x))*x.T*yt<span style="color: #008000;">#</span><span style="color: #008000;">求解正规方程</span>
+<span style="color: #008080;">27</span> E_tao = np.round(1/float(w),4)<span style="color: #008000;">#</span><span style="color: #008000;">对时间常数的tao的估计，保留到4位小数</span>
+<span style="color: #008080;">28</span> E_tao</span></pre>
+</div>
+<span class="cnblogs_code_collapse" style="font-size: 18px;">非线性函数的最小二乘拟合</span></div>
+<p><span style="font-size: 18px;">说明：</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">1）&nbsp;&nbsp;&nbsp;&nbsp; 其间序列包含了两个等差数列t1和t2的融合，它们的间隔互质，没有重复，目的是模拟采样时间的随机性。最后用sort()方法又对时间序列进行排序的目的是为了后续容易观察波形更直观。如果仅仅为了使用正规方程，是不需要重新排序的。</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">2）&nbsp;&nbsp;&nbsp;&nbsp; 校正的非线性方程（3）和原始方程（2）相比有一个重大的缺陷就是：左侧求对数的括号内的数值不能为负&mdash;&mdash;如果是纯理论推导，这是不可能发生的。但假如随机噪声后的V(t)是有可能大于阶跃幅度Vcc的，此时括号内将变为一个负数，使得计算变得没有意义。我的解决之道是将假如的随机噪声幅度限制在仿真截止时刻V(t)和Vcc之差的范围内，及代码中的N_amp。由于仿真的结束时刻为n（=5）个<span style="font-family: 宋体;">&tau;</span>，所以N_amp的值等于np.exp(-n)*vcc。</span><br /><span style="font-size: 18px;">
+这样做没有任何理论依据，仅仅是受限于（3）和（2）式之间的非完全等价变换&mdash;&mdash;属于线性化校正需要付出的代价。</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;"> 3）&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由于待估计的参数只有一个（1/<span style="font-family: 宋体;">&tau;</span>）所以正规方程的解也是只有一个元素的矩阵。将其转换为标量后取倒得到最优估计<img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]10.png" alt="" width="20" height="30" /><span style="font-size: 18px;">。</span></span></p>
+<p><span style="font-size: 18pt;"><strong>三、结果评估</strong></span></p>
+<p><span style="font-size: 18px;">加入噪声后的信号如下图所示，与通常情况的实测波形吻合度很高。</span></p>
+<p><span style="font-size: 18px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]11.png" alt="" width="455" height="299" /></span></p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><span style="font-size: 18px;">图2 模拟产生的带有噪声的阶跃响应</span>&nbsp;</p>
+<p><span style="font-size: 18px;">&nbsp;对这些加入噪声的信号进行线性校正后得到进行最小二乘估计的信号yt为下图所示。其基本趋势是一条斜率为（1/<span style="font-family: 宋体;">&tau;</span>）的直线，和我预计的结果一样。</span></p>
+<p><span style="font-size: 18px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]12.png" alt="" width="446" height="305" /></span></p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><span style="font-size: 18px;">图3 对图2进行线性校正后的待估计信号</span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">但可以明显的看到，由于（3）式左侧在V(t)的大小接近Vcc时对加入的白噪声进行了放大。因此当t递增时，由白噪声造成的信号的不确定性大大增加了。也就是在套用正规方程时，t值较大时的噪声对结果的影响大于t值较小时的噪声对结果的影响。这是使用非线性校正函数需要付出的重要代价。</span></p>
+<p><span style="font-size: 18px;">另外，多次运行以上代码的得到 都是一个略小于实际<span style="font-family: 宋体;">&tau;</span>（=0.1）的数值&mdash;&mdash;约为0.099左右，也就是说， 不是无偏估计。这应该是由于线性校正函数（（3）式左侧），对于噪声noise大于0和小于0的部分进行了非对称的变换造成的。这虽然造成的偏差不大，但也是使用非线性校正函数需要付出的代价。&nbsp;</span></p>
+<p><span style="font-size: 18pt;"><strong>四、Jupyter notebook</strong></span></p>
+<p><span style="font-size: 18px;">上述练习的一个重要目的是练习使用Jupyter notebook，并在其中内嵌具有很好交互性的公式等信息。以下是部分程序运行效果的截图，虽然我对markdown语法还不熟悉，格式和排版还不够漂亮，但还是能够明显的提高代码的可读性。</span></p>
+<p style="text-align: center;"><span style="font-size: 18px;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]13.png" alt="" width="782" height="648" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p style="text-align: center;">&nbsp;<span style="font-size: 18px;">图4 Jupyter notebook运行效果截图</span></p>
+<p>&nbsp;<span style="font-size: 18px;">其中需要重点记录下的是公式代码的嵌入过程：</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">1）我首先在纸上手写了一些公式，用手机对其拍照，如：&nbsp;</span></p>
+<p style="text-align: center;"><span style="font-size: 18px;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]14.png" alt="" /><span style="font-size: 14px;">&nbsp;</span></span></p>
+<p style="text-align: center;"><span style="font-size: 18px;">图5 手写的公式</span></p>
+<p style="margin-left: 30px;">&nbsp;<span style="font-size: 18px;">&nbsp;2）用mathpix tools对这些照片截图，并扫描（mathpix tools有windows版和iOS版，均可免费试用）。Mathpix可以直接得到LaTeX格式的公式表达式。下图是iOS版本的mathpix界面截图。</span></p>
+<p style="margin-left: 30px; text-align: center;"><span style="font-size: 18px;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]15.png" alt="" width="408" height="701" /></span></p>
+<p style="margin-left: 30px; text-align: center;"><span style="font-size: 18px;">图6 iOS版本的mathpix截图</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">3）在Jupyter notebook上部的下拉菜单中选择单元格的格式为Markdown；将LaTeX格式的公式表达式粘贴到该单元格内，并在LaTeX公式表达式的前后加上&ldquo;$$&rdquo;符号，运行该单元格即可得到图4所示效果的公式了。</span></p>
+<p style="text-align: center;"><span style="font-size: 18px;"><img src="./images/非线性函数的最小二乘拟合——兼论Jupyter notebook中使用公式 [原创]16.png" alt="" width="620" height="290" /></span></p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><span style="font-size: 18px;">图7 在Jupyter notebook中输入LaTeX公式</span></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 18pt;">&nbsp;五、进一步的实际测试</span></strong></p>
+<p><span style="font-size: 18px;">工作做到这里离其实并没有完，还应该做一个简单的实际电路实测一下。我会在后续的假期中抽半天时间，在STM32开发板上完成这个工作：用GPIO产生一个节约信号后，连续采集5个&tau;时间长度的信号，并代入正规方程求解，欢迎大家继续关注更新。</span></p>
+<p><span style="font-size: 18px;">&hellip;&hellip;</span></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,111 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Nacos Config客户端与Spring Boot、Spring Cloud深度集成' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Nacos Config客户端与Spring Boot、Spring Cloud深度集成</center></div><div class='banquan'>原文出处:本文由博客园博主啥也不懂的新同学提供。<br/>
+原文连接:https://www.cnblogs.com/newstudent/p/nacos-config_in_spring-boot.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#nacos与spring-boot集成">Nacos与Spring Boot集成</a><ul>
+        <li><a href="#nacospropertysource和nacosvalue">@NacosPropertySource和@NacosValue</a><ul>
+        <li><a href="#com.alibaba.nacos.spring.core.env.nacospropertysourcepostprocessor">com.alibaba.nacos.spring.core.env.NacosPropertySourcePostProcessor</a></li>
+        <li><a href="#com.alibaba.nacos.spring.context.annotation.config.nacosvalueannotationbeanpostprocessor">com.alibaba.nacos.spring.context.annotation.config.NacosValueAnnotationBeanPostProcessor</a></li>
+        <li><a href="#nacosvalue">@NacosValue</a></li>
+        </ul></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<blockquote>
+<p>从源码角度，解析Nacos Config客户端与Spring Boot、Spring Cloud的深度集成<br />
+原创博文，转载请注明来源</p>
+</blockquote>
+<h1 id="nacos与spring-boot集成">Nacos与Spring Boot集成</h1>
+<h2 id="nacospropertysource和nacosvalue">@NacosPropertySource和@NacosValue</h2>
+<p>@PropertySource的用法并不陌生，它是spring原生的注解，我们可以这么用：</p>
+<pre><code><code>@Configuration
+@PropertySource(value = &quot;classpath:demo.properties&quot;,ignoreResourceNotFound = false)
+public class SpringPropertysourceApplication {
+   //...
+}</code></pre>
+<p>意思是：把在classpath路径下，名为demo.properties的配置文件注入到spring容器中，这样，我们就可以直接在类的属性上通过@Value注解获取到demo.properties属性值了。<br />
+Nacos为了达到以上目的，提供了一个叫@NacosPropertySource的注解，和@PropertySource目的一样：把配置注入到spring容器；使用方式一样，用于任意被spring管理的类上。当然，Nacos提供了更高级的功能，比如Property变更，自动刷新的功能，下面来分析一下，Nacos是怎么集成的</p>
+<h3 id="com.alibaba.nacos.spring.core.env.nacospropertysourcepostprocessor">com.alibaba.nacos.spring.core.env.NacosPropertySourcePostProcessor</h3>
+<p>这个类实现了org.springframework.beans.factory.config.BeanFactoryPostProcessor（Spring钩子，它在所有spring bean定义生成后，实例化之前调用，允许覆盖或添加其属性）等接口，主要作用是，扫描由spring所有的bean，查看其类上，是否有@NacosPropertySource注解，如果有的话，则生成com.alibaba.nacos.spring.core.env.NacosPropertySource实例对象（@NacosPropertySource注解标注了当前PropertySource指定的DataId,也就是一个完成的配置文件，生成实例其实就是调用Nacos原生API获取配置构造NacosPropertySource对象），再把实例添加到spring env.PropertySources中去，其实完成这几步，我们就可以通过使用@Value或者ENV.getProperty()这种方式获取到由Nacos管理的配置项了。<br />
+NacosPropertySourcePostProcessor代码片段:<br />
+<img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成0.png" /><br />
+上面的功能仅仅是把Nacos的配置注入到spring中，那动态刷新的功能怎么做的呢。</p>
+<p>回顾一下，原生的Nacos sdk是怎么样监听配置变化的</p>
+<pre><code><code>ConfigService configService = NacosFactory.createConfigService(properties);
+String content = configService.getConfig(dataId, group, 5000);
+System.out.println(content);
+configService.addListener(dataId, group, new Listener() {
+    @Override
+    public void receiveConfigInfo(String configInfo) {
+        System.out.println(&quot;recieve:&quot; + configInfo);
+    }
+    @Override
+    public Executor getExecutor() {
+        return null;
+    }
+});</code></pre>
+<p>可以看到，监听器与配置文件（DataId）是一对一的，所以，对于一个NacosPropertySource来说，应该有一个对应的监听器，在上诉NacosPropertySourcePostProcessor的代码片段截图中可以看到对应的代码:<br />
+<img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成1.png" /><br />
+这个添加listener的逻辑可以根据上面Nacos sdk的用法得出：<br />
+<img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成2.png" /></p>
+<p>可以看到，在listener回调的逻辑里面，当有配置变更时会重新生成NacosPropertySource并替换掉ENV中过时的NacosPropertySource，完成这个部分的逻辑，我们通过ENV.getProperty()就可以动态获取到属性值了，但是通过@Value方式注入的到Bean对象的配置项，由于Bean已经生成，还是没办法动态更新，那Nacos是怎么做的？</p>
+<h3 id="com.alibaba.nacos.spring.context.annotation.config.nacosvalueannotationbeanpostprocessor">com.alibaba.nacos.spring.context.annotation.config.NacosValueAnnotationBeanPostProcessor</h3>
+<p>上面说到如果通过ENV获取配置项的话，已经可以做到动态的目的了，但是如果此时持有配置项的Bean已经生成，则需要通过反射的机制，去动态更新了，从功能设计角度举个例子来讲清原理：<br />
+有类TestController，通过@Value的方式把demo.properties中app.config.threshold的配置项注入到属性threshold，那应该是这样的：</p>
+<pre><code><code>@RestController
+@PropertySource(value = &quot;classpath:demo.properties&quot;)
+public class TestController {
+    @Value(&quot;${app.config.threshold}&quot;)
+    private String threshold;
+ 
+ 
+}</code></pre>
+<p>那如果要通过反射设置属性的话那就需要这么一个映射关系：</p>
+<p>app.config.threshold -&gt; TestController.threshold</p>
+<p>所以如果把这个映射关系保存在内存，当listener回调通知的时候，找到配置中的对应属性，反射设置进去就好了。</p>
+<p>Nacos也是这么做的：</p>
+<p>NacosValueAnnotationBeanPostProcessor实现了org.springframework.beans.factory.config.BeanPostProcessor（spring钩子函数，当bean对象实例化完成，注入容器之前调用 ），在其Object postProcessBeforeInitialization(Object bean, String beanName) 方法中，我们可以解析bean中所有注有@Value的注解，并将上诉映射关系，保存在内存中：<br />
+<img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成3.png" /><br />
+其中doWithFields实现如下:<br />
+<img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成4.png" /><br />
+<strong><em>其中有一点需要注意的地方，Nacos并没有使用原生的@Value注解去达到动态刷新的目的，因为违背了spring使用@Value的初衷，nacos自己实现了@NacosValue的注解</em></strong></p>
+<p>综上所诉,@NacosPropertySource和@NacosValue组合使用达到动态配置的效果是这样实现的：</p>
+<p><img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成5.png" /></p>
+<h3 id="nacosvalue">@NacosValue</h3>
+<p>前面解析了@NacosPropertySource和@NacosValue组合使用达到动态配置原理，遗漏了一个细节点就是使用自定义注解@NacosValue是怎么在bean初始化的过程中注入属性的（前面说的动态刷新，是通过反射设置的，是建立在bean已经初始化完毕的基础上）。<br />
+还是<strong><em>com.alibaba.nacos.spring.context.annotation.config.NacosValueAnnotationBeanPostProcessor</em></strong>这个类，除了上面说的<strong><em>postProcessBeforeInitialization</em></strong>建立配置项和属性的映射关系这个方法外，还有两个方法，就是用于@NacosValue在bean初始过程中注入属性的：<br />
+<img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成6.png" /><br />
+简单理解一下这两个方法的目的：</p>
+<ul>
+<li><p>doGetInjectedBean首先获取了@NacosValue中的配置项比如app.config.threshold，通过beanFactory解析出配置项对应的值(在ENV中)，Member是一个队Field和Method的抽象类，如果Mem是Field则把取出的值进行转换和Field保持一致，如果是方法，则取出方法参数的Field进行转换</p></li>
+<li><p>buildInjectedObjectCacheKey用于对doGetInjectedBean方法中已经转换过的值生一个cacheKey，这样就不用做多次转换的无用功</p></li>
+</ul>
+<p>这两个方法都不是spring的钩子函数的方法，是在alibaba的spring-context-support包下，抽象类<strong><em>com.alibaba.spring.beans.factory.annotation.AnnotationInjectedBeanPostProcessor</em></strong>提供的，这个类的作用是：解析被子类泛型指定的注解（public class NacosValueAnnotationBeanPostProcessor extends ValueAnnotationBeanPostProcessor<NacosValue>）标记的属性或方法（抽象成了Member），并注入由getInjectedObject返回的值，这个方法只做了一层缓存(buildInjectedObjectCacheKey)，并调用由子类扩展的方法doGetInjectedBean，完成注入<br />
+<img src="./images/Nacos Config客户端与Spring Boot、Spring Cloud深度集成7.png" /></p>
+<p>AnnotationInjectedBeanPostProcessor这个类的实现，参照了<strong><em>org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor</em></strong>的实现，而这个类就是用于Spring原生注解@Autowired 和@Value在bean初始化过程中注入依赖的。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

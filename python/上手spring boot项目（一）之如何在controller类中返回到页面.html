@@ -1,0 +1,80 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修上手spring boot项目（一）之如何在controller类中返回到页面' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>上手spring boot项目（一）之如何在controller类中返回到页面</center></div><div class='banquan'>原文出处:本文由博客园博主程序猿修炼之道提供。<br/>
+原文连接:https://www.cnblogs.com/Code-Handling/p/12037746.html</div><br>
+    <p><strong>题记</strong>：在学习了springboot和thymeleaf之后，想完成一个项目练练手，于是使用springboot+mybatis和thymeleaf完成一个博客系统，在完成的过程中出现的一些问题，将这些问题记录下来，作为自己的学习心得。在这先感谢群主TyCoding的Tumo项目，虽然本人实在太菜了，好些地方看不懂，但还是使我受益匪浅。</p>
+<hr />
+<p>在controller类中返回到页面中一共有两种方式，使用thymeleaf模板引擎的方式和不使用模板的方式（即controller的返回值为ModelAndView或者String）。在controller类中返回值为ModelAndView或者String，二者的区别就在于ModelAndView能够像session一样存储一些属性。</p>
+<h1>1.不使用模板</h1>
+<h2>1.1使用ModelAndView作为返回值</h2>
+<div class="cnblogs_code">
+<pre><code>@Controller
+public class LoginController {
+
+    @RequestMapping(value = "/login")
+    public ModelAndView login(){
+        ModelAndView mv = new ModelAndView();
+        mv.setViewName("/login.html");
+        return mv;
+    }
+}</pre>
+</div>
+<p>资源路径如下：</p>
+<p>&nbsp;<img src="./images/上手spring boot项目（一）之如何在controller类中返回到页面0.png" alt="" /></p>
+<p>&nbsp;启动项目后结果如下：</p>
+<p><img src="./images/上手spring boot项目（一）之如何在controller类中返回到页面1.png" alt="" /></p>
+<h2>1.2使用String作为返回值</h2>
+<div class="cnblogs_code">
+<pre><code>@Controller<br />public class HelloController {<br /><br />    @RequestMapping("/hello")<br />    public String hello() {<br />        return "/hello.html";<br />    }<br />}</pre>
+</div>
+<p>资源路径如下：</p>
+<p>&nbsp;<img src="./images/上手spring boot项目（一）之如何在controller类中返回到页面0.png" alt="" /></p>
+<p>&nbsp;启动项目后结果如下：</p>
+<p><img src="./images/上手spring boot项目（一）之如何在controller类中返回到页面3.png" alt="" /></p>
+<p>&nbsp;通过这两种方式可以发现controller类中返回的是在static中的login.html和hello.html。</p>
+<p><strong>结论：springboot中静态资源默认是放在static路径下的，换而言之就是html等页面的根路径是static</strong></p>
+<h1>2.使用thymeleaf模板引擎</h1>
+<h2>2.1 在pom文件中引入依赖</h2>
+<p><img src="./images/上手spring boot项目（一）之如何在controller类中返回到页面4.png" alt="" /></p>
+<h2>&nbsp;2.2 在application.yml文件中添加配置信息</h2>
+<div class="cnblogs_code">
+<pre><code># thymeleaf
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.check-template-location=true
+spring.thymeleaf.suffix=.html
+spring.thymeleaf.encoding=UTF-8
+spring.thymeleaf.content-type=text/html
+spring.thymeleaf.mode=HTML5
+spring.thymeleaf.cache=false</pre>
+</div>
+<h2>2.3 编写controller类&amp;html代码</h2>
+<p>由于这里的controller类和html页面路径与前面的一样，我就不贴上代码了。由于只是演示展示页面，所以就未在html标签中添加thymeleaf网址了</p>
+<div class="cnblogs_code">
+<pre><code>&lt;html lang="en" xmlns:th="http://www.thymeleaf.org"&gt;</pre>
+</div>
+<h2>2.4 启动项目</h2>
+<p><img src="./images/上手spring boot项目（一）之如何在controller类中返回到页面5.png" alt="" /></p>
+<p>&nbsp;<img src="./images/上手spring boot项目（一）之如何在controller类中返回到页面6.png" alt="" /></p>
+<p>通过这两种方式可以发现controller类中返回的是在templates中的login.html和hello.html。</p>
+<p><strong>结论：springboot中整合templates之后静态资源默认是放在templates路径下的，也就是html等页面的根路径是templates。</strong></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

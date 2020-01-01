@@ -1,0 +1,230 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python web 分页组件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python web 分页组件</center></div><div class='banquan'>原文出处:本文由博客园博主爱~小夏天提供。<br/>
+原文连接:https://www.cnblogs.com/wang-yi-shan/p/11629210.html</div><br>
+    <p style="text-indent: 2em; margin-top: 5px; margin-bottom: 5px;">闲来无事便写了一个<span style="font-size: 16px; background-color: #c0c0c0;">易使用，易移植</span>的Python Web分页组件。使用的技术栈是Python、Django、Bootstrap。</p>
+<p> <br />
+</p>
+<p style="text-indent: 2em;">
+    既然是易使用、<span style="text-align: left; color: #000000; text-transform: none; text-indent: 32px; letter-spacing: normal; font-family: sans-serif; font-style: normal; font-variant: normal; font-weight: 400; text-decoration: none; word-spacing: 0px; display: inline !important; orphans: 2; float: none; -webkit-text-stroke-width: 0px; background-color: transparent;">易移植</span>的组件，首先介绍一下其在django框架中的调用方式吧。我将组件封装成了Django InclusionTag，在template模板中直接调用tag即可，代码如下：
+</p>
+<div class="cnblogs_code">
+<pre><code>{% load pager_tags %<span style="color: #000000;">}
+
+{</span>% pager request 100 10 %}</pre>
+</div>
+<p>&nbsp;　　其中 pager_tags是封装的tag文件名，这个无需多说，不了解django框架custom filter、tag的可在官方文档查看。</p>
+<p style="text-indent: 2em;">pager是注册的tag名，后面是传递到pager的参数。request是django的请求对象，100是最大页数，10是导航页码的个数。</p>
+<p style="text-indent: 2em;">可以看到，整个组件的调用是非常简单的，比起django自带的分页器paginator要轻巧很多，这也是我决定开发这个组件的主要原因之一。当然组件使用的便利性带来的是灵活度的牺牲，其扩展能力十分有限，而且依赖于前端框架Django。所以，想要定制一些特别的功能或者样式的小伙伴还是应该选择<span style="display: inline !important; float: none; background-color: transparent; color: #000000; font-family: sans-serif; font-size: 16px; font-style: normal; font-variant: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-decoration: none; text-indent: 32px; text-transform: none; -webkit-text-stroke-width: 0px; word-spacing: 0px;">paginator</span>自行开发。</p>
+<p style="text-indent: 2em;"> <br />
+</p>
+<p style="text-indent: 2em;">
+    接下来我们看看tag是怎么写的吧。
+</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django <span style="color: #0000ff;">import</span><span style="color: #000000;"> template
+
+</span><span style="color: #0000ff;">from</span> garra_rbac.services <span style="color: #0000ff;">import</span><span style="color: #000000;"> page_service
+
+register </span>=<span style="color: #000000;"> template.Library()
+
+
+@register.inclusion_tag(</span><span style="color: #800000;">'</span><span style="color: #800000;">garra_pager.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span> pager(request, max_index, show_count=5<span style="color: #000000;">):
+    _page </span>= request.GET.get(<span style="color: #800000;">'</span><span style="color: #800000;">page</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    page </span>= 1
+    <span style="color: #0000ff;">if</span><span style="color: #000000;"> _page:
+        page </span>=<span style="color: #000000;"> int(_page)
+    param </span>=<span style="color: #000000;"> request.GET.urlencode()
+    page_obj </span>=<span style="color: #000000;"> page_service.PageObject(page, max_index, param, show_count)
+    </span><span style="color: #0000ff;">return</span> {<span style="color: #800000;">'</span><span style="color: #800000;">page_obj</span><span style="color: #800000;">'</span>: page_obj}</pre>
+</div>
+<p>　　我在tag中并没有做太多的事情，只是处理了当前页面的请求参数。其中当前页默认为0，并把GET的参数传递下去，当点击其他页码时要保留参数条件。</p>
+<p style="text-indent: 2em;"> <br />
+</p>
+<p style="text-indent: 2em;">
+    我们再看看garra_pager.html吧，html页面是依赖于Bootstrap开发的，不过对于样式的修改也很容易实现。
+</p>
+<div class="cnblogs_code">
+<pre><code>{% <span style="color: #0000ff;">if</span> page_obj.has_page_item %<span style="color: #000000;">}
+    </span>&lt;nav aria-label=<span style="color: #800000;">"</span><span style="color: #800000;">Page navigation</span><span style="color: #800000;">"</span>&gt;
+        &lt;ul <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">pagination</span><span style="color: #800000;">"</span>&gt;<span style="color: #000000;">
+            {</span>% <span style="color: #0000ff;">for</span> page_index <span style="color: #0000ff;">in</span> page_obj.page_index_list %<span style="color: #000000;">}
+                </span>&lt;li {% <span style="color: #0000ff;">if</span> page_obj.current_index == page_index.index %}<span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">active</span><span style="color: #800000;">"</span>{% endif %}&gt;
+                    &lt;a href=<span style="color: #800000;">"</span><span style="color: #800000;">{{ page_index.url }}</span><span style="color: #800000;">"</span>
+                       <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">{{ page_obj.current_index }}</span><span style="color: #800000;">"</span>&gt;{{ page_index.text }}&lt;/a&gt;
+                &lt;/li&gt;<span style="color: #000000;">
+            {</span>% endfor %<span style="color: #000000;">}
+        </span>&lt;/ul&gt;
+    &lt;/nav&gt;<span style="color: #000000;">
+
+{</span>% <span style="color: #0000ff;">else</span> %<span style="color: #000000;">}
+    </span>&lt;div <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">alert alert-danger</span><span style="color: #800000;">"</span> role=<span style="color: #800000;">"</span><span style="color: #800000;">alert</span><span style="color: #800000;">"</span>&gt;
+        &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">glyphicon glyphicon-exclamation-sign</span><span style="color: #800000;">"</span> aria-hidden=<span style="color: #800000;">"</span><span style="color: #800000;">true</span><span style="color: #800000;">"</span>&gt;&lt;/span&gt;
+        &lt;span <span style="color: #0000ff;">class</span>=<span style="color: #800000;">"</span><span style="color: #800000;">sr-only</span><span style="color: #800000;">"</span>&gt;Error:&lt;/span&gt;<span style="color: #000000;">
+        暂无数据
+    </span>&lt;/div&gt;<span style="color: #000000;">
+{</span>% endif %}</pre>
+</div>
+<p>　　html代码很好理解，都是数据的展示，并添加了暂无数据的提示。</p>
+<p style="text-indent: 2em;"> <br />
+</p>
+<p style="text-indent: 2em;">
+    最后我们看看分页组件功能的主要实现部分，page_service的代码。
+</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> math
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_lhalf(show_count):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    获取当前页的左侧最多右多少个页码
+    :param show_count:展示的页码个数
+    :return:当前页的左侧最多右多少个页码
+    </span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">if</span> show_count % 2 == 0:  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果为偶数，则让当前页的左侧页码个数比右侧少1</span>
+        <span style="color: #0000ff;">return</span> show_count / 2 - 1
+    <span style="color: #0000ff;">else</span>:  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果为奇数，左右侧页码个数相同</span>
+        <span style="color: #0000ff;">return</span> math.floor(show_count / 2<span style="color: #000000;">)
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_param(param, index):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    保留原搜索条件，并更新page当前页条件
+    :param param:原搜索条件
+    :param index:当前页
+    :return:更新当前页后的搜索条件
+    </span><span style="color: #800000;">'''</span>
+    <span style="color: #0000ff;">if</span><span style="color: #000000;"> param:
+        param </span>= <span style="color: #800000;">'</span><span style="color: #800000;">?</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> param
+        </span><span style="color: #0000ff;">if</span> <span style="color: #800000;">'</span><span style="color: #800000;">?page</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">in</span> param <span style="color: #0000ff;">or</span> <span style="color: #800000;">'</span><span style="color: #800000;">&amp;page</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">in</span><span style="color: #000000;"> param:
+            </span><span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+            param </span>= re.sub(r<span style="color: #800000;">'</span><span style="color: #800000;">page=\d+</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">page=%s</span><span style="color: #800000;">'</span> %<span style="color: #000000;"> index, param)
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            param </span>+= <span style="color: #800000;">'</span><span style="color: #800000;">&amp;page=%s</span><span style="color: #800000;">'</span> %<span style="color: #000000;"> index
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+        param </span>= <span style="color: #800000;">"</span><span style="color: #800000;">?page=%s</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> index
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> param
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> PageObject(object):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span>(self, current_index, max_index, param, show_count=5<span style="color: #000000;">):
+        </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+        分页组件对象
+        :param current_index:当前页码
+        :param max_index: 最大页码
+        :param param: 搜索条件
+        :param show_count: 展示的页码个数
+        </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+        self.current_index </span>=<span style="color: #000000;"> current_index
+        self.max_index </span>=<span style="color: #000000;"> max_index
+        self.show_count </span>= show_count <span style="color: #0000ff;">if</span> show_count &gt; 5 <span style="color: #0000ff;">else</span> 5<span style="color: #000000;">
+        self.page_index_list </span>=<span style="color: #000000;"> list()
+        self.</span><span style="color: #800080;">__set_page_index_list</span><span style="color: #000000;">(param)
+
+    @property
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> has_page_item(self):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+        是否有页码数据
+        :return:
+        </span><span style="color: #800000;">"""</span>
+        <span style="color: #0000ff;">return</span> self.max_index &gt;<span style="color: #000000;"> 0
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__set_page_index_list</span><span style="color: #000000;">(self, param):
+        </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+        设置页码按钮
+        :param param:原搜索条件
+        :return:
+        </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+        lhalf </span>= get_lhalf(self.show_count)  <span style="color: #008000;">#</span><span style="color: #008000;"> 左半边应有的数量</span>
+<span style="color: #000000;">
+        l_temp_index </span>= self.current_index - lhalf  <span style="color: #008000;">#</span><span style="color: #008000;"> 临时左页码</span>
+        _roffest = 0  <span style="color: #008000;">#</span><span style="color: #008000;"> 右迁移量</span>
+        <span style="color: #0000ff;">if</span> l_temp_index &lt; 1:  <span style="color: #008000;">#</span><span style="color: #008000;"> 左页码需大于0，否则应向右偏移</span>
+            _roffest = -l_temp_index + 1<span style="color: #000000;">
+        lindex </span>= l_temp_index + _roffest  <span style="color: #008000;">#</span><span style="color: #008000;"> 左页码 = 临时左页码向左偏移后的值</span>
+<span style="color: #000000;">
+        r_temp_index </span>= lindex + self.show_count - 1  <span style="color: #008000;">#</span><span style="color: #008000;"> 临时右页码</span>
+        _loffest = 0  <span style="color: #008000;">#</span><span style="color: #008000;"> 左位移量</span>
+        <span style="color: #0000ff;">if</span> self.max_index - r_temp_index &lt; 0:  <span style="color: #008000;">#</span><span style="color: #008000;"> 右页码需大于最大页码，否则应向左偏移</span>
+            _loffest = r_temp_index -<span style="color: #000000;"> self.max_index
+            lindex </span>= lindex - _loffest  <span style="color: #008000;">#</span><span style="color: #008000;"> 左页码向左偏移</span>
+            <span style="color: #0000ff;">if</span> lindex &lt; 1:  <span style="color: #008000;">#</span><span style="color: #008000;"> 左页码偏移后的最小值为1，当max_index&lt;show_count时 多余部分需舍弃</span>
+                lindex = 1<span style="color: #000000;">
+        rindex </span>= r_temp_index - _loffest  <span style="color: #008000;">#</span><span style="color: #008000;"> 右页码 = 临时右页码向右偏移后的值</span>
+
+        <span style="color: #008000;">#</span><span style="color: #008000;"> region 添加按钮</span>
+
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 首页按钮</span>
+        page_first = PageIndex(1, <span style="color: #800000;">'</span><span style="color: #800000;">首页</span><span style="color: #800000;">'</span><span style="color: #000000;">, param)
+        page_first.index </span>= -1  <span style="color: #008000;">#</span><span style="color: #008000;"> 此处设置是为了避免page=1时首页按钮被标记为选中状态的情况，尾页同理</span>
+<span style="color: #000000;">        self.page_index_list.append(page_first)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 上一页按钮，如果当前页是第一页则不显示</span>
+        <span style="color: #0000ff;">if</span> self.current_index &gt; 1<span style="color: #000000;">:
+            page_prev </span>= PageIndex(self.current_index - 1, <span style="color: #800000;">'</span><span style="color: #800000;">上一页</span><span style="color: #800000;">'</span><span style="color: #000000;">, param)
+            self.page_index_list.append(page_prev)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 快速后退跳转按钮</span>
+        <span style="color: #0000ff;">if</span> lindex &gt;<span style="color: #000000;"> lhalf:
+            page_left_skip </span>= PageIndex(lindex - lhalf, <span style="color: #800000;">"</span><span style="color: #800000;">‧‧‧</span><span style="color: #800000;">"</span><span style="color: #000000;">, param)
+            self.page_index_list.append(page_left_skip)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 页码按钮</span>
+        <span style="color: #0000ff;">for</span> index <span style="color: #0000ff;">in</span> range(lindex, rindex + 1<span style="color: #000000;">):
+            page_index </span>=<span style="color: #000000;"> PageIndex(index, str(index), param)
+            self.page_index_list.append(page_index)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 快速前进跳转按钮</span>
+        <span style="color: #0000ff;">if</span> self.max_index - rindex &gt;<span style="color: #000000;"> lhalf:
+            page_left_skip </span>= PageIndex(rindex + lhalf, <span style="color: #800000;">"</span><span style="color: #800000;">‧‧‧</span><span style="color: #800000;">"</span><span style="color: #000000;">, param)
+            self.page_index_list.append(page_left_skip)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 下一页按钮，如果当前页是最后一页则不显示</span>
+        <span style="color: #0000ff;">if</span> self.current_index &lt;<span style="color: #000000;"> self.max_index:
+            page_next </span>= PageIndex(self.current_index + 1, <span style="color: #800000;">'</span><span style="color: #800000;">下一页</span><span style="color: #800000;">'</span><span style="color: #000000;">, param)
+            self.page_index_list.append(page_next)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 尾页按钮</span>
+        page_last = PageIndex(self.max_index, <span style="color: #800000;">'</span><span style="color: #800000;">尾页</span><span style="color: #800000;">'</span><span style="color: #000000;">, param)
+        page_last.index </span>= -1<span style="color: #000000;">
+        self.page_index_list.append(page_last)
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> endregion</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> PageIndex(object):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, index, text, param):
+        self.index </span>=<span style="color: #000000;"> index
+        self.text </span>=<span style="color: #000000;"> text
+        self.url </span>= get_param(param, index)</pre>
+</div>
+<p>　　整个page_service主要分为两个功能，第一是求出组件的最左侧页码和最右侧页码的数值，第二是添加全部按钮给template渲染。</p>
+<p style="text-indent: 2em;">稍微解释一下算法，我首先取到了当前页左侧页码数的最大值，并求出此时最左侧的页码值，如果其小于1 则整个页码组件需要向右侧移动 直至最左侧的页码为1。尔后计算出最右侧的页码，并和最大页码进行比较，如果最右侧页码大于最大页码，则整个页码组件需要向左侧移动。注：由于最左侧页码已经算出，如需左移组件，最左侧页码也应该进行移动，并应注意 最左侧页码不能小于1。</p>
+<p style="text-indent: 2em;">此时我们拿到了分页组件的最左侧页码和最右侧页码，就可以添加按钮并进行渲染了。</p>
+<p style="text-indent: 2em;"><br />
+</p>
+<p style="text-indent: 2em;">
+    如此一来，分页所需要的主要功能就都被我们实现了，而且调用简单，源码简洁，为此我牺牲了扩展性，使其和<span style="display: inline !important; float: none; background-color: transparent; color: #000000; font-family: sans-serif; font-size: 16px; font-style: normal; font-variant: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-decoration: none; text-indent: 32px; text-transform: none; -webkit-text-stroke-width: 0px; word-spacing: 0px;">paginator分页器有一个极为明显的差别，可根据不同场景进行选择。</span>
+</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

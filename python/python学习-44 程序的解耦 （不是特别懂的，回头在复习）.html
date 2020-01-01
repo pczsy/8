@@ -1,0 +1,118 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python学习-44 程序的解耦 （不是特别懂的，回头在复习）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python学习-44 程序的解耦 （不是特别懂的，回头在复习）</center></div><div class='banquan'>原文出处:本文由博客园博主python-小白ljj提供。<br/>
+原文连接:https://www.cnblogs.com/liujinjing521/p/11234476.html</div><br>
+    <div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+
+</span><span style="color: #0000ff;">def</span> file_handler(backend_data,res=None,type=<span style="color: #800000;">'</span><span style="color: #800000;">fetch</span><span style="color: #800000;">'</span>):                  <span style="color: #008000;">#</span><span style="color: #008000;"> 查询功能</span>
+    <span style="color: #0000ff;">if</span> type == <span style="color: #800000;">'</span><span style="color: #800000;">fetch</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+         with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span><span style="color: #000000;">) as  read_f:
+             ret </span>=<span style="color: #000000;"> []
+             tag </span>=<span style="color: #000000;"> False
+             </span><span style="color: #0000ff;">for</span> read_line <span style="color: #0000ff;">in</span><span style="color: #000000;">  read_f:
+                </span><span style="color: #0000ff;">if</span> read_line.strip() ==<span style="color: #000000;"> backend_data:
+                    tag </span>=<span style="color: #000000;"> True
+                    </span><span style="color: #0000ff;">continue</span>
+
+                <span style="color: #0000ff;">if</span> tag <span style="color: #0000ff;">and</span> read_line.startswith(<span style="color: #800000;">'</span><span style="color: #800000;">backend</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+                    </span><span style="color: #0000ff;">break</span>
+
+                <span style="color: #0000ff;">if</span><span style="color: #000000;"> tag:
+                    </span><span style="color: #0000ff;">print</span>(read_line,end=<span style="color: #800000;">''</span><span style="color: #000000;">)
+                    ret.append(read_line)
+         </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ret
+    </span><span style="color: #0000ff;">if</span> type == <span style="color: #800000;">'</span><span style="color: #800000;">change</span><span style="color: #800000;">'</span>:                                          <span style="color: #008000;">#</span><span style="color: #008000;"> 修改功能</span>
+        with open(<span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span><span style="color: #000000;">) as read_f, \
+                open(</span><span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt_new</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">w</span><span style="color: #800000;">'</span><span style="color: #000000;">) as write_f:
+            tag </span>=<span style="color: #000000;"> False
+            has_write </span>=<span style="color: #000000;"> False
+            </span><span style="color: #0000ff;">for</span> read_line <span style="color: #0000ff;">in</span><span style="color: #000000;"> read_f:
+                </span><span style="color: #0000ff;">if</span> read_line.strip() ==<span style="color: #000000;"> backend_data:
+                    tag </span>=<span style="color: #000000;"> True
+                    </span><span style="color: #0000ff;">continue</span>
+                <span style="color: #0000ff;">if</span> tag <span style="color: #0000ff;">and</span> read_line.startswith(<span style="color: #800000;">'</span><span style="color: #800000;">backend</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+                    tag </span>=<span style="color: #000000;"> False
+                </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> tag:
+                    write_f.write(read_line)
+                </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+                    </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> has_write:
+                        </span><span style="color: #0000ff;">for</span> record <span style="color: #0000ff;">in</span><span style="color: #000000;"> res:
+                            write_f.write(record)
+                        has_write </span>=<span style="color: #000000;"> True
+
+        os.rename(</span><span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt.bak</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        os.rename(</span><span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt_new</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        os.remove(</span><span style="color: #800000;">'</span><span style="color: #800000;">test_new.txt.bak</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> fetch(data):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">您输入的信息是：</span><span style="color: #800000;">'</span><span style="color: #000000;">,data)
+    backend_data</span>= <span style="color: #800000;">'</span><span style="color: #800000;">backend %s</span><span style="color: #800000;">'</span> %<span style="color: #000000;"> data
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> file_handler(backend_data)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> change(data):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">开始修改功能</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">用户输入的信息是：</span><span style="color: #800000;">'</span><span style="color: #000000;">,data)
+    backend</span>=data[0][<span style="color: #800000;">'</span><span style="color: #800000;">backend</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    backend_data</span>=<span style="color: #800000;">'</span><span style="color: #800000;">backend %s</span><span style="color: #800000;">'</span> %<span style="color: #000000;">backend
+    old_server_record </span>=<span style="color: #800000;">'</span><span style="color: #800000;">%s server %s %s\n</span><span style="color: #800000;">'</span>%(*9,data[0][<span style="color: #800000;">'</span><span style="color: #800000;">record</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">server</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    new_server_record </span>= <span style="color: #800000;">'</span><span style="color: #800000;">%s server %s %s\n</span><span style="color: #800000;">'</span> % (*9, data[1][<span style="color: #800000;">'</span><span style="color: #800000;">record</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">server</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">您想要修改的记录：</span><span style="color: #800000;">'</span><span style="color: #000000;">,old_server_record)
+    res</span>=<span style="color: #000000;">fetch(backend)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(res)
+    </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> res <span style="color: #0000ff;">or</span> old_server_record <span style="color: #0000ff;">not</span> <span style="color: #0000ff;">in</span><span style="color: #000000;"> res:
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">您要修改的信息不存在</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+        index </span>=<span style="color: #000000;"> res.index(old_server_record)
+        res[index]</span>=<span style="color: #000000;">new_server_record
+
+    res.insert(0,</span><span style="color: #800000;">'</span><span style="color: #800000;">%s\n</span><span style="color: #800000;">'</span> %<span style="color: #000000;">backend_data)
+    file_handler(backend_data,res</span>=res,type=<span style="color: #800000;">'</span><span style="color: #800000;">change</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span>== <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    msg</span>=<span style="color: #800000;">'''</span><span style="color: #800000;">
+    1：查询
+    2：修改
+    5：退出
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    msg_dic</span>=<span style="color: #000000;">{
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">1</span><span style="color: #800000;">'</span><span style="color: #000000;">:fetch,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">2</span><span style="color: #800000;">'</span><span style="color: #000000;">:change
+    }
+    </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(msg)
+        choose </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请输入您要的选项：</span><span style="color: #800000;">'</span><span style="color: #000000;">).strip()
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> choose: <span style="color: #0000ff;">continue</span>
+        <span style="color: #0000ff;">if</span> choose == <span style="color: #800000;">'</span><span style="color: #800000;">5</span><span style="color: #800000;">'</span>:<span style="color: #0000ff;">break</span><span style="color: #000000;">
+
+        data </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请输入您的信息：</span><span style="color: #800000;">'</span><span style="color: #000000;">).strip()
+        </span><span style="color: #0000ff;">if</span> choose != <span style="color: #800000;">'</span><span style="color: #800000;">1</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+            data </span>=<span style="color: #000000;"> eval(data)
+
+
+        res </span>= msg_dic[choose](data)            <span style="color: #008000;">#</span><span style="color: #008000;"> 查询到的结果放到一个列表里输出</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">最终的结果：</span><span style="color: #800000;">'</span>,res)</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

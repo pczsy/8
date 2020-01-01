@@ -1,0 +1,300 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python基础（十八）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python基础（十八）</center></div><div class='banquan'>原文出处:本文由博客园博主天狼大大提供。<br/>
+原文连接:https://www.cnblogs.com/tianlangdada/p/11629672.html</div><br>
+    <h1 id="今日主要内容">今日主要内容</h1>
+<ul>
+<li>包</li>
+</ul>
+<h1 id="一包">一、包</h1>
+<h2 id="一什么是包">（一）什么是包</h2>
+<ul>
+<li>只要是含有<code>__init__.py</code>文件的文件夹就是一个包</li>
+<li>包的本质其实就是一个文件夹，利用包将不同功能的模块组织起来，以此来提高程序的结构性和可维护性</li>
+<li><strong>包是用来导入的，不是用来执行的</strong>，所以它和软件开发规范分文件管理还是有区别的，一个是项目，一个是用来导入的包</li>
+<li>正因为包是用来导入的，所以运行文件一定要放在包的外面</li>
+</ul>
+<h2 id="二创建一个包">（二）创建一个包</h2>
+<ul>
+<li><p>利用代码创建一个包</p>
+<pre><code><code>import os
+os.makedirs(&#39;glance/api&#39;)
+os.makedirs(&#39;glance/cmd&#39;)
+os.makedirs(&#39;glance/db&#39;)
+l = []
+l.append(open(&#39;glance/__init__.py&#39;,&#39;w&#39;))
+l.append(open(&#39;glance/test.py&#39;,&#39;w&#39;))
+l.append(open(&#39;glance/api/__init__.py&#39;,&#39;w&#39;))
+l.append(open(&#39;glance/api/policy.py&#39;,&#39;w&#39;))
+l.append(open(&#39;glance/api/versions.py&#39;,&#39;w&#39;))
+l.append(open(&#39;glance/cmd/__init__.py&#39;,&#39;w&#39;))
+l.append(open(&#39;glance/cmd/manage.py&#39;,&#39;w&#39;))
+l.append(open(&#39;glance/db/models.py&#39;,&#39;w&#39;))
+map(lambda f:f.close() ,l)</code></pre>
+<ul>
+<li>下述所有内容，均以此图结构为基础</li>
+</ul>
+<p><img src="./images/Python基础（十八）0.png" /></p></li>
+</ul>
+<h2 id="三__init__.py文件">（三）<code>__init__.py</code>文件</h2>
+<ul>
+<li><p>在我们导入包的时候，其实本质上导入的就是<code>__init__.py</code>文件，解释器会自动执行<code>__init__.py</code>文件中的内容</p>
+<pre><code><code># glance/__init__.py
+print(&quot;这里是glance下的__init__.py文件&quot;)
+
+# run.py
+import glance
+
+运行结果：
+这里是glance下的__init__.py文件</code></pre></li>
+</ul>
+<h2 id="四包的导入">（四）包的导入</h2>
+<ul>
+<li>包的导入，须注意两点内容：
+<ul>
+<li>导入时无论是使用<code>import</code>还是使用<code>from xxx import xxx</code>导入，<strong>点的前面必须是一个包</strong></li>
+<li>使用<code>from xxx import xxx</code>导入时，import前可以出现点，import后不能出现点</li>
+</ul></li>
+</ul>
+<ol>
+<li><p>常规导入</p>
+<ul>
+<li>import导入</li>
+</ul>
+<pre><code><code># policy.py
+def policy_func():
+ print(&quot;这是policy文件中的函数&quot;)
+
+# run.py
+import glance.api.policy
+
+glance.api.policy.policy_func()
+
+运行结果：
+这是policy文件中的函数  # 成功导入</code></pre>
+<ul>
+<li>from import导入</li>
+</ul>
+<pre><code><code># policy.py
+def policy_func():
+ print(&quot;这是policy文件中的函数&quot;)
+
+# run.py
+from glance.api.policy import policy_func
+
+policy_func()
+
+运行结果：
+这是policy文件中的函数  # 成功导入</code></pre></li>
+<li><p>包内部之间的导入：</p>
+<ul>
+<li><p>包内部之间的相互引用，只能用绝对导入和相对导入，不能直接导入，比如<code>policy.py</code>文件需要导入<code>versions.py</code>文件中的函数，如果直接import导入会报找不到该模块的错误</p>
+<ul>
+<li>包内部互相引用的时候不能直接导入</li>
+</ul>
+<pre><code><code># versions.py
+def versions_func():
+    print(&quot;这是versions文件中的函数&quot;)
+
+# policy.py
+import versions  # 直接导入versions模块，在外面的run文件中运行，就无法找到versions模块
+
+def policy_func():
+    versions.versions_func()
+    print(&quot;这是policy文件中的函数&quot;)
+
+# run.py
+from glance.api import policy
+
+policy.policy_func()
+
+运行结果：
+ModuleNotFoundError: No module named &#39;versions&#39;</code></pre>
+<ul>
+<li>原因分析：如果直接在policy文件中运行程序，完全没有问题，因为此时policy文件的模块查找路径中包含versions模块，但是**包是用来导入的，如果在包外的run文件中导入policy模块，此时模块查找路径就变为了run文件所在的路径，所以当policy文件导入versions模块时，路径下并没有versions模块，所以找不到该模块</li>
+</ul></li>
+<li><p>绝对导入：</p></li>
+</ul>
+<pre><code><code># versions.py
+def versions_func():
+    print(&quot;这是versions文件中的函数&quot;)
+
+# policy.py
+from glance.api import versions
+
+def policy_func():
+    versions.versions_func()
+    print(&quot;这是policy文件中的函数&quot;)
+
+# run.py
+from glance.api import policy
+
+policy.policy_func()
+
+运行结果：
+这是versions文件中的函数
+这是policy文件中的函数</code></pre>
+<ul>
+<li>相对导入：</li>
+</ul>
+<pre><code><code># versions.py
+def versions_func():
+    print(&quot;这是versions文件中的函数&quot;)
+
+# policy.py
+from . import versions
+
+def policy_func():
+    versions.versions_func()
+    print(&quot;这是policy文件中的函数&quot;)
+
+# run.py
+from glance.api import policy
+
+policy.policy_func()
+
+运行结果：
+这是versions文件中的函数
+这是policy文件中的函数</code></pre>
+<ul>
+<li>只要<strong>使用了相对导入</strong>的模块，<strong>只能作为模块使用</strong>，不能作为脚本（终端中直接运行的文件成为脚本）使用，说白了就是不能直接运行</li>
+</ul>
+<pre><code><code># versions.py
+def versions_func():
+    print(&quot;这是versions文件中的函数&quot;)
+
+# policy.py
+from . import versions
+
+def policy_func():
+    versions.versions_func()
+    print(&quot;这是policy文件中的函数&quot;)
+
+运行结果：
+ImportError: cannot import name &#39;versions&#39;</code></pre></li>
+<li><p>单独导入包，并使用包内的包或模块</p>
+<ul>
+<li>单独导入一个包，其本质上导入的只是<code>__init__.py</code>文件，包中其他的文件并没有被导入</li>
+</ul>
+<pre><code><code># policy.py
+def policy_func():
+    print(&quot;这是policy文件中的函数&quot;)
+
+# run.py
+import glance  # 只导入了__init__.py文件
+
+glance.api.policy.policy_func()  # 并不能使用
+
+运行结果：
+AttributeError: module &#39;glance&#39; has no attribute &#39;policy&#39;
+</code></pre>
+<ul>
+<li>此时就要利用到<code>__init__.py</code>文件了，<code>__init__.py</code>文件在包中起到了交接管理的作用，可以在<code>__init__.py</code>文件中导入每个子文件，也可以控制其是否能被导入，所以每一个包中必须要有<code>__init__.py</code>文件</li>
+</ul>
+<pre><code><code># policy.py
+def policy_func():
+    print(&quot;这是policy文件中的函数&quot;)
+
+# glance/__init__.py
+from . import api
+
+# glance/api/__init__.py
+from . import policy
+
+# run.py
+import glance
+
+glance.api.policy.policy_func()
+
+运行结果：
+这是policy文件中的函数
+</code></pre>
+<ul>
+<li>直接调用模块中的方法</li>
+</ul>
+<pre><code><code># policy.py
+def policy_func():
+    print(&quot;这是policy文件中的函数&quot;)
+
+# glance/__init__.py
+from .api import *
+
+# glance/api/__init__.py
+from .policy import *
+
+# run.py
+import glance
+
+glance.policy_func()
+
+运行结果：
+这是policy文件中的函数
+</code></pre>
+<ul>
+<li><p>还可以通过<code>__all__</code>来控制模块和模块中函数的导入</p>
+<ul>
+<li>控制模块导入</li>
+</ul>
+<pre><code><code># glance/__init__.py
+from .api import *
+
+# glance/api/__init__.py
+__all__ = [&quot;versions&quot;]  # 只能导入versions，其余api下模块都不能被导入
+
+# run.py
+import glance
+
+glance.policy
+
+运行结果：
+AttributeError: module &#39;glance&#39; has no attribute &#39;policy&#39;
+</code></pre>
+<ul>
+<li>控制方法导入</li>
+</ul>
+<pre><code><code># policy.py
+def policy_func():
+    print(&quot;这是policy文件中的func&quot;)
+
+def policy_foo():
+   print(&quot;这是policy文件中的foo&quot;)
+
+# glance/__init__.py
+from .api import *
+
+# glance/api/__init__.py
+from .policy import *
+__all__ = [&quot;policy_foo&quot;]  # 控制只能导入foo函数，其余函数都不能被导入
+
+# run.py
+import glance
+
+glance.policy_func()
+
+运行结果：
+AttributeError: module &#39;glance&#39; has no attribute &#39;policy_func&#39;
+</code></pre></li>
+</ul></li>
+</ol>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

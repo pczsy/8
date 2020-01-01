@@ -1,0 +1,144 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修爬虫selenium中动作链接ActionChains' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>爬虫selenium中动作链接ActionChains</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11777644.html</div><br>
+    <h2 id="一.基本语法">一.基本语法</h2>
+<ul>
+<li>生成一个动作actions=ActionChains(driver)</li>
+<li>动作添加方法actions.方法</li>
+<li>执行 actions.perform()</li>
+</ul>
+<h2 id="二.方法列表">二.方法列表</h2>
+<pre><code><code>click(on_element=None) ——单击鼠标左键
+click_and_hold(on_element=None) ——点击鼠标左键，不松开
+context_click(on_element=None) ——点击鼠标右键
+double_click(on_element=None) ——双击鼠标左键
+drag_and_drop(source, target) ——拖拽到某个元素然后松开
+drag_and_drop_by_offset(source, xoffset, yoffset) ——拖拽到某个坐标然后松开
+key_down(value, element=None) ——按下某个键盘上的键
+key_up(value, element=None) ——松开某个键
+move_by_offset(xoffset, yoffset) ——鼠标从当前位置移动到某个坐标
+move_to_element(to_element) ——鼠标移动到某个元素
+move_to_element_with_offset(to_element, xoffset, yoffset) ——移动到距某个元素（左上角坐标）多少距离的位置
+perform() ——执行链中的所有动作
+release(on_element=None) ——在某个元素位置松开鼠标左键
+send_keys(*keys_to_send) ——发送某个键到当前焦点的元素
+send_keys_to_element(element, *keys_to_send) ——发送某个键到指定元素</code></pre>
+<h2 id="三.拖动实现滑块验证会用到移动">三.拖动实现(滑块验证会用到移动)</h2>
+<p>两种实现方式</p>
+<pre><code><code>#前面无聊的代码我就略咯
+#方式一：
+actions=ActionChains(driver) #拿到动作链对象
+actions.drag_and_drop(sourse,target).perform() #其中sourse为起始元素对象，target为结束位置元素对象
+#一般用于把一个图片从一个地方拖到另外个元素地方
+
+#方式二:
+actions=ActionChains(driver) #拿到动作链对象
+actions.click_and_hold(移动的对象).perform()
+actions.move_by_offset(x,y).perform()   #x为移动水平距离,y为移动垂直距离,正负代表左右或者上下
+actions.release().perform()  #松开,这一步别忘了</code></pre>
+<h2 id="四.类人滑动滑块">四.类人滑动滑块</h2>
+<p>给个段代码哈</p>
+<pre><code><code>def get_stacks(distance):     #distance为滑动的总长度
+    distance += 20
+
+    &#39;&#39;&#39;
+    匀加速\减速运行
+        v = v0 + a * t
+
+    位移:
+    s = v * t + 0.5 * a * (t**2)
+    &#39;&#39;&#39;
+
+    # 初速度
+    v0 = 0
+
+    # 加减速度列表
+    a_list = [20,40, 5]
+
+    # 时间
+    t = 0.1
+
+    # 初始位置
+    s = 0
+
+    # 向前滑动轨迹
+    forward_stacks = []
+
+    mid = distance * 3 / 5
+
+    while s &lt; distance:
+        if s &lt; mid:
+            a = a_list[random.randint(0, 1)]
+
+        else:
+            a = -a_list[2]
+
+        v = v0
+
+        stack = v * t + 0.5 * a * (t ** 2)
+
+        # 每次拿到的位移
+        stack = round(stack)
+
+        s += stack
+
+        v0 = v + a * t
+
+        forward_stacks.append(stack)
+
+    back_stacks = [-1, -1, -2, -3, -2, -3, -2, -2, -3, -1]
+
+    return {&#39;forward_stacks&#39;: forward_stacks, &#39;back_stacks&#39;: back_stacks}
+
+
+stacks = get_stacks(60)
+print(stacks)
+forward_stacks = stacks[&#39;forward_stacks&#39;]
+back_stacks = stacks[&#39;back_stacks&#39;]
+
+slider_button = driver.find_element_by_class_name(&#39;滑动东西的类名&#39;)
+
+
+ActionChains(driver).click_and_hold(slider_button).perform()
+
+
+for forward_stack in forward_stacks:
+    ActionChains(driver).move_by_offset(xoffset=forward_stack, yoffset=0).perform()
+
+for back_stack in back_stacks:
+    ActionChains(driver).move_by_offset(xoffset=back_stack, yoffset=0).perform()
+
+time.sleep(0.3)
+ActionChains(driver).move_by_offset(xoffset=5, yoffset=0).perform()  
+time.sleep(0.2)
+ActionChains(driver).move_by_offset(xoffset=-5, yoffset=0).perform()
+time.sleep(0.1)
+ActionChains(driver).move_by_offset(xoffset=1, yoffset=0).perform()  
+time.sleep(0.1)
+ActionChains(driver).move_by_offset(xoffset=-1, yoffset=0).perform()
+
+ActionChains(driver).release().perform()
+</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

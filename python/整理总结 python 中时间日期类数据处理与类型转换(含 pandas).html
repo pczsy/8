@@ -1,0 +1,241 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修整理总结 python 中时间日期类数据处理与类型转换(含 pandas)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>整理总结 python 中时间日期类数据处理与类型转换(含 pandas)</center></div><div class='banquan'>原文出处:本文由博客园博主刘娟娟PRESSone提供。<br/>
+原文连接:https://www.cnblogs.com/jjliu/p/11603592.html</div><br>
+    <p>我自学 <code>python</code> 编程并付诸实战，迄今三个月。 <code>pandas</code>可能是我最高频使用的库，基于它的易学、实用，我也非常建议朋友们去尝试它。——尤其当你本身不是程序员，但多少跟表格或数据打点交道时，<code>pandas</code> 比 <code>excel</code> 的 <code>VBA</code> 简单优雅多了。</p>
+<p><code>pandas</code> 善于处理<code>表格类数据</code>，而我日常接触的数据天然带有时间日期属性，比如用户行为日志、爬虫爬取到的内容文本等。于是，使用 <code>pandas</code> 也就意味着相当频繁地与时间日期数据打交道。这篇笔记将从我的实战经验出发，整理我常用的时间日期类数据处理、类型转换的方法。</p>
+<p>与此相关的三个库如下。</p>
+<pre><code><code>
+import time
+import datetime
+import pandas as pd
+</code></pre>
+<p>其中，<code>time</code> 和<code>datetime</code>都是 <code>python</code> 自带的，<code>pandas</code>则是一个第三方库。换言之，前两者无需额外安装，第三方库则需要通过<code>pip install pandas</code>命令行自行安装。如何检查自己是否安装了某个库，如何安装它，又如何查看和更新版本，对新手来说是一个比较大的话题，也是基础技能，值得另外整理一篇笔记，就不在这里占篇幅了。当然，如果你不想自己本地折腾，也可电脑浏览器访问<a href="https://xue.cn" class="uri">https://xue.cn</a> 这样的网站，网页上直接写代码并运行它们。</p>
+<h2 id="一time模块">一、time模块</h2>
+<p>对<code>time</code>模块，我最常用到的功能就三个：</p>
+<ul>
+<li>指定程序休眠；</li>
+<li>获取当前时间戳；</li>
+<li>时间戳与本地时间的互相转换</li>
+</ul>
+<h3 id="time.sleeps-指定程序休眠-s-秒"><code>time.sleep(s)</code> 指定程序休眠 s 秒</h3>
+<p>指定程序休眠时间，通常是在长时间运行的循环任务中进行。比如爬虫任务，控制读取网页的时间间隔；自循环任务的时间间隔，调用浏览器打开网页的时间间隔等等。</p>
+<p>先用两个打印语句，辅助观察和理解<code>time.sleep()</code>的效果：</p>
+<pre><code><code>print(datetime.datetime.now())
+time.sleep(5)
+print(datetime.datetime.now())</code></pre>
+<p>至于长时间运行的循环任务，我通常是把核心业务逻辑封装好，利用<code>jupyter lab</code>自带的多进程特定，建一个 <code>notebook</code> 放入下面这个函数去持续运行。</p>
+<pre><code><code>
+def repeat_myself(how_many_times = 10):
+    print(&#39;--------&#39;,how_many_times,&#39;----------&#39;)
+    # 被封装的核心代码
+    your_main_def() 
+
+    # 自循环减 1 ；如果剩余次数是0，则终止自循环
+    how_many_times += -1
+    if how_many_times == 0:
+        print(datetime.datetime.now(),&#39;stop it.&#39;)
+        return
+
+    # 每次调用设定一个时间间隔
+    print(datetime.datetime.now(),&#39;have a rest&#39;)
+    how_long = random.randint(30,120)
+    time.sleep(how_long)
+    return repeat_myself(how_many_times)
+
+repeat_myself(12)
+</code></pre>
+<h3 id="time.time获取当前时间戳"><code>time.time()</code>获取当前时间戳</h3>
+<p>最初我认为无需急于掌握时间戳这个技能点，但实战中，1) 我的爬虫有时爬取到时间戳类型的数据，为了易读，要把它转换为正常人能看懂的方式；2) 使用 <code>mysql</code> 时我关心存储所占用的空间以及读写效率，并获知一个时间数据存成 <code>char</code> 不如时间戳更节省空间。好吧，实战需要，那么赶紧掌握起这个小技能吧。</p>
+<p>先了解下如何生成时间戳。通过<code>time.time()</code>得到的时间戳，是一个有着10位整数位 + 6位小数位的浮点数，可根据需要简单运算转换为需要的 10、13、16 位整数时间戳。</p>
+<pre><code><code># 获取当前时间戳
+
+# 值是 1569642653.1041737 ,float
+a = time.time()
+# 1569642653，得到 10位时间戳，int
+b = int(a)
+# 1569642653104，得到 13位时间戳，int
+c = int(a * 1000)
+# 1569642653104173，得到 16位时间戳，int
+d = int(a * 1000000)
+</code></pre>
+<p>接下来，了解一下时间戳和人类易读的时间之间的转换。</p>
+<h3 id="时间戳与人类易读的时间互相转换">时间戳与人类易读的时间互相转换</h3>
+<p>如上面所示，时间戳是一个<code>float</code>或<code>int</code>类型的数值，至少有 10 位整数。把时间戳转换为人类易读的时间，用到的是<code>localtime()</code>，与其相反的是<code>mktime()</code>能把人类易读的时间转换为时间戳。</p>
+<pre><code><code>
+# 时间戳转换为人类易读的时间
+# 结果是：time.struct_time(tm_year=2019, tm_mon=9, tm_mday=28, tm_hour=12, tm_min=12, tm_sec=1, tm_wday=5, tm_yday=271, tm_isdst=0)
+# 数据类型是 time.struct_time
+e = time.localtime(a)
+f = time.localtime(b)
+g = time.localtime(c//1000)
+h = time.localtime(d//1000000)
+
+# 人类易读的时间转换为时间戳
+# 结果是：1569643921.0,float
+i = time.mktime(e)
+j = time.mktime(f)
+k = time.mktime(g)
+l = time.mktime(h)
+</code></pre>
+<p>经<code>type()</code>检查，<code>localtime()</code> 得到的结果，是 <code>time.struct_time</code> 类型，直观可见这个类型对人类依然不是最友好的。最友好的表达将用到 <code>strftime</code> 和 <code>strptime</code> 这两个方法，处理 <code>time.struct_time</code> 与<code>string</code>字符串 两个类型的互换。</p>
+<pre><code><code>
+# 把 struct_time 转换为指定格式的字符串
+# &#39;2019-09-28 12:12:01 Saturday&#39;
+good = time.strftime(&quot;%Y-%m-%d %H:%M:%S %A&quot;, e)
+
+# 把字符串转换为 struct_time
+# 结果是：time.struct_time(tm_year=2019, tm_mon=9, tm_mday=28, tm_hour=12, tm_min=12, tm_sec=1, tm_wday=5, tm_yday=271, tm_isdst=-1)
+nice = time.strptime(good,&quot;%Y-%m-%d %H:%M:%S %A&quot;)
+</code></pre>
+<p>在我的笔记中，仅整理总结自己常用的方法，至于我自己从未用到或很少用到的方法，并不罗列其中。如有小伙伴希望系统完整地了解，可直接搜：<code>time site:python.org</code> 或点击<a href="https://docs.python.org/zh-cn/3/library/time.html">访问官方文档</a> 能查看完整说明。</p>
+<h2 id="二datetime-模块">二、datetime 模块</h2>
+<p>datetime获取到的时间数据是非常易读的，在和人交互时，比 time 更好用一些。我通常把 <code>datetime</code> 用于以下 2 个场景。</p>
+<h3 id="场景alog时间戳打印信息监控代码运行情况">场景A：log时间戳，打印信息监控代码运行情况</h3>
+<p>新手写代码，变相就是写bug，以我自己来说，使用不熟模块或写新业务时，写代码和调试修复错误，占用时间常常各半。采用 <code>jupter lab</code>的 notebook，让写代码和调试方便许多，但依然需要 <code>print()</code> 打印信息方便监控代码运行情况。比如下方这个代码片段：</p>
+<pre><code><code># 显示效果：2019-09-28 12:44:36.574576 df_rlt ...
+print(datetime.datetime.now(),&#39;df_rlt ...&#39;)
+for one in df_rlt.values:
+    print(datetime.datetime.now(),one,&#39;for circle ...&#39;)
+    try:
+        sql_insert = &#39;INSERT INTO questions(q_id,q_title,q_description,q_keywords,q_people,q_pageview,time) VALUES( &quot;&#39;\
+            + str(quesition_id) + &#39;&quot;, &quot;&#39; + str(one[0])+ &#39;&quot;, &quot;&#39; + str(one[1]) + &#39;&quot;, &quot;&#39; + str(one[2]) + &#39;&quot;, &quot;&#39; \
+            + str(one[3]) + &#39;&quot;, &quot;&#39; + str(one[4]) + &#39;&quot;, &quot;&#39; + str(datetime.datetime.now()) + &#39;&quot;);&#39; 
+        sql_update = &#39;update topic_monitor SET is_title=&quot;1&quot; where question_id = &quot;&#39; + str(quesition_id) + &#39;&quot;;&#39;
+        cursor.execute(sql_insert)
+        cursor.execute(sql_update)
+        conn.commit()
+        print(datetime.datetime.now(),&#39;sql_insert ...&#39;)
+    except:
+        print(datetime.datetime.now(),&#39;sql_insert error...&#39;)
+        continue
+</code></pre>
+<h3 id="场景b文件名时间戳文件名中增加当前日期">场景B：文件名时间戳，文件名中增加当前日期</h3>
+<p>文件名中增加当前日期作为参数，既避免文件相互覆盖（比如数据每天更新，每天导出一次），也方便直观地查看文件版本。当然啦，如果处理的是超级频繁导出的文件，精确到天并不满足需求，可自行精确到时分秒，或直接用<code>int(time.time())</code>时间戳作为文件名中的参数。</p>
+<pre><code><code># 效果：&#39;d:/out_put/xuecn_comments_statistics_2019-09-28.xlsx&#39;
+comms_file = output_path + &#39;xuecn_comments_statistics_&#39; + str(datetime.datetime.now())[:10] + &#39;.xlsx&#39;</code></pre>
+<p>直接搜：<code>datetime site:python.org</code> 或者点击访问 <a href="https://docs.python.org/zh-cn/3/library/datetime.html">python 官方文档</a>查看超多方法说明。</p>
+<p>与官方文档对比，我已经用到的知识点真是九牛一毛。不过也没关系，从需要和兴趣出发就好，没必要硬着头皮把自己打造成移动字典，很多方法呢都是用多了自然记住了，无需反复死记硬背。</p>
+<h2 id="三pandas-中的时间处理">三、pandas 中的时间处理</h2>
+<p>我写这篇笔记，本就是奔着精进 <code>pandas</code> 来的，前面花了很大篇幅先整理了<code>time</code>和<code>datetime</code>这些基础功，现在进入重头戏，即 <code>pandas</code> 中与时间相关的时间处理。</p>
+<p>前面两个部分举例，处理的均是单个值，而在处理 <code>pandas</code> 的 <code>dataframe</code> 数据类型时，事情会复杂一点，但不会复杂太多。我在实战中遇到的情况，总结起来无非两类：</p>
+<ul>
+<li>数据类型的互换</li>
+<li>索引与列的互换</li>
+</ul>
+<p>需要留意的是，数据类型应该靠程序判断，而非我们人肉判断。<code>python pandas</code> 判断数据类型，常用<code>type()</code> 和 <code>df.info()</code> 这两个方法。</p>
+<h3 id="首先我们构造一个简单的数据示例-df">首先，我们构造一个简单的数据示例 df</h3>
+<p>构造这个实例，只是为了方便后面的展开。构造一个 <code>dataframe</code> 的方法有非常多。这里就不展开了。</p>
+<pre><code><code>import random
+df = pd.DataFrame({
+    &#39;some_data&#39; : [random.randint(100,999) for i in range(1,10)],
+    &#39;a_col&#39; : &#39;2019-07-12&#39;,
+    &#39;b_col&#39; : datetime.datetime.now().date(),
+    &#39;c_col&#39; : time.time()},
+    index=range(1,10))
+</code></pre>
+<h3 id="然后我们逐项查看它的数据类型">然后，我们逐项查看它的数据类型</h3>
+<p>刚学着用<code>pandas</code>经常会因为想当然地认为某个对象是某个数据类型，从而代码运行报错。后来学乖，特别留心数据类型。</p>
+<p>某个数据是什么类型，如何查看，某个方法对数据类型有什么要求，如何转换数据类型，这些都是实战中特别关心的。</p>
+<pre><code><code># pandas.core.frame.DataFrame
+type(df)
+# pandas.core.series.Series
+type(df[&#39;some_data&#39;])
+# numpy.ndarray
+type(df[&#39;some_data&#39;].values)
+# numpy.int64
+type(df[&#39;some_data&#39;].values[0])
+# str
+type(df[&#39;a_col&#39;].values[0])
+# datetime.date
+type(df[&#39;b_col&#39;].values[0])
+# numpy.float64
+type(df[&#39;c_col&#39;].values[0])
+
+df.info()
+&quot;&quot;&quot;
+&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+RangeIndex: 9 entries, 1 to 9
+Data columns (total 4 columns):
+some_data    9 non-null int64
+a_col        9 non-null object
+b_col        9 non-null object
+c_col        9 non-null float64
+dtypes: float64(1), int64(1), object(2)
+memory usage: 420.0+ bytes
+&quot;&quot;&quot;
+</code></pre>
+<h3 id="为什么要转换数据类型有什么用途">为什么要转换数据类型，有什么用途</h3>
+<p>为什么要把时间日期之类的数据转换为 <code>pandas</code> 自带的 <code>datetime64</code> 类型呢？这当然不是强迫症整洁癖，而且即便不做转换也不会带来任何报错。</p>
+<p>最重要的原因是，数据分析将会高频用到基于时间的统计，比如：每天有多少用户注册、登录、付费、留言……产品运营通常按日统计，把<code>dt.date</code>改成<code>dt.week</code>、<code>dt.month</code>、<code>dt.hour</code>就能输出周统计、月统计、分时统计……当然官方文档介绍的方法还有更多，我提到的仅是自己高频使用的方法。</p>
+<pre><code><code>
+df.groupby(df[&#39;c_col&#39;].dt.date).some_data.agg(&#39;sum&#39;)
+</code></pre>
+<p>次要的原因是，输出数据到 excel 表格中发给其它同事时，咱们还是得考虑文件的易读、简洁吖。比如，时间戳得转换为人能看懂的文本，比如仅显示日期，无需把后面时分秒之类的冗余数据也显示出来等等。</p>
+<p>通过不同方式拿到的数据类型，通常相互之间并不一致，而我们想要使用某些方法提高生产力，必须遵循该方法所要求的数据类型。于是数据类型转换就成了刚需。</p>
+<h3 id="如何转换为-pandas-自带的-datetime-类型">如何转换为 pandas 自带的 datetime 类型</h3>
+<p>在上方示例中，肉眼可见 <code>a_col</code>、<code>b_col</code> 这两列都是日期，但 <code>a_col</code> 的值其实是<code>string 字符串</code>类型，<code>b_col</code>的值是<code>datatime.date</code>类型。想要用<code>pandas</code> 的按时间属性分组的方法，前提是转换为 <code>pandas</code> 自己的 <code>datetime</code>类型。</p>
+<p>转换方法是一致的：</p>
+<pre><code><code># 字符串类型转换为 datetime64[ns] 类型
+df[&#39;a_col&#39;] = pd.to_datetime(df[&#39;a_col&#39;])
+# datetime.date 类型转换为 datetime64[ns] 类型
+df[&#39;b_col&#39;] = pd.to_datetime(df[&#39;b_col&#39;])
+# 时间戳（float） 类型转换为 datetime64[ns] 类型
+df[&#39;c_col&#39;] = pd.to_datetime(df[&#39;c_col&#39;].apply(lambda x:time.strftime(&#39;%Y-%m-%d %H:%M:%S&#39;,time.localtime(x))))
+
+# 查看转换后的属性
+df.info()
+&quot;&quot;&quot;
+&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+RangeIndex: 9 entries, 1 to 9
+Data columns (total 4 columns):
+some_data    9 non-null int64
+a_col        9 non-null datetime64[ns]
+b_col        9 non-null datetime64[ns]
+c_col        9 non-null datetime64[ns]
+dtypes: datetime64[ns](3), int64(1)
+memory usage: 420.0 bytes
+&quot;&quot;&quot;
+</code></pre>
+<p>其中，难点是 <code>c_col</code> 这列。其实不难，只是几个嵌套，显得有点复杂而已：</p>
+<ol>
+<li>y = <code>time.localtime(x)</code>，把 x 从时间戳（10个整数位+6个小数位的那串数字）类型转换为<code>struct_time</code></li>
+<li>z = <code>time.strftime('%Y-%m-%d %H:%M:%S',y)</code> 把上一步得到的 <code>struct_time</code> 转换为 字符串</li>
+<li><code>lambda x:z</code> 匿名函数，输入一个值x，得到字符串z</li>
+<li><code>df['c_col'].apply()</code> 对整列每个值做上述匿名函数所定义的运算，完成后整列值都是字符串类型</li>
+<li><code>pd.to_datetime()</code> 把整列字符串转换为 pandas 的 datetime 类型，再重新赋值给该列（相当于更新该列）</li>
+</ol>
+<p>我其实非常希望有个过来人告诉我，这个知识点用的频繁吗，在什么时期是否应该掌握？于是我自己写的笔记，通常都会留意分享自己实战过来的这个判断。当然啦，每个人实战的方向不太一样，大家可作参考，无需完全照搬。具体说来：</p>
+<ul>
+<li>第 1、2 步是第一部分 <code>time</code> 模块总结到基础技能。</li>
+<li>第 3 步的匿名函数 <code>lambda</code> 是相当风骚的知识点，<a href="https://xue.cn"><code>xue.cn 《自学是门手艺》</code></a>有一节专门讲到它，建议掌握。</li>
+<li>第 4 步结合匿名函数<code>lambda</code>，是对 <code>dataframe</code> 整列进行统一操作的重要技能点，多用几次就熟练了。</li>
+<li>第 5 步 无需死记硬背。为啥我总说 <code>pandas</code> 易学好用呢？因为它的很多方法，都能直接见文生义，几乎没有记忆负担。</li>
+</ul>
+<p>关于时间日期处理的<a href="https://pandas.pydata.org/pandas-docs/version/0.22.0/10min.html">pandas 官方文档</a>篇幅也挺长的，没中文版，大家想要系统了解，直接点开查阅吧~</p>
+<h3 id="关于索引与列的互换">关于索引与列的互换</h3>
+<p>不管何种原因导致，通常使用 <code>pandas</code> 时会经常对索引与列进行互换。比如把某列时间数据设为索引，把时间索引设为一列……这些操作并没有额外的特别之处，都统一在<code>pandas 如何进行索引与列的互换</code> 这个技能点之下。限于篇幅，我这里就不展开啦。不过索引与列的转换是高频操作，值得另写一篇笔记。</p>
+<p>有一点反复强调都不过为，即，我的笔记仅记录自己实战中频繁遇到的知识技能，并非该模块全貌。如需系统掌握或遇到笔记之外的疑问，请善用搜索技能哟：<code>你的关键词们 site:python.org</code>。</p>
+<p>如果我的整理带给你帮助，请点个赞鼓励我继续分享。如需勘误请留言，或挪步到<a href="https://github.com/liujuanjuan1984/ucanuupnobb/issues">我的 github 提issues</a>。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,221 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修django 商城项目之购物车以及python中的一些redis命令' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>django 商城项目之购物车以及python中的一些redis命令</center></div><div class='banquan'>原文出处:本文由博客园博主志浩hzh提供。<br/>
+原文连接:https://www.cnblogs.com/HZHST/p/11334636.html</div><br>
+    <p><span style="font-size: 14pt;">最近在用django restframe框架做一个商城项目，有一个关于购物车的业务逻辑，是用cookie和redis存储的购物车信息，在这里记录一下。</span></p>
+<p><span style="font-size: 18.6667px;">完成一个商城项目，如果不做一个购物车，就是十分可惜的。我们先来分析一下业务逻辑，参照，京东、淘宝等大型电商网站，可以发现，对于登录用户以及未登录用户，都是可以使用购物车功能。所以首先我们将这两种情况区分开来，采用不同的存储方式。先来看一下已登录用户，购物车其实类似我们在游览网页时的收藏功能，用于收藏用户喜欢的一些商品，用户使用频率较高，所以我们应该优先使用内存型的数据库redis进行存储，这样查询起来会更快。确定了使用什么数据库，我们还要在思考一下用什么形式存储数据。我使用的是2.x版本的redis，共有string,hash,set,zset,list等几种存储格式。hash类似python中的字典，其他几种格式也和python中对应的list，set，string类似。需要额外注意的是，redis中所有数据都是以bytes方式存储。再来看一下我们的需求，对于一个购物车，我们可以看到商品以及商品数量，以及是否勾选商品。对于商品，我们可以只存储其商品id，需要用到商品信息时在进行查询，而对于勾选状态，我们则需要用一个额外的字段存储，由于每个人的购物车都应该是独立的个体，所有我们可以用用户的id进行存储，我们会发现要存储上述信息，我们只使用一种存储格式是很难完成的，所以我们可以考虑用两个分别存储。商品及数量我们可以考虑使用hash格式进行存储，用key存储商品id，value存储商品数量，用户id进行区分不同的购物车，而对于勾选状态，我们可以用set进行存储，对于不同的商品只有勾选和未勾选状态，我们可以考虑将已经勾选的商品的id进行存储，在set内的商品即为勾选，不在的即为未勾选。登录用户搞定了我们再来看看未登录用户，未登录用户的话，应该只在本机使用，而在登录时进行合并处理，所以我们没有必要存储到数据库中，同时，在登录时要进行合并操作，我们可以想到cookie，在登录请求时，游览器会自己带上cookie，所以我们可以考虑用cookie存储，存储格式可以用一个嵌套的大字典。分析完毕，就开始进行真正的操作把。</span></p>
+<p><span style="font-size: 18.6667px;">增删改查四个逻辑，首先来看看新增把。对于新增购物车，我们需要接受的参数为商品id和数量，而勾选状态可以默认为勾选，添加购物车后可以在进行修改，这里的商品我们采用sku的形式进行存储。新增操作的话是post请求，我们可以在视图类中定义一个post方法来接受新增请求，这里的视图类我们继承的是APIView。这里我只写视图方法，对于序列化器就不做描写。首先我们应该接受前端传过来的参数，并进行校验，校验完成后，对用户登录状态进行判断（我是采用JWT来进行用户登录状态存储），对于不同用户，采用不同方式存储购物车信息。</span></p>
+<p>&nbsp;</p>
+<div class="cnblogs_Highlighter">
+<pre><code> def post(self, request):
+        # 获取参数,校验参数 (使用序列化器)
+        serializer = CartSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)<br />　　　　　# 取出验证后的参数
+        sku_id = serializer.validated_data['sku_id']
+        count = serializer.validated_data['count']
+        selected = serializer.validated_data['selected']
+        # 判断用户是否登录，这里不明白的可以看一下我之前写的django中的user验证
+        try:
+            user = request.user
+        except Exception:
+            user = None
+        if user is not None and user.is_authenticated:
+            # 登录，将数据存到redis 默认勾选
+            redis_conn = get_redis_connection('cart') # 建立redis链接
+            pl = redis_conn.pipeline() # 建立管道，一次发送所有redis命令，不用多次连接redis
+            pl.hincrby('cart_%s'%user.id, sku_id, count) # 插入域名为'cart_%s'%user.id，key为sku_id,value为count的数据，域不存在会自己创建
+            if selected:
+                pl.sadd('cart_select_%s'%user.id, sku_id) # 若勾选，则会将商品id加入集合，若集合不存在则创建
+            pl.execute() # 将命令一次执行
+            return Response(serializer.validated_data, status=status.HTTP_201_CREATED) # 返回相应给前端
+        else:
+            # 未登录，将数据存到cookie
+            cart_dict = request.COOKIES.get('cart') # 从cookie中拿到购物车数据
+            if cart_dict is not None:
+                cookie_cart = pickle.loads(base64.b64decode(cart_dict.encode())) # 若存在，将数据转化为字典
+            else:
+                cookie_cart = {} # 若不存在，建立一个新的字典
+            if sku_id in cookie_cart: <br />　　　　　　　　　　# 若商品已在购物车中，则将数据进行更新
+                cookie_cart[sku_id]['count'] += count
+                cookie_cart[sku_id]['selected'] = selected
+            else:<br />　　　　　　　　　　# 若不存在，则建立新的数据
+                cookie_cart[sku_id] = {
+                    'count':count,
+                    'selected':selected
+                }
+            cart_cookie = base64.b64encode(pickle.dumps(cookie_cart)).decode() # 将数据进行加密，并转化为字符串
+            response = Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+            response.set_cookie('cart', cart_cookie, max_age=constants.CART_COOKIE_EXPIRES) # 给相应设置cookie
+            return response
+</pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt;">然后来看一下获取的逻辑，以get请求进行请求，获取不需要额外的参数，通过用户id查到商品的id和数量以及勾选状态，然后从数据库查到具体的商品信息，返回给前端即可。</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>    def get(self, request):
+        try:
+            user = request.user
+        except Exception:
+            user = None<br />　　　　　# 判断用户登录状态
+        if user is not None and user.is_authenticated:
+            redis_conn = get_redis_connection('cart') 
+            redis_cart = redis_conn.hgetall('cart_%s'%user.id) # 获取购物车信息
+            redis_cart_selected = redis_conn.smembers('cart_select_%s'%user.id) # 获取勾选状态
+            cart_dict = {}<br />　　　　　　　# 由于redis中所有信息都是bytes类型，所以我们需要进行转化
+            for sku_id, count in redis_cart.items():
+                cart_dict[int(sku_id)] = {
+                    'count':int(count),
+                    'selected':sku_id in redis_cart_selected
+                }
+        else:
+            cart_dict = request.COOKIES.get('cart') # 从cookie中获取购物车信息
+            if cart_dict is not None:
+                cart_dict = pickle.loads(base64.b64decode(cart_dict.encode()))
+            else:
+                cart_dict = {}
+        skus = SKU.objects.filter(id__in=cart_dict.keys())
+        for sku in skus:
+            sku.count = cart_dict[sku.id]['count']
+            sku.selected = cart_dict[sku.id]['selected']
+        serializer = CartSKUSerializer(skus, many=True)
+        return Response(serializer.data)
+</pre>
+</div>
+<p><span style="font-size: 14pt;">然后是修改的逻辑，以put形式请求，商品数量和勾选状态我们可以修改，所以我们需要接受这两个参数，并对redis或者cookie进行修改并返回</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>    def put(self, request):
+        serializer = CartSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        sku_id = serializer.validated_data['sku_id']
+        count = serializer.validated_data['count']
+        selected = serializer.validated_data['selected']
+        try:
+            user = request.user
+        except Exception:
+            user = None
+        if user is not None and user.is_authenticated:
+            redis_conn = get_redis_connection('cart')
+            pl = redis_conn.pipeline() # 对于要进行多次的redis操作，我们就考虑使用管道
+            pl.hset('cart_%s'%user.id, sku_id, count) # 对哈希表进行数据插入，如果字段存在，就进行覆盖
+            if selected:
+                pl.sadd('cart_selected_%s'%user.id, sku_id) # 如果勾选，就在set中加入商品id
+            else:
+                pl.srem('cart_selected_%s'%user.id, sku_id) # 如果未勾选，则删除该商品id，若id不存在，则忽略操作
+            pl.execute()
+            return Response(serializer.validated_data)
+        else:
+            cart_dict = request.COOKIES.get('cart')
+            if cart_dict is not None:
+                cookie_cart = pickle.loads(base64.b64decode(cart_dict.encode()))
+            else:
+                cookie_cart = {}
+            cookie_cart[sku_id] = {
+                'count':count,
+                'selected':selected
+            }
+            cart_cookie = base64.b64encode(pickle.dumps(cookie_cart)).decode() # 加密cookie
+            response = Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+            response.set_cookie('cart', cart_cookie, max_age=constants.CART_COOKIE_EXPIRES) # 在响应中设置新的cookie返回给前端
+            return response
+</pre>
+</div>
+<p><span style="font-size: 14pt;">最后是删除操作，删除需要接受的是对应的商品id，然后将对应的数据删除即可</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>    def delete(self, request):<br />　　　　　# 考虑到参数少，并不需要将数据返回，所以这里我自行对参数进行校验，这样比写序列化器代码量更少
+        sku_id = request.data.get('sku_id', None)
+        if not sku_id and not isinstance(sku_id, int):
+            return Response('请求方式错误',status=status.HTTP_400_BAD_REQUEST)
+        if not SKU.objects.filter(id=sku_id).first():
+            return Response('商品不存在',status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = request.user
+        except Exception:
+            user = None
+        if user is not None and user.is_authenticated:
+            redis_conn = get_redis_connection('cart')
+            pl = redis_conn.pipeline()
+            pl.hdel('cart_%s'%user.id, sku_id) # 删除单个域，如不存在则忽略操作
+            pl.srem('cart_selected_%s'%user.id, sku_id)
+            pl.execute()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+            cart_dict = request.COOKIES.get('cart')
+            if cart_dict:
+                cookie_cart = pickle.loads(base64.b64decode(cart_dict.encode()))
+            else:
+                cookie_cart = {}
+            if sku_id in cookie_cart:
+                del cookie_cart[sku_id]
+                cart_cookie = base64.b64encode(pickle.dumps(cookie_cart)).decode()
+                response.set_cookie('cart', cart_cookie, max_age=constants.CART_COOKIE_EXPIRES)
+            return response
+</pre>
+</div>
+<p><span style="font-size: 14pt;">由于涉及到登录和未登录，所以也就涉及到用户购物车合并的问题，而cookie中信息是最新的信息，我们合并时就以cookie中信息为准，在合并完成后，会删除cookie信息进行重置。由于合并购物车不涉及业务逻辑，仅仅在登录或注册等逻辑时触发，所以不必写额外的视图，而是写成工具函数的形式，哪里需要触发，就调用该函数</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>def merge_cart_cookie_to_redis(request, response, user):
+    """
+    合并请求用户的购物车数据，将未登录保存在cookie里的保存到redis中
+    遇到cookie与redis中出现相同的商品时以cookie数据为主，覆盖redis中的数据
+    :param request: 用户的请求对象
+    :param response: 响应对象，用于清楚购物车cookie
+    :param user: 当前登录的用户
+    :return:
+    """<br />　　# 首先在cookie中获取标准信息，若未登录状态下没有添加商品到购物车cookie中也就没有购物车，直接返回响应，不需要做合并处理
+    cart_dict = request.COOKIES.get('cart')
+    if not cart_dict:
+        return response
+    cookie_cart = pickle.loads(base64.b64decode(cart_dict.encode()))
+    redis_conn = get_redis_connection('cart')
+    redis_cart = redis_conn.hgetall('cart_%s'%user.id) # 从redis中取出过期的信息，并进行转化
+    cart = {}
+    for sku_id, count in redis_cart.items():
+        cart[int(sku_id)] = int(count)<br />　　 # 首先将商品id和数量进行更新，并将selected为真的存在add的列表中，为假的存在remove的列表中，下面可以一次进行操作
+    redis_cart_selected_add = []
+    redis_cart_selected_remove = []<br />　　 # 更新商品id和数量
+    for sku_id, count_selected_dict in cookie_cart.items():
+        cart[sku_id] = count_selected_dict['count']
+        if count_selected_dict['selected']:
+            redis_cart_selected_add.append(sku_id)
+        else:
+            redis_cart_selected_remove.append(sku_id)
+
+    if cart:
+        pl = redis_conn.pipeline()
+        pl.hmset('cart_%s' % user.id, cart)
+        if redis_cart_selected_add:
+            pl.sadd('cart_selected_%s' % user.id, *redis_cart_selected_add) # sadd可以直接添加一组数据
+        if redis_cart_selected_remove:
+            pl.srem('cart_selected_%s' % user.id, *redis_cart_selected_remove) # srem可以直接删除一组数据 
+        pl.execute()
+
+    response.delete_cookie('cart')
+
+    return response
+</pre>
+</div>
+<p><span style="font-size: 14pt;">至此，整个逻辑完成。</span></p>
+<p><span style="font-size: 14pt;">新人写博客锻炼自己，有错误欢迎大家指出，我的QQ：595395786！！！</span></p>
+<p>　</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

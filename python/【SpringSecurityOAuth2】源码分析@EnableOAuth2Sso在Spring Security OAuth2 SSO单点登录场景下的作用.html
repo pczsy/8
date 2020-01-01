@@ -1,0 +1,353 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【SpringSecurityOAuth2】源码分析@EnableOAuth2Sso在Spring Security OAuth2 SSO单点登录场景下的作用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【SpringSecurityOAuth2】源码分析@EnableOAuth2Sso在Spring Security OAuth2 SSO单点登录场景下的作用</center></div><div class='banquan'>原文出处:本文由博客园博主Trust_FreeDom提供。<br/>
+原文连接:https://www.cnblogs.com/trust-freedom/p/12002089.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#一从spring-security-oauth2官方文档了解enableoauth2sso作用">一、从Spring Security OAuth2官方文档了解@EnableOAuth2Sso作用</a></li>
+        <li><a href="#二源码分析enableoauth2sso作用">二、源码分析@EnableOAuth2Sso作用</a><ul>
+        <li><a href="#enableoauth2client">@EnableOAuth2Client</a></li>
+        <li><a href="#oauth2ssocustomconfigurationoauth2-sso自定义配置">OAuth2SsoCustomConfiguration：OAuth2 SSO自定义配置</a></li>
+        <li><a href="#ssosecurityconfigureroauth2-sso核心配置增强">SsoSecurityConfigurer：OAuth2 SSO核心配置（增强）</a></li>
+        <li><a href="#oauth2ssodefaultconfigurationoauth2-sso默认配置">OAuth2SsoDefaultConfiguration：OAuth2 SSO默认配置</a></li>
+        <li><a href="#resourceservertokenservicesconfiguration访问token资源服务的配置">ResourceServerTokenServicesConfiguration：访问Token资源服务的配置</a></li>
+        </ul></li>
+        <li><a href="#三总结">三、总结</a></li>
+        </ul>
+    </div>
+</div>
+<p><br></p>
+<h1 id="一从spring-security-oauth2官方文档了解enableoauth2sso作用">一、从Spring Security OAuth2官方文档了解@EnableOAuth2Sso作用</h1>
+<blockquote>
+<p><a href="https://docs.spring.io/spring-security-oauth2-boot/docs/2.2.0.RELEASE/reference/html5/#boot-features-security-oauth2-single-sign-on">spring-security-oauth2-boot 2.2.0.RELEASE Single Sign On文档地址</a></p>
+</blockquote>
+<p><img src="./images/【SpringSecurityOAuth2】源码分析@EnableOAuth2Sso在Spring Security OAuth2 SSO单点登录场景下的作用0.png" alt="spring-security-oauth2-boot-2.2.0.RELEASE-single_sign_on-01" /></p>
+<p>先从第一段介绍开始，加上自己的分析：</p>
+<ul>
+<li><p><code>@EnableOAuth2Sso</code>是使用在OAuth2 Client角色上的注解，从其包路径也可以看出org.springframework.boot.autoconfigure.security.oauth2.client</p></li>
+<li><p><code>@EnableOAuth2Sso</code>单点登录的原理简单来说就是：标注有<code>@EnableOAuth2Sso</code>的OAuth2 Client应用在通过某种OAuth2授权流程获取访问令牌后（一般是授权码流程），通过访问令牌访问userDetails用户明细这个受保护资源服务，获取用户信息后，将用户信息转换为Spring Security上下文中的认证后凭证Authentication，从而完成标注有<code>@EnableOAuth2Sso</code>的OAuth2 Client应用自身的登录认证的过程。整个过程是基于OAuth2的SSO单点登录</p></li>
+<li>SSO流程中需要访问的用户信息资源地址，可以通过<code>security.oauth2.resource.userInfoUri</code>配置指定</li>
+<li>最后的通过访问令牌访问受保护资源后，在当前服务创建认证后凭证Authentication（登录态）也可以不通过访问userInfoUri实现，userInfoUri端点是需要用户自己实现。默认情况<code>security.oauth2.resource.preferTokenInfo=true</code> ，获取用户信息使用的是授权服务器的<code>/check_token</code>端点，即TokenInfo，根据访问令牌找到在授权服务器关联的授予这个访问令牌的用户信息</li>
+<li><p>Spring Security OAuth2 SSO整个流程实际上是 <a href="https://auth0.com/docs/api-auth/which-oauth-flow-to-use#is-the-client-a-web-app-executing-on-the-server-">OAuth2 Client是一个运行在Server上的Webapp的典型场景</a>，很适合使用授权码流程</p></li>
+</ul>
+<p><br></p>
+<p><img src="./images/【SpringSecurityOAuth2】源码分析@EnableOAuth2Sso在Spring Security OAuth2 SSO单点登录场景下的作用1.png" alt="spring-security-oauth2-boot-2.2.0.RELEASE-single_sign_on-02" /></p>
+<p>第二段主要讲了下如何使用<code>@EnableOAuth2Sso</code>：</p>
+<ul>
+<li><p>使用<code>@EnableOAuth2Sso</code>的OAuth2 Client应用可以使用<code>/login</code>端点用于触发基于OAuth2的SSO流程，这个入口地址也可以通过<code>security.oauth2.sso.login-path</code>来修改</p></li>
+<li><p>如果针对一些安全访问规则有自己的定制，说白了就是自己实现了Spring Security的<code>WebSecurityConfigurerAdapter</code>想自定义一些安全配置，但又想使用<code>@EnableOAuth2Sso</code>的特性，可以在自己的<code>WebSecurityConfigurerAdapter</code>上使用<code>@EnableOAuth2Sso</code>注解，注解会在你的安全配置基础上做“增强”，至于具体如何“增强”的，后面的源码分析部分会详细解释</p>
+<blockquote>
+<p><strong>注意：</strong></p>
+<p>如果是在自定义的AutoConfiguration自动配置类上使用<code>@EnableOAuth2Sso</code>，在第一次重定向到授权服务器时会出现问题，具体是因为通过<code>@EnableOAuth2Client</code>添加的<code>OAuth2ClientContextFilter</code>会被放到<code>springSecurityFilterChain</code>这个Filter后面，导致无法拦截<code>UserRedirectRequiredException</code>需重定向异常</p>
+</blockquote></li>
+<li><p>如果没有自己的<code>WebSecurityConfigurerAdapter</code>安全配置，也可以在任意配置类上使用<code>@EnableOAuth2Sso</code>，除了添加OAuth2 SSO的增强外，还会有默认的基本安全配置</p></li>
+</ul>
+<p><br></p>
+<h1 id="二源码分析enableoauth2sso作用">二、源码分析@EnableOAuth2Sso作用</h1>
+<p>首先来看一下<code>@EnableOAuth2Sso</code>的源码</p>
+<pre><code><code>/**
+ * Enable OAuth2 Single Sign On (SSO). If there is an existing
+ * {@link WebSecurityConfigurerAdapter} provided by the user and annotated with
+ * {@code @EnableOAuth2Sso}, it is enhanced by adding an authentication filter and an
+ * authentication entry point. If the user only has {@code @EnableOAuth2Sso} but not on a
+ * WebSecurityConfigurerAdapter then one is added with all paths secured.
+ *
+ * @author Dave Syer
+ * @since 1.3.0
+ */
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@EnableOAuth2Client
+@EnableConfigurationProperties(OAuth2SsoProperties.class)
+@Import({ OAuth2SsoDefaultConfiguration.class, OAuth2SsoCustomConfiguration.class,
+        ResourceServerTokenServicesConfiguration.class })
+public @interface EnableOAuth2Sso {
+
+}</code></pre>
+<p>可以看到主要做了几件事</p>
+<ul>
+<li>添加<code>@EnableOAuth2Client</code></li>
+<li>启用OAuth2 SSO相关的<code>OAuth2SsoProperties</code>配置文件</li>
+<li>导入了3个配置类：<code>OAuth2SsoDefaultConfiguration</code>、<code>OAuth2SsoCustomConfiguration</code>、<code>ResourceServerTokenServicesConfiguration</code></li>
+</ul>
+<p><br></p>
+<h2 id="enableoauth2client">@EnableOAuth2Client</h2>
+<p><code>@EnableOAuth2Client</code>从名称就可以看出是专门给OAuth2 Client角色使用的注解，其可以独立使用，具体功能需要单独写一篇来分析，大致看一下源码，主要是导入了<code>OAuth2ClientConfiguration</code>配置类</p>
+<pre><code><code>@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Import(OAuth2ClientConfiguration.class)
+public @interface EnableOAuth2Client {
+
+}</code></pre>
+<p>而<code>OAuth2ClientConfiguration</code>配置类主要做了三件事</p>
+<ul>
+<li>向Servlet容器添加<code>OAuth2ClientContextFilter</code></li>
+<li>创建request scope的Spring Bean： <code>AccessTokenRequest</code></li>
+<li>创建session scope的Spring Bean： <code>OAuth2ClientContext</code>，OAuth2 Client上下文</li>
+</ul>
+<p>大体上就是为OAuth2 Client角色创建相关环境</p>
+<p><br></p>
+<h2 id="oauth2ssocustomconfigurationoauth2-sso自定义配置">OAuth2SsoCustomConfiguration：OAuth2 SSO自定义配置</h2>
+<pre><code><code>/**
+ * Configuration for OAuth2 Single Sign On (SSO) when there is an existing
+ * {@link WebSecurityConfigurerAdapter} provided by the user and annotated with
+ * {@code @EnableOAuth2Sso}. The user-provided configuration is enhanced by adding an
+ * authentication filter and an authentication entry point.
+ *
+ * @author Dave Syer
+ */
+@Configuration
+@Conditional(EnableOAuth2SsoCondition.class)  //OAuth2 SSO自定义配置生效条件
+public class OAuth2SsoCustomConfiguration
+        implements ImportAware, BeanPostProcessor, ApplicationContextAware {
+
+    private Class&lt;?&gt; configType;
+
+    private ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void setImportMetadata(AnnotationMetadata importMetadata) {
+        this.configType = ClassUtils.resolveClassName(importMetadata.getClassName(),
+                null);
+
+    }
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName)
+            throws BeansException {
+        return bean;
+    }
+
+    /**
+     * BeanPostProcessor的初始化后方法
+     * 给用户自定义的WebSecurityConfigurerAdapter添加Advice来增强：SsoSecurityAdapter
+     */
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName)
+            throws BeansException {
+        // 如果是WebSecurityConfigurerAdapter，并且就是添加@EnableOAuth2Sso的那个
+        if (this.configType.isAssignableFrom(bean.getClass())
+                &amp;&amp; bean instanceof WebSecurityConfigurerAdapter) {
+            ProxyFactory factory = new ProxyFactory();
+            factory.setTarget(bean);
+            factory.addAdvice(new SsoSecurityAdapter(this.applicationContext));
+            bean = factory.getProxy();
+        }
+        return bean;
+    }
+
+    /**
+     * 拦截用户的WebSecurityConfigurerAdapter
+     * 在其init()初始化之前，添加SsoSecurityConfigurer配置
+     */
+    private static class SsoSecurityAdapter implements MethodInterceptor {
+
+        private SsoSecurityConfigurer configurer;
+
+        SsoSecurityAdapter(ApplicationContext applicationContext) {
+            this.configurer = new SsoSecurityConfigurer(applicationContext);
+        }
+
+        @Override
+        public Object invoke(MethodInvocation invocation) throws Throwable {
+            if (invocation.getMethod().getName().equals(&quot;init&quot;)) {
+                Method method = ReflectionUtils
+                        .findMethod(WebSecurityConfigurerAdapter.class, &quot;getHttp&quot;);
+                ReflectionUtils.makeAccessible(method);
+                HttpSecurity http = (HttpSecurity) ReflectionUtils.invokeMethod(method,
+                        invocation.getThis());
+                this.configurer.configure(http);
+            }
+            return invocation.proceed();
+        }
+    }
+}</code></pre>
+<p><code>OAuth2SsoCustomConfiguration</code>自定义配置指的是如果用户有自定义的<code>WebSecurityConfigurerAdapter</code>安全配置的情况下，就在用户自定义配置的基础上做OAuth2 SSO的增强，具体分析为</p>
+<ul>
+<li>首先必须在满足<code>@Conditional(EnableOAuth2SsoCondition.class)</code>的情况下才可以使用，<code>EnableOAuth2SsoCondition</code>条件指的是<code>@EnableOAuth2Sso</code>注解被使用在<code>WebSecurityConfigurerAdapter</code>上</li>
+<li>可以看到<code>OAuth2SsoCustomConfiguration</code>配置类也是一个<code>BeanPostProcessor</code>，其会在Spring初始化Bean的前后做处理，上面代码中会在Sping初始化<code>WebSecurityConfigurerAdapter</code>之后，并且就是添加了<code>@EnableOAuth2Sso</code>注解的<code>WebSecurityConfigurerAdapter</code>之后，为安全配置类做“增强”，添加了一个Advice为<code>SsoSecurityAdapter</code></li>
+<li><code>SsoSecurityAdapter</code>会在用户添加了<code>@EnableOAuth2Sso</code>注解的<code>WebSecurityConfigurerAdapter</code>配置类调用<code>init()</code>初始化方法之前，先添加一段子配置<code>SsoSecurityConfigurer</code>，这个子配置就是实现基于OAuth2 SSO的关键</li>
+</ul>
+<p><br></p>
+<h2 id="ssosecurityconfigureroauth2-sso核心配置增强">SsoSecurityConfigurer：OAuth2 SSO核心配置（增强）</h2>
+<pre><code><code>class SsoSecurityConfigurer {
+        
+    public void configure(HttpSecurity http) throws Exception {
+        OAuth2SsoProperties sso = this.applicationContext
+                .getBean(OAuth2SsoProperties.class);
+        // Delay the processing of the filter until we know the
+        // SessionAuthenticationStrategy is available:
+        http.apply(new OAuth2ClientAuthenticationConfigurer(oauth2SsoFilter(sso)));
+        addAuthenticationEntryPoint(http, sso);
+    }
+    </code></pre>
+<ul>
+<li>添加<code>OAuth2ClientAuthenticationConfigurer</code>子配置，为了向springSecurityFilterChain过滤器链添加一个专门用于处理OAuth2 SSO的<code>OAuth2ClientAuthenticationProcessingFilter</code></li>
+<li>添加处理页面及Ajax请求未认证时的AuthenticationEntryPoint认证入口</li>
+</ul>
+<p><code>OAuth2ClientAuthenticationConfigurer</code>子配置是重点</p>
+<pre><code><code>// 创建OAuth2ClientAuthenticationProcessingFilter
+private OAuth2ClientAuthenticationProcessingFilter oauth2SsoFilter(
+        OAuth2SsoProperties sso) {
+    OAuth2RestOperations restTemplate = this.applicationContext
+            .getBean(UserInfoRestTemplateFactory.class).getUserInfoRestTemplate();
+    ResourceServerTokenServices tokenServices = this.applicationContext
+            .getBean(ResourceServerTokenServices.class);
+    OAuth2ClientAuthenticationProcessingFilter filter = new OAuth2ClientAuthenticationProcessingFilter(
+            sso.getLoginPath());
+    filter.setRestTemplate(restTemplate);
+    filter.setTokenServices(tokenServices);
+    filter.setApplicationEventPublisher(this.applicationContext);
+    return filter;
+}
+
+// OAuth2ClientAuthenticationConfigurer子配置
+private static class OAuth2ClientAuthenticationConfigurer
+        extends SecurityConfigurerAdapter&lt;DefaultSecurityFilterChain, HttpSecurity&gt; {
+
+    private OAuth2ClientAuthenticationProcessingFilter filter;
+
+    OAuth2ClientAuthenticationConfigurer(
+            OAuth2ClientAuthenticationProcessingFilter filter) {
+        this.filter = filter;
+    }
+
+    @Override
+    public void configure(HttpSecurity builder) throws Exception {
+        OAuth2ClientAuthenticationProcessingFilter ssoFilter = this.filter;
+        ssoFilter.setSessionAuthenticationStrategy(
+                builder.getSharedObject(SessionAuthenticationStrategy.class));
+        // 添加过滤器
+        builder.addFilterAfter(ssoFilter,
+                AbstractPreAuthenticatedProcessingFilter.class);
+    }
+
+}</code></pre>
+<p><code>OAuth2ClientAuthenticationConfigurer</code>子配置将构造好的专门用于处理OAuth2 SSO场景的过滤器<code>OAuth2ClientAuthenticationProcessingFilter</code>添加到springSecurityFilterChain过滤器链中，构造这个Filter时需要</p>
+<ul>
+<li><code>OAuth2RestOperations</code>：专门用于和授权服务器、资源服务器做Rest交互的模板工具类</li>
+<li><code>ResourceServerTokenServices</code>：用于访问Token资源服务的类</li>
+<li><code>SessionAuthenticationStrategy</code>：OAuth2 SSO认证完成后，使用Spring Security的会话策略</li>
+</ul>
+<p>这一步，向springSecurityFilterChain过滤器链中添加<code>OAuth2ClientAuthenticationConfigurer</code>是最核心的一步，整个OAuth2 SSO的交互都由这个Filter完成，<code>OAuth2ClientAuthenticationConfigurer</code>的具体逻辑待后续分析</p>
+<p><br></p>
+<h2 id="oauth2ssodefaultconfigurationoauth2-sso默认配置">OAuth2SsoDefaultConfiguration：OAuth2 SSO默认配置</h2>
+<pre><code><code>/**
+ * Configuration for OAuth2 Single Sign On (SSO). If the user only has
+ * {@code @EnableOAuth2Sso} but not on a {@code WebSecurityConfigurerAdapter} then one is
+ * added with all paths secured.
+ *
+ * @author Dave Syer
+ * @since 1.3.0
+ */
+@Configuration
+@Conditional(NeedsWebSecurityCondition.class)  //OAuth2Sso默认配置生效条件
+public class OAuth2SsoDefaultConfiguration extends WebSecurityConfigurerAdapter {
+
+    private final ApplicationContext applicationContext;
+
+    public OAuth2SsoDefaultConfiguration(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    /**
+     * 1、添加/**都需要认证才能访问的限制
+     * 2、添加SsoSecurityConfigurer配置
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.antMatcher(&quot;/**&quot;).authorizeRequests().anyRequest().authenticated();
+        new SsoSecurityConfigurer(this.applicationContext).configure(http);
+    }
+
+    /**
+     * OAuth2Sso默认配置生效条件
+     */
+    protected static class NeedsWebSecurityCondition extends EnableOAuth2SsoCondition {
+        @Override
+        public ConditionOutcome getMatchOutcome(ConditionContext context,
+                AnnotatedTypeMetadata metadata) {
+            return ConditionOutcome.inverse(super.getMatchOutcome(context, metadata));
+        }
+    }
+}</code></pre>
+<ul>
+<li>条件<code>NeedsWebSecurityCondition</code>与<code>EnableOAuth2SsoCondition</code>相反，最后满足当用户使用了<code>EnableOAuth2Sso</code>，但其没有被放在自己定义的<code>WebSecurityConfigurerAdapter</code>安全配置类上时，会进入OAuth2 SSO默认配置，从注释信息也可以看出</li>
+<li><code>OAuth2SsoDefaultConfiguration</code>继承了<code>WebSecurityConfigurerAdapter</code>，是一段Spring Security的安全配置</li>
+<li>添加满足<code>/**</code>路径的请求都需要<code>authenticated()</code>认证，默认安全配置</li>
+<li>和上面分析一样，使用<code>SsoSecurityConfigurer</code>子配置，最终会为springSecurityFilterChain过滤器链中添加<code>OAuth2ClientAuthenticationConfigurer</code></li>
+</ul>
+<p><br></p>
+<h2 id="resourceservertokenservicesconfiguration访问token资源服务的配置">ResourceServerTokenServicesConfiguration：访问Token资源服务的配置</h2>
+<p>主要作用是创建<code>ResourceServerTokenServices</code>，用于通过访问令牌获取其相关的用户凭据，或者读取访问令牌的完整信息，接口定义如下</p>
+<pre><code><code>public interface ResourceServerTokenServices {
+    /**
+     * Load the credentials for the specified access token.
+     * 加载指定访问令牌的凭据
+     *
+     * @param accessToken The access token value.
+     * @return The authentication for the access token.
+     * @throws AuthenticationException If the access token is expired
+     * @throws InvalidTokenException if the token isn&#39;t valid
+     */
+    OAuth2Authentication loadAuthentication(String accessToken) throws AuthenticationException, InvalidTokenException;
+
+    /**
+     * Retrieve the full access token details from just the value.
+     * 仅从值中检索完整的访问令牌详细信息
+     * 
+     * @param accessToken the token value
+     * @return the full access token with client id etc.
+     */
+    OAuth2AccessToken readAccessToken(String accessToken);
+}</code></pre>
+<p>具体的<code>ResourceServerTokenServices</code>接口实现分为</p>
+<ul>
+<li><strong>RemoteTokenServices</strong>：远端的TokenService
+<ul>
+<li><strong>TokenInfoServices</strong>：访问<code>/check_token</code>端点，根据访问令牌找到在授权服务器关联的授予这个访问令牌的用户信息</li>
+<li><strong>UserInfoTokenServices</strong>：访问用户自定义的userInfo端点，根据访问令牌访问受保护资源userInfo</li>
+</ul></li>
+<li><strong>JwtTokenServices</strong>：基于Json Web Token自包含令牌的TokenService</li>
+</ul>
+<p>在通过以上<code>ResourceServerTokenServices</code>接口实现获取用户信息后，就可以在使用<code>@EnableOAuth2Sso</code>注解的OAuth2 Client上创建已认证的用户身份凭证Authentication，完成登录</p>
+<p><br></p>
+<h1 id="三总结">三、总结</h1>
+<p>总的来说<code>@EnableOAuth2Sso</code>注解帮助我们快速的将我们的OAuth2 Client应用接入授权服务器完成基于OAuth2的SSO流程，创建登录状态</p>
+<p>无论是用户有没有自己的<code>WebSecurityConfigurerAdapter</code>安全配置都可以使用<code>@EnableOAuth2Sso</code>注解，如果有，<code>@EnableOAuth2Sso</code>是在用户的安全配置上做增强</p>
+<p>增强的逻辑是在SpringSecurityFilterChain过滤器链上添加<code>OAuth2ClientAuthenticationProcessingFilter</code>这个用于登录认证的Filter，其使用的是OAuth2授权码流程，以下都是这个Filter负责的功能</p>
+<ul>
+<li>将用户重定向到授权服务器获取授权</li>
+<li>根据code授权码和OAuth2 clientId、secret获取访问令牌</li>
+<li>最后使用<code>ResourceServerTokenServices</code>并携带访问令牌获取用户信息，创建Authentication登录后凭证，完成登录</li>
+</ul>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,258 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django项目中使用plupload插件实现上传图片功能' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django项目中使用plupload插件实现上传图片功能</center></div><div class='banquan'>原文出处:本文由博客园博主记住我忘记我提供。<br/>
+原文连接:https://www.cnblogs.com/nmsghgnv/p/11321751.html</div><br>
+    <p>首先下载plupload插件放在static静态文件下面，官方地址:<a href="https://www.plupload.com/" target="_blank">https://www.plupload.com/</a></p>
+<p>项目根目录下创建media文件夹用来存放上传的图片，配置settings文件，添加media的文件路径</p>
+<div class="cnblogs_code">
+<pre><code>MEDIA_ROOT = os.path.join(BASE_DIR,<span style="color: #800000;">'</span><span style="color: #800000;">media</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>先写前端html页面</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">{#    引入插件#}
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">src</span><span style="color: #0000ff;">="/static/plupload/moxie.js"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">src</span><span style="color: #0000ff;">="/static/plupload/plupload.min.js"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+
+
+{#定义上传图片的按键和显示位置#}
+    </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="sbox f_l"</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>上传图片<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+        {% for i in img %}
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">img </span><span style="color: #ff0000;">src</span><span style="color: #0000ff;">="{{ i.src }}"</span><span style="color: #ff0000;"> alt</span><span style="color: #0000ff;">=""</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+        {% endfor %}
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h2</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="upload_image_name"</span><span style="color: #ff0000;"> src</span><span style="color: #0000ff;">="javascript:;"</span><span style="color: #0000ff;">&gt;&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="button"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="上传图片"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">h2</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">ul </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="image_name_list"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">ul</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+        {#        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">a </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="/"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="read"</span><span style="color: #0000ff;">&gt;</span>点击阅读<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">a</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">#}
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>写前端js语法</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">{#上传图片#}
+</span>&lt;script language="JavaScript"&gt;
+
+
+    <span style="color: #0000ff;">var</span><span style="color: #000000;"> msgLayero_upload_image_name;
+    </span><span style="color: #0000ff;">var</span><span style="color: #000000;"> index_upload_image_name;
+    </span><span style="color: #0000ff;">var</span> layer_upload_image_name = 1<span style="color: #000000;">;
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">实例化一个plupload上传对象</span>
+    <span style="color: #0000ff;">var</span> uploader_upload_image_name = <span style="color: #0000ff;">new</span><span style="color: #000000;"> plupload.Uploader({
+        browse_button: </span>'upload_image_name', <span style="color: #008000;">//</span><span style="color: #008000;">触发文件选择对话框的按钮，为那个元素id</span>
+        url: '/apply/upload/', <span style="color: #008000;">//</span><span style="color: #008000;">服务器端的上传页面地址</span>
+        flash_swf_url: '/static/plupload/Moxie.swf', <span style="color: #008000;">//</span><span style="color: #008000;">swf文件，当需要使用swf方式进行上传时需要配置该参数</span>
+        silverlight_xap_url: '/static/plupload/Moxie.xap', <span style="color: #008000;">//</span><span style="color: #008000;">silverlight文件，当需要使用silverlight方式进行上传时需要配置该参数</span>
+<span style="color: #000000;">        multipart_params: {
+            type: </span>'image_name'<span style="color: #000000;">,
+            csrfmiddlewaretoken: </span>"{{ csrf_token }}"<span style="color: #000000;">
+        },
+        resize: {
+            width: </span>800<span style="color: #008000;">//</span><span style="color: #008000;">指定压缩后图片的宽度，如果没有设置该属性则默认为原始图片的宽度</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">height: , //指定压缩后图片的高度，如果没有设置该属性则默认为原始图片的高度</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">crop: false //是否裁剪图片</span>
+<span style="color: #000000;">        },
+        filters: {
+            max_file_size: </span>'4mb'<span style="color: #000000;">
+        },
+        init: {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">选择文件</span>
+            FilesAdded: <span style="color: #0000ff;">function</span><span style="color: #000000;"> (up, files) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">加载层</span>
+                index_upload_image_name = layer.msg('上传中...'<span style="color: #000000;">, {
+                    icon: </span>16, time: 0<span style="color: #000000;">,
+                    shade: </span>0.01<span style="color: #000000;">,
+                    success: </span><span style="color: #0000ff;">function</span><span style="color: #000000;"> (layero, index) {
+                        msgLayero_upload_image_name </span>= layero;<span style="color: #008000;">//</span><span style="color: #008000;">是加载层的div</span>
+<span style="color: #000000;">                    }
+                });
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">layer_upload_image_name = layer.msg('上传中...', {time: 0}); //不自动关闭</span>
+<span style="color: #000000;">                uploader_upload_image_name.start();
+            },
+            UploadProgress: </span><span style="color: #0000ff;">function</span> (up, file) { <span style="color: #008000;">//</span><span style="color: #008000;">上传中，显示进度条</span>
+                <span style="color: #0000ff;">var</span> percent =<span style="color: #000000;"> file.percent;
+                msgLayero_upload_image_name.find(</span>'.layui-layer-content').html('&lt;i class="layui-layer-ico layui-layer-ico1"&gt;&lt;/i&gt;上传中...' + percent + '%'<span style="color: #000000;">);
+
+            },</span><span style="color: #008000;">//</span><span style="color: #008000;">单个文件上传完成</span>
+            FileUploaded: <span style="color: #0000ff;">function</span><span style="color: #000000;"> (up, file, responseObject) {
+                console.log($.parseJSON(responseObject.response));</span><span style="color: #008000;">//</span><span style="color: #008000;">成功回调函数</span>
+<span style="color: #000000;">
+                {#                    $(</span>'#image_name_list').html(''<span style="color: #000000;">);#}
+                </span><span style="color: #0000ff;">var</span> result =<span style="color: #000000;"> $.parseJSON(responseObject.response);
+                </span><span style="color: #0000ff;">if</span> (result.status == 1<span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">上传成功</span>
+                    <span style="color: #0000ff;">var</span> htmls = '&lt;li class="img_upload" style="position:relative;margin:0 10px -10px 0;"&gt;'<span style="color: #000000;">;
+                    htmls </span>+= '&lt;input  type="hidden" name="image_name[]" value="' + result.file + '"&gt;'; <span style="color: #008000;">//</span><span style="color: #008000;">隐藏域，是为了把图片地址入库。。</span>
+                    htmls += '   &lt;img src="' + result.file + '" width="250"  &gt;'<span style="color: #000000;">;
+                    htmls </span>+= '&lt;span  style="position:absolute;top:-8px;right:-6px;background-color:#fff;border-radius:10px;"&gt;&lt;a href=javascript:; class="delImg" data-val="' + result.file + '"&gt;&amp;nbsp;&lt;img src="/static/images/del.png" width="15" /&gt;&lt;/a&gt;&lt;/span&gt;'<span style="color: #000000;">;
+                    htmls </span>+= '&lt;/li&gt;'<span style="color: #000000;">;
+{#                    $(</span>'#image_name_list').append(htmls);为可同时上传多张图片，$('#image_name_list'<span style="color: #000000;">).html(htmls);为一次智能上传一张图片#}
+                    $(</span>'#image_name_list'<span style="color: #000000;">).append(htmls);
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">上传成功的弹出框</span>
+                    msgLayero_upload_image_name.find('.layui-layer-content').html('&lt;i class="layui-layer-ico layui-layer-ico1"&gt;&lt;/i&gt;' +<span style="color: #000000;"> result.message);
+
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">上传失败的弹出框</span>
+                    msgLayero_upload_image_name.find('.layui-layer-content').html('&lt;i class="layui-layer-ico layui-layer-ico2"&gt;&lt;/i&gt;' +<span style="color: #000000;"> result.message);
+
+                }
+                setTimeout(</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> () {
+                    layer.close(index_upload_image_name);
+                }, </span>2000<span style="color: #000000;">);
+
+            },
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">全部文件上传完成</span>
+            UploadComplete: <span style="color: #0000ff;">function</span><span style="color: #000000;"> (up, files) {
+                setTimeout(</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> () {
+                    layer.close(index_upload_image_name);
+                }, </span>2000<span style="color: #000000;">);
+            },
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">返回错误</span>
+            Error: <span style="color: #0000ff;">function</span><span style="color: #000000;"> (up, err) {
+                msgLayero_upload_image_name.find(</span>'.layui-layer-content').html('&lt;i class="layui-layer-ico layui-layer-ico2"&gt;&lt;/i&gt;' +<span style="color: #000000;"> result.message);
+                setTimeout(</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> () {
+                    layer.close(index_upload_image_name);
+                }, </span>2000<span style="color: #000000;">);
+            }
+        }
+    });
+
+    uploader_upload_image_name.init();
+
+{#    删除准备上传的图片#}
+    $(document).on(</span>'click', '.delImg', <span style="color: #0000ff;">function</span><span style="color: #000000;"> () {
+        _this </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+        $.post(</span>'{% url "apply:delimg/" %}'<span style="color: #000000;">, {
+            path: $(_this).data(</span>"val"<span style="color: #000000;">),
+            csrfmiddlewaretoken: </span>"{{ csrf_token }}"<span style="color: #000000;">
+        }, </span><span style="color: #0000ff;">function</span><span style="color: #000000;"> (json) {
+            </span><span style="color: #0000ff;">if</span> (json.status == 1<span style="color: #000000;">) {
+                layer.msg(</span>"删除成功"<span style="color: #000000;">, {
+                    time: </span>2000 <span style="color: #008000;">//</span><span style="color: #008000;">2s后自动关闭</span>
+<span style="color: #000000;">                });
+                $(_this).parent().parent().remove();
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                layer.msg(</span>"删除失败"<span style="color: #000000;">, {
+                    time: </span>2000 <span style="color: #008000;">//</span><span style="color: #008000;">2s后自动关闭</span>
+<span style="color: #000000;">                });
+            }
+        }, </span>'json'<span style="color: #000000;">);
+    });
+</span>&lt;/script&gt;</pre>
+</div>
+<p>django后台，先创建路由</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> path,include,re_path
+</span><span style="color: #0000ff;">from</span> apply.views <span style="color: #0000ff;">import</span><span style="color: #000000;"> apply
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">index/</span><span style="color: #800000;">'</span>,apply.index,name=<span style="color: #800000;">'</span><span style="color: #800000;">index/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">about/</span><span style="color: #800000;">'</span>,apply.about,name=<span style="color: #800000;">'</span><span style="color: #800000;">about/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">info/</span><span style="color: #800000;">'</span>,apply.info,name=<span style="color: #800000;">'</span><span style="color: #800000;">info/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">list/</span><span style="color: #800000;">'</span>,apply.list,name=<span style="color: #800000;">'</span><span style="color: #800000;">list/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">time/</span><span style="color: #800000;">'</span>,apply.time,name=<span style="color: #800000;">'</span><span style="color: #800000;">time/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">fanyi/</span><span style="color: #800000;">'</span>,apply.fanyi,name=<span style="color: #800000;">'</span><span style="color: #800000;">fanyi/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    </span><span style="background-color: #ffff00;"><span style="color: #008000;">#</span><span style="color: #008000;"> 上传图片</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">upload/</span><span style="color: #800000;">'</span>,apply.upload,name=<span style="color: #800000;">'</span><span style="color: #800000;">upload/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除准备上传的图片</span>
+    path(<span style="color: #800000;">'</span><span style="color: #800000;">delimg/</span><span style="color: #800000;">'</span>,apply.delimg,name=<span style="color: #800000;">'</span><span style="color: #800000;">delimg/</span><span style="color: #800000;">'</span></span><span style="color: #000000;"><span style="background-color: #ffff00;">),</span>
+
+]</span></pre>
+</div>
+<p>写方法。</p>
+<div class="cnblogs_code">
+<pre><code></pre>
+<pre><code>from django.shortcuts import render,redirect,HttpResponse<br />from apply.utils import function<br />from blacker import settings<br />import os<br />import json<br />from apply.models import *</pre>
+<pre><code><span style="color: #008000;"><br />#</span><span style="color: #008000;"> 上传图片</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> upload(request):
+    img_obj </span>= request.FILES.get(<span style="color: #800000;">"</span><span style="color: #800000;">file</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 通过前台提交过来的图片资源   img_obj.name  avatar.jpg</span>
+    range_num = function.range_num(15)  <span style="color: #008000;">#</span><span style="color: #008000;"> 生成一个15位随机数</span>
+
+    <span style="color: #0000ff;">print</span><span style="color: #000000;">(img_obj.name)
+    img_type </span>= os.path.splitext(img_obj.name)[1]  <span style="color: #008000;">#</span><span style="color: #008000;"> .jpg  获取文件名后缀</span>
+    new_img_path =<span style="color: #000000;"> os.path.join(settings.MEDIA_ROOT,
+                                range_num </span>+ img_type)  <span style="color: #008000;">#</span><span style="color: #008000;"> E:\ftp\code\www\pro\media\add_article_img\676161546271228.jpg        #/media/add_article_img/123456.jpg</span>
+    <span style="color: #0000ff;">print</span><span style="color: #000000;">(new_img_path)
+    img_type2 </span>= img_type.replace(<span style="color: #800000;">"</span><span style="color: #800000;">.</span><span style="color: #800000;">"</span>, <span style="color: #800000;">""</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> png</span>
+<span style="color: #000000;">
+    with open(new_img_path, </span><span style="color: #800000;">"</span><span style="color: #800000;">wb</span><span style="color: #800000;">"</span><span style="color: #000000;">) as f:
+        </span><span style="color: #0000ff;">for</span> line <span style="color: #0000ff;">in</span><span style="color: #000000;"> img_obj:
+            f.write(line)
+    response </span>=<span style="color: #000000;"> {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">status</span><span style="color: #800000;">"</span>: 1<span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">message</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">上传成功</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">file</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">/media/</span><span style="color: #800000;">'</span>+range_num + img_type+<span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">file_type</span><span style="color: #800000;">'</span><span style="color: #000000;">: img_type2
+    }
+    res </span>= Media.objects.create(src=<span style="color: #800000;">'</span><span style="color: #800000;">/media/</span><span style="color: #800000;">'</span>+range_num + img_type+<span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> HttpResponse(json.dumps(response))
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除正在上传的图片</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> delimg(request):
+    </span><span style="color: #0000ff;">print</span>(12<span style="color: #000000;">)
+    img_path </span>= request.POST.get(<span style="color: #800000;">'</span><span style="color: #800000;">path</span><span style="color: #800000;">'</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> /media/add_article_img/722264423391172.jpg</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> img_name = os.path.split(img_path)[-1]  # 获取图片名称 722264423391172.jpg</span>
+    img_name = img_path.split(<span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span>)[-2]  <span style="color: #008000;">#</span><span style="color: #008000;"> 获取图片名称 722264423391172.jpg</span>
+    img_new_path = os.path.join(settings.MEDIA_ROOT,img_name)  <span style="color: #008000;">#</span><span style="color: #008000;"> E:\ftp\code\www\pro\media\add_article_img\722264423391172.jpg</span>
+    <span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> os.remove(img_new_path):
+        response </span>=<span style="color: #000000;"> {
+            </span><span style="color: #800000;">"</span><span style="color: #800000;">status</span><span style="color: #800000;">"</span>: 1<span style="color: #000000;">,
+            </span><span style="color: #800000;">"</span><span style="color: #800000;">message</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">删除成功</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        }
+        </span><span style="color: #0000ff;">return</span> HttpResponse(json.dumps(response))</pre>
+</div>
+<p>方法里面有用到function.range_num函数，这是一个封装的产生随机数函数，在应用目录下创建utils文件夹，并创建function.py文件，内容如下</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> random
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 随机数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> range_num(num):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义一个种子，从这里面随机拿出一个值，可以是字母</span>
+    seeds = <span style="color: #800000;">"</span><span style="color: #800000;">1234567890</span><span style="color: #800000;">"</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 定义一个空列表，每次循环，将拿到的值，加入列表</span>
+    random_num =<span style="color: #000000;"> []
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> choice函数：每次从seeds拿一个值，加入列表</span>
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(num):
+        random_num.append(random.choice(seeds))
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 将列表里的值，变成四位字符串</span>
+    <span style="color: #0000ff;">return</span> <span style="color: #800000;">""</span> . join(random_num)<span style="color: #008000;">#</span><span style="color: #008000;">5454</span></pre>
+</div>
+<p>上传发现图片上传成功，但是页面不能正常显示；</p>
+<p><img src="./images/Django项目中使用plupload插件实现上传图片功能0.png" alt="" /><img src="./images/Django项目中使用plupload插件实现上传图片功能1.png" alt="" /></p>
+<p>需要再配置路由，</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.contrib <span style="color: #0000ff;">import</span><span style="color: #000000;"> admin
+</span><span style="color: #0000ff;">from</span> django.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> path,include,re_path
+</span><span style="color: #0000ff;">from</span> apply.views <span style="color: #0000ff;">import</span><span style="color: #000000;"> apply
+</span><span style="background-color: #ffff00;"><span style="color: #0000ff;">from</span> django.views.static <span style="color: #0000ff;">import</span><span style="color: #000000;"> serve
+</span><span style="color: #0000ff;">from</span> blacker <span style="color: #0000ff;">import</span></span><span style="color: #000000;"><span style="background-color: #ffff00;"> settings</span>
+urlpatterns </span>=<span style="color: #000000;"> [
+    <span style="background-color: #ffff00;">re_path(r</span></span><span style="background-color: #ffff00;"><span style="color: #800000;">'</span><span style="color: #800000;">^media/(?P&lt;path&gt;.*)</span><span style="color: #800000;">'</span>, serve, {<span style="color: #800000;">"</span><span style="color: #800000;">document_root</span><span style="color: #800000;">"</span></span><span style="color: #000000;"><span style="background-color: #ffff00;">:settings.MEDIA_ROOT}),</span>
+    path(</span><span style="color: #800000;">''</span>,apply.index,name=<span style="color: #800000;">'</span><span style="color: #800000;">index/</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">admin/</span><span style="color: #800000;">'</span><span style="color: #000000;">, admin.site.urls),
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">apply/</span><span style="color: #800000;">'</span>,include((<span style="color: #800000;">'</span><span style="color: #800000;">apply.urls</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">apply</span><span style="color: #800000;">'</span><span style="color: #000000;">)))
+]</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>配置后在上传图片如图所示</p>
+<p><img src="./images/Django项目中使用plupload插件实现上传图片功能2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>同时图片已写入数据库，从数据库获取数据并写在页面上；</p>
+<p><img src="./images/Django项目中使用plupload插件实现上传图片功能3.png" alt="" /><img src="./images/Django项目中使用plupload插件实现上传图片功能4.png" alt="" /></p>
+<p>done。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

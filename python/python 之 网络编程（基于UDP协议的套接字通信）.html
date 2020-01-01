@@ -1,0 +1,98 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python 之 网络编程（基于UDP协议的套接字通信）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python 之 网络编程（基于UDP协议的套接字通信）</center></div><div class='banquan'>原文出处:本文由博客园博主small_white-提供。<br/>
+原文连接:https://www.cnblogs.com/mylu/p/11203862.html</div><br>
+    <h3 class="md-end-block md-heading md-focus"><span class="md-plain">8.5 基于UDP协议的套接字通信</span></h3>
+<p class="md-end-block md-p"><span class="md-plain md-expand">UDP协议：数据报协议<span class="md-softbreak"> <span class="md-plain"> 特点：无连接，一发对应一收，先启动哪一端都不会报错<span class="md-linebreak"> <span class="md-linebreak-mark"> <span class="md-plain"> 优点：发送效率高，但有效传输的数据量最多为500bytes</span></span></span></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain"> 缺点：不可靠：发送数据，无需确认，容易丢包</span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">udp服务端</span></p>
+<div class="cnblogs_code">
+<pre><code>1 ss = socket()   <span style="color: #008000;">#</span><span style="color: #008000;">创建一个服务器的套接字</span>
+2 ss.bind()       <span style="color: #008000;">#</span><span style="color: #008000;">绑定服务器套接字</span>
+3 inf_loop:       <span style="color: #008000;">#</span><span style="color: #008000;">服务器无限循环</span>
+4     cs = ss.recvfrom()/ss.sendto() <span style="color: #008000;">#</span><span style="color: #008000;"> 对话(接收与发送)</span>
+5 ss.close()                         <span style="color: #008000;">#</span><span style="color: #008000;"> 关闭服务器套接字</span></pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">udp客户端</span></p>
+<div class="cnblogs_code">
+<pre><code>cs = socket()   <span style="color: #008000;">#</span><span style="color: #008000;"> 创建客户套接字</span>
+comm_loop:      <span style="color: #008000;">#</span><span style="color: #008000;"> 通讯循环</span>
+    cs.sendto()/cs.recvfrom()   <span style="color: #008000;">#</span><span style="color: #008000;"> 对话(发送/接收)</span>
+cs.close()                      <span style="color: #008000;">#</span><span style="color: #008000;"> 关闭客户套接字</span></pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">8.6 客户端与服务端操作( 基于UDP )</span></h3>
+<p class="md-end-block md-p"><span class="md-plain">服务端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+                   </span><span style="color: #008000;">#</span><span style="color: #008000;">地址家族，基于网络   # 数据报协议     </span>
+server=<span style="color: #000000;">socket.socket(socket.AF_INET,socket.SOCK_DGRAM) 
+server.bind((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))                 <span style="color: #008000;">#</span><span style="color: #008000;">把地址绑定到套接字（0-65535） 0-1024给系统用的</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+    client_data,client_addr</span>=server.recvfrom(1024)<span style="color: #008000;">#</span><span style="color: #008000;">收消息，1024是一个最大的限制</span>
+    <span style="color: #0000ff;">print</span>(client_data.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+    msg</span>=input(<span style="color: #800000;">'</span><span style="color: #800000;">回复%s:%s&gt;&gt;&gt;:</span><span style="color: #800000;">'</span> %(client_addr[0],client_addr[1<span style="color: #000000;">]))
+    server.sendto(msg.encode(</span><span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>),client_addr)</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">客户端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+​
+client</span>=socket.socket(socket.AF_INET,socket.SOCK_DGRAM) <span style="color: #008000;">#</span><span style="color: #008000;"> 数据报协议</span>
+<span style="color: #000000;">​
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+    msg</span>=input(<span style="color: #800000;">'</span><span style="color: #800000;">&gt;&gt;&gt;: </span><span style="color: #800000;">'</span><span style="color: #000000;">).strip()
+    client.sendto(msg.encode(</span><span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>),(<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+    res,server_addr</span>=client.recvfrom(1024)             <span style="color: #008000;">#</span><span style="color: #008000;">收消息</span>
+    <span style="color: #0000ff;">print</span>(res.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>))</pre>
+</div>
+<h3 class="md-end-block md-heading"><span class="md-plain">8.7 数据报协议没有粘包问题</span></h3>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain">udp的recvfrom是阻塞的，一个recvfrom(x)必须对唯一一个sendinto(y),收完了x个字节的数据就算完成,若是y&gt;x数据就丢失，这意味着udp根本不会粘包，但是会丢数据，不可靠</span></span></p>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain">每个UDP包中就有了消息头（消息来源地址，端口等信息），这样对于接收端来说，就容易进行区分处理了。 <span><strong>即面向消息的通信是有消息保护边界的。</strong></span></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">服务端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+​
+server</span>=socket.socket(socket.AF_INET,socket.SOCK_DGRAM) <span style="color: #008000;">#</span><span style="color: #008000;"> 数据报协议</span>
+server.bind((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+​
+res1,client_addr</span>=server.recvfrom(1)             <span style="color: #008000;">#</span><span style="color: #008000;">b'h'</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(res1)
+​
+res2,client_addr</span>=server.recvfrom(2)             <span style="color: #008000;">#</span><span style="color: #008000;">b'wo'</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(res2)
+​
+res3,client_addr</span>=server.recvfrom(3)             <span style="color: #008000;">#</span><span style="color: #008000;">b'ego'</span>
+<span style="color: #0000ff;">print</span>(res3)</pre>
+</div>
+<p class="md-end-block md-p"><span class="md-plain">客户端：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+​
+client</span>=socket.socket(socket.AF_INET,socket.SOCK_DGRAM) <span style="color: #008000;">#</span><span style="color: #008000;"> 数据报协议</span>
+<span style="color: #000000;">​
+client.sendto(b</span><span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>,(<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+client.sendto(b</span><span style="color: #800000;">'</span><span style="color: #800000;">world</span><span style="color: #800000;">'</span>,(<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">))
+client.sendto(b</span><span style="color: #800000;">'</span><span style="color: #800000;">egon</span><span style="color: #800000;">'</span>,(<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))</pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,171 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修搭建免费代理池---采集代理（1）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>搭建免费代理池---采集代理（1）</center></div><div class='banquan'>原文出处:本文由博客园博主破壳而出的蝌蚪提供。<br/>
+原文连接:https://www.cnblogs.com/whnba/p/11774079.html</div><br>
+    <p>在对网站信息进去抓取时，难免遇到被封IP的情况。针对这一情况可采用代理IP的方法来处理，好了&nbsp; 现在我遇到的问题是什么呢？ 就是我没有代理IP啊。</p>
+<p>百度了下，发现网上有好多免费的代理IP，所以我决定把能找到的所以免费代理IP全部采集下来，以后做成接口的方式来供大家免费使用。</p>
+<p>本篇文章主要是对采集 &ldquo;66免费代理网 http://www.66ip.cn/&rdquo;做技术总结。</p>
+<h2>1、GET/POST 请求</h2>
+<p>为了让操作更加简单 采用工厂模式对GET / Post 请求进行了封装。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> abc
+
+</span><span style="color: #800000;">'''</span><span style="color: #800000;">
+请求方法抽象类
+</span><span style="color: #800000;">'''</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> AbsMethod:
+
+    @abc.abstractmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> request(self, url, attach):
+        </span><span style="color: #0000ff;">pass</span>
+
+
+<span style="color: #800000;">'''</span><span style="color: #800000;">
+Get 方法
+</span><span style="color: #800000;">'''</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Get(AbsMethod):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    请求
+    </span><span style="color: #800000;">'''</span>
+
+    <span style="color: #0000ff;">def</span> request(self, url, attach) -&gt;<span style="color: #000000;"> requests.Response:
+        res </span>=<span style="color: #000000;"> requests.post(url, attach)
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> res.ok:
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res.raise_for_status()
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res
+
+
+</span><span style="color: #800000;">'''</span><span style="color: #800000;">
+Post 方法
+</span><span style="color: #800000;">'''</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Post(AbsMethod):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    请求
+    </span><span style="color: #800000;">'''</span>
+
+    <span style="color: #0000ff;">def</span> request(self, url, attach) -&gt;<span style="color: #000000;"> requests.Response:
+        res </span>=<span style="color: #000000;"> requests.get(url, attach)
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> res.ok:
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res.raise_for_status()
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res
+
+
+</span><span style="color: #800000;">'''</span><span style="color: #800000;">
+方法工厂
+</span><span style="color: #800000;">'''</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> MethodFactory:
+    </span><span style="color: #0000ff;">def</span> create(self, method: str) -&gt;<span style="color: #000000;"> AbsMethod:
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> eval(method)()
+
+
+</span><span style="color: #800000;">'''</span><span style="color: #800000;">
+http 请求
+</span><span style="color: #800000;">'''</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> HttpReuqest:
+
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    发送求请
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span> send(url, attach = {}, method=<span style="color: #800000;">'</span><span style="color: #800000;">Get</span><span style="color: #800000;">'</span>) -&gt;<span style="color: #000000;"> requests.Response:
+        factory </span>=<span style="color: #000000;"> MethodFactory()
+        target </span>=<span style="color: #000000;"> factory.create(method)
+        </span><span style="color: #0000ff;">return</span> target.request(url, attach)</pre>
+</div>
+<p>&nbsp;</p>
+<h2>2、采集目标站点</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> WWW_66IP_CN:
+
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    URL地址
+    </span><span style="color: #800000;">'''</span>
+    <span style="color: #800080;">__url</span> = <span style="color: #800000;">'</span><span style="color: #800000;">http://www.66ip.cn</span><span style="color: #800000;">'</span>
+
+    <span style="color: #800000;">'''</span><span style="color: #800000;">
+    页面编码
+    </span><span style="color: #800000;">'''</span>
+    <span style="color: #800080;">__code</span> = <span style="color: #800000;">'</span><span style="color: #800000;">gbk</span><span style="color: #800000;">'</span>
+
+    <span style="color: #800000;">'''</span><span style="color: #800000;">
+    选择器
+    </span><span style="color: #800000;">'''</span>
+    <span style="color: #800080;">__selector</span> = <span style="color: #800000;">'</span><span style="color: #800000;">.containerbox table tr</span><span style="color: #800000;">'</span>
+
+    <span style="color: #800000;">'''</span><span style="color: #800000;">
+    获取免费代理
+    </span><span style="color: #800000;">'''</span>
+
+    <span style="color: #0000ff;">def</span> get_proxy(self) -&gt;<span style="color: #000000;"> str:
+        soup </span>= bs4.BeautifulSoup(self.text, <span style="color: #800000;">'</span><span style="color: #800000;">lxml</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        result </span>= soup.select(self.<span style="color: #800080;">__selector</span><span style="color: #000000;">)
+        result </span>= self.<span style="color: #800080;">__filters</span>([str(n) <span style="color: #0000ff;">for</span> n <span style="color: #0000ff;">in</span><span style="color: #000000;"> result])
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result
+
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    获取页面内容
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    @property
+    </span><span style="color: #0000ff;">def</span> text(self) -&gt;<span style="color: #000000;"> str:
+        http </span>=<span style="color: #000000;"> HttpReuqest()
+        res </span>= http.send(self.<span style="color: #800080;">__url</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">if</span> res.headers[<span style="color: #800000;">'</span><span style="color: #800000;">Content-Encoding</span><span style="color: #800000;">'</span>] == <span style="color: #800000;">'</span><span style="color: #800000;">gzip</span><span style="color: #800000;">'</span>:  <span style="color: #008000;">#</span><span style="color: #008000;"> 页面采用gizp压缩了，需要对它进行解码不然中文会乱码</span>
+            <span style="color: #0000ff;">return</span> res.content.decode(self.<span style="color: #800080;">__code</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res.text
+
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    过滤
+    </span><span style="color: #800000;">'''</span>
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__filters</span>(self, items: List[str]) -&gt;<span style="color: #000000;"> List[list]:
+        result, regex </span>= [], re.compile(r<span style="color: #800000;">'</span><span style="color: #800000;">&lt;td&gt;([^&lt;&gt;]+)&lt;/td&gt;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">for</span> item <span style="color: #0000ff;">in</span><span style="color: #000000;"> items:
+            result.append(regex.findall(item))
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result
+
+
+proxy </span>=<span style="color: #000000;"> WWW_66IP_CN()
+
+d </span>=<span style="color: #000000;"> proxy.get_proxy()
+
+</span><span style="color: #0000ff;">print</span>(d)</pre>
+</div>
+<p>&nbsp;</p>
+<h2>3、技术总结</h2>
+<p>　　目标站点采用了 gzip 进行了页面压缩，如果不对页面进行解码那么中文字符就会以乱码的形式出现。针对这一情况，可采用 字符串函数 decode()进行解码</p>
+<p>　　</p>
+<p>　　</p>
+<h2>4、百度网盘</h2>
+<p>链接：https://pan.baidu.com/s/1BStzSFPteMCcfOum6_4RUw <br />提取码：dlsr </p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

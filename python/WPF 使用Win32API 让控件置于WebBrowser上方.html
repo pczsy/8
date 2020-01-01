@@ -1,0 +1,153 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修WPF 使用Win32API 让控件置于WebBrowser上方' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>WPF 使用Win32API 让控件置于WebBrowser上方</center></div><div class='banquan'>原文出处:本文由博客园博主ARM830提供。<br/>
+原文连接:https://www.cnblogs.com/T-ARF/p/12004980.html</div><br>
+    <p>WPF中Webbrowser控件使用HwndHost所以webbrowser会在所有控件的前方。所以webbrowser会覆盖所有同级的控件。</p>
+<p><img src="./images/WPF 使用Win32API 让控件置于WebBrowser上方0.png" alt="" /></p>
+<p>现在通过使用Win32API 可以避免这个情况。</p>
+<p>&nbsp;</p>
+<p>最主要的就是这几个Win32API：</p>
+<div class="cnblogs_code">
+<pre><code> [DllImport(<span style="color: #800000;">"</span><span style="color: #800000;">user32.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">)]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">extern</span> <span style="color: #0000ff;">bool</span> SetWindowRgn(IntPtr hWnd, IntPtr hRgn, <span style="color: #0000ff;">bool</span><span style="color: #000000;"> redraw);
+[DllImport(</span><span style="color: #800000;">"</span><span style="color: #800000;">gdi32.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">)]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">extern</span> IntPtr CreateRectRgn(<span style="color: #0000ff;">int</span> Left, <span style="color: #0000ff;">int</span> Top, <span style="color: #0000ff;">int</span> RectRightBottom_X, <span style="color: #0000ff;">int</span><span style="color: #000000;"> RectRightBottom_Y);
+ [DllImport(</span><span style="color: #800000;">"</span><span style="color: #800000;">gdi32.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">)]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">extern</span> <span style="color: #0000ff;">int</span> CombineRgn(IntPtr hrgnDst, IntPtr hrgnSrc1, IntPtr hrgnSrc2, <span style="color: #0000ff;">int</span> iMode);<br />[DllImport("GDI32.dll")]<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; public static extern bool DeleteObject(IntPtr objectHandle);</pre>
+</div>
+<p>适当说一下：</p>
+<p>setwindowrgn就是设置有效绘图区域。</p>
+<p>createrectrgn是创建矩形</p>
+<p>combinergn这个就是融合两个矩形，可以并集，交集以及Src1中不包括Src2的部分，最终结果会在hrgnDst中。</p>
+<p>总的来说就是利用webbrowser的父级控件的sizechanged事件来不断的设置有效绘图区域。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>我就直接上代码了，</p>
+<p>Win32API类</p>
+<div class="cnblogs_code">
+<pre><code> [DllImport(<span style="color: #800000;">"</span><span style="color: #800000;">user32.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">)]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">extern</span> <span style="color: #0000ff;">bool</span> SetWindowRgn(IntPtr hWnd, IntPtr hRgn, <span style="color: #0000ff;">bool</span><span style="color: #000000;"> redraw);
+        </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;summary&gt;</span>
+        <span style="color: #808080;">///</span><span style="color: #008000;"> 创建一个矩形，本来四个参数均为x1 y1 x2 y2 意思为左上角X1，Y1坐标，右下角X2,Y2坐标，但是为了方便WPF使用我则是改了
+        </span><span style="color: #808080;">///</span><span style="color: #008000;"> left意味矩形和左边的距离
+        </span><span style="color: #808080;">///</span><span style="color: #008000;"> top意味着矩形和顶边距离
+        </span><span style="color: #808080;">///</span><span style="color: #008000;"> rectrightbottom_x意味着矩形右下角的X坐标
+        </span><span style="color: #808080;">///</span><span style="color: #008000;"> rectrightbottom_y意味着矩形右下角的Y坐标
+        </span><span style="color: #808080;">///</span> <span style="color: #808080;">&lt;/summary&gt;</span>
+        <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="Left"&gt;&lt;/param&gt;</span>
+        <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="Top"&gt;&lt;/param&gt;</span>
+        <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="RectRightBottom_X"&gt;&lt;/param&gt;</span>
+        <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;param name="RectRightBottom_Y"&gt;&lt;/param&gt;</span>
+        <span style="color: #808080;">///</span> <span style="color: #808080;">&lt;returns&gt;&lt;/returns&gt;</span>
+        [DllImport(<span style="color: #800000;">"</span><span style="color: #800000;">gdi32.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">)]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">extern</span> IntPtr CreateRectRgn(<span style="color: #0000ff;">int</span> Left, <span style="color: #0000ff;">int</span> Top, <span style="color: #0000ff;">int</span> RectRightBottom_X, <span style="color: #0000ff;">int</span><span style="color: #000000;"> RectRightBottom_Y);
+<br />       &nbsp;[DllImport("GDI32.dll")]<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; public static extern bool DeleteObject(IntPtr objectHandle);<br />
+        [DllImport(</span><span style="color: #800000;">"</span><span style="color: #800000;">gdi32.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">)]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">extern</span> <span style="color: #0000ff;">int</span> CombineRgn(IntPtr hrgnDst, IntPtr hrgnSrc1, IntPtr hrgnSrc2, <span style="color: #0000ff;">int</span><span style="color: #000000;"> iMode);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">合并选项:
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">RGN_AND  = 1;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">RGN_OR   = 2;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">RGN_XOR  = 3;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">RGN_DIFF = 4;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">RGN_COPY = 5; {复制第一个区域}<br /></span></pre>
+</div>
+<p>&nbsp;</p>
+<p>附加属性类：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> ATCH
+    {
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty PanelProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">Panel</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(Panel), <span style="color: #0000ff;">typeof</span>(ATCH), <span style="color: #0000ff;">new</span> PropertyMetadata(<span style="color: #0000ff;">null</span><span style="color: #000000;">));
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetPanel(DependencyObject d, Panel value) =&gt;<span style="color: #000000;"> d.SetValue(PanelProperty, value);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Panel GetPanel(DependencyObject d) =&gt;<span style="color: #000000;"> (Panel)d.GetValue(PanelProperty);
+
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">readonly</span> DependencyProperty NameProperty = DependencyProperty.RegisterAttached(<span style="color: #800000;">"</span><span style="color: #800000;">Name</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">typeof</span>(FrameworkElement), <span style="color: #0000ff;">typeof</span>(ATCH), <span style="color: #0000ff;">new</span> PropertyMetadata(<span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">new</span><span style="color: #000000;"> PropertyChangedCallback(OnNamePropertyChanged)));
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SetName(DependencyObject d, FrameworkElement value) =&gt;<span style="color: #000000;"> d.SetValue(NameProperty, value);
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> FrameworkElement GetName(DependencyObject d) =&gt;<span style="color: #000000;"> (FrameworkElement)d.GetValue(NameProperty);
+
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> OnNamePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            </span><span style="color: #0000ff;">var</span> b =<span style="color: #000000;"> d.GetValue(PanelProperty);
+            </span><span style="color: #0000ff;">if</span> (b <span style="color: #0000ff;">is</span> <span style="color: #0000ff;">null</span>||! (b <span style="color: #0000ff;">is</span> Panel)||e.NewValue <span style="color: #0000ff;">is</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">var</span> panel = b <span style="color: #0000ff;">as</span><span style="color: #000000;"> Panel;
+            </span><span style="color: #0000ff;">var</span> web   =  d <span style="color: #0000ff;">as</span><span style="color: #000000;"> WebBrowser;
+            </span><span style="color: #0000ff;">var</span> ui = e.NewValue <span style="color: #0000ff;">as</span><span style="color: #000000;"> FrameworkElement;
+            SetRect(panel, web, ui);
+            panel.SizeChanged </span>+= (sender, args) =&gt;<span style="color: #000000;">
+            {
+                SetRect(panel, web, ui);
+            };
+
+        }
+       &nbsp;private static IntPtr C1;
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> SetRect(Panel panel, WebBrowser web, FrameworkElement ui)
+        {
+            IntPtr handle </span>=<span style="color: #000000;"> web.Handle;
+            Win32API.DeleteObject(C1);
+            Win32API.SetWindowRgn(handle, IntPtr.Zero, </span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+
+            Rect PanelRect </span>= <span style="color: #0000ff;">new</span> Rect(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Size(panel.ActualWidth, panel.ActualHeight));
+
+            </span> C1 = Win32API.CreateRectRgn((<span style="color: #0000ff;">int</span>)<span style="color: #800080;">0</span>, (<span style="color: #0000ff;">int</span>)<span style="color: #800080;">0</span>, (<span style="color: #0000ff;">int</span>)PanelRect.BottomRight.X, (<span style="color: #0000ff;">int</span><span style="color: #000000;">)PanelRect.BottomRight.Y);
+
+            Rect UIRect </span>= <span style="color: #0000ff;">new</span> Rect(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Size(ui.ActualWidth, ui.ActualHeight));
+
+            </span><span style="color: #0000ff;">var</span> D1 = (<span style="color: #0000ff;">int</span>)ui.TransformToAncestor(panel).Transform(<span style="color: #0000ff;">new</span> Point(<span style="color: #800080;">0</span>, <span style="color: #800080;">0</span><span style="color: #000000;">)).X;
+
+            </span><span style="color: #0000ff;">var</span> D2 = (<span style="color: #0000ff;">int</span>)ui.TransformToAncestor(panel).Transform(<span style="color: #0000ff;">new</span> Point(<span style="color: #800080;">0</span>, <span style="color: #800080;">0</span><span style="color: #000000;">)).Y;
+
+            </span><span style="color: #0000ff;">var</span> D3 = (<span style="color: #0000ff;">int</span>)(D1 +<span style="color: #000000;"> UIRect.Width);
+
+            </span><span style="color: #0000ff;">var</span> D4 = (<span style="color: #0000ff;">int</span>)(D2 +<span style="color: #000000;"> UIRect.Height);
+
+            </span><span style="color: #0000ff;">var</span> C2 =<span style="color: #000000;"> Win32API.CreateRectRgn(D1, D2, D3, D4);
+
+            Win32API.CombineRgn(C1, C1, C2, </span><span style="color: #800080;">4</span><span style="color: #000000;">);
+
+            Win32API.SetWindowRgn(handle, C1, </span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+        }
+    }</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>xaml代码</p>
+<div class="cnblogs_code">
+<pre><code> &lt;Grid&gt;
+        &lt;WebBrowser   Source=<span style="color: #800000;">"</span><span style="color: #800000;">http://www.baidu.com</span><span style="color: #800000;">"</span>  local:ATCH.Panel=<span style="color: #800000;">"</span><span style="color: #800000;">{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorLevel=1,AncestorType=Grid}}</span><span style="color: #800000;">"</span> local:ATCH.Name=<span style="color: #800000;">"</span><span style="color: #800000;">{Binding ElementName=btn}</span><span style="color: #800000;">"</span>/&gt;
+        &lt;Button  x:Name=<span style="color: #800000;">"</span><span style="color: #800000;">btn</span><span style="color: #800000;">"</span> Height=<span style="color: #800000;">"</span><span style="color: #800000;">50</span><span style="color: #800000;">"</span> Width=<span style="color: #800000;">"</span><span style="color: #800000;">100</span><span style="color: #800000;">"</span> Content=<span style="color: #800000;">"</span><span style="color: #800000;">覆盖测试</span><span style="color: #800000;">"</span>  /&gt;
+    &lt;/Grid&gt;</pre>
+</div>
+<p>&nbsp;</p>
+<p>截图1：</p>
+<p><img src="./images/WPF 使用Win32API 让控件置于WebBrowser上方1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>截图2：</p>
+<p>&nbsp;</p>
+<p><img src="./images/WPF 使用Win32API 让控件置于WebBrowser上方2.png" alt="" /></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

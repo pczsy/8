@@ -1,0 +1,108 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Mac安装MySQL-python的血泪史' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Mac安装MySQL-python的血泪史</center></div><div class='banquan'>原文出处:本文由博客园博主wswang提供。<br/>
+原文连接:https://www.cnblogs.com/wswang/p/11770967.html</div><br>
+    <h2 id="现象描述">现象描述</h2>
+<p>起初正常使用pip命令提示如下的错误：</p>
+<pre><code><code>cc -bundle -undefined dynamic_lookup -Wl,-F. build/temp.macosx-10.14-intel-2.7/_mysql.o -L/usr/local/Cellar/mysql-connector-c/6.1.11/lib -lmysqlclient -lssl -lcrypto -o build/lib.macosx-10.14-intel-2.7/_mysql.so
+  ld: library not found for -lssl
+  clang: error: linker command failed with exit code 1 (use -v to see invocation)
+  error: command &#39;cc&#39; failed with exit status 1
+  ----------------------------------------
+  ERROR: Failed building wheel for mysql-python
+
+
+
+13 warnings generated.
+    cc -bundle -undefined dynamic_lookup -Wl,-F. build/temp.macosx-10.14-intel-2.7/_mysql.o -L/usr/local/Cellar/mysql-connector-c/6.1.11/lib -lmysqlclient -lssl -lcrypto -o build/lib.macosx-10.14-intel-2.7/_mysql.so
+    ld: library not found for -lssl
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+    error: command &#39;cc&#39; failed with exit status 1
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: /Users/wang/.virtualenvs/flask-demo/bin/python -u -c &#39;import sys, setuptools, tokenize; sys.argv[0] = &#39;&quot;&#39;&quot;&#39;/private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-install-yqjXkS/mysql-python/setup.py&#39;&quot;&#39;&quot;&#39;; __file__=&#39;&quot;&#39;&quot;&#39;/private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-install-yqjXkS/mysql-python/setup.py&#39;&quot;&#39;&quot;&#39;;f=getattr(tokenize, &#39;&quot;&#39;&quot;&#39;open&#39;&quot;&#39;&quot;&#39;, open)(__file__);code=f.read().replace(&#39;&quot;&#39;&quot;&#39;\r\n&#39;&quot;&#39;&quot;&#39;, &#39;&quot;&#39;&quot;&#39;\n&#39;&quot;&#39;&quot;&#39;);f.close();exec(compile(code, __file__, &#39;&quot;&#39;&quot;&#39;exec&#39;&quot;&#39;&quot;&#39;))&#39; install --record /private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-record-rW5Hej/install-record.txt --single-version-externally-managed --compile --install-headers /Users/wang/.virtualenvs/flask-demo/include/site/python2.7/mysql-python Check the logs for full command output.</code></pre>
+<p>大致来看，是cc命令执行失败，没太多的思路，遂谷歌；</p>
+<h2 id="尝试">尝试</h2>
+<h3 id="stackoverflow答案">stackoverflow答案</h3>
+<p><a href="https://stackoverflow.com/questions/50940302/installing-mysql-python-causes-command-clang-failed-with-exit-status-1-on-mac" class="uri">https://stackoverflow.com/questions/50940302/installing-mysql-python-causes-command-clang-failed-with-exit-status-1-on-mac</a></p>
+<p>参考上面的链接，执行了一下，甚至也执行了一次评论里的内容，但实际上并没啥用……</p>
+<p>后面甚至出现了新的问题……</p>
+<h3 id="csdn答案">csdn答案</h3>
+<p><a href="https://blog.csdn.net/love_parents/article/details/80938818" class="uri">https://blog.csdn.net/love_parents/article/details/80938818</a></p>
+<p>尝试了后，又提示其他的问题</p>
+<pre><code><code>ERROR: Command errored out with exit status 1:
+     command: /Users/wang/.virtualenvs/flask-demo/bin/python -c &#39;import sys, setuptools, tokenize; sys.argv[0] = &#39;&quot;&#39;&quot;&#39;/private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-install-xonLuB/mysql-python/setup.py&#39;&quot;&#39;&quot;&#39;; __file__=&#39;&quot;&#39;&quot;&#39;/private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-install-xonLuB/mysql-python/setup.py&#39;&quot;&#39;&quot;&#39;;f=getattr(tokenize, &#39;&quot;&#39;&quot;&#39;open&#39;&quot;&#39;&quot;&#39;, open)(__file__);code=f.read().replace(&#39;&quot;&#39;&quot;&#39;\r\n&#39;&quot;&#39;&quot;&#39;, &#39;&quot;&#39;&quot;&#39;\n&#39;&quot;&#39;&quot;&#39;);f.close();exec(compile(code, __file__, &#39;&quot;&#39;&quot;&#39;exec&#39;&quot;&#39;&quot;&#39;))&#39; egg_info --egg-base /private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-install-xonLuB/mysql-python/pip-egg-info
+         cwd: /private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-install-xonLuB/mysql-python/
+    Complete output (9 lines):
+    Traceback (most recent call last):
+      File &quot;&lt;string&gt;&quot;, line 1, in &lt;module&gt;
+      File &quot;/private/var/folders/4r/29z_gj1n4szg9r01y5s6rxnm0000gn/T/pip-install-xonLuB/mysql-python/setup.py&quot;, line 17, in &lt;module&gt;
+        metadata, options = get_config()
+      File &quot;setup_posix.py&quot;, line 53, in get_config
+        libraries = [ dequote(i[2:]) for i in libs if i.startswith(compiler_flag(&quot;l&quot;)) ]
+      File &quot;setup_posix.py&quot;, line 8, in dequote
+        if s[0] in &quot;\&quot;&#39;&quot; and s[0] == s[-1]:
+    IndexError: string index out of range
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: python setup.py egg_info Check the logs for full command output.</code></pre>
+<p>这个问题，在此篇文章有提到，但按照他的方法并不能解决，遂继续谷歌</p>
+<h3 id="最终解决办法">最终解决办法</h3>
+<p><a href="https://www.cnblogs.com/LordNeo/p/9687832.html" class="uri">https://www.cnblogs.com/LordNeo/p/9687832.html</a></p>
+<p>参考这篇文章执行了重新安装了 mysql-connector-c ，修改了mysql的配置文件；</p>
+<p>执行了brew info openssl，得到</p>
+<pre><code><code>(flask-demo) ➜  homebrew-core git:(master) brew info openssl
+openssl: stable 1.0.2t (bottled) [keg-only]
+SSL/TLS cryptography library
+https://openssl.org/
+/usr/local/Cellar/openssl/1.0.2t (1,795 files, 12.0MB)
+  Poured from bottle on 2019-10-30 at 18:26:15
+From: https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git/Formula/openssl.rb
+==&gt; Caveats
+A CA file has been bootstrapped using certificates from the SystemRoots
+keychain. To add additional certificates (e.g. the certificates added in
+the System keychain), place .pem files in
+  /usr/local/etc/openssl/certs
+
+and run
+  /usr/local/opt/openssl/bin/c_rehash
+
+openssl is keg-only, which means it was not symlinked into /usr/local,
+because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.
+
+If you need to have openssl first in your PATH run:
+  echo &#39;export PATH=&quot;/usr/local/opt/openssl/bin:$PATH&quot;&#39; &gt;&gt; ~/.zshrc
+
+For compilers to find openssl you may need to set:
+  export LDFLAGS=&quot;-L/usr/local/opt/openssl/lib&quot;
+  export CPPFLAGS=&quot;-I/usr/local/opt/openssl/include&quot;
+
+For pkg-config to find openssl you may need to set:
+  export PKG_CONFIG_PATH=&quot;/usr/local/opt/openssl/lib/pkgconfig&quot;</code></pre>
+<p>随后执行了提示里的 <code>echo 'export PATH=&quot;/usr/local/opt/openssl/bin:$PATH&quot;' &gt;&gt; ~/.zshrc</code></p>
+<p>同时，把下面语句加入了 bash_profile 并source bash_profile。</p>
+<pre><code><code>  export LDFLAGS=&quot;-L/usr/local/opt/openssl/lib&quot;
+  export CPPFLAGS=&quot;-I/usr/local/opt/openssl/include&quot;</code></pre>
+<p>再使用 pip安装，成功了……</p>
+<h3 id="后记">后记</h3>
+<p>都2019年了，Mac/Linux安装这个包还要这么心累………………</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

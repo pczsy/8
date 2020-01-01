@@ -1,0 +1,77 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修软件设计的哲学： 第六章 更深的通用模块' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>软件设计的哲学： 第六章 更深的通用模块</center></div><div class='banquan'>原文出处:本文由博客园博主peida提供。<br/>
+原文连接:https://www.cnblogs.com/peida/p/12060164.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#使类具有一定的通用性">6.1 使类具有一定的通用性</a></li>
+        <li><a href="#示例为编辑器存储文本">6.2 示例：为编辑器存储文本</a></li>
+        <li><a href="#更通用的api">6.3更通用的API</a></li>
+        <li><a href="#通用性使得信息隐藏效果更好">6.4 通用性使得信息隐藏效果更好</a></li>
+        <li><a href="#问自己的问题">6.5 问自己的问题</a></li>
+        <li><a href="#结论">6.6 结论</a></li>
+        </ul>
+    </div>
+</div>
+<p>在设计新模块时，最常见的一个决定就是以通用方式还是特殊方式实现它。有些人可能会说，应该采用通用的方法，即实现一种机制，用于解决广泛的问题，而不仅仅是当前重要的问题。在这种情况下，新机制可能会在未来发现意想不到的用途，从而节省时间。通用方法似乎与第3章中讨论的投资心态一致，即您预先花费更多的时间来节省以后的时间。</p>
+<p>另一方面，我们知道很难预测软件系统的未来需求，所以一个通用的解决方案可能包含一些实际上并不需要的设施。此外，如果您实现了一些过于通用的东西，那么它可能无法很好地解决您现在面临的特定问题。因此，有些人可能会说，最好关注今天的需求，只构建您知道自己需要的东西，并根据您今天计划使用它的方式进行专门化。如果采用特殊用途的方法，并在以后发现其他用途，则始终可以对其进行重构，使其成为通用用途。专用方法似乎与软件开发的增量方法一致。</p>
+<h2 id="使类具有一定的通用性">6.1 使类具有一定的通用性</h2>
+<p>根据我的经验，最好的方法是以某种通用的方式实现新模块。短语“某种程度上通用的”意思是模块的功能应该反映您当前的需求，但是它的接口不应该。相反，接口应该足够通用，以支持多种用途。该接口应该易于使用，以满足今天的需要，而不是专门针对他们。“有些”这个词很重要：<strong>不要忘乎所以，不要构建一些通用的东西，因为它很难满足您当前的需求。</strong></p>
+<p>通用方法最重要的(可能也是最令人惊讶的)好处是，它比专用方法产生更简单、更深入的接口。如果您将该类用于其他目的，那么通用方法还可以在将来为您节省时间。然而，即使该模块仅用于其原始目的，由于其简单性，通用目的的方法仍然更好。</p>
+<h2 id="示例为编辑器存储文本">6.2 示例：为编辑器存储文本</h2>
+<p>让我们考虑一个来自软件设计课程的例子，在这个课程中，学生被要求构建简单的GUI文本编辑器。编辑器必须显示一个文件，并允许用户指向、单击和键入来编辑文件。编辑器必须在不同的窗口中支持同一文件的多个同步视图;他们还必须支持多级撤销和重做文件的修改。</p>
+<p>每个学生项目都包含一个管理文件底层文本的类。文本类通常提供将文件加载到内存、读取和修改文件文本以及将修改后的文本写回文件的方法。</p>
+<p>许多学生团队为text类实现了特殊用途的api。他们知道这个类将在交互式编辑器中使用，所以他们考虑了编辑器必须提供的特性，并根据这些特定的特性定制了文本类的API。例如，如果编辑器的用户键入退格键，编辑器将立即删除光标左边的字符;如果用户键入删除键，编辑器将立即删除光标右侧的字符。了解了这一点，一些团队在text类中创建了一个方法来支持这些特定的特性：</p>
+<pre><code><code>void backspace(Cursor cursor);
+void delete(Cursor cursor);</code></pre>
+<p>这些方法中的每一个都以光标的位置作为参数;特殊类型游标表示此位置。编辑器还必须支持可以复制或删除的选择。学生们通过定义一个选择类，并在删除期间将这个类的对象传递给text类来处理这个问题：</p>
+<pre><code><code>void deleteSelection(Selection selection);</code></pre>
+<p>学生们可能认为如果text类的方法对应于用户可见的特性，那么实现用户界面会更容易。然而，在现实中，这种专门化对用户界面代码几乎没有什么好处，而且它为用户界面或文本类的开发人员带来了很高的认知负荷。text类以大量的浅层方法结束，每个浅层方法只适合一个用户界面操作。许多方法(如delete)只在一个地方调用。因此，开发用户界面的开发人员必须了解文本类的大量方法。</p>
+<p>这种方法在用户界面和文本类之间造成了信息泄漏。与用户界面相关的抽象，如选择或退格键，反映在文本类中;这增加了开发人员处理文本类的认知负荷。每一个新的用户界面操作都需要在text类中定义一个新方法，因此处理用户界面的开发人员可能最终也要处理text类。类设计的目标之一是允许独立地开发每个类，但是专门化的方法将用户界面和文本类绑定在一起。</p>
+<h2 id="更通用的api">6.3更通用的API</h2>
+<p>更好的方法是使text类更通用。它的API应该只根据基本的文本特性来定义，而不反映将用它实现的高级操作。例如，只需要两个方法来修改文本：</p>
+<pre><code><code>oid insert(Position position, String newText);
+void delete(Position start, Position end);</code></pre>
+<p>第一个方法在文本中的任意位置插入任意字符串，第二个方法删除大于或等于开始但小于结束位置的所有字符。这个API还使用了一个更通用的类型Position而不是游标，它反映了一个特定的用户界面。text类还应该提供一些通用的工具来处理文本中的位置，例如：</p>
+<pre><code><code>Position changePosition(Position position, int numChars);</code></pre>
+<p>此方法返回一个新位置，该位置距离给定位置有一定数量的字符。如果numChars参数为正，则新位置在文件中的时间晚于位置;如果数字是负数，则新位置在位置之前。该方法在必要时自动跳转到下一行或上一行。使用这些方法，可以用以下代码实现delete键(假设游标变量保存当前游标位置)：</p>
+<pre><code><code>text.delete(cursor, text.changePosition(cursor, 1));</code></pre>
+<p>同样，backspace键可以实现如下：</p>
+<pre><code><code>text.delete(text.changePosition(cursor, -1), cursor);</code></pre>
+<p>使用通用的文本API，实现用户界面功能(如删除和退格)的代码比使用专门的文本API的原始方法要长一些。然而，新代码比旧代码更明显。在用户界面模块中工作的开发人员可能关心backspace键删除哪些字符。对于新代码，这是显而易见的。使用旧的代码，开发人员必须转到text类并阅读backspace方法的文档和/或代码来验证行为。此外，与专门化方法相比，通用方法总体上的代码更少，因为它用更少的通用方法替换了文本类中大量的专用方法。</p>
+<p>使用通用接口实现的文本类可以用于交互编辑器之外的其他用途。例如，假设您正在构建一个应用程序，该应用程序通过用另一个字符串替换所有特定字符串的出现来修改指定的文件。专门化文本类(如backspace和delete)中的方法对这个应用程序没有什么价值。但是，通用文本类已经具备了新应用程序所需的大部分功能。唯一缺少的是一个方法来搜索下一个出现的给定字符串，如这个：</p>
+<pre><code><code>Position findNext(Position start, String string);</code></pre>
+<p>当然，交互式文本编辑器可能具有搜索和替换的机制，在这种情况下，text类已经包含此方法。</p>
+<h2 id="通用性使得信息隐藏效果更好">6.4 通用性使得信息隐藏效果更好</h2>
+<p>通用方法在文本和用户接口类之间提供了更清晰的分离，从而实现更好的信息隐藏。文本类不需要知道用户界面的细节，比如如何处理退格键;这些细节现在封装在user interface类中。可以添加新的用户界面特性，而无需在text类中创建新的支持函数。通用接口还减少了认知负担:开发人员只需学习一些简单的方法，这些方法可以用于各种目的。</p>
+<p>text类的原始版本中的backspace方法是一个错误的抽象。它的目的是隐藏关于删除哪些字符的信息，但用户界面模块确实需要知道这一点;用户界面开发人员可能会阅读backspace方法的代码以确认它的准确行为。将这个方法放到text类中只会让用户界面开发人员更难获得他们需要的信息。软件设计最重要的元素之一是决定谁需要知道什么，什么时候需要知道。当细节很重要时，最好让它们尽可能明确和明显，比如backspace操作的修改实现。将这些信息隐藏在接口后面只会造成不透明性。</p>
+<h2 id="问自己的问题">6.5 问自己的问题</h2>
+<p>识别干净的通用类设计要比创建一个类容易。下面是一些您可以问自己的问题，这些问题将帮助您在接口的一般用途和特殊用途之间找到适当的平衡。</p>
+<p><strong>什么是最简单的接口可以满足我当前的所有需求？如果您减少了API中的方法数量，而没有减少它的整体功能，那么您可能正在创建更通用的方法。</strong> 特殊用途的文本API至少有三种删除文本的方法:backspace、delete和deleteSelection。更通用的API只有一个用于删除文本的方法，这满足了所有三个目的。只有在每个方法的API保持简单的情况下，减少方法的数量才有意义；如果为了减少方法的数量，您不得不引入许多额外的参数，那么您可能并没有真正地简化事情。</p>
+<p><strong>在多少情况下会使用这种方法？如果一个方法是为一个特定的用途而设计的，比如backspace方法，那么这就是一个危险信号，因为它可能太特殊了。看看是否可以将几个专用方法替换为一个通用方法。</strong></p>
+<p>这个API容易用于我当前的需求吗？这个问题可以帮助您确定什么时候您在使API变得简单和通用方面做得太过火了。如果您必须编写大量额外的代码来使用一个类来满足当前的需要，那么接口没有提供正确的功能就是一个危险的信号。例如，text类的一种方法是围绕单字符操作进行设计:insert插入单个字符，delete删除单个字符。这个API既简单又通用。但是，对于文本编辑器来说，它并不特别容易使用:高级代码将包含许多循环来插入或删除字符范围。对于大型操作，单字符方法的效率也很低。因此，文本类最好内置对字符范围的操作的支持。</p>
+<h2 id="结论">6.6 结论</h2>
+<p>与专用接口相比，通用接口有许多优点。它们往往更简单，包含更少的方法。它们还提供了类之间更清晰的分离，而特殊用途的接口往往会泄漏类之间的信息。使您的模块具有一定的通用功能是降低整个系统复杂性的最佳方法之一。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

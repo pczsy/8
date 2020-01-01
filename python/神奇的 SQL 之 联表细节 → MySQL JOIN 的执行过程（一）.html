@@ -1,0 +1,203 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）</center></div><div class='banquan'>原文出处:本文由博客园博主youzhibing2904提供。<br/>
+原文连接:https://www.cnblogs.com/youzhibing/p/12004986.html</div><br>
+    <h2>开心一刻</h2>
+<p>　　我：嗨，老板娘，有冰红茶没<br />　　老板娘：有<br />　　我：多少钱一瓶<br />　　老板娘：3块<br />　　我：给我来一瓶，给，3块<br />　　老板娘：来，你的冰红茶<br />　　我：玩呐，我要冰红茶，你给我个瓶盖干哈？<br />　　老板娘：这是再来一瓶，我家卖完了，你去隔壁家换一下</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）0.png" alt="" /></p>
+<h2>问题背景</h2>
+<p>　　对于 MySQL 的 JOIN，不知道大家有没有去想过他的执行流程，亦或有没有怀疑过自己的理解（自信满满的自我认为！）；如果大家不知道怎么检验，可以试着回答如下的问题</p>
+<h3>　　驱动表的选择</h3>
+<p>　　　　MySQL 会如何选择驱动表，按从左至右的顺序选择第一个？</p>
+<h3>　　多表连接的顺序</h3>
+<p>　　　　假设我们有 3 张表：A、B、C，和如下 SQL</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">--</span><span style="color: #008080;"> 伪 SQL，不能直接执行</span>
+A <span style="color: #808080;">LEFT</span> <span style="color: #808080;">JOIN</span> B <span style="color: #0000ff;">ON</span> B.aId <span style="color: #808080;">=</span><span style="color: #000000;"> A.id
+</span><span style="color: #808080;">LEFT</span> <span style="color: #808080;">JOIN</span> C <span style="color: #0000ff;">ON</span> C.aId <span style="color: #808080;">=</span><span style="color: #000000;"> A.id
+</span><span style="color: #0000ff;">WHERE</span> A.name <span style="color: #808080;">=</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">666</span><span style="color: #ff0000;">'</span> <span style="color: #808080;">AND</span> B.state <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1</span> <span style="color: #808080;">AND</span> C.create_time <span style="color: #808080;">&gt;</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-11-22 12:12:30</span><span style="color: #ff0000;">'</span></pre>
+</div>
+<p>　　　　是 A 和 B 联表处理完之后的结果再和 C 进行联表处理，还是 A、B、C 一起联表之后再进行过滤处理 ，还是说这两种都不对，有其他的处理方式 ？</p>
+<h3>　　ON、WHERE 的生效时机</h3>
+<p>　　　　楼主无意之间逛到了一篇博文，它里面有如下介绍</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）1.png" alt="" width="700" /></p>
+<p style="text-align: center;">正经图1 摘自&nbsp;<a href="https://segmentfault.com/a/1190000015572505" target="_blank">Mysql - JOIN详解</a></p>
+<p>　　　　看完这个，楼主第一时间有发现新大陆的感觉，原来 JOIN 的执行顺序是这样的（不是颠覆了楼主之前的认知，因为楼主之前就没想过这个问题，而是有种新技能获取的满足），可后面越想越不对，感觉像是学错了技能（6级没学大！）</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）2.png" alt="" /></p>
+<p>　　　　如果两表各有几百上千万的数据，那这两张表做笛卡尔积，结果不敢想象！也就是说 正经图1 中的顺序还有待商榷，ON 和 WHERE 的生效时间也有待商榷</p>
+<p>　　如果你对上述问题都了如指掌，那请你走开，别妨碍我装逼；如果你对上述问题还不是特别清楚，那么请坐好，我要开始装逼了</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）3.png" alt="" width="150" /></p>
+<h2>前提准备</h2>
+<p>　　正式开讲之前了，先给大家预备一些花生、瓜子和啤酒，装逼就得有装逼的氛围，不然怎么看的下去，你说是吧 ？（楼主，你个骗子，货了？）</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）4.png" alt="" /></p>
+<h3>　　驱动表</h3>
+<p>　　　　何谓驱动表，指多表关联查询时，第一个被处理的表，亦可称之为基表，然后再使用此表的记录去关联其他表。驱动表的选择遵循一个原则：<span style="color: #ff6600;">在对最终结果集没影响的前提下，优先选择结果集最少的那张表作为驱动表</span>。这个原则说的不好懂，结果集最少，这个也许我们能估出来，但对最终结果集不影响，这个就不好判断了，难归难，但还是有一定规律的：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">LEFT JOIN 一般以左表为驱动表（RIGHT JOIN一般则是右表 ），INNER JOIN 一般以结果集少的表为驱动表，如果还觉得有疑问，则可用 EXPLAIN 来找驱动表，其结果的第一张表即是驱动表。<br />你以为 EXPLAIN 就一定准吗 ？ 执行计划在真正执行的时候是可能改变的！
+
+绝大多少情况下是适用的，特别是 EXPLAIN</span></pre>
+</div>
+<p>　　　　LEFT JOIN 某些情况下会被查询优化器优化成 INNER JOIN；结果集指的是表中记录过滤后的结果，而不是表中的所有记录，如果无过滤条件则是表中所有记录</p>
+<p>　　　　更多信息可查看：<a href="https://blog.csdn.net/qq_27529917/article/details/87904179" target="_blank">Mysql多表连接查询的执行细节（一）</a></p>
+<h3>　　SQL 执行的流程图</h3>
+<p>　　　　当我们向 MySQL 发送一个请求的时候，MySQL 到底做了些了什么</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）5.png" alt="" /></p>
+<p style="text-align: center;">&nbsp;SQL 执行路径，摘自《高性能MySQL》</p>
+<p>　　　　可以看到，执行计划是查询优化器的输出结果，执行引擎根据执行计划来查询数据</p>
+<h3>　　数据准备</h3>
+<p>　　　　MySQL 5.7.1，InnoDB 引擎；建表 SQL 和 数据初始 SQL</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('30428d6e-de94-4b13-8859-8839c47dc350')"><img id="code_img_closed_30428d6e-de94-4b13-8859-8839c47dc350" class="code_img_closed" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）6.png" alt="" /><img id="code_img_opened_30428d6e-de94-4b13-8859-8839c47dc350" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('30428d6e-de94-4b13-8859-8839c47dc350',event)" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）7.png" alt="" />
+<div id="cnblogs_code_open_30428d6e-de94-4b13-8859-8839c47dc350" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;">--</span><span style="color: #008080;"> 表创建与数据初始化</span>
+<span style="color: #0000ff;">DROP</span> <span style="color: #0000ff;">TABLE</span> <span style="color: #0000ff;">IF</span> <span style="color: #808080;">EXISTS</span><span style="color: #000000;"> tbl_user;
+</span><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> tbl_user (
+  id </span><span style="color: #0000ff;">INT</span>(<span style="color: #800000; font-weight: bold;">11</span>) UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> AUTO_INCREMENT COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">自增主键</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  </span><span style="color: #ff00ff;">user_name</span> <span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">50</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">用户名</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  sex </span><span style="color: #0000ff;">TINYINT</span>(<span style="color: #800000; font-weight: bold;">1</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">性别, 1:男，0:女</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  create_time </span><span style="color: #0000ff;">datetime</span> <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">创建时间</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  update_time </span><span style="color: #0000ff;">datetime</span> <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">更新时间</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+    remark </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">255</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> <span style="color: #0000ff;">DEFAULT</span> <span style="color: #ff0000;">''</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">备注</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (id)
+) COMMENT</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">用户表</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">DROP</span> <span style="color: #0000ff;">TABLE</span> <span style="color: #0000ff;">IF</span> <span style="color: #808080;">EXISTS</span><span style="color: #000000;"> tbl_user_login_log;
+</span><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> tbl_user_login_log (
+  id </span><span style="color: #0000ff;">INT</span>(<span style="color: #800000; font-weight: bold;">11</span>) UNSIGNED <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> AUTO_INCREMENT COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">自增主键</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  </span><span style="color: #ff00ff;">user_name</span> <span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">50</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">用户名</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  ip </span><span style="color: #0000ff;">VARCHAR</span>(<span style="color: #800000; font-weight: bold;">15</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">登录IP</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  client </span><span style="color: #0000ff;">TINYINT</span>(<span style="color: #800000; font-weight: bold;">1</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">登录端, 1:android, 2:ios, 3:PC, 4:H5</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  create_time </span><span style="color: #0000ff;">datetime</span> <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> COMMENT <span style="color: #ff0000;">'</span><span style="color: #ff0000;">创建时间</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (id)
+) COMMENT</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">登录日志</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">INSERT</span> <span style="color: #0000ff;">INTO</span> tbl_user(<span style="color: #ff00ff;">user_name</span>,sex,create_time,update_time,remark) <span style="color: #0000ff;">VALUES</span><span style="color: #000000;">
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">何天香</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">1</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">朗眉星目，一表人材</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">薛沉香</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">天星楼的总楼主薛摇红的女儿，也是天星楼的少总楼主，体态丰盈，乌发飘逸，指若春葱，袖臂如玉，风姿卓然，高贵典雅，人称&ldquo;天星绝香&rdquo;的武林第一大美女</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">慕容兰娟</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">武林东南西北四大世家之北世家慕容长明的独生女儿，生得玲珑剔透，粉雕玉琢，脾气却是刚烈无比，又喜着火红，所以人送绰号&ldquo;火凤凰&rdquo;，是除天星楼薛沉香之外的武林第二大美女</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">苌婷</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">当今皇上最宠爱的侄女，北王府的郡主，腰肢纤细，遍体罗绮，眉若墨画，唇点樱红；虽无沉香之雅重，兰娟之热烈，却别现出一种空灵</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">柳含姻</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">武林四绝之一的添愁仙子董婉婉的徒弟，体态窈窕，姿容秀丽，真个是秋水为神玉为骨，芙蓉如面柳如腰，眉若墨画，唇若点樱，不弱西子半分，更胜玉环一筹; 摇红楼、听雨轩，琵琶一曲值千金!</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">李凝雪</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">李相国的女儿，神采奕奕，英姿飒爽，爱憎分明</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">周遗梦</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">音神传人，湘妃竹琴的拥有者，云髻高盘，穿了一身黑色蝉翼纱衫，愈觉得冰肌玉骨，粉面樱唇，格外娇艳动人</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">叶留痕</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">圣域圣女，肤白如雪，白衣飘飘，宛如仙女一般，微笑中带着说不出的柔和之美</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">郭疏影</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">扬灰右使的徒弟，秀发细眉，玉肌丰滑，娇润脱俗</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">钟钧天</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">天界，玄天九部 - 钧天部的部主，超凡脱俗，仙气逼人</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">王雁云</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">尘缘山庄二小姐，刁蛮任性</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">许侍霜</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">药王谷谷主女儿，医术高明</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">冯黯凝</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">0</span>,NOW(), NOW(),<span style="color: #ff0000;">'</span><span style="color: #ff0000;">桃花门门主，娇艳如火，千娇百媚</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">INSERT</span> <span style="color: #0000ff;">INTO</span> tbl_user_login_log(<span style="color: #ff00ff;">user_name</span>, ip, client, create_time) <span style="color: #0000ff;">VALUES</span><span style="color: #000000;">
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">薛沉香</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">10.53.56.78</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">2</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-12 12:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">苌婷</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">10.53.56.78</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">2</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-12 22:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">慕容兰娟</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">10.53.56.12</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">1</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2018-08-12 22:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">何天香</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">10.53.56.12</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">1</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-19 10:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">柳含姻</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">198.11.132.198</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">2</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2018-05-12 22:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">冯黯凝</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">198.11.132.198</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">2</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2018-11-11 22:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">周遗梦</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">198.11.132.198</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">2</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-06-18 22:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">郭疏影</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">220.181.38.148</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">3</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-21 09:45:56</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">薛沉香</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">220.181.38.148</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">3</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-26 22:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">苌婷</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">104.69.160.60</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">4</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-12 10:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">王雁云</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">104.69.160.61</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">4</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-16 20:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">李凝雪</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">104.69.160.62</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">4</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-17 20:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">许侍霜</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">104.69.160.63</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">4</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-18 20:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">叶留痕</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">104.69.160.64</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">4</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-19 20:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">王雁云</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">104.69.160.65</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">4</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-20 20:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">),
+(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">叶留痕</span><span style="color: #ff0000;">'</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">104.69.160.66</span><span style="color: #ff0000;">'</span>,<span style="color: #800000; font-weight: bold;">4</span>, <span style="color: #ff0000;">'</span><span style="color: #ff0000;">2019-10-21 20:23:45</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+
+</span><span style="color: #0000ff;">SELECT</span> <span style="color: #808080;">*</span> <span style="color: #0000ff;">FROM</span><span style="color: #000000;"> tbl_user;
+</span><span style="color: #0000ff;">SELECT</span> <span style="color: #808080;">*</span> <span style="color: #0000ff;">FROM</span> tbl_user_login_log;</pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<h3>　　单表查询</h3>
+<p>　　　　单表查询的过程比较好理解，大致如下</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）8.png" alt="" /></p>
+<p>　　　　关于单表查询就不细讲了，主要涉及到：聚簇索引，覆盖索引、回表操作，知道这 3 点，上图就好理解了（不知道的赶快去查资料，暴露了就丢人了！）。</p>
+<h2>联表算法</h2>
+<p>　　MySQL 的联表算法是基于嵌套循环算法（<a href="https://dev.mysql.com/doc/refman/8.0/en/nested-loop-joins.html" target="_blank">nested-loop algorithm</a>）而衍生出来的一系列算法，根据不同条件而选用不同的算法</p>
+<div class="cnblogs_code">
+<pre><code>在使用索引关联的情况下，有 <span style="color: #0000ff;">Index</span> Nested<span style="color: #808080;">-</span>Loop <span style="color: #808080;">join</span> 和 Batched <span style="color: #0000ff;">Key</span> Access <span style="color: #808080;">join</span><span style="color: #000000;"> 两种算法;
+在未使用索引关联的情况下，有 Simple Nested</span><span style="color: #808080;">-</span>Loop <span style="color: #808080;">join</span> 和 Block Nested<span style="color: #808080;">-</span>Loop <span style="color: #808080;">join</span> 两种算法;　　</pre>
+</div>
+<h3>　　Simple Nested-Loop</h3>
+<p>　　　　简单嵌套循环，简称 SNL；逐条逐条匹配，就像这样</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('198aba2b-504a-4f3f-add5-e7e792c1c0f2')"><img id="code_img_closed_198aba2b-504a-4f3f-add5-e7e792c1c0f2" class="code_img_closed" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）6.png" alt="" /><img id="code_img_opened_198aba2b-504a-4f3f-add5-e7e792c1c0f2" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('198aba2b-504a-4f3f-add5-e7e792c1c0f2',event)" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）7.png" alt="" />
+<div id="cnblogs_code_open_198aba2b-504a-4f3f-add5-e7e792c1c0f2" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">for</span> each row <span style="color: #808080;">in</span><span style="color: #000000;"> t1 matching range {
+  </span><span style="color: #0000ff;">for</span> each row <span style="color: #808080;">in</span> t2 matching reference <span style="color: #0000ff;">key</span><span style="color: #000000;"> {
+    </span><span style="color: #0000ff;">for</span> each row <span style="color: #808080;">in</span><span style="color: #000000;"> t3 {
+      </span><span style="color: #0000ff;">if</span> row satisfies <span style="color: #808080;">join</span> conditions, send <span style="color: #0000ff;">to</span><span style="color: #000000;"> client
+    }
+  }
+}</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）11.png" alt="" width="700" /></p>
+<p>　　　　这种算法简单粗暴，但毫无性能可言，时间性能上来说是 n（表中记录数） 的 m（表的数量） 次方，所以 MySQL 做了优化，联表查询的时候不会出现这种算法，即使在无 WHERE&nbsp; 条件且 ON 的连接键上无索引时，也不会选用这种算法</p>
+<h3>　　Block Nested-Loop</h3>
+<p>　　　　缓存块嵌套循环连接，简称 BNL，是对 INL 的一种优化；一次性缓存多条驱动表的数据到 Join Buffer，然后拿 Join Buffer 里的数据批量与内层循环读取的数据进行匹配，就像这样</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('943accd8-459b-4535-9d4a-090ea2c671d3')"><img id="code_img_closed_943accd8-459b-4535-9d4a-090ea2c671d3" class="code_img_closed" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）6.png" alt="" /><img id="code_img_opened_943accd8-459b-4535-9d4a-090ea2c671d3" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('943accd8-459b-4535-9d4a-090ea2c671d3',event)" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）7.png" alt="" />
+<div id="cnblogs_code_open_943accd8-459b-4535-9d4a-090ea2c671d3" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">for</span> each row <span style="color: #808080;">in</span><span style="color: #000000;"> t1 matching range {
+  </span><span style="color: #0000ff;">for</span> each row <span style="color: #808080;">in</span> t2 matching reference <span style="color: #0000ff;">key</span><span style="color: #000000;"> {
+    store used columns </span><span style="color: #0000ff;">from</span> t1, t2 <span style="color: #808080;">in</span> <span style="color: #808080;">join</span><span style="color: #000000;"> buffer
+    </span><span style="color: #0000ff;">if</span> buffer <span style="color: #0000ff;">is</span> <span style="color: #0000ff;">full</span><span style="color: #000000;"> {
+      </span><span style="color: #0000ff;">for</span> each row <span style="color: #808080;">in</span><span style="color: #000000;"> t3 {
+        </span><span style="color: #0000ff;">for</span> each t1, t2 combination <span style="color: #808080;">in</span> <span style="color: #808080;">join</span><span style="color: #000000;"> buffer {
+          </span><span style="color: #0000ff;">if</span> row satisfies <span style="color: #808080;">join</span> conditions, send <span style="color: #0000ff;">to</span><span style="color: #000000;"> client
+        }
+      }
+      empty </span><span style="color: #808080;">join</span><span style="color: #000000;"> buffer
+    }
+  }
+}
+
+</span><span style="color: #0000ff;">if</span> buffer <span style="color: #0000ff;">is</span> <span style="color: #808080;">not</span><span style="color: #000000;"> empty {
+  </span><span style="color: #0000ff;">for</span> each row <span style="color: #808080;">in</span><span style="color: #000000;"> t3 {
+    </span><span style="color: #0000ff;">for</span> each t1, t2 combination <span style="color: #808080;">in</span> <span style="color: #808080;">join</span><span style="color: #000000;"> buffer {
+      </span><span style="color: #0000ff;">if</span> row satisfies <span style="color: #808080;">join</span> conditions, send <span style="color: #0000ff;">to</span><span style="color: #000000;"> client
+    }
+  }
+}</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　　　将内部循环中读取的每一行与缓冲区中的所有记录进行比较，这样就可以减少内层循环的读表次数。举个例子，如果没有 Join Buffer，驱动表有 30 条记录，被驱动表有 50 条记录，那么内层循环的读表次数应该是 30 * 50 = 1500，如果&nbsp;Join Buffer 可用并可以存 10 条记录（<span style="color: #ff6600;">Join Buffer 存储的是驱动表中参与查询的列，包括 SELECT 的列、ON 的列、WHERE 的列，而不是驱动表中整行整行的完整记录</span>），那么内层循环的读表次数应该是 30 / 10 * 50 = 150，被驱动表必须读取的次数减少了一个数量级。</p>
+<p>　　　　当被驱动表在连接键上无索引且被驱动表在 WHERE 过滤条件上也没索引时，常常会采用此种算法来完成联表，如下所示</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）14.png" alt="" width="700" /></p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）15.png" alt="" width="700" /></p>
+<h3>　　Index Nested-Loop</h3>
+<p>　　　　索引嵌套循环，简称 INL，是基于被驱动表的索引进行连接的算法；驱动表的记录逐条与被驱动表的索引进行匹配，避免和被驱动表的每条记录进行比较，减少了对被驱动表的匹配次数，大致流程如下图</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）16.png" alt="" width="700" /></p>
+<p>　　　　我们来看看实际案例，先给&nbsp;<span class="cnblogs_code">tbl_user_login_log</span>&nbsp;添加索引&nbsp;<span class="cnblogs_code"><span style="color: #0000ff;">ALTER</span> <span style="color: #0000ff;">TABLE</span> tbl_user_login_log <span style="color: #0000ff;">ADD</span> <span style="color: #0000ff;">INDEX</span> idx_user_name (<span style="color: #ff00ff;">user_name</span>);</span>&nbsp;，我们再来看联表执行计划</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）17.png" alt="" width="700" /></p>
+<p>&nbsp;　　　　可以看到&nbsp;<span class="cnblogs_code">tbl_user_login_log</span>&nbsp;的索引生效了，我们再往下看</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）18.png" alt="" width="700" /></p>
+<p>&nbsp;　　　　有趣的事发生了，驱动表变成了&nbsp;<span class="cnblogs_code">tbl_user_login_log</span>&nbsp;，而&nbsp;<span class="cnblogs_code">tbl_user</span>&nbsp;成了被驱动表，&nbsp;<span class="cnblogs_code">tbl_user_login_log</span>&nbsp;走索引过滤后得到结果集，再通过 BNL 算法将结果集与&nbsp;<span class="cnblogs_code">tbl_user</span>&nbsp;进行匹配。这其实是 MySQL进行了优化，因为&nbsp;<span class="cnblogs_code">tbl_user_login_log</span>&nbsp;走索引过滤后得到的结果集比&nbsp;<span class="cnblogs_code">tbl_user</span>&nbsp;记录数要少，所以选择了&nbsp;<span class="cnblogs_code">tbl_user_login_log</span>&nbsp;作为驱动表，后面的也就理所当然了，是不是感觉 MySQL 好强大？</p>
+<h3>　　Batched Key Access</h3>
+<p>　　　　批量key访问，简称 BKA，是对 INL 算法的一种优化；</p>
+<p>　　　　BKA 对 INL 的优化类似于 BNL 对 SNL 的优化，但又有不同； 鉴于篇幅原因，BKA 我们放到下期讲解，希望各位老哥见谅！实在是不行，你来打我呀！</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/神奇的 SQL 之 联表细节 → MySQL JOIN 的执行过程（一）19.png" alt="" width="150" /></p>
+<h2>总结</h2>
+<p>　　1、驱动表的选择有它的一套算法，有兴趣的可以去专研下；比较靠谱的确定方法是用 EXPLAIN</p>
+<p>　　2、联表顺序，不是两两联合之后，再去联合第三张表，而是驱动表的一条记录穿到底，匹配完所有关联表之后，再取驱动表的下一条记录重复联表操作；</p>
+<p>　　3、MySQL 的连接算法基于嵌套循环算法，基于不同的情况而采用不同的衍生算法</p>
+<p>　　4、关于 ON 和 WHERE，我们下篇详细讲解，大家可以先考虑下它们的区别，以及生效时间</p>
+<h2>参考</h2>
+<p>　　<a href="https://blog.csdn.net/qq_27529917/article/details/87904179" target="_blank">Mysql多表连接查询的执行细节（一）</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

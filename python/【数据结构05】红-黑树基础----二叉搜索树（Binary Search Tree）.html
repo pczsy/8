@@ -1,0 +1,472 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/12036581.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#二分法引言">1、二分法引言</a></li>
+        <li><a href="#二叉搜索树定义">2、二叉搜索树定义</a></li>
+        <li><a href="#二叉搜索树的crud">3、二叉搜索树的CRUD</a></li>
+        <li><a href="#二叉搜索树的两种极端情况">4、二叉搜索树的两种极端情况</a></li>
+        <li><a href="#二叉搜索树总结">5、二叉搜索树总结</a></li>
+        </ul>
+    </div>
+</div>
+<p><strong>前言</strong><br />
+在<a href="https://blog.csdn.net/qq_44543508/article/details/100600178">【算法04】树与二叉树</a>中，已经介绍过了关于树的一些基本概念以及二叉树的前中后序遍历，而这篇文章将是在二叉树的基础上来展开讲解的二叉搜索树，也就是说二叉搜索树建立在树的基础之上。至于博主为何要花一整篇文章来讲这个二叉搜索树呢？原因很简单，红-黑树是基于二叉搜索树的，如果对二叉搜索树不了解，那还谈何红-黑树？红-黑树的重要性我想各位没吃过佩奇肉也肯定看过宜春跑....是的，jdk1.8的Map 就是散列表+红黑树实现的！</p>
+<p>@</p>
+<p>首先要明确的是<font color=red><strong>二叉搜索树</strong></font>又称<font color=red><strong>二叉排序树</strong></font>、<font color=red><strong>二叉查找树</strong></font>，简统称<font color=red><strong>BST</strong></font></p>
+<h2 id="二分法引言">1、二分法引言</h2>
+<p>在正式将二叉搜索树之前，宜春还是想先谈谈人生谈谈生活从而切入二叉搜索树。</p>
+<p>一天，程序员老方给宜春打电话：靓仔，我今天下单了一双皮鞋，老靓了，价格不菲啊！<br />
+宜春：得了吧你，啥条件啊我还不知道，还皮鞋，老鼠皮的鞋吧，如果是真牛皮的皮鞋我把它吃喽！！！<br />
+老方：你还真别说，这皮鞋还真是比真牛皮还真的假牛皮的皮鞋，老靓了，你猜猜我买它花了多少银子，反正是100以内，看你能不能再最少次数猜出来，要是五次机会之内猜出来就亲自下厨，炖给你吃，嘎嘣脆，嘿嘿...<br />
+宜春：你就嘚瑟吧，还是你懂我，知道我好这一口（自黑）....咳咳咳，50块<br />
+老方：不对，价格高了<br />
+宜春：25<br />
+老方：不对，价格还高了<br />
+宜春：12.5<br />
+....</p>
+<p>一个一个字看这里的估计在座各位个个都是人才，就一个简简单单的二分法猜数字的游戏，通过对猜测数字“大了”、“小了”的情况判断，来猜出最终的数字。当然，本改三言两语就可以描述的，宜春花了这么长串字符串来描述，估计宜春TM也是个人才....实际上呢，宜春就想活跃活跃下气氛，把各位的脑细胞集中一下下，当然耽误了各位时间，属实抱歉，宜春在线挨揍....</p>
+<p>不知各位有没有想过，为何二分法就是有足够的优势呢？如果100以内我直接猜25不行么？这样岂不是更可能定出价格？其实直接猜25或者更小这是一种极端的猜测，如果确实比25小，那范围就是在25以内了，那你有没有想过:如果大于25呢？范围就直接转成了75了！随着这种极端思想的推进，会发现<br />
+每次择半查找会更加准确和更好的能应对各种不确定的情景！择半查找复杂度为 O(log_2 n)，即最多需要 O(log_2 n) 次可以猜到最终数字。</p>
+<p>到这里，要开始正式介绍二叉搜索树了，实际上二叉搜索树就类似于上面提到过的二分查找，有类似的韵味。</p>
+<h2 id="二叉搜索树定义">2、二叉搜索树定义</h2>
+<blockquote>
+<p>二叉查找树（Binary Search Tree，BST）是一种特殊的二叉树，一棵二叉搜索树（BST）是一棵二叉树，其中，对于树中每个节点而言：<br />
+1、若其左子树存在，则其左子树中每个节点的值都不大于该节点值；<br />
+2、若其右子树存在，则其右子树中每个节点的值都不小于该节点值。</p>
+</blockquote>
+<p><img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）0.png" alt="在这里插入图片描述" /></p>
+<h2 id="二叉搜索树的crud">3、二叉搜索树的CRUD</h2>
+<p>我想提一下的是：我们知道遍历树是使用前中后序遍历方法，但是遍历二叉搜索树最好是使用中序遍历法，如果不理解为何使用中序遍历，那么你有三种选择：<br />
+一、自行<a href="https://blog.csdn.net/qq_44543508/article/details/100600178">【算法04】树与二叉树</a>进去补补基础树基础<br />
+二、留言提问，宜春看到就回<br />
+三、前面二者都拒绝<img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）1.png" alt="在这里插入图片描述" />，那你就优秀了....</p>
+<h4 id="查找">3.1、查找</h4>
+<p>如果要在二叉查找树中查找任意一个节点，假设它是X ，我们可以分为以下几步：</p>
+<blockquote>
+<p>1、如果二叉查找树为空，则返回空操作，否则，执行一下操作；<br />
+2、先取根节点，如果节点 X 等于根节点，则返回；<br />
+3、如果节点小于根节点，则递归查找左子树；<br />
+4、如果节点大于根节点，则递归查找右子树。</p>
+</blockquote>
+<p><img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）2.png" alt="在这里插入图片描述" /></p>
+<pre><code><code>//查找的逻辑代码实现：
+    /**
+     * @param value 希望查找结点的值
+     * @return 如果找到返回该结点，否则返回null
+     */
+    public Node search(int value) {
+        if(value == this.value) { //找到就是该结点
+            return this;
+        } else if(value &lt; this.value) {//如果查找的值小于当前结点，向左子树递归查找
+            //如果左子结点为空
+            if(this.left  == null) {
+                return null;
+            }
+            return this.left.search(value);
+        } else { //如果查找的值不小于当前结点，向右子树递归查找
+            if(this.right == null) {
+                return null;
+            }
+            return this.right.search(value);
+        }
+
+    }</code></pre>
+<h4 id="插入">3.2、插入</h4>
+<p>在二叉树中插入一个节点，仔细想想，会发现插入某一个节点一般都是插入到叶节点上，所以只需从根结点开始，依次遍历比较要插入的数据和节点的大小关系。</p>
+<p>==二叉查找树有一个很重要的特性就是插入的实现难度和查找差不多==。插入节点其实可以有如下三种情况：</p>
+<blockquote>
+<p>1、如果树是空的，则直接将新节点插入，否则，执行下面步骤。<br />
+2、要插入的数据比根节点数据大，则到右子树中插入新数据，如果右子树为空，则将新数据直接插入到右子节点的位置；不为空，则继续遍历右子树，查找插入位置。<br />
+3、要插入的数据比根节点数据小，则到左子树中插入数据，如果左子树为空，则直接将新数据插入到左子节点的位置；不为空，则继续遍历左子树，查找插入的位置。</p>
+</blockquote>
+<p><img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）3.png" alt="在这里插入图片描述" /></p>
+<pre><code><code> //添加结点的逻辑代码
+    //递归的形式添加结点，注意需要满足二叉排序树的要求
+    public void add(Node node) {
+        if(node == null) {
+            return;
+        }
+       if(root == null) {
+            root = node;//如果root为空则直接让root指向node
+        } 
+        //判断传入的结点的值，和当前子树的根结点的值关系
+      if(node.value &lt; this.value) {
+            //如果当前结点左子结点为null
+            if(this.left == null) {
+                this.left = node;
+            } else {
+                //递归的向左子树添加
+                this.left.add(node);
+            }
+        } else { //添加的结点的值大于 当前结点的值
+            if(this.right == null) {
+                this.right = node;
+            } else {
+                //递归的向右子树添加
+                this.right.add(node);
+            }
+
+        }
+    }</code></pre>
+<h4 id="删除">3.3、删除</h4>
+<p>可以这么说，删除相对查找和插入来说比较复杂一些，为啥会复杂一些呢？因为要删除某一个节点，首先要查找到这个节点然后将其删除，删除之后还需要将该二叉搜索树还原成一颗二叉搜索树。因此针对要删除节点的子节点位置的不同，同样一般分为三种情况来处理：</p>
+<blockquote>
+<p>1、 第一种情况，如果要删除的节点没有子节点，直接将父节点指向要删除节点的指针指向 null。比如途中要删除的节点 0。<br />
+2、第二种情况，如果要删除的节点只有一个节点，即只有左子节点或右子节点，则将父节点指向要删除节点的指针指向要删除节点的子节点即可。比如途中要删除的节点1。<br />
+3、第三种情况，如果要删除的节点有两个子节点，则需要先找到这个节点右子树中的最小节点或者左子树中的最大节点，将其替换到要删除的节点上。然后删除这个右子树中的最小节点或左子树中的最大节点，比如图中要删除的节点 6。</p>
+</blockquote>
+<p><img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）4.png" alt="在这里插入图片描述" /></p>
+<pre><code><code> //删除结点逻辑代码
+    public void delNode(int value) {
+        if(root == null) {
+            return;
+        }else {
+            //1.需求先去找到要删除的结点  targetNode
+            Node targetNode = search(value);
+            //如果没有找到要删除的结点
+            if(targetNode == null) {
+                return;
+            }
+            //如果我们发现当前这颗二叉排序树只有一个结点
+            if(root.left == null &amp;&amp; root.right == null) {
+                root = null;
+                return;
+            }
+
+            //去找到targetNode的父结点
+            Node parent = searchParent(value);
+            //如果要删除的结点是叶子结点
+            if(targetNode.left == null &amp;&amp; targetNode.right == null) {
+                //判断targetNode 是父结点的左子结点，还是右子结点
+                if(parent.left != null &amp;&amp; parent.left.value == value) { //是左子结点
+                    parent.left = null;
+                } else if (parent.right != null &amp;&amp; parent.right.value == value) {//是由子结点
+                    parent.right = null;
+                }
+            } else if (targetNode.left != null &amp;&amp; targetNode.right != null) { //删除有两颗子树的节点
+                int minVal = delRightTreeMin(targetNode.right);
+                targetNode.value = minVal;
+
+
+            } else { // 删除只有一颗子树的结点
+                //如果要删除的结点有左子结点
+                if(targetNode.left != null) {
+                    if(parent != null) {
+                        //如果 targetNode 是 parent 的左子结点
+                        if(parent.left.value == value) {
+                            parent.left = targetNode.left;
+                        } else { //  targetNode 是 parent 的右子结点
+                            parent.right = targetNode.left;
+                        }
+                    } else {
+                        root = targetNode.left;
+                    }
+                } else { //如果要删除的结点有右子结点
+                    if(parent != null) {
+                        //如果 targetNode 是 parent 的左子结点
+                        if(parent.left.value == value) {
+                            parent.left = targetNode.right;
+                        } else { //如果 targetNode 是 parent 的右子结点
+                            parent.right = targetNode.right;
+                        }
+                    } else {
+                        root = targetNode.right;
+                    }
+                }
+
+            }
+
+        }
+    }</code></pre>
+<h4 id="整体代码">3.4、整体代码</h4>
+<p>为了连贯一下思维，可以自行编辑main方法进行测试！</p>
+<pre><code><code>package dataStructure;
+
+//创建二叉排序树
+class BinarySortTree {
+    private Node root;
+
+    public Node getRoot() {
+        return root;
+    }
+
+    //查找要删除的结点
+    public Node search(int value) {
+        if(root == null) {
+            return null;
+        } else {
+            return root.search(value);
+        }
+    }
+
+    //查找父结点
+    public Node searchParent(int value) {
+        if(root == null) {
+            return null;
+        } else {
+            return root.searchParent(value);
+        }
+    }
+
+    //编写方法:
+    //1. 返回的 以node 为根结点的二叉排序树的最小结点的值
+    //2. 删除node 为根结点的二叉排序树的最小结点
+    /**
+     *
+     * @param node 传入的结点(当做二叉排序树的根结点)
+     * @return 返回的 以node 为根结点的二叉排序树的最小结点的值
+     */
+    public int delRightTreeMin(Node node) {
+        Node target = node;
+        //循环的查找左子节点，就会找到最小值
+        while(target.left != null) {
+            target = target.left;
+        }
+        //这时 target就指向了最小结点
+        //删除最小结点
+        delNode(target.value);
+        return target.value;
+    }
+
+
+    //删除结点
+    public void delNode(int value) {
+        if(root == null) {
+            return;
+        }else {
+            //1.需求先去找到要删除的结点  targetNode
+            Node targetNode = search(value);
+            //如果没有找到要删除的结点
+            if(targetNode == null) {
+                return;
+            }
+            //如果我们发现当前这颗二叉排序树只有一个结点
+            if(root.left == null &amp;&amp; root.right == null) {
+                root = null;
+                return;
+            }
+
+            //去找到targetNode的父结点
+            Node parent = searchParent(value);
+            //如果要删除的结点是叶子结点
+            if(targetNode.left == null &amp;&amp; targetNode.right == null) {
+                //判断targetNode 是父结点的左子结点，还是右子结点
+                if(parent.left != null &amp;&amp; parent.left.value == value) { //是左子结点
+                    parent.left = null;
+                } else if (parent.right != null &amp;&amp; parent.right.value == value) {//是由子结点
+                    parent.right = null;
+                }
+            } else if (targetNode.left != null &amp;&amp; targetNode.right != null) { //删除有两颗子树的节点
+                int minVal = delRightTreeMin(targetNode.right);
+                targetNode.value = minVal;
+
+
+            } else { // 删除只有一颗子树的结点
+                //如果要删除的结点有左子结点
+                if(targetNode.left != null) {
+                    if(parent != null) {
+                        //如果 targetNode 是 parent 的左子结点
+                        if(parent.left.value == value) {
+                            parent.left = targetNode.left;
+                        } else { //  targetNode 是 parent 的右子结点
+                            parent.right = targetNode.left;
+                        }
+                    } else {
+                        root = targetNode.left;
+                    }
+                } else { //如果要删除的结点有右子结点
+                    if(parent != null) {
+                        //如果 targetNode 是 parent 的左子结点
+                        if(parent.left.value == value) {
+                            parent.left = targetNode.right;
+                        } else { //如果 targetNode 是 parent 的右子结点
+                            parent.right = targetNode.right;
+                        }
+                    } else {
+                        root = targetNode.right;
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    //添加结点的方法
+    public void add(Node node) {
+        if(root == null) {
+            root = node;//如果root为空则直接让root指向node
+        } else {
+            root.add(node);
+        }
+    }
+    //中序遍历
+    public void infixOrder() {
+        if(root != null) {
+            root.infixOrder();
+        } else {
+            System.out.println(&quot;二叉排序树为空，不能遍历&quot;);
+        }
+    }
+}
+
+//创建Node结点
+class Node {
+    int value;
+    Node left;
+    Node right;
+    public Node(int value) {
+
+        this.value = value;
+    }
+
+
+    //查找要删除的结点
+    /**
+     *
+     * @param value 希望删除的结点的值
+     * @return 如果找到返回该结点，否则返回null
+     */
+    public Node search(int value) {
+        if(value == this.value) { //找到就是该结点
+            return this;
+        } else if(value &lt; this.value) {//如果查找的值小于当前结点，向左子树递归查找
+            //如果左子结点为空
+            if(this.left  == null) {
+                return null;
+            }
+            return this.left.search(value);
+        } else { //如果查找的值不小于当前结点，向右子树递归查找
+            if(this.right == null) {
+                return null;
+            }
+            return this.right.search(value);
+        }
+
+    }
+    //查找要删除结点的父结点
+    /**
+     *
+     * @param value 要找到的结点的值
+     * @return 返回的是要删除的结点的父结点，如果没有就返回null
+     */
+    public Node searchParent(int value) {
+        //如果当前结点就是要删除的结点的父结点，就返回
+        if((this.left != null &amp;&amp; this.left.value == value) ||
+                (this.right != null &amp;&amp; this.right.value == value)) {
+            return this;
+        } else {
+            //如果查找的值小于当前结点的值, 并且当前结点的左子结点不为空
+            if(value &lt; this.value &amp;&amp; this.left != null) {
+                return this.left.searchParent(value); //向左子树递归查找
+            } else if (value &gt;= this.value &amp;&amp; this.right != null) {
+                return this.right.searchParent(value); //向右子树递归查找
+            } else {
+                return null; // 没有找到父结点
+            }
+        }
+
+    }
+
+    @Override
+    public String toString() {
+        return &quot;Node [value=&quot; + value + &quot;]&quot;;
+    }
+
+
+    //添加结点的方法
+    //递归的形式添加结点，注意需要满足二叉排序树的要求
+    public void add(Node node) {
+        if(node == null) {
+            return;
+        }
+
+        //判断传入的结点的值，和当前子树的根结点的值关系
+        if(node.value &lt; this.value) {
+            //如果当前结点左子结点为null
+            if(this.left == null) {
+                this.left = node;
+            } else {
+                //递归的向左子树添加
+                this.left.add(node);
+            }
+        } else { //添加的结点的值大于 当前结点的值
+            if(this.right == null) {
+                this.right = node;
+            } else {
+                //递归的向右子树添加
+                this.right.add(node);
+            }
+
+        }
+    }
+
+    //中序遍历
+    public void infixOrder() {
+        if(this.left != null) {
+            this.left.infixOrder();
+        }
+        System.out.println(this);
+        if(this.right != null) {
+            this.right.infixOrder();
+        }
+    }
+
+}
+
+
+public class BinarySortTreeDemo { //==========至于main方法的测试代码可自行调整测试！！！！！！！！！
+    public static void main(String[] args) {
+        int[] arr = {4,7, 2, 13, 11, 5, 1, 9, 3};
+        BinarySortTree binarySortTree = new BinarySortTree();
+        for(int i = 0; i&lt; arr.length; i++) {
+            binarySortTree.add(new Node(arr[i]));
+        }
+        binarySortTree.add(new Node(4));
+
+        System.out.println(&quot;中序遍历二叉排序树~&quot;);
+        binarySortTree.infixOrder(); 
+    }
+}</code></pre>
+<h2 id="二叉搜索树的两种极端情况">4、二叉搜索树的两种极端情况</h2>
+<p>1、变成一颗 <font color=red><strong>完全二叉树</strong></font>，所有节点尽量填满树的每一层，上一层填满后还有剩余节点的话，则由左向右尽量填满下一层。如下图所示，即为一颗完全二叉树；<br />
+<img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）5.png" alt="在这里插入图片描述" /><br />
+2、每一层只有一个节点的二叉树。如下图所示：<br />
+<img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）6.png" alt="在这里插入图片描述" /><br />
+我敲，这不是蛇皮怪单链表吗，是的，给我们的感觉就是树形怪退化为蛇皮怪单链表了！在这种情况下，树中每层只有一个节点，该状态的树结构更倾向于一种线性结构，节点的查询类似于数组的遍历，复杂度为 O(n)。</p>
+<p>也正是因此，后面就出现了平衡二叉树，就涉及到了左旋右旋花里胡哨的蛇皮操作，当然这只是提一下，并不在本文的范畴之内，不过后续应该会写这方面的文章，尽量吧.....</p>
+<h2 id="二叉搜索树总结">5、二叉搜索树总结</h2>
+<p><font color=red><strong>二叉搜索树</strong></font>又称<font color=red><strong>二叉排序树</strong></font>、<font color=red><strong>二叉查找树</strong></font>，简统称<font color=red><strong>BST</strong></font></p>
+<p>根据二叉搜索树的特性，==可知比较次数等于给定值节点在二叉排序树中的层数==。遍历的话使用<strong>中序遍历</strong>。如果二叉排序树是平衡的，则n个节点的二叉排序树的高度为<code>Log2n+1</code>,其查找效率为<code>O(Log2n)</code>，近似于折半查找。如果二叉排序树完全不平衡，则其深度可达到n，查找效率为<code>O(n)</code>，退化为顺序查找。一般的，<font color=red><strong>二叉排序树的查找性能在<code>O(Log2n)</code>到<code>O(n)</code>之间</strong></font>。因此，为了获得较好的查找性能，就要构造一棵平衡的二叉排序树。而平衡二叉树可能又要涉及到了左旋右旋花里胡哨的蛇皮操作，当然这只是提一下，并不在本文的范畴之内，不过后续应该会写这方面的文章，尽量吧.....</p>
+<p><strong>如果本文对你有一点点帮助，那么请点个赞呗，谢谢~</strong></p>
+<blockquote>
+<p><strong>最后，若有不足或者不正之处，欢迎指正批评，感激不尽！如果有疑问欢迎留言，绝对第一时间回复！</strong></p>
+</blockquote>
+<p>欢迎各位关注我的公众号，里面有一些java学习资料和一大波java电子书籍，比如说周志明老师的深入java虚拟机、java编程思想、核心技术卷、大话设计模式、java并发编程实战.....都是java的圣经，不说了快上Tomcat车，咋们走！最主要的是一起探讨技术，向往技术，追求技术，说好了来了就是盆友喔...</p>
+<p><img src="./images/【数据结构05】红-黑树基础----二叉搜索树（Binary Search Tree）7.png" alt="在这里插入图片描述" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

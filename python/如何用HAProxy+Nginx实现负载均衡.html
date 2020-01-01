@@ -1,0 +1,123 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修如何用HAProxy+Nginx实现负载均衡' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>如何用HAProxy+Nginx实现负载均衡</center></div><div class='banquan'>原文出处:本文由博客园博主托尼老师提供。<br/>
+原文连接:https://www.cnblogs.com/tonyY/p/12084690.html</div><br>
+    <h3 id="一什么是haproxy">一、什么是HAProxy</h3>
+<p>HAProxy提供高可用性、负载均衡以及基于TCP和HTTP应用的代理，支持虚拟主机，它是免费、快速并且可靠的一种解决方案。HAProxy特别适用于那些负载特大的web站点，这些站点通常又需要会话保持或七层处理。HAProxy运行在当前的硬件上，完全可以支持数以万计的并发连接。并且它的运行模式使得它可以很简单安全的整合进您当前的架构中， 同时可以保护你的web服务器不被暴露到网络上。</p>
+<p>HAProxy实现了一种事件驱动, 单一进程模型，此模型支持非常大的并发连接数。多进程或多线程模型受内存限制 、系统调度器限制以及无处不在的锁限制，很少能处理数千并发连接。事件驱动模型因为在有更好的资源和时间管理的用户空间(User-Space) 实现所有这些任务，所以没有这些问题。此模型的弊端是，在多核系统上，这些程序通常扩展性较差。这就是为什么他们必须进行优化以 使每个CPU时间片(Cycle)做更多的工作。</p>
+<h3 id="二安装haproxy">二、安装HAProxy</h3>
+<p>wget http://www.haproxy.org/download/1.5/src/haproxy-1.5.14.tar.gz （在墙外）。<br />
+tar zxvf haproxy-1.5.14.tar.gz<br />
+uname -a # 查看linux内核版本<br />
+make TARGET=linux26 PREFIX=/usr/local/haproxy<br />
+make install PREFIX=/usr/local/haproxy<br />
+启动 haproxy <code>[root@localhost sbin]# haproxy -f /etc/haproxy/haproxy.cfg</code></p>
+<ul>
+<li>配置文件 <code>/etc/haproxy.cfg</code>， haproxy的配置文件内容很多很灵活，以下只配置简单的一些内容。</li>
+</ul>
+<pre><code><code>global
+    log 127.0.0.1   local0
+    log 127.0.0.1   local1 notice
+    #log loghost    local0 info
+    maxconn 4096
+    chroot /var/haproxy
+    uid 99
+    gid 99
+    daemon
+        nbproc  1  
+    #debug
+    #quiet
+
+defaults
+    log global
+    mode    http
+    option  httplog
+    option  dontlognull
+    retries 3
+    option redispatch # 自动重定向到健康机器
+    maxconn 2000
+    timeout check 2000ms # 检查超时
+    timeout connect 5000ms # 连接超时
+    timeout client 50000ms # 客户端连接超时
+    timeout server 50000ms # 服务端连接超时
+
+
+listen webinfo :1080  
+       mode http  
+       balance roundrobin  
+       stats uri /ha_status
+       option httpclose  
+       option forwardfor  
+       server web1 192.168.163.34:80 check weight 1 minconn 1 maxconn 3 check inter 40000  
+       server web2 192.168.163.35:80 check weight 1 minconn 1 maxconn 3 check inter 40000
+
+#配置控制台
+listen stats :6553
+       mode http
+       transparent
+       stats uri / haproxy-stats
+       stats realm Haproxy \ statistic
+       stats auth admin:admin</code></pre>
+<h3 id="三测试">三、测试</h3>
+<p>这里共有3台机器，IP分别是192.168.163.33,192.168.163.34,192.168.163.35 。<br />
+33这台机器装的是haproxy,34和35两台机器装的是nginx。<br />
+nginx的安装参考前一篇<a href="http://www.cnblogs.com/tonyY/p/4817956.html">nginx安装</a></p>
+<h4 id="测试">- 192.168.163.34:80测试</h4>
+<p><img src="./images/如何用HAProxy+Nginx实现负载均衡0.png" /></p>
+<h4 id="测试-1">- 192.168.163.35:80测试</h4>
+<p><img src="./images/如何用HAProxy+Nginx实现负载均衡1.png" /></p>
+<h4 id="请求过来被轮询分配到webinfo组的web1和web2分别是">- 请求过来被轮询分配到webinfo组的web1和web2，分别是</h4>
+<p>web1 192.168.163.34:80<br />
+web2 192.168.163.35:80</p>
+<h4 id="环境准备好了测试192.168.163.33将会轮训到2台机器如下">- 环境准备好了，测试192.168.163.33，将会轮训到2台机器如下：</h4>
+<p><img src="./images/如何用HAProxy+Nginx实现负载均衡2.png" /></p>
+<p><img src="./images/如何用HAProxy+Nginx实现负载均衡3.png" /></p>
+<p>paproxy的控制台，参考haproxy.cfg里面的配置<br />
+http://192.168.163.33:6553/haproxy-stats<br />
+<img src="./images/如何用HAProxy+Nginx实现负载均衡4.png" /></p>
+<h4 id="在ip为33这台机器通过haproxy分配到2台nginx机器上压力测试">- 在ip为33这台机器，通过haproxy分配到2台nginx机器上，压力测试</h4>
+<p><code>[root@localhost ~]# ab -c 1 -n 10000 http://192.168.163.33:1080/</code>结果<br />
+<img src="./images/如何用HAProxy+Nginx实现负载均衡5.png" /></p>
+<h4 id="在ip为33这台机器测试ip为34的nginx机器">- 在ip为33这台机器，测试ip为34的nginx机器</h4>
+<p><code>[root@localhost ~]# ab -c 1 -n 10000 http://192.168.163.34:80/index.html</code>结果<br />
+<img src="./images/如何用HAProxy+Nginx实现负载均衡6.png" /></p>
+<h4 id="通过上面的是测试可见通过haproxy分流之后效率降低了不如单台nginx参考">- 通过上面的是测试可见通过haproxy分流之后效率降低了。不如单台nginx。<a href="http://www.oschina.net/question/17_4121">参考</a></h4>
+<p>现在HAProxy的算法也非常多，并不比专业的F5/LVS算法少，常用的算法有如下8种：<br />
+balance roundrobin，表示简单的轮询，建议关注；<br />
+balance static-rr，表示根据权重，建议关注；<br />
+balance leastconn，表示最少连接者先处理，建议关注；<br />
+balance source，表示根据请求源IP，跟Nginx的ip_hash算法相似，建议关注；<br />
+balance uri，表示根据请求的URI；<br />
+balance url_param，表示根据请求的URl参数；<br />
+balance hdr(name)，表示根据HTTP请求头来锁定每一次HTTP请求；<br />
+balance rdp-cookie(name)，表示根据据cookie(name)来锁定并哈希每一次TCP请求。</p>
+<h5 id="参考文章">参考文章</h5>
+<p>http://blog.haohtml.com/archives/7959<br />
+http://www.open-open.com/lib/view/open1388290883344.html<br />
+https://tyr.so/haproxy.html<br />
+http://www.haproxy.org</p>
+<h3 id="感谢">感谢</h3>
+<p>30多岁老程序员码字不容易，且码且珍惜。欢迎大家留言,亦师亦友共同交流。长按下方二维码关注我的公众号。</p>
+<p><img src="./images/如何用HAProxy+Nginx实现负载均衡7.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

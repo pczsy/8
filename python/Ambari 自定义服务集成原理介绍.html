@@ -1,0 +1,66 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Ambari 自定义服务集成原理介绍' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Ambari 自定义服务集成原理介绍</center></div><div class='banquan'>原文出处:本文由博客园博主CREATE_17提供。<br/>
+原文连接:https://www.cnblogs.com/createboke/p/12060130.html</div><br>
+    <blockquote>
+<p>之前，在 github 上开源了 ambari-Kylin 项目，可离线部署，支持 hdp 2.6+ 及 hdp 3.0+ 。github 地址为：<a href="https://github.com/841809077/ambari-Kylin" class="uri">https://github.com/841809077/ambari-Kylin</a> ，欢迎 star 。</p>
+<p>这段时间，陆续有不少朋友通过公众号联系到我，问我相关的集成步骤。今天正好休息，索性将 ambari 自定义服务集成的原理给大家整理出来。</p>
+<p>它其实不难，但是网络上并没有多少这方面的资料分享，官方也很少，所以学习门槛就稍微高了一些。但你如果能持续关注我，我相信您能快速上手。</p>
+</blockquote>
+<h3 id="一简述-ambari">一、简述 ambari</h3>
+<p>ambari 是一个可视化管理 Hadoop 生态系统的一个开源服务，像 hdfs、yarn、mapreduce、zookeeper、hive、hbase、spark、kafka 等都可以使用 ambari 界面来统一安装、部署、监控、告警等。</p>
+<!--more-->
+<p>对于未受 ambari 界面管理的服务，比如 Elasticsearch、Kylin、甚至是一个 jar 包，都可以利用 自定义服务集成相关技术 将 服务 集成到 ambari 界面里。这样，就可以<strong>通过 ambari 实现对 自定义服务 的 安装、配置、启动、监听启动状态、停止、指标监控、告警、快速链接 等很多操作</strong>，极其方便。</p>
+<h3 id="二宏观了解自定义服务集成原理">二、宏观了解自定义服务集成原理</h3>
+<p>对于安装过 ambari 的朋友可能比较熟悉，我们在部署 hdp 集群的时候，在界面上，会让我们选择 hdp stack 的版本，比如有 2.0、... 、2.6、3.0、3.1 等，每一个 stack 版本在 ambari 节点上都有对应的目录，里面存放着 hdp 各服务，像 hdfs、yarn、mapreduce、spark、hbase 这些，stack 版本高一些的，服务相对多一些。<strong>stack 版本目录具体在 ambari-server 节点的 /var/lib/ambari-server/resources/stacks/HDP 下</strong>，我们用 python 开发的自定义服务脚本就会放到这个目录下。</p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍0.png" alt="server节点上的stack版本目录" /></p>
+<p>将自定义服务放到指定目录下，我们需要重启 ambari server 才能在 添加服务 界面加载出来我们的自定义服务，ambari 在安装自定义服务的过程中，也会将 python 开发的自定义服务脚本分发到 agent 节点上，由 agent 节点的 自定义服务脚本 来执行 安装、部署 步骤。</p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍1.png" alt="agent节点上的stack版本目录" /></p>
+<p>等通过 ambari 安装自定义服务之后，ambari 会在数据库（比如 mysql）相关表里将自定义服务相关信息进行保存，和记录其它 hdp 服务一样的逻辑。</p>
+<h3 id="三微观了解自定义服务集成原理">三、微观了解自定义服务集成原理</h3>
+<p>一个自定义服务暂且将它定义为一个项目，项目名称须为大写，使用 python 编写。该项目框架有那么几个必不可少的文件或目录，分别是：</p>
+<ul>
+<li><p>metainfo.xml 文件：描述了对整个项目的约束配置，是一个 <strong>核心</strong> 文件。</p></li>
+<li><p>configuration 目录：里面放置一个或多个 xml 文件，用于将该服务的配置信息展示在前端页面，也可以在ambari 页面上对服务的一些配置做更改，如下图所示：</p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍2.png" /></p></li>
+<li><p>package 目录：里面包含 scripts 文件夹，该目录下存放着 python 文件，用于对服务的安装、配置、启动、停止等操作。自定义服务 python 脚本依赖的模块是 resource_management 。该模块分布在不同的目录下，但内容是一致的，如下图所示：</p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍3.png" alt="resource_management模块位置分布" /></p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍4.png" alt="resource_management模块详情目录" /></p></li>
+</ul>
+<p>除了上述必不可少的目录或文件之外，还有一些文件可以丰富我们自定义服务的功能。比如：</p>
+<ul>
+<li><p>alerts.json 文件：描述 ambari 对服务的 告警 设置。告警类型有 WEB、Port、Metric、Aggregate 和 Script ，如下图所示：</p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍5.png" /></p></li>
+<li><p>quicklinks.json 文件：用于生成快速链接，实现 url 的跳转。可支持多个 url 展示。</p></li>
+<li><p>role_command_order.json 文件：决定各个服务组件之间的启动顺序，详情可参考：<a href="https://841809077.github.io/2018/09/26/role_command_order.html" class="uri">https://841809077.github.io/2018/09/26/role_command_order.html</a></p></li>
+</ul>
+<p>如下图所示，这是自定义服务 KYLIN 的项目框架：</p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍6.png" alt="kylin的自定义服务框架" /></p>
+<h3 id="四课程宣传">四、课程宣传</h3>
+<p>ambari 自定义服务集成的细节有很多，但是官方网站上并没有太多的篇幅去介绍这一块知识，只能自己慢慢摸索。幸亏有公司的支持和个人的努力，我已经将 自定义服务 的大部分知识点掌握，特绘制相关的知识脑图，具体如下：</p>
+<p><img src="./images/Ambari 自定义服务集成原理介绍7.png" /></p>
+<p><strong>后面我会利用业余时间将上述脑图中的 12 项录制成视频，节约大家学习成本。如果大家有这方面的需求，可以关注我的公众号，加我好友</strong>，一起讨论技术与人生。</p>
+<hr />
+<p><img src="./images/Ambari 自定义服务集成原理介绍8.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

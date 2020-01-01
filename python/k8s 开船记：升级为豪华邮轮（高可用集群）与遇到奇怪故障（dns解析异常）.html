@@ -1,0 +1,62 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修k8s 开船记：升级为豪华邮轮（高可用集群）与遇到奇怪故障（dns解析异常）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>k8s 开船记：升级为豪华邮轮（高可用集群）与遇到奇怪故障（dns解析异常）</center></div><div class='banquan'>原文出处:本文由博客园博主博客园团队提供。<br/>
+原文连接:https://www.cnblogs.com/cmt/p/12061089.html</div><br>
+    <p><img src="./images/k8s 开船记：升级为豪华邮轮（高可用集群）与遇到奇怪故障（dns解析异常）0.png" alt="" /></p>
+<p>之前我们搭建的 k8s 集群只用了1台 master ，可用性不高，这两天开始搭建高可用集群，但由于之前用 kubeadm 命令创建集群时没有使用 <span class="cnblogs_code">--control-plane-endpoint</span> 参数，无法直接升级现有集群，只能重新创建高可用（High-Availability）集群。</p>
+<p>高可用集群的原理很简单，多台 master ，每台都保存集群数据（etcd），所有 nodes 通过专门搭建的负载均衡访问 api server ，这样当部分 master 宕机时，对集群正常运行无影响。</p>
+<p>我们用了 3 台 master ，但是在第 1 台 master 服务器开始创建高可用的集群时，遇到了一个做梦也没想到的问题。</p>
+<div class="cnblogs_code">
+<pre><code>kubeadm init \
+    --kubernetes-version v1.16.3 \
+    --control-plane-endpoint "k8s-api:6443" --upload-certs \
+    --image-repository registry.aliyuncs.com/google_containers \
+    --pod-network-cidr=192.168.0.0/16 --v=6</pre>
+</div>
+<p>为了省事，我们没有自己另外部署负载均衡，而是直接使用了阿里云内网负载均衡（ 四层 tcp 转发），在 master 的 hosts 中将上面的 k8s-api 解析到阿里云负载均衡的 IP 。</p>
+<p><img src="./images/k8s 开船记：升级为豪华邮轮（高可用集群）与遇到奇怪故障（dns解析异常）1.png" alt="" width="660" height="118" /></p>
+<p>但是创建集群总是失败，错误信息如下</p>
+<div class="cnblogs_code">
+<pre><code>[kubelet-check] Initial timeout of 40s passed.
+I1217 08:39:21.852678   20972 round_trippers.go:443] GET https://k8s-api:6443/healthz?timeout=32s  in 30000 milliseconds</pre>
+</div>
+<p>排查后发现是因为阿里云四层负载均衡不支持转发请求给同一台服务器，也就是发请求的服务器与转发的后端服务器不能是同一台服务器。</p>
+<p>后来我们采用了一个变通的方法解决了问题，在 master 服务器上不将 k8s-api 解析到负载均衡的 IP ，而是解析到 master 自己的 IP ，只在&nbsp; nodes 上解析到负载均衡&nbsp; IP 。</p>
+<p>当我们搭建好高可用集群，还没来得及享受高上大的豪华邮轮，就遭遇一个奇怪的 dns 解析问题。在容器内解析主机名时速度很慢，有时解析成功，有时解析失败，不管是 k8s 的 service 名称，还是手工添加的 dns 解析记录，还是阿里云的 redis 服务，都有这个问题。dns 解析服务用的是 coredns ，pod 网络用的是 calico 。当时集群中有 3 台 maste 与 1 台 node ，开始以为是 k8s 网络的问题， 搭建这个集群时开始用的是 flannel 网络，后来改为 calico ，但折腾很长时间都无济于事，昨天晚上为此精疲力尽，一气之下在睡觉之前将集群中的所有服务器都关机。</p>
+<p>今天开机后，又遇到了一个做梦也没想到的事情，问题竟然神奇的消失了，本以为这只是升级豪华邮轮过程中的一个小插曲。</p>
+<p>今天下班前，又又遇到了一个做梦也没想到的事情，线上在用的之前搭建的只有 1 台 master 的非高可用集群中部分 nodes 也出现了同样的 dns 解析问题（用的是 flannel 网络），根据刚刚学到的经久不衰的绝招，将出现问题的 nodes 重启，问题立马消失。</p>
+<p>2个不同的集群，使用的是不同的 pod 网络，而且使用的是不同的网络地址段（分别是 192.168.0.0/16 与 10.244.0.0/16），竟然出现了同样的 dns 解析问题，而且都通过重启可以解决，这个诡异的问题给我们的开船记出了一道难题。</p>
+<p>但是由俭入奢易，由奢入俭难，豪华邮轮已经准备好了，我们再也不想开渔船了（docke swarm），不管怎么样，船还得继续开。</p>
+<p><strong>【更新】</strong></p>
+<p>12月19日 22:37：对于 dns 解析问题，根据 TianhengZhou 在评论中的建议部署了 nodelocaldns ，部署所采用的脚本如下。</p>
+<div class="cnblogs_code">
+<pre><code>sed 's/k8s.gcr.io/gcr.azk8s.cn\/google_containers/g
+s/__PILLAR__DNS__SERVER__/10.96.0.10/g
+s/__PILLAR__LOCAL__DNS__/169.254.20.10/g
+s/__PILLAR__DNS__DOMAIN__/cluster.local/g' nodelocaldns.yaml |
+kubectl apply -f -</pre>
+</div>
+<p>参考资料：</p>
+<p>* <a href="https://github.com/kubernetes/kubernetes/tree/master/cluster/addons/dns/nodelocaldns" target="_blank">Nodelocal DNS Cache</a></p>
+<p>* <a href="https://monkeywie.github.io/2019/12/10/k8s-dns-lookup-timeout/" target="_blank">k8s域名解析超时问题记录</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

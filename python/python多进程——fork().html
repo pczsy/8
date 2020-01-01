@@ -1,0 +1,325 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python多进程——fork()' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python多进程——fork()</center></div><div class='banquan'>原文出处:本文由博客园博主Magic-Dev提供。<br/>
+原文连接:https://www.cnblogs.com/Magic-Dev/p/11405448.html</div><br>
+    <h2 style="text-align: left;"><span style="font-family: 'Microsoft YaHei'; background-color: #99ccff;"><strong>　　简介　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　&nbsp;&nbsp;</strong></span></h2>
+<p><span style="font-size: 16px; font-family: 黑体;"><strong><span style="background-color: #ffffff;"><span class="highlighted">　　程序每次执行时，操作系统都会创建一个新进程来运行程序指令。进程中可调用os.fork,要求操作系统新建一个子进程.<strong><span class="highlighted">[Windowsc系统中，os模块没有os.fork函数]。</span></strong></span></span></strong></span></p>
+<p><span style="font-size: 16px; font-family: 黑体;"><strong><span style="background-color: #ffffff;"><span class="highlighted">　　每个进程都有一个不重复的进程ID号。或称pid，它对进程进行标识。子进程与父进程完全相同，子进程从父进程继承了多个值的拷贝。如全局变量和环境变量。fork后，子进程接收返回值0，而父进程接收子进程的pid作为返回值</span></span></strong></span></p>
+<h1><span style="font-family: 楷体; background-color: #ffffff;"><code><span class="highlighted">os.</span></code><code class="descname">fork</code><span class="sig-paren">(<span class="sig-paren">)<span style="font-size: 23.3333px;"><br /></span></span></span></span></h1>
+<p style="margin-left: 30px;"><span style="font-size: 16px;">Fork a child process.<span style="color: #ff0000;"><span style="text-decoration: underline;"> Return&nbsp;<code class="docutils literal notranslate"><span class="pre">0</span></code>&nbsp;in the child and the child&rsquo;s process id in the parent. </span></span>If an error occurs OSError is&nbsp;raised.</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 16px;">Note that some platforms including FreeBSD &lt;= 6.3 and Cygwin have known issues when using fork() from a thread.</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 16px;"><span style="text-decoration: underline;"><span style="color: #ff0000; text-decoration: underline;">Availability: Unix</span></span><span style="color: #ff0000;">&nbsp; &gt;&nbsp;<strong>仅支持基于Unix核心的系统</strong></span></span><span style="color: #ff0000;"><br /></span></p>
+<p><strong><span style="color: #0000ff;"><span style="color: #cc99ff; font-size: 18px; background-color: #ffffff;"><span style="color: #cc99ff;"><a href="https://docs.python.org/3/library/os.html?highlight=os#os.fork" target="_blank"><span style="background-color: #ffffff;">python文档</span></a></span></span><br /></span></strong></p>
+<h2 style="text-align: left;"><span style="font-family: 'Microsoft YaHei'; color: #000000; background-color: #99ccff;"><strong><strong>（一）fork函数</strong>在子进程中返回0，在父进程中返回子进程的id：　　　　　　</strong></span></h2>
+<ul>
+<li>
+<p><span style="color: #000000; font-size: 16px; font-family: 'Microsoft YaHei';"><strong>os.getpid() 　　返回进程pid</strong></span></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</li>
+<li>
+<p><span style="color: #000000; font-size: 16px; font-family: 'Microsoft YaHei';"><strong>os.getppid()　　返回父进程pid</strong></span></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*-coding:utf-8-*-</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">before calling</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+p </span>= os.fork()  <span style="color: #008000;">#</span><span style="color: #008000;"> 主进程，子进程同时向下执行</span>
+
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">after calling</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> p ==<span style="color: #000000;"> 0:
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行子进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(os.getpid(), os.getppid(), p))
+</span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行主进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span>.format(os.getpid(), os.getppid(), p))</pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">[root@192 ~]# python fork.py 
+before calling
+after calling
+执行主进程, pid=1629 ppid=1572 p=1630
+after calling
+执行子进程, pid=1630 ppid=1629 p=0</span></pre>
+</div>
+<h3 style="margin-left: 30px;"><span style="text-decoration: underline;"><strong>结论:调用os.fork()之后，主进程和子进程同时执行该行以下的代码，<span style="background-color: #ffff00;">子进程中fork函数返回0</span>，<span style="background-color: #99ccff;">父进程中返回1630</span>，即子进程的pid.</strong></span></h3>
+<h3><strong>再看下面的代码结果:</strong></h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*-coding:utf-8-*-</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">before calling</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+p </span>= os.fork()  <span style="color: #008000;">#</span><span style="color: #008000;"> 主进程，子进程同时向下执行</span>
+
+<span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">after calling</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> p ==<span style="color: #000000;"> 0:
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行子进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(os.getpid(), os.getppid(), p))
+    time.sleep(</span>1<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行子进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(os.getpid(), os.getppid(), p))
+</span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行主进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span>.format(os.getpid(), os.getppid(), p))</pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">[root@192 ~]# python fork.py 
+before calling
+after calling
+执行主进程, pid=1648 ppid=1572 p=1649
+after calling
+执行子进程, pid=1649 ppid=1648 p=0
+[root@192 ~]# 执行子进程, pid=1649 ppid=1 p=0</span></pre>
+</div>
+<h3 style="margin-left: 30px;"><strong>子进程先打印一段信息，再睡一秒，再打印一段信息，在子进程输出的两次信息中，ppid分别是1648和1。<span style="color: #ff0000;">&mdash;&mdash;</span><span style="color: #ff0000;">&nbsp;问1:ppid怎么变了？</span></strong></h3>
+<h3><strong>接下来进行探讨:</strong></h3>
+<h2 style="text-align: left;"><span style="font-family: 'Microsoft YaHei'; color: #000000; background-color: #99ccff;"><strong>（</strong></span><span style="font-family: 'Microsoft YaHei'; color: #000000; background-color: #99ccff;"><strong>二）fork()开启进程，主进程执行结束后，不会等待子进程:　　　　　　　&nbsp;</strong></span></h2>
+<h3><strong><span style="color: #0000ff;"><em>　　</em><span style="color: #000000;">实践：后台执行下面的代码，让主进程睡五秒，子进程睡十秒：</span></span></strong></h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*-coding:utf-8-*-</span>
+
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+
+p </span>=<span style="color: #000000;"> os.fork()
+
+</span><span style="color: #0000ff;">if</span> p ==<span style="color: #000000;"> 0:
+    time.sleep(</span>10<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行子进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(os.getpid(), os.getppid(), p))
+</span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    time.sleep(</span>5<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行主进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span>.format(os.getpid(), os.getppid(), p))</pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">[root@192 ~]# python fork.py &amp;   ### 后台执行python代码
+[1] 1693
+
+### 五秒前，查看进程信息：主进程为1693，子进程为1694
+
+[root@192 ~]# ps aux | grep fork.py
+root       1693  0.0  0.1 125432  4592 pts/0    S    21:23   0:00 python fork.py
+root       1694  0.0  0.0 125432  2748 pts/0    S    21:23   0:00 python fork.py
+root       1696  0.0  0.0 112704   980 pts/0    S+   21:23   0:00 grep --color=auto fork.py
+[root@192 ~]# 执行主进程, pid=1693 ppid=1572 p=1694  (此为程序打印信息，说明主进程已执行完)
+
+[1]+  Done                    python fork.py
+
+### 五秒后，主进程执行完毕，查看进程信息：只剩子进程1694
+
+[root@192 ~]# ps aux | grep fork.py
+root       1694  0.0  0.0 125432  2748 pts/0    S    21:23   0:00 python fork.py
+root       1698  0.0  0.0 112704   980 pts/0    S+   21:23   0:00 grep --color=auto fork.py
+[root@192 ~]# 执行子进程, pid=1694 ppid=1 p=0    (此为程序打印信息，说明子进程已执行完。 *注意，这里ppid是1)
+
+### 十秒后，子进程执行完毕，子进程结束
+
+[root@192 ~]# ps aux | grep fork.py
+root       1708  0.0  0.0 112704   980 pts/0    S+   21:23   0:00 grep --color=auto fork.py</span></pre>
+</div>
+<h3 style="margin-left: 30px;"><strong><span style="text-decoration: underline;">现象:五秒前，两个进程都在执行，五秒后，主进程结束，只剩一个子进程(说明父进程没有等待子进程)，十秒后，子进程结束</span></strong></h3>
+<h3 style="margin-left: 30px;"><strong><span style="text-decoration: underline;">结论:父进程执行结束后不等待子进程</span></strong></h3>
+<h3 style="margin-left: 30px;"><strong><span style="color: #ff0000;">问1的解释</span>:子进程第一次打印时，刚好父进程还未结束，还可以获取到父进程ppid，因此第一次打印的ppid是父进程的pid，当睡了一秒以后，父进程早就执行完了，溜了，没有等待子进程，因此子进程交给了init进程, ppid就变成1.</strong></h3>
+<h2 style="text-align: left;"><span style="color: #000000; background-color: #99ccff;">（三）僵尸进程:　　　　　　　　　　　　　　　　　　　　　　　　　　　&nbsp;</span></h2>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>　　若子进程比父进程先结束，而父进程又没有回收子进程，释放子进程占用的资源，此时子进程将成为一个僵尸进程。</strong></span></p>
+<p>&nbsp;</p>
+<h3 style="margin-left: 30px;"><strong><strong><span>有什么坏处?　</span></strong>如果大量的产生僵尸进程，将因为没有可用的进程号而导致系统不能产生新的进程. 此即为僵尸进程的危害，应当避免。</strong></h3>
+<h3>&nbsp;僵尸进程的避免:</h3>
+<ol>
+<li class="para"><span style="font-size: 16px; background-color: #ffffff;">父进程通过<span style="color: #ff0000;">os.</span><span style="color: #ff0000;">wait()</span>和<span style="color: #ff0000;">os.waitpid()</span>等函数等待子进程结束，这会导致父进程挂起。</span></li>
+<li class="para"><span style="font-size: 16px; background-color: #ffffff;">如果父进程很忙，那么可以用signal函数为SIGCHLD安装handler，因为子进程结束后， 父进程会收到该信号，可以在handler中调用wait回收。</span></li>
+<li class="para"><span style="font-size: 16px; background-color: #ffffff;">如果父进程不关心子进程什么时候结束，那么可以用signal（SIGCHLD,SIG_IGN） 通知内核，自己对子进程的结束不感兴趣，那么子进程结束后，内核会回收， 并不再给父进程发送信号。</span></li>
+<li class="para"><span style="font-size: 16px; background-color: #ffffff;">还有一些技巧，就是fork两次，父进程fork一个子进程，然后继续工作，子进程fork一 个孙进程后退出，那么孙进程被init接管，孙进程结束后，init会回收。不过子进程的回收 还要自己做。</span></li>
+</ol>
+<p style="margin-left: 30px;"><span style="background-color: #99cc00; font-size: 18px;"><em><span style="font-size: 16px; background-color: #cc99ff;"><em>子进程变成僵尸进程，是因为父进程先执行完，没有替子进程收尸。而wait()并不是用来收尸的，只是防止父进程先于子进程退出；如果父进程先退出，会使子进程成为僵尸进程，这时候子进程的收尸就由1号init进程来回收。</em></span><br /></em></span></p>
+<p><span style="color: #000000; font-family: 黑体;"><strong><span style="background-color: #ffffff; font-size: 18px;">主进程通过调用os.wait()等待子进程结</span><span style="background-color: #ffffff; font-size: 18px;">束:</span></strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*-coding:utf-8-*-</span>
+
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+
+p </span>=<span style="color: #000000;"> os.fork()
+
+</span><span style="color: #0000ff;">if</span> p ==<span style="color: #000000;"> 0:
+    time.sleep(</span>10<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行子进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(os.getpid(), os.getppid(), p))
+</span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    time.sleep(</span>5<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">执行主进程, pid={} ppid={} p={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(os.getpid(), os.getppid(), p))
+    os.wait()</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">[root@192 ~]# python fork.py &amp;   # 后台执行python代码
+
+### 五秒前，查看进程信息：主进程为1751，子进程为1752
+
+[1] 1751
+[root@192 ~]# ps aux | grep fork.py
+root       1751  0.5  0.1 125432  4588 pts/0    S    21:29   0:00 python fork.py
+root       1752  0.0  0.0 125432  2748 pts/0    S    21:29   0:00 python fork.py
+root       1754  0.0  0.0 112704   980 pts/0    S+   21:29   0:00 grep --color=auto fork.py
+[root@192 ~]# 执行主进程, pid=1751 ppid=1572 p=1752　　(此为程序打印信息，说明主进程已执行到os.wait())
+
+### 五秒后，主程序打印了信息并调用了os.wait()，查看进程信息：主进程为1751，子进程为1752,主进程没有结束
+
+[root@192 ~]# ps aux | grep fork.py
+root       1751  0.1  0.1 125436  4588 pts/0    S    21:29   0:00 python fork.py
+root       1752  0.0  0.0 125432  2748 pts/0    S    21:29   0:00 python fork.py
+root       1756  0.0  0.0 112704   980 pts/0    S+   21:29   0:00 grep --color=auto fork.py
+[root@192 ~]# 执行子进程, pid=1752 ppid=1751 p=0　　(此为程序打印信息，说明子进程已执行完。 *注意，这里ppid不是1)
+
+[1]+  Done                    python fork.py
+
+### 十秒后，子进程执行完毕，子进程结束，父进程随着子进程的结束而结束
+
+[root@192 ~]# ps aux | grep fork.py
+root       1758  0.0  0.0 112704   980 pts/0    S+   21:29   0:00 grep --color=auto fork.py</span></pre>
+</div>
+<h3 style="margin-left: 30px;"><span style="text-decoration: underline;"><strong>现象:五秒前，两个进程都在执行，五秒后，主进程执行完成并调用了os.wait()，等待子进程结束，十秒后，子进程结束，父进程也随之结束</strong></span></h3>
+<h3 style="margin-left: 30px;"><span style="text-decoration: underline;"><strong>结论:父进程可调用os.wait()等待子进程结束。</strong></span><strong>　　</strong><span style="text-decoration: underline;"><strong>*没有子进程就调用os.wait()会抛异常:</strong></span><strong>　</strong><span style="text-decoration: underline;"><strong><span style="color: #ff0000; text-decoration: underline;">OSError: [Errno 10] No child processes</span></strong></span></h3>
+<h2 style="text-align: left;"><span style="color: #000000; background-color: #99ccff; font-family: 'Microsoft YaHei';">（四）进程间资源独立:　　　　　　　　　　　　　　　　　　　　　　　　&nbsp;</span></h2>
+<h3 style="margin-left: 30px;"><span style="font-family: 'Microsoft YaHei'; font-size: 18px; color: #000000;">实践:在fork()函数前定义一个变量，在子进程中修改值，再从主进程中查看变量是否被修改：</span></h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*-coding:utf-8-*-</span>
+
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> os
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+
+variable </span>=<span style="color: #000000;"> []
+p </span>=<span style="color: #000000;"> os.fork()
+</span><span style="color: #0000ff;">if</span> p ==<span style="color: #000000;"> 0:
+    variable.append(</span>1<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">子进程 variable_id={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(id(variable)))
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">子进程 variable={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(variable))
+</span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    time.sleep(</span>1)  <span style="color: #008000;">#</span><span style="color: #008000;"> 睡一秒，让子进程先改变变量的值</span>
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">主进程 variable_id={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(id(variable)))
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">主进程 variable={}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(variable))
+    os.wait()</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">[root@192 ~]# python fork.py 
+子进程 variable_id=140426199897224
+子进程 variable=[1]
+主进程 variable_id=140426199897224
+主进程 variable=[]</span></pre>
+</div>
+<h3 style="margin-left: 30px;"><span style="text-decoration: underline;"><strong>结论:子进程中改变了变量的值，但在父进程中并未改变，说明进程间全局变量不共享</strong></span></h3>
+<h3 style="margin-left: 30px;"><strong><span style="color: #ff0000;">问2:但为什么变量id一样?</span></strong></h3>
+<h3 style="margin-left: 30px;"><strong><span style="color: #ff0000;">问2的解释:&nbsp;&nbsp;<span style="color: #000000; background-color: #c0c0c0;">写时复制技术：内核只为新生成的子进程创建虚拟空间结构，它们复制于父进程的虚拟空间结构，但是不为这些段分配物理内存，它们共享父进程的物理空间，当父子进程中有更改相应段的行为发生时，再为子进程相应的段分配物理空间。因此不论子进程有没有修改操作，虚拟地址和父进程是一样的，两个进程查看变量的id值是相同的。</span></span></strong></h3>
+<p style="margin-left: 30px;">&nbsp;另外，即使是两个互不相干的进程，若它们的逻辑地址相同，实际地址也是不同的，并不会产生冲突。</p>
+<p><strong>参考链接:</strong></p>
+<p><span style="background-color: #ffffff;"><a href="https://baike.baidu.com/item/%E5%83%B5%E5%B0%B8%E8%BF%9B%E7%A8%8B/1036577?fr=aladdin" target="_blank"><span style="background-color: #ffffff;">百度百科僵尸进程</span></a></span></p>
+<p class="title-article"><span style="background-color: #ffffff;"><a href="https://blog.csdn.net/u011630575/article/details/50917167" target="_blank"><span style="background-color: #ffffff;">python的os模块fork、wait、system、exec、popen、exit函数讲解</span></a></span></p>
+<p class="owner_h fl"><span style="background-color: #ffffff;"><a href="https://bbs.csdn.net/topics/370066599" target="_blank"><span class="owner_title text-overflow" style="background-color: #ffffff;" title="父进程调用wait函数究竟对子进程做了什么？">父进程调用wait函数究竟对子进程做了什么？</span></a></span></p>
+<p class="postTitle"><span style="background-color: #ffffff;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/wuchanming/p/4495479.html" target="_blank"><span style="background-color: #ffffff;">Linux进程管理&mdash;&mdash;fork()和写时复制</span></a></span></p>
+<p class="owner_h fl">&nbsp;</p>
+<p class="owner_h fl"><span class="owner_title text-overflow" title="父进程调用wait函数究竟对子进程做了什么？">如有意见或建议，一起交流；如有侵权，请告知删除。</span></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

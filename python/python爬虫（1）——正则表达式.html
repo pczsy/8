@@ -1,0 +1,154 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python爬虫（1）——正则表达式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python爬虫（1）——正则表达式</center></div><div class='banquan'>原文出处:本文由博客园博主swineherd_MCQ提供。<br/>
+原文连接:https://www.cnblogs.com/mcq1999/p/python_Crawler_1.html</div><br>
+    <h1 id="原子">原子</h1>
+<p>原子是正则表达式中最基本的组成单位，每个正则表达式中至少要包含一个原子。</p>
+<p>常见的原子类型：</p>
+<ol>
+<li>普通字符作为原子</li>
+<li>非打印字符作为原子</li>
+<li>通用字符作为原子</li>
+<li>原子表</li>
+</ol>
+<pre><code><code>#普通字符作为原子
+import re
+string=&quot;iloveyou&quot;
+pat=&quot;ve&quot;
+res=re.search(pat,string)
+print(res)
+
+#非打印字符作为原子，如\n \t
+string=&#39;&#39;&#39;hello
+world
+&#39;&#39;&#39;
+pat=&quot;\n&quot;
+res=re.search(pat,string)
+print(res)
+
+#通用字符作为原子
+&#39;&#39;&#39;
+\w 字母、数字、下划线
+\W 除字母、数字、下划线
+\d 十进制
+\D 除十进制
+\s 空白字符
+\S 除空白字符
+&#39;&#39;&#39;
+string=&#39;&#39;&#39;hello world 123&#39;&#39;&#39;
+pat=&quot;\d\d&quot;
+res=re.search(pat,string)
+print(res)
+
+#原子表
+#[xyz]:从中任意取一个原子
+#[^xyz]:除xyz的任意一个字符
+string=&quot;iloveyou&quot;
+pat=&quot;i[^love]o&quot;
+res=re.search(pat,string)
+print(res)
+</code></pre>
+<h1 id="元字符">元字符</h1>
+<p>元字符是正则表达式中具有一些特殊含义的字符，比如重复N此前面的字符等。</p>
+<ol>
+<li>&quot;.&quot;：除换行符外任意一个字符</li>
+<li>“^”：开始位置</li>
+<li>“$”：结束位置</li>
+<li>“*”：0\1\多次</li>
+<li>&quot;？&quot;：0\1次</li>
+<li>“+”：1\多次</li>
+<li>[n]：恰好n次</li>
+<li>{n,}：至少n次</li>
+<li>{n,m}：至少n次，至多m次</li>
+<li>|：模式选择符或</li>
+<li>()：模式单元</li>
+</ol>
+<h1 id="模式修正符">模式修正符</h1>
+<p>可以在不改变正则表达式的情况下，通过模式修正符改变正则表达式的含义，从而实现一些匹配结果的调整等功能。</p>
+<ol>
+<li>I：匹配时忽略大小写</li>
+<li>M：多行匹配</li>
+<li>L：本地化识别匹配</li>
+<li>U：unicode</li>
+<li>S：让.匹配包括换行符</li>
+</ol>
+<p>用法：</p>
+<pre><code><code>#模式修正符
+string=&quot;Python&quot;
+pat=&quot;pyt&quot;
+res=re.search(pat,string,re.I)
+print(res)</code></pre>
+<h1 id="贪婪模式与懒惰模式">贪婪模式与懒惰模式</h1>
+<p>贪婪模式的核心点就是尽可能多的匹配，而懒惰模式是尽可能少的匹配。默认贪婪模式。</p>
+<p><strong>懒惰模式要加?</strong></p>
+<pre><code><code>#贪婪模式与懒惰模式
+string=&quot;poythonyhjskjsa&quot;
+pat1=&quot;p.*y&quot;#贪婪模式
+pat2=&quot;p.*?y&quot;#懒惰模式，精准
+res1=re.search(pat1,string,re.I)
+res2=re.search(pat2,string,re.I)
+print(res1)
+print(res2)</code></pre>
+<h1 id="正则表达式函数">正则表达式函数</h1>
+<ol>
+<li>match：从头开始匹配</li>
+<li>search：任何位置都可以</li>
+<li>全局匹配函数：re.compile(pat).findall(string)</li>
+</ol>
+<h1 id="实例">实例</h1>
+<ol>
+<li><p>匹配.com和.cn网址：</p>
+<pre><code><code>string=&quot;&lt;a href=&#39;http://www.baidu.com&#39;&gt;百度首页&lt;/a&gt;&quot;
+pat=&quot;[a-zA-Z]+://[^\s]*[.com|.cn]&quot;
+res=re.compile(pat).findall(string)
+print(res)</code></pre></li>
+<li><p>匹配电话号码：</p>
+<pre><code><code>string=&quot;afawda027-651315641s3dfs152sd&quot;
+pat=&quot;\d{4}-\d{7}|\d{3}-\d{8}&quot;
+res=re.compile(pat).findall(string)
+print(res)</code></pre></li>
+</ol>
+<h1 id="简单爬虫的编写">简单爬虫的编写</h1>
+<pre><code><code>import urllib.request
+data=urllib.request.urlopen(&quot;http://edu.csdn.net&quot;).read()</code></pre>
+<h1 id="提取网页的电话qq">提取网页的电话（QQ……）</h1>
+<pre><code><code>import urllib.request
+import re
+data=urllib.request.urlopen(&quot;https://edu.csdn.net/huiyiCourse/detail/1041&quot;).read().decode(&quot;utf-8&quot;)
+pat=&quot;&lt;p&gt; 电话：(\d*?)&lt;/p&gt;&quot;
+res=re.compile(pat).findall(data)
+print(res[0])
+</code></pre>
+<h1 id="爬取豆瓣出版社">爬取豆瓣出版社</h1>
+<pre><code><code>import urllib.request
+import re
+data=urllib.request.urlopen(&quot;https://read.douban.com/provider/all&quot;).read().decode(&quot;utf-8&quot;)
+pat=&#39;&lt;div class=&quot;name&quot;&gt;(.*?)&lt;/div&gt;&#39; #加上圆括号后可以只显示括号里的内容
+res=re.compile(pat).findall(data)
+with open(&quot;出版社&quot;,&quot;w&quot;) as fp:
+    for i in range(len(res)):
+        print(res[i])
+        fp.write(res[i]+&#39;\n&#39;)
+fp.close()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

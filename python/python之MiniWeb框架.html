@@ -1,0 +1,335 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python之MiniWeb框架' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python之MiniWeb框架</center></div><div class='banquan'>原文出处:本文由博客园博主老王同鞋提供。<br/>
+原文连接:https://www.cnblogs.com/chao666/p/12068063.html</div><br>
+    <p><span style="font-size: 18px; font-family: 楷体;">本次学习MiniWeb框架的目的并不是能够完成框架的编写，而是需要学习框架编写中的思想，主要是理解路由表的定义和自动维护、视图函数的作用、前后端分离的开发思想，以及WSGI协议中的application函数的实现与调用的思想。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">以往，我们多完成的是静态web服务器，主要处理的都是一些已经&lsquo;写死&rsquo;的数据，那么今天，我们来学习一下动态数据的处理。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">说到动态数据，我们就需要了解一个东西，那就是web框架。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">所谓web框架简单地说就是用来处理数据或模板的一个py程序。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">那么接下，我就简单的给大家简述一下一个浏览器访问动态数据的整体流程。</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;"><strong>WSGI服务器网管接口（Web Server Gateway Interface）是为python语言定义的一种服务器与框架进行通信的简单接口，其接口原理就是实现application函数。</strong></span><br /><span style="font-size: 18px; font-family: 楷体;">application函数格式如下：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 18px; font-family: 楷体;"><span style="color: #0000ff;">def</span><span style="color: #000000;"> application(environ, func):
+    <span style="font-size: 18px; font-family: 楷体;"><span style="color: #000000;">func</span></span>(</span><span style="color: #800000;">'</span><span style="color: #800000;">200 OK</span><span style="color: #800000;">'</span>, [(<span style="color: #800000;">'</span><span style="color: #800000;">Content-Type</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">text/html;charset=utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)])
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">Hello MiniWeb</span><span style="color: #800000;">'</span></span></pre>
+</div>
+<p><span style="font-size: 18px; font-family: 楷体;">函数的第一个参数environ类型是一个字典，用来接收封装到字典内的请求资源路径。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">函数的第二个参数func类型是一个函数，用来接收调用时传递的函数引用。</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;"><strong>application函数在是在框架中实现，框架就是处理数据的py文件；在服务器端调用。</strong></span></p>
+<p><span style="font-family: 楷体; font-size: 18px;"><strong>实现application函数并且完成数据处理的py文件我们就可以称它是WSGI接口。</strong></span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">首先，我们先看一张图片</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">&nbsp;<img src="./images/python之MiniWeb框架0.png" alt="" /></span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">这张图片完美的阐述了从浏览器到服务器到web框架的应用。</span></p>
+<h2><span style="font-size: 18px; font-family: 楷体;">接下来我将给大家进行简单的阐述：</span></h2>
+<p><span style="font-size: 18px; font-family: 楷体;">首先，大家需要明确一点本次开发中以.html后缀的文件为动态资源，其余均为静态资源</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">1.浏览器发送HTTP请求报文给服务器，</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">2.服务器根据HTTP请求报文的请求路径进行判断，</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">如果请求的是静态资源，那么服务器直接将静态资源的数据读出来然后拼接成HTTP响应报文返回给浏览器；</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">如果请求的是动态资源，那么服务器会将动态资源请求发送给web框架。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">3.web框架接收到服务器转发的请求后，先对请求进行判断，</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">如果是请求模版那么web框架将会去模版中查找请求的模板，如果查询到请求的模板那就把模板数据返回给web服务器，再有服务器返回给浏览器，</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">如果请求的是数据那么web框架将会去数据库中进行操作，将查询等操作的数据或返回值，返回给web服务器，再有服务器返回给浏览器。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">至此一个整体流程就阐述完毕了。</span></p>
+<h2><span style="font-size: 18px; font-family: 楷体;">1.web服务器代码实现：</span></h2>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 18px; font-family: 楷体;"><span style="color: #008000;">#</span><span style="color: #008000;"> 1.导入socket模块</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> threading
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> FreamWork
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 创建服务器类</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> HttpServerSocket(object):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 给服务器类的对象设置属性</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 2.创建Socket对象</span>
+        self.server_socket =<span style="color: #000000;"> socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 3.设置端口复用</span>
+<span style="color: #000000;">        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 4.绑定端口</span>
+        self.server_socket.bind((<span style="color: #800000;">''</span>, 8000<span style="color: #000000;">))
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 5.设置监听</span>
+        self.server_socket.listen(128<span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> start(self):
+        </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> True:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 6.等待客户端连接</span>
+            client_socket, ip_port =<span style="color: #000000;"> self.server_socket.accept()
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> gevent.spawn(self.task, client_socket, ip_port)</span>
+            <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">上线了</span><span style="color: #800000;">"</span><span style="color: #000000;">, ip_port)
+            threading.Thread(target</span>=self.task, args=(client_socket, ip_port), daemon=<span style="color: #000000;">True).start()
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> task(self, client_socket, ip_port):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 7.接收数据</span>
+        recv_data = client_socket.recv(1024).decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(recv_data)
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> recv_data:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">客户端：%s下线了，端口号为：%s</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> ip_port)
+            </span><span style="color: #0000ff;">return</span>
+
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 8.发送数据</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 判断请求资源是否包含参数</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 请求行格式：GET /index.html HTTP/1.1</span>
+        recv_path = recv_data.split()[1<span style="color: #000000;">]
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> print("第一次分割",recv_path)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 如果有参数则以？分割</span>
+        <span style="color: #0000ff;">if</span> <span style="color: #800000;">'</span><span style="color: #800000;">?</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">in</span><span style="color: #000000;"> recv_path:
+            real_recv_path </span>= recv_path.split(<span style="color: #800000;">'</span><span style="color: #800000;">?</span><span style="color: #800000;">'</span><span style="color: #000000;">)[0]
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> print("?分割",real_recv_path)</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 如果没有参数，则保持请求路径不变</span>
+            real_recv_path =<span style="color: #000000;"> recv_path
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> print("无？分割",real_recv_path)</span>
+
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 设置没指定资源路径，默认返回index.html</span>
+        <span style="color: #0000ff;">if</span> real_recv_path == <span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+            real_recv_path </span>= <span style="color: #800000;">'</span><span style="color: #800000;">/index.html</span><span style="color: #800000;">'</span>
+
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 判断请求资源是静态资源还是动态资源</span>
+        <strong><span style="color: #ff0000;">if real_recv_path.endswith('.html'):
+            env = {'PATH_INFO': real_recv_path}
+            # 调用框架中的application函数
+            response_body = FreamWork.application(env, self.start_response)
+            response_line = 'HTTP/1.1 %s\r\n' % self.status
+            response_header = 'Server: PWS/1.0\r\n'
+            # self.response_header 接收的是列表中保存的元组需要进行解包处理
+            response_header += '%s :%s\r\n' % self.response_header[0]
+            send_data = (response_line + response_header + '\r\n' + response_body).encode('utf8')
+            client_socket.send(send_data)
+            client_socket.close()
+        </span></strong><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 判断请求的资源路径是否存在</span>
+            <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+                with open(f</span><span style="color: #800000;">"</span><span style="color: #800000;">static{real_recv_path}</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">rb</span><span style="color: #800000;">"</span><span style="color: #000000;">) as file:
+                    response_body </span>=<span style="color: #000000;"> file.read()
+            </span><span style="color: #0000ff;">except</span><span style="color: #000000;">  Exception as e:
+                </span><span style="color: #008000;">#</span><span style="color: #008000;"> 如果不存在则返回404</span>
+                response_line = <span style="color: #800000;">'</span><span style="color: #800000;">HTTP/1.1 404 NOT FOUND\r\n</span><span style="color: #800000;">'</span><span style="color: #000000;">
+                response_header </span>= <span style="color: #800000;">'</span><span style="color: #800000;">Server: PWS/1.0\r\n</span><span style="color: #800000;">'</span><span style="color: #000000;">
+                response_body </span>= <span style="color: #800000;">'</span><span style="color: #800000;">sorry nor found page!\r\n</span><span style="color: #800000;">'</span><span style="color: #000000;">.capitalize()
+                send_data </span>= (response_line + response_header + <span style="color: #800000;">'</span><span style="color: #800000;">\r\n</span><span style="color: #800000;">'</span> + response_body).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+                client_socket.send(send_data)
+            </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+                </span><span style="color: #008000;">#</span><span style="color: #008000;"> 如果存在则换回请求的页面信息</span>
+                response_line = <span style="color: #800000;">'</span><span style="color: #800000;">HTTP/1.1 200 OK\r\n</span><span style="color: #800000;">'</span><span style="color: #000000;">
+                response_header </span>= <span style="color: #800000;">'</span><span style="color: #800000;">Server: PWS/1.0\r\n</span><span style="color: #800000;">'</span><span style="color: #000000;">
+                send_data </span>= (response_line + response_header + <span style="color: #800000;">'</span><span style="color: #800000;">\r\n</span><span style="color: #800000;">'</span>).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>) +<span style="color: #000000;"> response_body
+                client_socket.send(send_data)
+            </span><span style="color: #0000ff;">finally</span><span style="color: #000000;">:
+                </span><span style="color: #008000;">#</span><span style="color: #008000;"> 断开与客户端连接</span>
+<span style="color: #000000;">                client_socket.close()
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> start_response(self, status, response_header):
+        self.status </span>=<span style="color: #000000;"> status
+        self.response_header </span>=<span style="color: #000000;"> response_header
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__del__</span><span style="color: #000000;">(self):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 当服务端程序结束时停止服务器服务</span>
+<span style="color: #000000;">        self.server_socket.close()
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> main():
+    http_socket </span>=<span style="color: #000000;"> HttpServerSocket()
+    http_socket.start()
+
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    main()</span></span></pre>
+</div>
+<h3><span style="font-size: 18px; font-family: 楷体;">核心代码（代码段中颜色为红色并加粗的代码）解读：</span></h3>
+<p><span style="font-size: 18px; font-family: 楷体;">1.通过分解后的请求资源路径的后缀判断请求的是否是html页面，如果是则认为请求的是动态资源；</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">2.将动态资源路径封装到一个字典中，并将字典和函数的引用传递给application函数，</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">3.web框架（application函数）根据传递的资源路径去模板中查找是否含有请求的模板，如果有则读取模版数据并返回；</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">4.接收到web框架（application函数）返回的数据，并拼接HTTP响应报文，然后通过浏览器套接字将HTTP响应报文发送给浏览器，最后关闭与浏览器连接。</span></p>
+<h2><span style="font-size: 18px; font-family: 楷体;">2.MiniWeb框架代码实现：</span></h2>
+<p><span style="font-size: 18px; font-family: 楷体;">采用前后端分离思想进行数据传输，在数据传输过程中，需要将数据转换成JSON数据，</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">这时候需要注意数据库中的<span style="color: #ff0000;"><strong>Decimal类型<span style="color: #000000;">和</span>Datetime类型为数据库独有类型</strong></span>的数据都需要转换成<span style="color: #ff0000;"><strong>字符串</strong></span>才能够进行数据类型转换；</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">否则数据转换不成功，则无法为Ajax提供数据支持，那么前段页面会一直提示，Ajax请求失败。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> db
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义路由表</span>
+router_table =<span style="color: #000000;"> {}
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义接口函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> application(environ, start_response):
+    start_response(</span><span style="color: #800000;">'</span><span style="color: #800000;">200 OK</span><span style="color: #800000;">'</span>, [(<span style="color: #800000;">'</span><span style="color: #800000;">Content-Type</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">text/html;charset=utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)])
+    path </span>= environ[<span style="color: #800000;">'</span><span style="color: #800000;">PATH_INFO</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    func </span>=<span style="color: #000000;"> error
+    </span><span style="color: #0000ff;">if</span> path <span style="color: #0000ff;">in</span><span style="color: #000000;"> router_table:
+        func </span>=<span style="color: #000000;"> router_table[path]
+    response_body </span>=<span style="color: #000000;"> func()
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> response_body
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义装饰器自动维护路由表</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> router(url):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> decorator(func):
+        </span><span style="color: #0000ff;">def</span> inner(*args, **<span style="color: #000000;">kwargs):
+            body </span>= func(*args, **<span style="color: #000000;">kwargs)
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> body
+
+        router_table[url] </span>=<span style="color: #000000;"> inner
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner
+
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> decorator
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义视图函数</span>
+@router(<span style="color: #800000;">'</span><span style="color: #800000;">/index.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> index():
+    with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">templates/index.html</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span>, encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">) as file:
+        body </span>=<span style="color: #000000;"> file.read()
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> body
+
+
+@router(</span><span style="color: #800000;">'</span><span style="color: #800000;">/center.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> center():
+    with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">templates/center.html</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span>, encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">) as file:
+        body </span>=<span style="color: #000000;"> file.read()
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> body
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义发送JSON数据的函数</span>
+@router(<span style="color: #800000;">'</span><span style="color: #800000;">/data.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> josn_data():
+    sql </span>= <span style="color: #800000;">'''</span><span style="color: #800000;">select * from info;</span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    result </span>=<span style="color: #000000;"> db.operation_data(sql)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> JSON数据格式：[{},{}]</span>
+    data =<span style="color: #000000;"> []
+    </span><span style="color: #0000ff;">for</span> data_tuple <span style="color: #0000ff;">in</span><span style="color: #000000;"> result:
+        data_dict </span>=<span style="color: #000000;"> {}
+        data_dict[</span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> data_tuple[0]
+        data_dict[</span><span style="color: #800000;">'</span><span style="color: #800000;">code</span><span style="color: #800000;">'</span>] = data_tuple[1<span style="color: #000000;">]
+        data_dict[</span><span style="color: #800000;">'</span><span style="color: #800000;">short</span><span style="color: #800000;">'</span>] = data_tuple[2<span style="color: #000000;">]
+        data_dict[</span><span style="color: #800000;">'</span><span style="color: #800000;">chg</span><span style="color: #800000;">'</span>] = data_tuple[3<span style="color: #000000;">]
+        data_dict[</span><span style="color: #800000;">'</span><span style="color: #800000;">turnover</span><span style="color: #800000;">'</span>] = data_tuple[4<span style="color: #000000;">]
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> decimal类型只存在于数据库中，所以需要转换成字符串进行显示</span>
+        data_dict[<span style="color: #800000;">'</span><span style="color: #800000;">price</span><span style="color: #800000;">'</span>] = str(data_tuple[5<span style="color: #000000;">])
+        data_dict[</span><span style="color: #800000;">'</span><span style="color: #800000;">highs</span><span style="color: #800000;">'</span>] = str(data_tuple[6<span style="color: #000000;">])
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> datetime类型只存在于数据库中，所以需要类型转换</span>
+        data_dict[<span style="color: #800000;">'</span><span style="color: #800000;">time</span><span style="color: #800000;">'</span>] = str(data_tuple[7<span style="color: #000000;">])
+        data.append(data_dict)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 将列表转化成JSON数据</span>
+    json_data = json.dumps(data, ensure_ascii=<span style="color: #000000;">False)
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> json_data
+
+
+@router(</span><span style="color: #800000;">'</span><span style="color: #800000;">/center_data.html</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> center_data():
+    sql </span>= <span style="color: #800000;">'''</span><span style="color: #800000;"> select i.code, i.short, i.chg, i.turnover,i.price, i.highs, f.note_info from info i inner join focus f on i.id = f.info_id </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    result </span>=<span style="color: #000000;"> db.operation_data(sql)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义一个列表,用来保存所有的记录 (列表对应的是 json 中的数组)</span>
+    data =<span style="color: #000000;"> []
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 遍历查询结果</span>
+    <span style="color: #0000ff;">for</span> t <span style="color: #0000ff;">in</span><span style="color: #000000;"> result:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 定义一个字典用来保存每一条记录(字典对应的是 json 中的对象)</span>
+        dd =<span style="color: #000000;"> {}
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 将元组中的所有数据保存到字典中</span>
+        dd[<span style="color: #800000;">'</span><span style="color: #800000;">code</span><span style="color: #800000;">'</span>] =<span style="color: #000000;"> t[0]
+        dd[</span><span style="color: #800000;">'</span><span style="color: #800000;">short</span><span style="color: #800000;">'</span>] = t[1<span style="color: #000000;">]
+        dd[</span><span style="color: #800000;">'</span><span style="color: #800000;">chg</span><span style="color: #800000;">'</span>] = t[2<span style="color: #000000;">]
+        dd[</span><span style="color: #800000;">'</span><span style="color: #800000;">turnover</span><span style="color: #800000;">'</span>] = t[3<span style="color: #000000;">]
+        dd[</span><span style="color: #800000;">'</span><span style="color: #800000;">price</span><span style="color: #800000;">'</span>] = str(t[4])  <span style="color: #008000;">#</span><span style="color: #008000;"> 坑一: 由于下面两个字段的值在数据库是是 Decimal 类型,在转换 json 时不能直接转换,所以转成字符串</span>
+        dd[<span style="color: #800000;">'</span><span style="color: #800000;">highs</span><span style="color: #800000;">'</span>] = str(t[5<span style="color: #000000;">])
+        dd[</span><span style="color: #800000;">'</span><span style="color: #800000;">info</span><span style="color: #800000;">'</span>] = t[6<span style="color: #000000;">]
+        data.append(dd)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 将转换后的列表转换成 json 字符串</span>
+    json_str = json.dumps(data, ensure_ascii=False)  <span style="color: #008000;">#</span><span style="color: #008000;"> 坑二: 在这转换时,要加参数二,不以 Ascii 码进行解析数据</span>
+    <span style="color: #0000ff;">print</span><span style="color: #000000;">(json_str)
+
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> json_str
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> error():
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">&lt;h1&gt;页面加载失败！&lt;/h1&gt;</span><span style="color: #800000;">'</span></pre>
+</div>
+<h3><span style="font-size: 18px; font-family: 楷体;">JSON的数据格式：</span></h3>
+<div class="cnblogs_code">
+<pre><code><span style="font-family: 楷体; font-size: 18px;">[{<span style="color: #800000;">"</span><span style="color: #800000;">key</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">value</span><span style="color: #800000;">"</span>},{<span style="color: #800000;">"</span><span style="color: #800000;">key</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">value</span><span style="color: #800000;">"</span>},{<span style="color: #800000;">"</span><span style="color: #800000;">key</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">value</span><span style="color: #800000;">"</span>}]</span></pre>
+</div>
+<p><span style="font-family: 楷体; font-size: 18px;"><strong>在JSON数据转换时需要注意，json.dumps()会默认采用ASCII码进项解码转换，想要不使用ASCII进行转码就需要设置ensure_ascii参数，将它设置成False即可解决问题。</strong></span></p>
+<h3><span style="font-family: 楷体; font-size: 18px;"><strong>这里给大家简单阐述一下路由表的概念：</strong></span></h3>
+<p><span style="font-size: 18px; font-family: 楷体;">路由表就是一个用请求地址作为Key，装饰器内层函数的引用作为Value而形成的键值对组成的字典。</span></p>
+<p><span style="font-size: 18px; font-family: 楷体;">其格式为：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-family: 楷体; font-size: 18px;"><span style="color: #000000;">{
+</span><span style="color: #800000;">'</span><span style="color: #800000;">/index.html</span><span style="color: #800000;">'</span><span style="color: #000000;">:inner,
+</span><span style="color: #800000;">'</span><span style="color: #800000;">/error.html</span><span style="color: #800000;">'</span><span style="color: #000000;">:inner
+}</span></span></pre>
+</div>
+<p><span style="font-family: 楷体; font-size: 18px;"><strong>对于路由表的自动维护，我们可以通过编写带参数的装饰器来实现：</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-family: 楷体; font-size: 18px;">router_table =<span style="color: #000000;"> {}
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> router(url):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> decorator(func):
+        </span><span style="color: #0000ff;">def</span> inner(*args, **<span style="color: #000000;">kwargs):
+            func(</span>*args, **<span style="color: #000000;">kwargs)
+
+        router_table[url] </span>=<span style="color: #000000;"> inner
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> inner
+
+    </span><span style="color: #0000ff;">return</span> decorator</span></pre>
+</div>
+<p><span style="font-family: 楷体; font-size: 18px;">通过@router('/index.html')语法糖来给路由表中添加数据。</span></p>
+<h3><span style="font-family: 楷体; font-size: 18px;">其主要流程：</span></h3>
+<p><span style="font-family: 楷体; font-size: 18px;">1.先执行router('/index.html')，然后将装饰器decorator函数的引用返回；</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;">2.在通过@decorator的引用，将视图函数传递给func，将inner的引用及url组成键值对保存到路由表中；</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;">这里再给大家扩展一个概念，视图函数是MVT开发模式中的V也就是View，其主要功能是处理数据。</span></p>
+<h2><span style="font-family: 楷体; font-size: 18px;">3.数据库操作代码实现：</span></h2>
+<p><span style="font-family: 楷体; font-size: 18px;">在编写数据库操作的代码时，需要注意的时每个函数返回值的类型，</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;">除db_connect()返回的是数据库的<strong><span style="color: #ff0000;">连接对象</span></strong>外，</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;">其余函数返回的均为查询后的<span style="color: #ff0000;"><strong>数据</strong></span>，在调用函数时要注意。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> pymysql
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> connect_db():
+    db </span>= pymysql.connect(host=<span style="color: #800000;">'</span><span style="color: #800000;">180.76.105.161</span><span style="color: #800000;">'</span>, port=3306, user=<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span>, password=<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span>, database=<span style="color: #800000;">'</span><span style="color: #800000;">stock_db</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+                         charset</span>=<span style="color: #800000;">'</span><span style="color: #800000;">utf8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 此处返回的是数据库连接对象</span>
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> db
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> operation_data(sql):
+    db </span>=<span style="color: #000000;"> connect_db()
+    cur </span>=<span style="color: #000000;"> db.cursor()
+    cur.execute(sql)
+    data </span>=<span style="color: #000000;"> cur.fetchall()
+    cur.close()
+    db.close()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 此处返回的是数据库查询后返回的数据，而不是对象</span>
+    <span style="color: #0000ff;">return</span> data</pre>
+</div>
+<h2><span style="font-family: 楷体; font-size: 18px;">最后，总结一下MiniWeb开发的大概流程：</span></h2>
+<p><span style="font-size: 18px;"><strong><span style="font-family: 楷体;">1.在原有的TCP服务端的基础上加上一个请求资源的判断，即判断是否是动态资源；</span></strong></span></p>
+<p><span style="font-size: 18px;"><strong><span style="font-family: 楷体;">2.如果是动态资源，就将动态资源的请求路径发送给框架，</span></strong></span></p>
+<p><span style="font-size: 18px;"><strong><span style="font-family: 楷体;">3.框架在进行判断，如果动态资源是模版那就读出模版的数据并返回给服务器，最后再由服务器拼接响应报文给客户端，</span></strong></span></p>
+<p><span style="font-size: 18px;"><strong><span style="font-family: 楷体;">4.如果动态资源请求的是数据，那么框架就回到数据库中将数据查询出来，并且拼接成JSON数据格式的字符串，再将JSON数据格式的字符串转换成JSON数据，最后在返回给服务器，最后再由服务器拼接响应报文并发送给客户端。</span></strong></span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

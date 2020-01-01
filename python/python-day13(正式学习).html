@@ -1,0 +1,500 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python-day13(正式学习)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python-day13(正式学习)</center></div><div class='banquan'>原文出处:本文由博客园博主wind叶提供。<br/>
+原文连接:https://www.cnblogs.com/leaf-wind/p/11340330.html</div><br>
+    <h1 id="闭包函数">闭包函数</h1>
+<h2 id="闭包">闭包</h2>
+<p>闭包：闭是封闭（函数内部函数），包是包含（该内部函数对外部作用域而非全局作用域的变量的引用）。闭包指的是：函数内部函数对外部作用域而非全局作用域的引用。</p>
+<p>额。。。这里提示一下闭包！=自闭</p>
+<p><img src="./images/python-day13(正式学习)0.png" alt="img" /></p>
+<h2 id="为函数传参的两种方式">为函数传参的两种方式</h2>
+<h3 id="使用参数的方式">使用参数的方式</h3>
+<pre><code><code>def func(x):
+    print(x)
+
+
+func(1)
+func(1)
+func(1)</code></pre>
+<p>1<br />
+1<br />
+1</p>
+<h3 id="包给函数">包给函数</h3>
+<pre><code><code>def outter(x):
+    x = 1
+
+    def inner():
+        print(x)
+    return inner
+
+
+f = outter(1)
+f()
+f()
+f()
+# 查看闭包的元素
+print(F&quot;f.__closure__[0].cell_contents: {f.__closure__[0].cell_contents}&quot;)</code></pre>
+<pre><code><code>1
+1
+1
+f.__closure__[0].cell_contents: 1</code></pre>
+<h1 id="装饰器">装饰器</h1>
+<h2 id="什么是装饰器">什么是装饰器</h2>
+<p>器指的是工具，而程序中的函数就是具备某一功能的工具，所以装饰器指的是为被装饰器对象添加额外功能。因此定义装饰器就是定义一个函数，只不过该函数的功能是用来为其他函数添加额外的功能。</p>
+<p>需要注意的是：</p>
+<ul>
+<li>装饰器本身其实是可以任意可调用的对象</li>
+<li>被装饰的对象也可以是任意可调用的对象</li>
+</ul>
+<h2 id="为什么要用装饰器">为什么要用装饰器</h2>
+<p>如果我们已经上线了一个项目，我们需要修改某一个方法，但是我们不想修改方法的使用方法，这个时候可以使用装饰器。因为软件的维护应该遵循开放封闭原则，即软件一旦上线运行后，软件的维护对修改源代码是封闭的，对扩展功能指的是开放的。</p>
+<p>装饰器的实现必须遵循两大原则：</p>
+<ol>
+<li>不修改被装饰对象的源代码</li>
+<li>不修改被装饰对象的调用方式</li>
+</ol>
+<p>装饰器其实就是在遵循以上两个原则的前提下为被装饰对象添加新功能。</p>
+<p>如果我们已经上线了一个项目，我们需要修改某一个方法，但是我们不想修改方法的使用方法，这个时候可以使用装饰器。因为软件的维护应该遵循开放封闭原则，即软件一旦上线运行后，软件的维护对修改源代码是封闭的，对扩展功能指的是开放的。</p>
+<p>装饰器的实现必须遵循两大原则：</p>
+<ol>
+<li>不修改被装饰对象的源代码</li>
+<li>不修改被装饰对象的调用方式</li>
+</ol>
+<p>装饰器其实就是在遵循以上两个原则的前提下为被装饰对象添加新功能。</p>
+<p>如果我们已经上线了一个项目，我们需要修改某一个方法，但是我们不想修改方法的使用方法，这个时候可以使用装饰器。因为软件的维护应该遵循开放封闭原则，即软件一旦上线运行后，软件的维护对修改源代码是封闭的，对扩展功能指的是开放的。</p>
+<p>装饰器的实现必须遵循两大原则：</p>
+<ol>
+<li>不修改被装饰对象的源代码</li>
+<li>不修改被装饰对象的调用方式</li>
+</ol>
+<p>装饰器其实就是在遵循以上两个原则的前提下为被装饰对象添加新功能。</p>
+<p>如果我们已经上线了一个项目，我们需要修改某一个方法，但是我们不想修改方法的使用方法，这个时候可以使用装饰器。因为软件的维护应该遵循开放封闭原则，即软件一旦上线运行后，软件的维护对修改源代码是封闭的，对扩展功能指的是开放的。</p>
+<p>装饰器的实现必须遵循两大原则：</p>
+<ol>
+<li>不修改被装饰对象的源代码</li>
+<li>不修改被装饰对象的调用方式</li>
+</ol>
+<p>装饰器其实就是在遵循以上两个原则的前提下为被装饰对象添加新功能。</p>
+<p>如果我们已经上线了一个项目，我们需要修改某一个方法，但是我们不想修改方法的使用方法，这个时候可以使用装饰器。因为软件的维护应该遵循开放封闭原则，即软件一旦上线运行后，软件的维护对修改源代码是封闭的，对扩展功能指的是开放的。</p>
+<p>装饰器的实现必须遵循两大原则：</p>
+<ol>
+<li>不修改被装饰对象的源代码</li>
+<li>不修改被装饰对象的调用方式</li>
+</ol>
+<p>装饰器其实就是在遵循以上两个原则的前提下为被装饰对象添加新功能。</p>
+<p><img src="./images/python-day13(正式学习)1.png" alt="48装饰器-bug.jpg?x-oss-process=style/watermark" /></p>
+<h2 id="怎么用装饰器">怎么用装饰器</h2>
+<p>改变源代码</p>
+<pre><code><code>import time
+
+
+def index():
+    start = time.time()
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+    end = time.time()
+    print(F&quot;index run time is {start-end}&quot;)
+
+
+index()
+
+
+welcome to index
+index run time is -1.0008180141448975</code></pre>
+<p>编写重复代码</p>
+<pre><code><code>import time
+
+
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+
+def f2():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+
+start = time.time()
+index()
+end = time.time()
+print(F&quot;index run time is {start-end}&quot;)
+
+start = time.time()
+f2()
+end = time.time()
+print(F&quot;f2 run time is {start-end}&quot;)
+
+
+welcome to index
+index run time is -1.0046868324279785
+welcome to index
+f2 run time is -1.000690221786499</code></pre>
+<p>第一种传参方式：改变调用方式</p>
+<pre><code><code>import time
+
+
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+
+def time_count(func):
+    start = time.time()
+    func()
+    end = time.time()
+    print(f&quot;{func} time is {start-end}&quot;)
+
+
+time_count(index)
+
+
+welcome to index
+&lt;function index at 0x102977378&gt; time is -1.000748872756958</code></pre>
+<p>第二种传参方式：包给函数-外包</p>
+<pre><code><code>import time
+
+
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+
+def time_count(func):
+    # func = 最原始的index
+    def wrapper():
+        start = time.time()
+        func()
+        end = time.time()
+        print(f&quot;{func} time is {start-end}&quot;)
+    return wrapper
+
+# f = time_count(index)
+# f()
+
+
+index = time_count(index)  # index为被装饰函数的内存地址，即index = wrapper
+index()  # wrapper()
+
+
+welcome to index
+&lt;function index at 0x102977730&gt; time is -1.0038220882415771</code></pre>
+<h2 id="完善装饰器">完善装饰器</h2>
+<p>上述的装饰器，最后调用index()的时候，其实是在调用wrapper()，因此如果原始的index()有返回值的时候，wrapper()函数的返回值应该和index()的返回值相同，也就是说，我们需要同步原始的index()和wrapper()方法的返回值。</p>
+<pre><code><code>import time
+
+
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+    return 123
+
+
+def time_count(func):
+    # func = 最原始的index
+    def wrapper():
+        start = time.time()
+        res = func()
+        end = time.time()
+        print(f&quot;{func} time is {start-end}&quot;)
+
+        return res
+    return wrapper
+
+
+index = time_count(index)
+res = index()
+print(f&quot;res: {res}&quot;)##
+welcome to index
+&lt;function index at 0x102977620&gt; time is -1.0050289630889893
+res: 123</code></pre>
+<p>如果原始的index()方法需要传参，那么我们之前的装饰器是无法实现该功能的，由于有wrapper()=index()，所以给wrapper()方法传参即可。</p>
+<pre><code><code>import time
+
+
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+    return 123
+
+
+def home(name):
+    print(f&quot;welcome {name} to home page&quot;)
+    time.sleep(1)
+
+    return name
+
+
+def time_count(func):
+    # func = 最原始的index
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        res = func(*args, **kwargs)
+        end = time.time()
+        print(f&quot;{func} time is {start-end}&quot;)
+
+        return res
+    return wrapper
+
+
+home = time_count(home)
+
+res = home(&#39;egon&#39;)
+print(f&quot;res: {res}&quot;)##
+welcome egon to home page
+&lt;function home at 0x102977378&gt; time is -1.0039079189300537
+res: egon</code></pre>
+<h2 id="装饰器语法糖">装饰器语法糖</h2>
+<p>在被装饰函数正上方，并且是单独一行写上<code>@装饰器名</code></p>
+<p><img src="./images/python-day13(正式学习)2.png" alt="img" /></p>
+<pre><code><code>import time
+
+
+def time_count(func):
+    # func = 最原始的index
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        res = func(*args, **kwargs)
+        end = time.time()
+        print(f&quot;{func} time is {start-end}&quot;)
+
+        return res
+    return wrapper
+
+
+@time_count  # home = time_count(home)
+def home(name):
+    print(f&quot;welcome {name} to home page&quot;)
+    time.sleep(1)
+
+    return name
+
+
+@time_count  # index = time_count(index)
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+    return 123
+
+
+res = home(&#39;egon&#39;)
+print(f&quot;res: {res}&quot;)##
+welcome egon to home page
+&lt;function home at 0x102977620&gt; time is -1.0005171298980713
+res: egon</code></pre>
+<h2 id="有参装饰器">有参装饰器</h2>
+<pre><code><code>import time
+
+current_user = {&#39;username&#39;: None}
+
+
+def login(func):
+    # func = 最原始的index
+    def wrapper(*args, **kwargs):
+
+        if current_user[&#39;username&#39;]:
+            res = func(*args, **kwargs)
+
+            return res
+
+        user = input(&#39;username: &#39;).strip()
+        pwd = input(&#39;password: &#39;).strip()
+        
+        engine = &#39;file&#39;
+
+        if engine == &#39;file&#39;:
+            print(&#39;base of file&#39;)
+            if user == &#39;nick&#39; and pwd == &#39;123&#39;:
+                print(&#39;login successful&#39;)
+                current_uesr[&#39;usre&#39;] = user
+                res = func(*args, **kwargs)
+
+                return res
+            else:
+                print(&#39;user or password error&#39;)
+        elif engine == &#39;mysql&#39;:
+            print(&#39;base of mysql&#39;)
+        elif engine == &#39;mongodb&#39;:
+            print(&#39;base of mongodb&#39;)
+        else:
+            print(&#39;default&#39;)
+
+    return wrapper
+
+
+@login
+def home(name):
+    print(f&quot;welcome {name} to home page&quot;)
+    time.sleep(1)
+
+
+@login
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+
+res = index()</code></pre>
+<pre><code><code>username: nick
+password: 123
+base of file
+login successful
+welcome to index</code></pre>
+<h2 id="三层闭包">三层闭包</h2>
+<pre><code><code>import time
+
+current_uesr = {&#39;username&#39;: None}
+
+
+def auth(engine=&#39;file&#39;):
+
+    def login(func):
+        # func = 最原始的index
+        def wrapper(*args, **kwargs):
+
+            if current_user[&#39;username&#39;]:
+                res = func(*args, **kwargs)
+
+                return res
+
+            user = input(&#39;username: &#39;).strip()
+            pwd = input(&#39;password: &#39;).strip()
+
+            if engine == &#39;file&#39;:
+                print(&#39;base of file&#39;)
+                if user == &#39;nick&#39; and pwd == &#39;123&#39;:
+                    print(&#39;login successful&#39;)
+                    current_uesr[&#39;usre&#39;] = user
+                    res = func(*args, **kwargs)
+
+                    return res
+                else:
+                    print(&#39;user or password error&#39;)
+            elif engine == &#39;mysql&#39;:
+                print(&#39;base of mysql, please base of file&#39;)
+            elif engine == &#39;mongodb&#39;:
+                print(&#39;base of mongodb, please base of file&#39;)
+            else:
+                print(&#39;please base of file&#39;)
+
+        return wrapper
+
+    return login
+
+
+@auth(engine=&#39;mysql&#39;)
+def home(name):
+    print(f&quot;welcome {name} to home page&quot;)
+    time.sleep(1)
+
+
+@auth(engine=&#39;file&#39;)
+def index():
+    print(&#39;welcome to index&#39;)
+    time.sleep(1)
+
+
+res = index()</code></pre>
+<pre><code><code>username: nick
+password: 123
+base of file
+login successful
+welcome to index</code></pre>
+<p>由于两层的装饰器，参数必须得固定位<code>func</code>，但是三层的装饰器解除了这个限制。我们不仅仅可以使用上述单个参数的三层装饰器，多个参数的只需要在三层装饰器中多加入几个参数即可。也就是说装饰器三层即可，多加一层反倒无用。</p>
+<h2 id="装饰器叠加">装饰器叠加</h2>
+<pre><code><code>def outter1(func):  # func = wrapper2
+    def wrapper1(*args, **kwargs):  # wrapper是未来要运行的函数
+        print(&#39;------------&#39;)
+        res = func(*args, **kwargs)  # func是被装饰的函数  # wrapper2
+        print(&#39;------------&#39;)
+        return res
+
+    return wrapper1
+
+def outter2(func):  # func = index
+    def wrapper2(*args, **kwargs):  # wrapper是未来要运行的函数
+        print(&#39;11111111111111&#39;)
+        res = func(*args, **kwargs)  # func是被装饰的函数  # index()
+        print(&#39;11111111111111&#39;)
+        return res
+
+    return wrapper2
+
+# @outter1  # index = outter1(index)
+# @outter2  # index = outter2(index)  # 先运行最下面的装饰器
+# # index
+def index():
+    print(&#39;index&#39;)
+
+# index重新定义的index = outter2(index 真正的index)
+index = outter2(index)   #  index = wrapper2
+# index再一次重新定义的index = outter1(index重新定义的index,即wrapper2)
+index = outter1(index)  # index  = wrapper1
+index()  # wrapper1()</code></pre>
+<p>兄弟自求多福！！！（切勿钻牛角尖）</p>
+<p><img src="./images/python-day13(正式学习)3.png" alt="img" /></p>
+<h1 id="迭代器">迭代器</h1>
+<p>迭代器：迭代的工具。迭代是更新换代，如你爷爷生了你爹，你爹生了你，迭代也可以说成是重复，并且但每一次的重复都是基于上一次的结果来的。如计算机中的迭代开发，就是基于软件的上一个版本更新。以下代码就不是迭代，它只是单纯的重复</p>
+<h2 id="可迭代对象">可迭代对象</h2>
+<p>python中一切皆对象，对于这一切的对象中，但凡有<code>__iter__</code>方法的对象，都是可迭代对象。</p>
+<pre><code><code># x = 1.__iter__  # SyntaxError: invalid syntax
+
+# 以下都是可迭代的对象
+
+name = &#39;nick&#39;.__iter__
+lis = [1, 2].__iter__
+tup = (1, 2).__iter__
+dic = {&#39;name&#39;: &#39;nick&#39;}.__iter__
+s1 = {&#39;a&#39;, &#39;b&#39;}.__iter__
+f = open(&#39;49w.txt&#39;, &#39;w&#39;, encoding=&#39;utf-8&#39;)
+f.__iter__
+f.close()</code></pre>
+<h2 id="迭代器对象">迭代器对象</h2>
+<p>只有字符串和列表都是依赖索引取值的，而其他的可迭代对象都是无法依赖索引取值的。因此我们得找到一个方法能让其他的可迭代对象不依赖索引取值。</p>
+<p>在找到该方法前，首先我们给出迭代器对象的概念：可迭代的对象执行<code>__iter__</code>方法得到的返回值。并且可迭代对象会有一个<code>__next__</code>方法。</p>
+<pre><code><code># 不依赖索引的数据类型迭代取值
+dic = {&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}
+iter_dic = dic.__iter__()
+print(iter_dic.__next__())
+print(iter_dic.__next__())
+print(iter_dic.__next__())
+# print(iter_dic.__next__())  # StopIteration:</code></pre>
+<pre><code><code>a
+b
+c</code></pre>
+<p><img src="./images/python-day13(正式学习)4.png" alt="img" /></p>
+<h2 id="for循环原理">for循环原理</h2>
+<p>for循环称为迭代器循环，in后必须是可迭代的对象</p>
+<pre><code><code>is = [1, 2, 3]
+for i in lis:
+    print(i)</code></pre>
+<p>1<br />
+2<br />
+3</p>
+<p>因为迭代器使用<code>__iter__</code>后还是迭代器本身，因此for循环不用考虑in后的对象是可迭代对象还是迭代器对象。</p>
+<p>由于对可迭代对象使用<code>__iter__</code>方法后变成一个迭代器对象，这个迭代器对象只是占用了一小块内存空间，他只有使用<code>__next__</code>后才会吐出一个一个值。如<code>lis = [1,2,3,4,5,...]</code>相当于一个一个鸡蛋，而<code>lis = [1,2,3,4,5,...].__iter__</code>相当于一只老母鸡，如果你需要蛋，只需要<code>__next__</code>即可。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,186 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Flask--闪现、中间件、多app应用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Flask--闪现、中间件、多app应用</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11782769.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#闪现">闪现</a><ul>
+        <li><a href="#源码">源码</a></li>
+        <li><a href="#案例">案例</a></li>
+        </ul></li>
+        <li><a href="#中间件">中间件</a><ul>
+        <li><a href="#自定义局部中间件">自定义局部中间件</a></li>
+        <li><a href="#自定义全局装饰器">自定义全局装饰器</a></li>
+        </ul></li>
+        <li><a href="#多app应用">多app应用</a></li>
+        </ul>
+    </div>
+</div>
+<h1 id="闪现">闪现</h1>
+<p>flask提供了一个非常有用的flash()函数，它可以用来“闪现”需要提示给用户的消息，比如当用户登录成功后显示“欢迎回来！”。在视图函数调用flash()函数，传入消息内容，<code>flash（）</code>函数把消息存储在session中，我们需要在模板中使用全局函数<code>get_flashed_messages()</code>获取消息并将它显示出来。</p>
+<p>通过<code>flash()</code>函数发送的消息会存储在session对象中，所以我们需要为程序设置秘钥。可以通过app.secret_key属性或配置变量SECRET_KEY设置。</p>
+<h2 id="源码">源码</h2>
+<pre><code><code>def flash(message, category=&quot;message&quot;):  # 默认category为message
+    flashes = session.get(&quot;_flashes&quot;, [])
+    flashes.append((category, message))
+    session[&quot;_flashes&quot;] = flashes
+    message_flashed.send(
+        current_app._get_current_object(), message=message, category=category
+    )
+    
+    
+def get_flashed_messages(with_categories=False, category_filter=()):
+    flashes = _request_ctx_stack.top.flashes
+    if flashes is None:
+        _request_ctx_stack.top.flashes = flashes = (
+            session.pop(&quot;_flashes&quot;) if &quot;_flashes&quot; in session else []
+        )
+    if category_filter:
+        flashes = list(filter(lambda f: f[0] in category_filter, flashes))
+    if not with_categories:
+        return [x[1] for x in flashes]
+    return flashes</code></pre>
+<ol>
+<li>设置flash
+<ul>
+<li><code>flash(&quot;要传递的值&quot;,category=&quot;分类的名称&quot;)</code>，如果不传默认是message<br />
+</li>
+<li>本质：<code>session['_flash']</code></li>
+</ul></li>
+<li>取flash设置的值我们用<code>get_flashed_messages</code>
+<ul>
+<li><code>get_flashed_messages(with_categories=False, category_filter=())</code>
+<ul>
+<li>如果不传递 <code>category_filter</code>，取出上面存储的所有分类传递的值</li>
+<li>如果不传with_categories就只取值，不取分类的名字，如果传值，就获取 分类名和分类值<br />
+</li>
+</ul></li>
+</ul></li>
+<li>这个flash只能一个视图函数中取，只要有一个视图函数取过了，那其他视图函数就不能获取
+<ul>
+<li>本质：<code>session.pop(&quot;_flash&quot;)</code><br />
+</li>
+<li>但是在同一个视图函数里面可以无限的取值</li>
+</ul></li>
+</ol>
+<h2 id="案例">案例</h2>
+<pre><code><code>from flask import Flask,flash,get_flashed_messages,request,redirect
+
+app = Flask(__name__)
+app.debug=True
+app.secret_key = &#39;asdfasdf&#39;
+
+
+@app.route(&#39;/index&#39;)
+def index():
+    # 从某个地方获取设置过的所有值，并清除。
+    #flash(&#39;超时错误&#39;,category=&quot;x1&quot;)
+    flash(&quot;它过来了，你要小心&quot;)
+    flash(&quot;我是第二个&quot;,category=&quot;ss&quot;)
+    # return &quot;ssdsdsdfsd&quot;
+    return redirect(&#39;/error&#39;)
+
+
+@app.route(&#39;/error&#39;)
+def error():
+    &quot;&quot;&quot;
+    展示错误信息
+    :return:
+    如果get_flashed_messages(with_category=True)
+    &quot;&quot;&quot;
+    #data = get_flashed_messages(category_filter=[&#39;x1&#39;])
+    data=get_flashed_messages(with_categories=True,category_filter=[&#39;ss&#39;])
+    data1 = get_flashed_messages(with_categories=True, category_filter=[&#39;ss&#39;])
+    print(type(data))
+    print(data1)
+    return &quot;错误信息：%s&quot; %(data,)
+
+
+if __name__ == &#39;__main__&#39;:
+    app.run()</code></pre>
+<h1 id="中间件">中间件</h1>
+<p>本质就是把原来的执行函数又做了一层封装</p>
+<p><strong>注意：Flask的请求扩展就是Django的中间件。Django的中间件不是Flask的中间件</strong></p>
+<h2 id="自定义局部中间件">自定义局部中间件</h2>
+<p>根据装饰器</p>
+<pre><code><code>
+from functools import wraps
+ 
+ 
+def auth(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        if not session.get(&#39;user&#39;):
+            return redirect(url_for(&#39;login&#39;))
+        ret = func(*args, **kwargs)
+        return ret
+    return inner
+ 
+@app.route(&#39;/login&#39;, methods=[&quot;GET&quot;, &quot;POST&quot;])
+@auth
+def login():
+    return &quot;登录&quot;</code></pre>
+<h2 id="自定义全局装饰器">自定义全局装饰器</h2>
+<p>写在app.py中</p>
+<pre><code><code>class Middleware(object):
+    
+    def __init__(self, old):
+        self.old = old
+    
+    def __call__(self, *args, **kwargs):
+        print(&#39;请求前的操作&#39;)
+        ret = self.old(*args, **kwargs)  
+        print(&#39;请求之后操作&#39;)
+        return ret
+ 
+ 
+if __name__ == &#39;__main__&#39;:
+    app.wsgi_app = Middleware(app.wsgi_app)
+    app.run()</code></pre>
+<h1 id="多app应用">多app应用</h1>
+<pre><code><code>from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.serving import run_simple
+from flask import Flask, current_app
+app1 = Flask(&#39;app01&#39;)
+app2 = Flask(&#39;app02&#39;)
+
+@app1.route(&#39;/index&#39;)
+def index():
+    return &quot;app01&quot;
+
+@app2.route(&#39;/index2&#39;)
+def index2():
+    return &quot;app2&quot;
+
+# http://www.oldboyedu.com/index
+# http://www.oldboyedu.com/sec/index2
+dm = DispatcherMiddleware(app1, {
+    &#39;/sec&#39;: app2,
+})
+
+if __name__ == &quot;__main__&quot;:
+    run_simple(&#39;localhost&#39;, 5000, dm)
+</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,141 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Activity知识点详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Activity知识点详解</center></div><div class='banquan'>原文出处:本文由博客园博主Robin+提供。<br/>
+原文连接:https://www.cnblogs.com/Robin132929/p/12081190.html</div><br>
+    <h1 id="activity知识点详解">Activity知识点详解</h1>
+<h2 id="一什么是activity">一、什么是Activity</h2>
+<p>官方解释：</p>
+<blockquote>
+<p>The Activity class is a crucial component of an Android app, and the way activities are launched and put together is a fundamental part of the platform’s application model. Unlike programming paradigms in which apps are launched with amain()method, the Android system initiates code in an Activity instance by invoking specific callback methods that correspond to specific stages of its lifecycle.<br />
+Activity是Android应用的重要组成部分，它的启动和组合方式是Android应用程序模型的一个基本部分。与使用 main ()方法启动应用程序的编程范例不同，Android 系统通过调用与其生命周期的特定阶段相对应的特定回调方法来启动 Activity 实例中的代码。<br />
+我们在日常的开发中接触最多的可能就是Activity了，对于Activity我的理解是它作为Android四大组件之一，主要是给我们提供界面的展示和用户交互。。这里要说下Android的四大组件，Activity、Service、Brocast、ContentProvider功能各不相同但是称它们为四大组件主要是它们四个都是Android应用的入口。我们都知道Java是采用main ()方法启动应用程序的，但是Android并没有采用这种方式，Android设计了四个组件以这些组件为入口来启动一个Android应用。</p>
+</blockquote>
+<h2 id="二生命周期">二、生命周期</h2>
+<p>生命周期作为Activity老生常谈的知识点是我们必须要熟练掌握的。这里要分两种情况去理解掌握：正常情况下的生命周期和异常情况下的生命周期。</p>
+<h3 id="正常情况下的生命周期">正常情况下的生命周期</h3>
+<p>这可以说是Activity最基本的知识点了在此就不展开了，贴张图<br />
+<img src="./images/Activity知识点详解0.png" alt="Activity生命周期" /></p>
+<p>再次补充一个关于生命周期的问题就是处于哪些生命周期时是可以被杀死的。<br />
+onCreate、onStart()、onRestart()、onResume()当Activity处于这些生命周期时是不可被kill的。onPause()在Honeycomb（3.X版本）之前是可以被kill的，而从Honeycomb开始系统在Activity回调onStop()<br />
+之前是不会杀死Activity的，因为这样可以确保在异常情况下onsaveinstancestate被调用，保存状态。<br />
+（Android P开始onsaveinstancestate在onStop()之后被调用）</p>
+<h3 id="异常情况下的生命周期">异常情况下的生命周期</h3>
+<p>我们主要注意以下两种情况下的生命周期：</p>
+<h4 id="系统配置发生变化">系统配置发生变化</h4>
+<p>比如常见的如屏幕方向发生变化，配置发生变化是会导致Activity销毁重建的，如果我们想保持之前的Activity不被销毁那么我们可以在manifest中设置对应的配置信息 ，之后当其变化时会触发onConfigurationChanged回调此时是不会销毁重建的。但是要注意的是触发回调时当前组件（Activity）必须还在运行 如果组件被暂停 那么是不会触发回调的 。</p>
+<h4 id="内存紧张导致activity被杀死">内存紧张导致Activity被杀死</h4>
+<p>因为Android总体资源有限当内存紧张时系统会根据一定的优先级杀死一些Activity。这里的优先级依次是：前台Activity&gt;可见Activity&gt;后台Activity&gt;空进程。</p>
+<p>除此之外我们还要了解onsaveinstancestate/onrestoreinstancestate回调。<br />
+onsaveinstancestate是Activity因为异常被系统kill时用来保存当前Activity的有关状态和数据的，我们也可以在该回调中保存我们想要保存的数据以防止Activity因为异常被杀死而丢失数据。之后系统会在合适的时机重建该Activity此时就会触发onrestoreinstancestate回调，在该回调里我们可以拿到之前保存的状态和数据进行恢复（在oncreate中也可以拿到保存的数据不过需要进行判空，所以还是推荐在onrestoreinstancestate进行恢复）。</p>
+<p>最后关于这两个函数的回调时机，系统版本不同会有一些差异：<br />
+1、 api &lt; 11，onSaveInstance在onPause之前执行<br />
+2、11 &lt;= api &lt; 28，onSaveInstance在onPause之后，onStop之前执行<br />
+3、api &gt;= 28，onSaveInstance在onStop之后执行</p>
+<h2 id="三启动方式">三、启动方式</h2>
+<h3 id="分类一">分类一</h3>
+<h4 id="显示启动">显示启动</h4>
+<p>指明ComponentName有明确的启动目标</p>
+<h4 id="隐式启动">隐式启动</h4>
+<p>未指明ComponentName，通过匹配intentfilter找到可以启动的目标</p>
+<h3 id="分类二">分类二</h3>
+<h4 id="不带返回值">不带返回值</h4>
+<p>通过startActivity</p>
+<h4 id="带返回值">带返回值</h4>
+<p>startActivityForResult启动并在onActivityResult中接收返回的结果。</p>
+<h2 id="四任务栈">四、任务栈</h2>
+<p>Task是用户在执行某项任务时与之交互的Activity的集合。按照每个Activity打开的顺序排列在一个堆栈（先进后出）。一般来说处在栈顶的Activity是正在前台的Activity。<br />
+总结Activity和Task的默认行为:</p>
+<ul>
+<li>当Activitya 启动Activity b 时，Activity a 停止，但系统保持其状态(如滚动位置和输入到表单中的文本)。 如果用户按下Back键回来那么a 恢复其状态，b被弹出Task并被销毁。</li>
+<li>当用户通过按下Home button当前Activity被停止并且它的任务进入后台。 系统保留任务中每个Activity的状态。 如果用户稍后通过选择启动该Task的启动图标恢复该任务，则该Task将到达前台并恢复堆栈顶部的Activity。</li>
+<li>Activity可以被多次实例化，同时可以从其他Task中实例化</li>
+</ul>
+<p>一般而言我们不需要干预Task的默认行为，但是我们也可以通过以下方法去干预：</p>
+<h3 id="taskaffinity">taskAffinity</h3>
+<p>Affinity表示Activity希望属于哪个Task。 默认情况下，来自同一个应用程序的所有Activity彼此都有相同的Affinity。可以设置Taskaffinity 属性来自定义Affinity。task自身的affinity决定于根Activity的affinity值也就是说同一个task中的所有Activity具有相同的affinity。<br />
+affinity在什么场合应用呢？<br />
+1.根据affinity重新为Activity选择宿主task（与allowTaskReparenting属性配合工作）；<br />
+2.启动一个Activity过程中Intent使用了FLAG_ACTIVITY_NEW_TASK标记，根据affinity查找或创建一个新的具有对应affinity的task<br />
+Affinity还有两点要注意：<br />
+1、根activity的taskAffinity可以决定task的“名字”，activity在启动时和re-parent时需要根据taskAffinity来确定该activity会出现在哪个task<br />
+2、优先级是activity中指定的taskAffinity&gt;application中指定的taskAffinity&gt;默认的包名</p>
+<h3 id="launchmode">launchMode</h3>
+<p>Android提供了四种启动模式：</p>
+<ul>
+<li>standard<br />
+默认模式 该模式下每次启动activity都会创建新的activity实例。特殊情况，如果在Service或Application中启动一个Activity，其并没有所谓的任务栈，可以使用标记位Flag来解决。解决办法：为待启动的Activity指定FLAG_ACTIVITY_NEW_TASK标记位，创建一个新栈。</li>
+<li>singleTop<br />
+启动一个activity如果该activity实例已经已在栈顶则复用并回调onnewintent。应用场景 推送跳转activity</li>
+<li>singleTask<br />
+启动一个activity时会先找自己所属的Task，如果该Task已经存在那么查看Task中是否有该activity实例 有则复用并回调onnewintent<br />
+如果所属的Task还未创建那么就先创建Task然后再创建Activity实例并入栈 所以说singleTask 启动模式的activity 是全局单例的。应用场景 app主页</li>
+<li><p>singleInstance<br />
+可以看做是singleTask的加强版，改启动模式下每次都会启动一个新的Task并将activity实例放到Task 并且Task中只有这一个activity实例。应用场景 呼叫来电。</p>
+<h3 id="activity-attributes或者intent-flags">activity attributes或者intent flags</h3></li>
+<li><p>android:allowTaskReparenting<br />
+这个属性用来标记一个Activity实例在当前应用退居后台后，是否能从启动它的那个task移动到有共同affinity的task，“true”表示可以移动，“false”表示它必须呆在当前应用的task中，默认值为false 重新宿主的操作发生在应用退后台再次重启过程中</p></li>
+<li><p>android:alwaysRetainTaskState<br />
+如果用户长时间离开Task，系统将清除除根Activity以外的所有Activity。 当用户再次返回Task时，只恢复根Activity。但是设置该属性为true后就不会发生清除，即使在很长一段时间之后，任务仍然保留其堆栈中的所有活动。</p></li>
+<li><p>android:clearTaskOnLaunch<br />
+在Task的根Activity中，只要用户离开Task并返回到该Task，堆栈就会被清除到根Activity。用户总是返回到Task的初始状态，即使离开Task只有一会儿。</p></li>
+<li><p>android: finishOnTaskLaunch<br />
+它作用于一个单一的Activity，而不是一个完整的Task。 它会导致任何Activity消失，包括根Activity。用户离开，然后返回到Task，则该Task不再存在。</p></li>
+<li><p>FLAG_ACTIVITY_NEW_TASK<br />
+其效果与指定Activity为singleTask模式一致。系统会寻找或创建一个新的task来放置目标Activity，寻找时依据目标Activity的taskAffinity属性进行匹配，如果找到一个task的taskAffinity与之相同，就将目标Activity压入此task中，如果查找无果，则创建一个新的task，并将该task的taskAffinity设置为目标Activity的taskActivity，将目标Activity放置于此task</p></li>
+<li><p>FLAG_ACTIVITY_SINGLE_TOP<br />
+其效果与指定Activity为singleTop模式一致。</p></li>
+<li><p>FLAG_ACTIVITY_CLEAR_TOP<br />
+具有此标记位的Activity，当它启动时，在同一个任务栈中所有位于它上面的Activity都要出栈。如果和singleTask模式一起出现，若被启动的Activity已经存在栈中，则清除其之上的Activity，并调用该Activity的onNewIntent方法。如果被启动的Activity采用standard模式，那么该Activity连同之上的所有Activity出栈，然后创建新的Activity实例并压入栈中。如果和FLAG_ACTIVITY_NEW_TASK 一起使用时，则是一种在另一个Task中定位现有Activity并将其放置在能够响应该意图的位置的方法。</p></li>
+<li><p>FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET<br />
+如果一个Intent中包含此属性，则它转向的那个Activity以及在那个Activity其上的所有Activity都会在task重置时被清除出task</p></li>
+</ul>
+<p>最后说明下activity启动时如何选择task：</p>
+<ol>
+<li><p>先判断target activity能否在新task中启动<br />
+singleTask/singleInstance的activity本身具有在新task中启动的能力，standard/singleTop的activity要想拥有在新task中启动的能力，需要在设置Intent.FLAG_ACTIVITY_NEW_TASK</p></li>
+<li><p>判断target activity所在task<br />
+找一个taskAffinity的task去启动，找不到就新建一个（这里会忽略了singleInstance独占的task）</p></li>
+<li><p>根据TargetActivity的启动模式判断会如何启动</p></li>
+</ol>
+<h2 id="五相关问题">五、相关问题</h2>
+<h3 id="onwindowfocuschanged">onWindowFocusChanged</h3>
+<p>在Activity窗口获得或失去焦点时被调用，<br />
+1、创建时首次呈现在用户面前；<br />
+2、当前Activity被其他Activity覆盖；<br />
+3、当前Activity转到其他Activity或按Home键回到主屏，自身退居后台；<br />
+4、用户退出当前Activity。</p>
+<p>以上几种情况都会调用onWindowFocusChanged，并且当Activity被创建时是在onResume之后被调用，当Activity被覆盖或者退居后台或者当前Activity退出时，它是在onPause之后被调用<br />
+这个方法在某种场合下还是很有用的，例如程序启动时想要获取视特定视图组件的尺寸大小，在onCreate中可能无法取到，因为窗口Window对象还没创建完成，这个时候我们就需要在onWindowFocusChanged里获取</p>
+<h3 id="其他应用问题">其他应用问题：</h3>
+<ol>
+<li>activity间传递数据</li>
+<li>知晓当前activity</li>
+<li>关闭所有activity</li>
+<li>双击退出app</li>
+<li><p>保存activity状态</p>
+<h3 id="面试常见知识点">面试常见知识点</h3>
+<p>Activity A跳转到Activity B 两者经历怎样的生命周期<br />
+未配置configchanges情况下屏幕发生旋转时 当前Activity的生命周期是怎样变化的</p></li>
+</ol>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

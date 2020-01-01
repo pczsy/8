@@ -1,0 +1,72 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修首创诠释docker的Formulas Windows 7 + Tiny Linux 4.19 + XFS + Vmware Workstation 15 (PRO) = super machine (docker从零开始时记，Follow me and you go)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>首创诠释docker的Formulas Windows 7 + Tiny Linux 4.19 + XFS + Vmware Workstation 15 (PRO) = super machine (docker从零开始时记，Follow me and you go)</center></div><div class='banquan'>原文出处:本文由博客园博主A.Z提供。<br/>
+原文连接:https://www.cnblogs.com/A-Z/p/docker_4-19_win7_vmware.html</div><br>
+    <p><span style="color: #99cc00;">&nbsp;不少人从来没有接触过docker,或者仅仅是听说过,本文试图从原点开始深入了解docker的全貌,剖析docker的基础概念,让我们一起开始docker之旅~~~</span></p>
+<hr />
+<h3><span style="color: #c0c0c0;">开场：什么是docker</span></h3>
+<p>docker是一个容器平台。</p>
+<p>这是我最直接的定义,打字间我即兴查了一下wiki,引证了以上单句</p>
+<blockquote>
+<p><strong>Docker</strong>&nbsp;is a set of&nbsp;platform as a service&nbsp;(PaaS) products that use&nbsp;<a title="OS-level virtualization" href="https://en.wikipedia.org/wiki/OS-level_virtualization">OS-level virtualization</a>&nbsp;to deliver software in packages called&nbsp;containers.&nbsp;Containers are isolated from one another and bundle their own software,&nbsp;libraries&nbsp;and configuration files; they can communicate with each other through well-defined channels.&nbsp;All containers are run by a single&nbsp;<a title="Kernel (operating system)" href="https://en.wikipedia.org/wiki/Kernel_(operating_system)">operating-system kernel</a>&nbsp;and are thus more lightweight than&nbsp;<a title="Virtual machine" href="https://en.wikipedia.org/wiki/Virtual_machine">virtual machines</a>.</p>
+</blockquote>
+<h3>&nbsp;<span style="color: #c0c0c0;">目标：为什么用docker</span></h3>
+<p>docker可以提供即开即用的特定OS环境,并且简化对相关OS的依赖或者部署周期</p>
+<p>这是我的看法,互联网工作者几乎99.9%都是以App或者Service作为导向,而实际使用中docker不仅仅是为了快速部署,容灾热备,换句话说docker不仅仅是和应用相关</p>
+<p>docker适合一切以环境导向的联合部署作业(TASK-oriented)</p>
+<p>例子：一个简单的网络型app和这个app依赖的复杂网络设置</p>
+<p>例子：一个简单的用户态服务和一个复杂的定制化LINUX OS,如OPENWRT</p>
+<p>例子：一个简单的源码文件夹和一个复杂的跨架构工具链</p>
+<h3><span style="color: #c0c0c0;">概念：docker的逻辑结构</span></h3>
+<p>docker是vm的包装,docker-machine是docker开始的地方,这里存在并且一直被忽视一个非常关键的适配桥接：driver</p>
+<p>machine的特性start/stop和driver的模型决定了另一端一定存在一种虚拟化支持,也就是说docker不是虚拟化的全部而只是一个名词的概要,docker离不开虚拟化</p>
+<p>理由非常简单而且明确：docker-machine和dock-cli到组成的engine,编译88%以上的<span style="background-color: #ff6600;">源码语言go</span>.</p>
+<h3><span style="color: #c0c0c0;">体验：从WINDOWS 10到WINDOWS 7不同的docker产品，一样的基础构成</span></h3>
+<p style="margin-left: 30px;">-跟随docker for windows一路走来,docker以非常匀速的方式在不停演化,一切都在意料之中</p>
+<p>Docker Desktop for Windows是伴随着Hyper-V(win 7无缘的本质)的联合体,这里诞生出一个moby,作为整个产品的特异化核心</p>
+<p>Docker Desktop for Mac是伴随着linuxkit+qemu的联合体,这里又又诞生出一个moby,作为整个产品的特异化核心</p>
+<p>Docker Toolbox是伴随着Docker Desktop发展的弃婴(巨大的甲骨婴),本文,我们（我和我的看官们）将抛弃一个时代失败品Oracle VM VirtualBox,抽丝剥茧boot2docker,迎来本篇的内涵Vmware</p>
+<h3><span style="color: #ff0000;">深化：在Window 7上非常规的使用Vmware Workstation和docker</span></h3>
+<p>如果你仅仅猜到了开始,看到我blah-blah-blah码了几百字就应该会猜到,hehe以下都是精华浓缩版,因为困了,要睡觉了</p>
+<p>长话短说,短话精缩,Win 7上使用workstation太通常了,稍微有一些虚拟化经验的都知道微软有Virtual PC.而它的对面就是Vmware.</p>
+<p>显然Virtual PC挑不动docker这根大梁所以Hyper-V才能独树一帜(没有细分的产品)</p>
+<p>准备好docker vmware driver就开始吧,我用的是大家不太常见的driver,没有任何start说明</p>
+<p>我的docker和vmware都没有安装在缺省路径,这时必须要动动脑筋,soft/hard link可以解决问题</p>
+<p>我的超高T级HGST氦气盘没有在缺省路径,所以我们准备把VM放在这个仓储上必须提供storepath的环境变量,我在go文件中确认过cli上下文，或者系统级别都提供支持</p>
+<p>我的docker动辄几百G,从export容器的从容不迫到更新image:latest,tar到文件,4.14kernel必然的某些特定错误,不难看出4.19的适用面更广也支持度也高于通俗的4.14kernel</p>
+<p>XFS提供了很好的并行IO性能</p>
+<p>关键语句是修改start.sh执行${DOCKER_MACHINE}" create -d vmware --vmware-boot2docker-url="file://\????????.iso",此处应有掌声,因为经历了几次失败后我发现失败的路径是docker的安装盘，所以可以逃避失败删除boot2docker-url在覆盖cache后等一段时间,或者如上所示干脆把盘符省去,后面的路径都是有效的,不知道是不是start.bat没有问题</p>
+<p>当然可以看一下创建时的调试输出,一般不看也是一件很省心的事情,应该一切顺利</p>
+<p>env可以输出环境变量,cmd/ps可以看到SET版本,bash看到export版本</p>
+<p>然后在困意中,我贴出本文最佳,之2幅图片在结尾,一如既往,<span style="background-color: #99cc00;">所有的内涵都在图片里，<span>所有的内涵都在图片里，<span>所有的内涵都在图片里</span></span></span></p>
+<p>提前&nbsp;To be continued.</p>
+<p><em><strong>(睡了还爬起来补充,忘了的内容,非常重要,不嵌在上面了,最近Docker Desktop for Windows提供了WSL的支持,请遵循我的最佳实践不用的时候关闭，关闭后台)</strong></em></p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p><img src="./images/首创诠释docker的Formulas Windows 7 + Tiny Linux 4.19 + XFS + Vmware Workstation 15 (PRO) = super machine (docker从零开始时记，Follow me and you go)0.png" alt="" width="620" height="NaN" /></p>
+<p><img src="./images/首创诠释docker的Formulas Windows 7 + Tiny Linux 4.19 + XFS + Vmware Workstation 15 (PRO) = super machine (docker从零开始时记，Follow me and you go)1.png" alt="" width="620" height="NaN" /></p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

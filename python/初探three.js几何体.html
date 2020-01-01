@@ -1,0 +1,161 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修初探three.js几何体' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>初探three.js几何体</center></div><div class='banquan'>原文出处:本文由博客园博主Vadim提供。<br/>
+原文连接:https://www.cnblogs.com/vadim-web/p/12064604.html</div><br>
+    <p>今天说说three.js的几何体，常见的几何体今天就不说了，今天说一说如何画直线，圆弧线，以及高级几何体。</p>
+<h3>1. 画一条直线</h3>
+<p>画直线我们使用THREE.Geometry()对象。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">给空白几何体添加点信息，geometry会把这些点自动组合成线。</span>
+<span style="color: #0000ff;">var</span> material = <span style="color: #0000ff;">new</span> THREE.LineBasicMaterial({color: 0x00ff00<span style="color: #000000;">});
+</span><span style="color: #0000ff;">var</span> geometry = <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.Geometry();
+geometry.vertices.push(</span><span style="color: #0000ff;">new</span> THREE.Vector3(0,0,0<span style="color: #000000;">));
+geometry.vertices.push(</span><span style="color: #0000ff;">new</span> THREE.Vector3(10,10,10<span style="color: #000000;">));
+geometry.vertices.push(</span><span style="color: #0000ff;">new</span> THREE.Vector3(0,20,0<span style="color: #000000;">));
+</span><span style="color: #0000ff;">var</span> line = <span style="color: #0000ff;">new</span> THREE.Line(geometry, material);</pre>
+</div>
+<p>这样就在空间画出了一条折线。</p>
+<h3>2.画一条圆弧线</h3>
+<p>画圆弧线我们借助THREE.ArcCurve()对象。这个对象有点类似于d3.js中的布局（layout），它的本质就是根据参数生成一系列点坐标，他有一些方法.getPoints()从圆弧线均匀获得圆弧上面点的坐标。下面是THREE.ArcCurve()的部分源码。</p>
+<div class="cnblogs_code">
+<pre><code>THREE.ArcCurve = <span style="color: #0000ff;">function</span><span style="color: #000000;"> ( aX, aY, aRadius, aStartAngle, aEndAngle, aClockwise ) {
+
+    THREE.EllipseCurve.call( </span><span style="color: #0000ff;">this</span><span style="color: #000000;">, aX, aY, aRadius, aRadius, aStartAngle, aEndAngle, aClockwise );
+
+};</span></pre>
+</div>
+<p>我们可以知道有6个参数，并且继承自THREE.EllipseCurve()。加下来我们来画圆弧。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">var</span> arc = <span style="color: #0000ff;">new</span> THREE.ArcCurve(0, 0, 30, 0, Math.PI * 2, <span style="color: #0000ff;">true</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">var</span> points = arc.getPoints(1000<span style="color: #000000;">);
+</span><span style="color: #0000ff;">var</span> ring = <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.Geometry();
+points.forEach(v </span>=&gt; ring.vertices.push(<span style="color: #0000ff;">new</span> THREE.Vector3(v.x,0<span style="color: #000000;">,v.y)));
+</span><span style="color: #0000ff;">var</span> mat = <span style="color: #0000ff;">new</span> THREE.LineBasicMaterial({color: 0x999900<span style="color: #000000;">});
+</span><span style="color: #0000ff;">var</span> line = <span style="color: #0000ff;">new</span> THREE.LineLoop(ring, mat);</pre>
+</div>
+<p>注意points都是XY平面上面的点。最后使用THREE.LineLoop来绘制圆弧线。</p>
+<h3>3. 使用ConvexGeometry()凸包</h3>
+<p>什么是凸包？简单地说凸包就是，在空间中每三个不在一条直线的点都可以组成一个平面，如果空间中有一组点，那么会组成很多平面，如果平面不透明，我们只能看到最外层的若干个面，这个面组成的几个体就是凸包。</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/初探three.js几何体0.png" alt="" /></p>
+<p>like this !（这个只是加了岩石纹理）</p>
+<p>凸包使用起来非常简单</p>
+<div class="cnblogs_code">
+<pre><code>let asteroidMate = <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.MeshBasicMaterial();
+let points </span>=<span style="color: #000000;"> [];
+let rad </span>= Math.pow(Math.random(), 3) *<span style="color: #000000;"> ASTERIODRADIUS;
+</span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> j=0; j&lt;30; j++<span style="color: #000000;">) {
+    points.push(</span><span style="color: #0000ff;">new</span> THREE.Vector3(Math.random() * 10, Math.random() * 10, Math.random() * 10<span style="color: #000000;">))
+}
+</span><span style="color: #0000ff;">var</span> asteroidGeom = <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.ConvexGeometry(points);
+
+</span><span style="color: #0000ff;">var</span> asterMesh = <span style="color: #0000ff;">new</span> THREE.Mesh(asteroidGeom, asteroidMate);</pre>
+</div>
+<p>这就是30个点组成的随机凸包。大家可以试试用它来自定义图形或者制作随机图形。</p>
+<h3>4. LatheGeometry() 旋转体</h3>
+<p>旋转体就是将由一组点组成的线绕固定轴旋转形成的几何体，LatheGeometry有4个参数，第一个是points点数组，第二个是分段数，第三个是旋转开始角度，第四个是旋转角度。</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/初探three.js几何体1.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code>ar points =<span style="color: #000000;"> [];
+</span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=-12; i&lt;=10; i = i + 0.5<span style="color: #000000;">) {
+    </span><span style="color: #0000ff;">if</span>(i &lt; 0<span style="color: #000000;">) {
+        console.log(Math.sqrt(</span>36 - Math.pow(i + 6, 2)) * 1.2<span style="color: #000000;">, i)
+        points.push(</span><span style="color: #0000ff;">new</span> THREE.Vector3(Math.sqrt(36 - Math.pow(i + 6, 2)) * 1.2<span style="color: #000000;">, i))
+    } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(i &lt; 8 &amp;&amp; i &gt;= 0<span style="color: #000000;">) {
+        console.log(Math.sqrt(</span>16 - Math.pow(i - 4, 2)) * 1.2<span style="color: #000000;">, i)
+        points.push(</span><span style="color: #0000ff;">new</span> THREE.Vector3(Math.sqrt(16 - Math.pow(i - 4, 2)) * 1.2<span style="color: #000000;">, i))
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        console.log(Math.sqrt(</span>1 - Math.pow(i - 9, 2)) * 1.2<span style="color: #000000;">, i)
+        points.push(</span><span style="color: #0000ff;">new</span> THREE.Vector3(Math.sqrt(1 - Math.pow(i - 9, 2)) * 1.2<span style="color: #000000;">, i))
+    }
+}
+</span><span style="color: #0000ff;">var</span> latheGeo = <span style="color: #0000ff;">new</span> THREE.LatheGeometry(points, 30, 0, Math.PI * 2<span style="color: #000000;">);
+latheMesh </span>= createMesh(latheGeo);;</pre>
+</div>
+<h3>5. ExtrudeGeometry()拉伸几何体</h3>
+<p>拉伸几何体就是将一个几何体沿着Z轴拉伸形成的几何体。它的参数比较多但是不难理解。</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/初探three.js几何体2.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">var</span> material = <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.MeshNormalMaterial();
+</span><span style="color: #0000ff;">var</span> shapeGeomery = <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.Shape();
+shape.moveTo(</span>-10, -10<span style="color: #000000;">);
+shape.lineTo(</span>10, -10<span style="color: #000000;">);
+shape.lineTo(</span>10, 10<span style="color: #000000;">);
+shape.lineTo(</span>-10,10<span style="color: #000000;">);
+shape.lineTo(</span>-10, -10<span style="color: #000000;">);
+</span><span style="color: #0000ff;">var</span> geometry = <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.ExtrudeGeometry(shapeGeomery, {
+    amount: </span>2, <span style="color: #008000;">//</span><span style="color: #008000;">拉伸的深度</span>
+    bevelThickness: 2,  <span style="color: #008000;">//</span><span style="color: #008000;">斜角的深度</span>
+    bevelSize: 3,  <span style="color: #008000;">//</span><span style="color: #008000;">斜角的高度</span>
+    bevelSegments: 30,  <span style="color: #008000;">//</span><span style="color: #008000;">斜角分段数</span>
+    bevelEnabled: <span style="color: #0000ff;">true</span>, <span style="color: #008000;">//</span><span style="color: #008000;">开启斜角</span>
+    curveSegments: 12,  <span style="color: #008000;">//</span><span style="color: #008000;">拉伸的段数</span>
+    steps: 1  <span style="color: #008000;">//</span><span style="color: #008000;">沿深度方向的段数</span>
+<span style="color: #000000;">})
+</span><span style="color: #0000ff;">var</span> shape = <span style="color: #0000ff;">new</span> THREE.Mesh(geometry, material);</pre>
+</div>
+<p>这里注意几点，<br />1.ExtrudeGeometry()的第一个参数是一个shape对象，<br />2.区分一下这三个分段数，bevelSegments是斜角的分段，它影响斜角的光滑程度，curveSegments是拉伸曲线的段数，steps是沿深度方向的段数。</p>
+<h3>6.TubeGeometry()沿曲线拉伸</h3>
+<p>这个方法很简单，就是验证曲线拉伸成一根管，简单的东西直接上代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">var</span> points =<span style="color: #000000;"> [];
+</span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">var</span> i = 0; i &lt; controls.numberOfPoints; i++<span style="color: #000000;">) {
+    </span><span style="color: #0000ff;">var</span> randomX = -20 + Math.round(Math.random() * 50<span style="color: #000000;">);
+    </span><span style="color: #0000ff;">var</span> randomY = -15 + Math.round(Math.random() * 40<span style="color: #000000;">);
+    </span><span style="color: #0000ff;">var</span> randomZ = -20 + Math.round(Math.random() * 40<span style="color: #000000;">);
+
+    points.push(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.Vector3(randomX, randomY, randomZ));
+}
+</span><span style="color: #0000ff;">var</span> tubeGeometry = <span style="color: #0000ff;">new</span> THREE.TubeGeometry(<span style="color: #0000ff;">new</span> THREE.SplineCurve3(points), 64, 3, 16, <span style="color: #0000ff;">false</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">var</span> meshMaterial = <span style="color: #0000ff;">new</span> THREE.MeshBasicMaterial({color: 0x00ff00, transparent: <span style="color: #0000ff;">true</span>, opacity: 0.2<span style="color: #000000;">});
+</span><span style="color: #0000ff;">var</span> tubeMesh = <span style="color: #0000ff;">new</span> THREE.Mesh(tubeGeometry, meshMaterial)</pre>
+</div>
+<p>这里只需注意TubeGeometry()的第一个参数是一个SplineCurve3对象，需要将三维点数组用SplineCurve3处理成三维曲线。</p>
+<h3>7.ParametricGeometry()基于等式的几何体</h3>
+<p>这个东西类似于高数中的参数方程，通过三阶等式来创建空间曲面,使用ParametricGeometry()的时候，我特意使用了v69版本和v104两个版本，使用方法是不同的。下面我们从代码中寻找区别。</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/初探three.js几何体3.png" alt="" /></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> v69</span>
+<span style="color: #0000ff;">var</span> oldVersion = <span style="color: #0000ff;">function</span><span style="color: #000000;"> (u, v) {
+    </span><span style="color: #0000ff;">var</span> x = u * 50 - 25<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">var</span> z = v * 50 - 25<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">var</span> y = Math.sin(u * 50 - 25) + Math.sin(v * 50 - 25) +  Math.pow((Math.pow((u - 0.5), 2) + Math.pow((v - 0.5), 2)) * 10, 2) - 10<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> THREE.Vector3(x, y, z);
+};
+</span><span style="color: #0000ff;">var</span> geometry = <span style="color: #0000ff;">new</span> THREE.ParametricGeometry(oldVersion, 120, 120)</pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">var</span> newVersion = <span style="color: #0000ff;">function</span><span style="color: #000000;"> (u, v, target) {
+    </span><span style="color: #0000ff;">var</span> x = u * 50 - 25<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">var</span> z = v * 50 - 25<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">var</span> y = Math.sin(u * 50 - 25) + Math.sin(v * 50 - 25) +  Math.pow((Math.pow((u - 0.5), 2) + Math.pow((v - 0.5), 2)) * 10, 2) - 10<span style="color: #000000;">;
+    target.set(x,y,z);
+};
+</span><span style="color: #0000ff;">var</span> geometry = <span style="color: #0000ff;">new</span> THREE.ParametricGeometry(newVersion, 120, 120)</pre>
+</div>
+<p>可以看出方法中传递了第三个参数，这里使用set方法做了优化，（所以说每当出现新的js标准后，都出新生一些框架或者出现新版本）。相信喜欢数学的小伙伴都会非常喜欢这个几何体。下面随便展示一个demo</p>
+<p>### 8. 组合网格<br />未完待续。。。（这将是一个非常有意思的几何体）<br />### 9. Geometry()实现自定义面<br />未完待续。。。（同样可以很发散）</p>
+<p>&nbsp;</p>
+<p>更多demo请移步至原文</p>
+<p>转载请注明原文地址&nbsp;<a title="http://www.bettersmile.cn" href="http://www.bettersmile.cn" target="_blank">http://www.bettersmile.cn</a>&nbsp;郭志强的博客</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

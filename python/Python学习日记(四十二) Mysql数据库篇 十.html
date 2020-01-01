@@ -1,0 +1,519 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python学习日记(四十二) Mysql数据库篇 十' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python学习日记(四十二) Mysql数据库篇 十</center></div><div class='banquan'>原文出处:本文由博客园博主Fantac提供。<br/>
+原文连接:https://www.cnblogs.com/Fantac/p/11729245.html</div><br>
+    <p><span style="color: #ffffff; background-color: #ff0000; font-family: 'Microsoft YaHei'; font-size: 18pt;"><strong>前言</strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">当我们自己去写SQL代码的时候有时候会因为不熟练会导致效率低,再之后要进行许多的优化,并且操作也较为繁琐。因此ORM框架就能够解决上面的问题,它能根据自身的一些规则来帮助开发者去生成SQL代码。按性能上看虽然直接去写SQL语句会比ORM框架生成的效率高,但实际上每一个开发者的SQL代码程度都参差不齐,因此框架在这里就起到了一个统一的作用。</span></p>
+<p>&nbsp;</p>
+<p><span style="background-color: #ff0000; color: #ffffff; font-family: 'Microsoft YaHei'; font-size: 18pt;"><strong><span style="font-family: 宋体;">ORM框架(SQLAlchemy)</span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">作用:提供简单的规则,去自动转换成SQL语句&nbsp;</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">安装:</span></p>
+<div class="cnblogs_code">
+<pre><code>pip install SQLAlchemy;</pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">系统架构:</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(四十二) Mysql数据库篇 十0.png" alt="" width="526" height="395" /></span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体; font-size: 18px;">SQLAlchemy主要分为SQLAlchemy ORM和SQLAlchemy Core两个部分,这里的DBAPI指的是像mysqldb、pymysql、cx_Oracle...用来连接数据库的模块。因此这里的DBAPI和SQLAchemy是没有直接的关系的,SQLAlchemy主要就是负责将对象和类转换为SQL语句。在使用SQLAlchemy去创建数据库中之前,要把pymysql给安装才能实现相关的功能。</span></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;"><strong>Object Relational Mapper(ORM)</strong>为关系对象映射,简单来说就是对象和类&nbsp;</span></span></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;"><strong>Schema/Types和SQL Expression Language</strong>主要帮助上面的ORM转换为SQL语句</span></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>Engine</strong>为引擎,用于操作配置文件、<strong>Connection Pooling</strong>为连接池用于保持多少个和数据库相连的连接、<strong>Dialect</strong>用于选择去连接Mysql、SQLSever、Oracle等数据库去选择</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>连接其他数据库的方法</strong>:</span></p>
+<div class="cnblogs_code">
+<pre><code>1.Oracle +<span style="color: #000000;"> cx_oracle
+oracle</span>+cx_oracle://user:<span style="color: #0000ff;">pass</span>@host:port/dbname[?key=value&amp;key=<span style="color: #000000;">value...]
+
+</span>2.SQLite +<span style="color: #000000;"> pysqlite
+sqlite</span>+pysqlite:///<span style="color: #000000;">file_path
+
+</span>3.SQLite +<span style="color: #000000;"> pysqlcipher
+sqlite</span>+pysqlcipher://:passphrase/file_path[?kdf_iter=&lt;iter&gt;<span style="color: #000000;">]
+
+</span>4.Mysql +<span style="color: #000000;"> pymysql
+mysql</span>+pymysql://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;/&lt;dbname&gt;[?&lt;options&gt;<span style="color: #000000;">]
+
+</span>5.Mysql +<span style="color: #000000;"> Oursql
+mysql</span>+oursql://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;[:&lt;port&gt;]/&lt;dbname&gt;</pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">参考网站:<a href="https://www.sqlalchemy.org/">https://www.sqlalchemy.org/</a>&nbsp;</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体; font-size: 18px;">ORM分为两类(DB first、Code first)</span></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;"><strong>DB first</strong>:手动创建数据以及表-&gt;通过ORM框架去自动生成类</span></span></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;"><strong>Code first</strong>:手动创建类和数据库-&gt;通过ORM框架创建表。<br /></span></span></p>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;">创建<strong>一个表</strong>(前提先创建一个数据库):</span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> sqlalchemy.ext.declarative <span style="color: #0000ff;">import</span><span style="color: #000000;"> declarative_base
+</span><span style="color: #0000ff;">from</span> sqlalchemy <span style="color: #0000ff;">import</span><span style="color: #000000;"> Column,Integer,String
+</span><span style="color: #0000ff;">from</span> sqlalchemy <span style="color: #0000ff;">import</span><span style="color: #000000;"> create_engine
+
+Base </span>=<span style="color: #000000;"> declarative_base()
+</span><span style="color: #008000;">#</span><span style="color: #008000;">创建表</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Users(Base):　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　
+    </span><span style="color: #800080;">__tablename__</span> = <span style="color: #800000;">'</span><span style="color: #800000;">users</span><span style="color: #800000;">'</span>                                                                         <span style="color: #008000;">#</span><span style="color: #008000;">定义数据库的表名,id,name,email表示这张表会生成三列</span>
+    id = Column(Integer,primary_key = True,autoincrement = <span style="color: #000000;">True)
+    name </span>= Column(String(32<span style="color: #000000;">))
+    email </span>= Column(String(16<span style="color: #000000;">))
+
+engine </span>= create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5)    <span style="color: #008000;">#</span><span style="color: #008000;">root后面可以写登录密码,max_overflow表示最多和数据库建立5个连接 </span>
+Base.metadata.create_all(engine)                                                                    <span style="color: #008000;">#</span><span style="color: #008000;">找到py文件中的这个类在数据库中创建表</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">完成表的创建:</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(四十二) Mysql数据库篇 十1.png" alt="" width="406" height="208" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">那如果要删除这些创建的表:</span></p>
+<div class="cnblogs_code">
+<pre><code>Base.metadata.drop_all(engine)</pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体; font-size: 18px;">创建<strong>两张表</strong>之间的关系员工和部门表:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> sqlalchemy.ext.declarative <span style="color: #0000ff;">import</span><span style="color: #000000;"> declarative_base
+</span><span style="color: #0000ff;">from</span> sqlalchemy <span style="color: #0000ff;">import</span><span style="color: #000000;"> Column,Integer,String,ForeignKey,UniqueConstraint,Index　　　　　　　　　　　　
+</span><span style="color: #0000ff;">from</span> sqlalchemy <span style="color: #0000ff;">import</span><span style="color: #000000;"> create_engine
+
+Base </span>=<span style="color: #000000;"> declarative_base()
+</span><span style="color: #008000;">#</span><span style="color: #008000;">创建部门表</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Department(Base):
+    </span><span style="color: #800080;">__tablename__</span> = <span style="color: #800000;">'</span><span style="color: #800000;">department</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    id </span>= Column(Integer,primary_key=True,autoincrement=True,nullable=<span style="color: #000000;">False)
+    depart </span>= Column(String(32),nullable=<span style="color: #000000;">False)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">创建员工表</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Employee(Base):
+    </span><span style="color: #800080;">__tablename__</span> = <span style="color: #800000;">'</span><span style="color: #800000;">employee</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    id </span>= Column(Integer,primary_key=True,autoincrement=True,nullable=<span style="color: #000000;">False)
+    name </span>= Column(String(32),nullable=False,index=True)                                             <span style="color: #008000;">#</span><span style="color: #008000;">开启索引</span>
+    age = Column(Integer,default=20)                                                                <span style="color: #008000;">#</span><span style="color: #008000;">默认年龄为20</span>
+    email = Column(String(32),unique=True)                                                          <span style="color: #008000;">#</span><span style="color: #008000;">创建唯一索引</span>
+    employee_depart_id = Column(Integer,ForeignKey(<span style="color: #800000;">'</span><span style="color: #800000;">department.id</span><span style="color: #800000;">'</span>))                                <span style="color: #008000;">#</span><span style="color: #008000;">创建外键'employee_depart_id'</span>
+
+    <span style="color: #800080;">__table_args__</span> =<span style="color: #000000;"> (
+        UniqueConstraint(</span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">email</span><span style="color: #800000;">'</span>,name = <span style="color: #800000;">'</span><span style="color: #800000;">uindex_i_n_e</span><span style="color: #800000;">'</span>),                                <span style="color: #008000;">#</span><span style="color: #008000;">创建联合唯一索引'uindex_i_n_e'</span>
+        Index(<span style="color: #800000;">'</span><span style="color: #800000;">index_name_email</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">email</span><span style="color: #800000;">'</span>)                                                    <span style="color: #008000;">#</span><span style="color: #008000;">创建联合普通索引'index_name_email'</span>
+<span style="color: #000000;">    )
+engine </span>= create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Base.metadata.create_all(engine)</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">完成表的创建:</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(四十二) Mysql数据库篇 十2.png" alt="" width="731" height="127" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">将删除表和创建表封装为两个不同的函数,方便之后的操作:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> create_db():
+    engine </span>= create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+    Base.metadata.create_all(engine)
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> drop_db():
+    engine </span>= create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>, max_overflow = 5<span style="color: #000000;">)
+    Base.metadata.drop_all(engine)</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">代码中String表示了Char和Varchar,若只需要用Char或Varchar可以在import后面不写String单写Varchar或Char就好</span></p>
+<p>&nbsp;</p>
+<p><span style="background-color: #ff0000; color: #ffffff; font-family: 'Microsoft YaHei'; font-size: 18pt;"><strong>操作数据行</strong></span></p>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">增</span></strong></p>
+<p><span style="font-family: 宋体; font-size: 18px;">增加部门表的数据</span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>, max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>= Session()                                       <span style="color: #008000;">#</span><span style="color: #008000;">获取一个连接去进行操作</span><span style="color: #008000;">
+#</span><span style="color: #008000;">增加部门表数据</span>
+objs =<span style="color: #000000;"> [
+    Department(depart </span>= <span style="color: #800000;">'</span><span style="color: #800000;">保安</span><span style="color: #800000;">'</span>),                           <span style="color: #008000;">#</span><span style="color: #008000;">一张表代表了一个类,对象代指的是数据行</span>
+    Department(depart = <span style="color: #800000;">'</span><span style="color: #800000;">程序员</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    Department(depart </span>= <span style="color: #800000;">'</span><span style="color: #800000;">DBA</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    Department(depart </span>= <span style="color: #800000;">'</span><span style="color: #800000;">BOSS</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+]
+session.add_all(objs)
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">增加员工表的数据</span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>, max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()                                       
+</span><span style="color: #008000;">#</span><span style="color: #008000;">增加员工表数据</span>
+objs =<span style="color: #000000;"> [
+   Employee(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">aaa1</span><span style="color: #800000;">'</span>,age=21,email=<span style="color: #800000;">'</span><span style="color: #800000;">165444236@gamil.com</span><span style="color: #800000;">'</span>,employee_depart_id=1<span style="color: #000000;">),
+   Employee(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">aaa2</span><span style="color: #800000;">'</span>,email=<span style="color: #800000;">'</span><span style="color: #800000;">265444236@gamil.com</span><span style="color: #800000;">'</span>,employee_depart_id=2<span style="color: #000000;">),
+   Employee(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">aaa3</span><span style="color: #800000;">'</span>,age=23,email=<span style="color: #800000;">'</span><span style="color: #800000;">365444236@gamil.com</span><span style="color: #800000;">'</span>,employee_depart_id=3<span style="color: #000000;">),
+   Employee(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">aaa4</span><span style="color: #800000;">'</span>,age=31,email=<span style="color: #800000;">'</span><span style="color: #800000;">465444236@gamil.com</span><span style="color: #800000;">'</span>,employee_depart_id=4<span style="color: #000000;">),
+   Employee(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">aaa5</span><span style="color: #800000;">'</span>,email=<span style="color: #800000;">'</span><span style="color: #800000;">565444236@gamil.com</span><span style="color: #800000;">'</span>,employee_depart_id=3<span style="color: #000000;">),
+   Employee(name</span>=<span style="color: #800000;">'</span><span style="color: #800000;">aaa6</span><span style="color: #800000;">'</span>,age=51,email=<span style="color: #800000;">'</span><span style="color: #800000;">665444236@gamil.com</span><span style="color: #800000;">'</span>,employee_depart_id=3<span style="color: #000000;">)
+]
+session.add_all(objs)
+session.commit()
+session.close()</span></pre>
+</div>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">删</span></strong></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>, max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+employee_list </span>= session.query(Employee).filter(Department.id == 6<span style="color: #000000;">).delete()
+
+session.commit()
+session.close()</span></pre>
+</div>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">改</span></strong></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>, max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+employee_list </span>= session.query(Employee.name).filter(Employee.id &gt; 0).update({<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">abc</span><span style="color: #800000;">'</span>})                                                    <span style="color: #008000;">#</span><span style="color: #008000;">全改</span>
+employee_list = session.query(Employee.name).filter(Employee.id &gt; 0).update({Employee.name:Employee.name + <span style="color: #800000;">'</span><span style="color: #800000;">777</span><span style="color: #800000;">'</span>},synchronize_session=<span style="color: #000000;">False)
+employee_list </span>= session.query(Employee.name).filter(Employee.id &gt; 0).update({<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>:Employee.age + 1},synchronize_session=<span style="color: #800000;">'</span><span style="color: #800000;">evaluate</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+session.commit()
+session.close()</span></pre>
+</div>
+<p><strong><span style="font-family: 宋体; font-size: 18px;">查</span></strong></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>, max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+employee_list </span>=<span style="color: #000000;"> session.query(Employee)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(employee_list)　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 </span><span style="color: #008000;">#</span><span style="color: #008000;">这里表示的是SQL查询语句</span>
+<span style="color: #000000;">
+employee_list </span>= session.query(Employee).all()                                  <span style="color: #008000;">#</span><span style="color: #008000;">查询表内的数据</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> employee_list:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(type(i),i,i.name,i.age,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> &lt;class '__main__.Employee'&gt; &lt;__main__.Employee object at 0x0000000003F1EF98&gt; aaa1 21 165444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> &lt;class '__main__.Employee'&gt; &lt;__main__.Employee object at 0x0000000003F1EEF0&gt; aaa2 20 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> &lt;class '__main__.Employee'&gt; &lt;__main__.Employee object at 0x0000000003F4E0F0&gt; aaa3 23 365444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> &lt;class '__main__.Employee'&gt; &lt;__main__.Employee object at 0x0000000003F4E6D8&gt; aaa4 31 465444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> &lt;class '__main__.Employee'&gt; &lt;__main__.Employee object at 0x0000000003F4E2E8&gt; aaa5 20 565444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> &lt;class '__main__.Employee'&gt; &lt;__main__.Employee object at 0x0000000003F4E160&gt; aaa6 51 665444236@gamil.com</span>
+<span style="color: #000000;">
+employee_list </span>= session.query(Employee).filter(Employee.id &gt; 2)                <span style="color: #008000;">#</span><span style="color: #008000;">类似于使用where条件语句进行数据筛选</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> employee_list:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 3 aaa3</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 aaa4</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 aaa5</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 aaa6</span>
+<span style="color: #000000;">
+employee_list </span>= session.query(Employee.name,Employee.email).filter(Employee.id &gt; 2)     <span style="color: #008000;">#</span><span style="color: #008000;">表示只取这张表的哪几列</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> employee_list:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.name)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> aaa3</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> aaa4</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> aaa5</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> aaa6</span>
+<span style="color: #000000;">
+session.commit()
+session.close()</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="color: #ffffff; background-color: #ff0000; font-size: 18pt;"><strong><span style="font-family: 'Microsoft YaHei';">其他操作</span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">员工表:</span></p>
+<p><img src="./images/Python学习日记(四十二) Mysql数据库篇 十3.png" alt="" width="515" height="161" /></p>
+<p><span style="font-family: 宋体; font-size: 18px;">1.<strong>分组</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+</span><span style="color: #0000ff;">from</span> sqlalchemy.sql <span style="color: #0000ff;">import</span><span style="color: #000000;"> func
+ret1 </span>=<span style="color: #000000;"> session.query(func.max(Employee.id),func.min(Employee.id),func.sum(Employee.id),func.avg(Employee.id)).group_by(Employee.name).all()
+ret2 </span>= session.query(func.max(Employee.id)).group_by(Employee.name).having(func.min(Employee.id) &gt; 2<span style="color: #000000;">).all()
+
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">2.<strong>排序</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+ret1 </span>=<span style="color: #000000;"> session.query(Employee).order_by(Employee.name.desc(),Employee.age.asc(),Employee.email.desc()).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret1:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id, i.name, i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 6 52 665444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # 4 32 465444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # 3 24 365444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # 1 22 165444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # 5 21 565444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # 2 21 265444236@gamil.com</span>
+<span style="color: #000000;">
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">3.<strong>连表</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+ret1 </span>= session.query(Employee,Department).filter(Employee.employee_depart_id ==<span style="color: #000000;"> Department.id).all()
+
+ret2 </span>= session.query(Employee).join(Department).all()                      <span style="color: #008000;">#</span><span style="color: #008000;">这里会自动找到外键将两张表进行连接,这里相当于inner join</span>
+<span style="color: #000000;">
+ret3 </span>= session.query(Employee).join(Department,isouter=True).all()         <span style="color: #008000;">#</span><span style="color: #008000;">这里相当于left join,这里开False也是inner join</span>
+<span style="color: #000000;">
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">4.<strong>通配符</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+ret1 </span>= session.query(Employee).filter(Employee.name.like(<span style="color: #800000;">'</span><span style="color: #800000;">2_</span><span style="color: #800000;">'</span><span style="color: #000000;">)).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret1:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id, i.name, i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 1 22 165444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 3 24 365444236@gamil.com</span>
+<span style="color: #000000;">
+ret2 </span>= session.query(Employee).filter(Employee.name.like(<span style="color: #800000;">'</span><span style="color: #800000;">%2</span><span style="color: #800000;">'</span><span style="color: #000000;">)).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret2:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id, i.name, i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 1 22 165444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 32 465444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 52 665444236@gamil.com</span>
+<span style="color: #000000;">
+ret3 </span>= session.query(Employee).filter(~Employee.name.like(<span style="color: #800000;">'</span><span style="color: #800000;">%2</span><span style="color: #800000;">'</span><span style="color: #000000;">)).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret3:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 3 24 365444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span>
+<span style="color: #000000;">session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">5.<strong>子查询</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">1.select * from b where id in (select id from tb);</span>
+ret1 = session.query(Employee).filter(Employee.id.in_(session.query(Employee.id).filter_by(name = <span style="color: #800000;">'</span><span style="color: #800000;">21</span><span style="color: #800000;">'</span><span style="color: #000000;">))).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret1:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">2.select * from (select * from tb) as T;</span>
+q1 = session.query(Employee).filter(Employee.id &gt; 2<span style="color: #000000;">).subquery()
+ret2 </span>=<span style="color: #000000;"> session.query(q1).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret2:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 3 24 365444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 32 465444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 52 665444236@gamil.com</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">3.select id,(select * from tb where a.type_id == b.id) from b;</span>
+ret3 = session.query(Department.id,session.query(Employee).filter(Employee.id ==<span style="color: #000000;"> Department.id).as_scalar())
+
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">6.<strong>limit(限制)</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+ret1 </span>= session.query(Employee)[3:6<span style="color: #000000;">]
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret1:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id, i.name, i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 4 32 465444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 52 665444236@gamil.com</span>
+<span style="color: #000000;">
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">7.<strong>union(组合)</strong></span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+q1 </span>= session.query(Employee.name).filter(Employee.id &gt; 3<span style="color: #000000;">)
+q2 </span>= session.query(Department.depart).filter(Department.id &gt; 1<span style="color: #000000;">)
+u1 </span>= q1.union(q2).all()                                                     <span style="color: #008000;">#</span><span style="color: #008000;">去重</span>
+u2 = q1.union_all(q2).all()                                                 <span style="color: #008000;">#</span><span style="color: #008000;">不去重</span>
+<span style="color: #000000;">
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">8.<strong>条件</strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">filter_by里面穿的是参数,filter里面传的是表达式,filter_by内部会调用filter</span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+ret1 </span>= session.query(Employee).filter_by(name = <span style="color: #800000;">'</span><span style="color: #800000;">22</span><span style="color: #800000;">'</span><span style="color: #000000;">).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret1:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">1 22 165444236@gamil.com</span>
+<span style="color: #000000;">
+ret2 </span>= session.query(Employee).filter(Employee.id &gt; 1,Employee.name == <span style="color: #800000;">'</span><span style="color: #800000;">21</span><span style="color: #800000;">'</span>).all()          <span style="color: #008000;">#</span><span style="color: #008000;">这里默认使用AND</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret2:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span>
+<span style="color: #000000;">
+ret3 </span>= session.query(Employee).filter(Employee.id.between(2,4),Employee.name == <span style="color: #800000;">'</span><span style="color: #800000;">24</span><span style="color: #800000;">'</span><span style="color: #000000;">).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret3:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 3 24 365444236@gamil.com</span>
+<span style="color: #000000;">
+ret4 </span>= session.query(Employee).filter(Employee.id.in_([1,2,6<span style="color: #000000;">])).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret4:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 1 22 165444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 52 665444236@gamil.com</span>
+<span style="color: #000000;">
+ret5 </span>= session.query(Employee).filter(~Employee.id.in_([1,2,6<span style="color: #000000;">])).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret5:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 3 24 365444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 32 465444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span>
+<span style="color: #000000;">
+ret6 </span>= session.query(Employee).filter(Employee.id.in_(session.query(Employee.id).filter_by(name = <span style="color: #800000;">'</span><span style="color: #800000;">21</span><span style="color: #800000;">'</span>))).all()     <span style="color: #008000;">#</span><span style="color: #008000;">临时表</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret6:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span>
+
+<span style="color: #0000ff;">from</span> sqlalchemy <span style="color: #0000ff;">import</span><span style="color: #000000;"> and_,or_
+ret7 </span>= session.query(Employee).filter(and_(Employee.id &gt; 4,Employee.name == <span style="color: #800000;">'</span><span style="color: #800000;">21</span><span style="color: #800000;">'</span>)).all()          <span style="color: #008000;">#</span><span style="color: #008000;">这里默认使用AND</span>
+<span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret7:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id,i.name,i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span>
+<span style="color: #000000;">
+ret8 </span>= session.query(Employee).filter(or_(Employee.id &gt; 4,Employee.name == <span style="color: #800000;">'</span><span style="color: #800000;">21</span><span style="color: #800000;">'</span><span style="color: #000000;">)).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret8:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id, i.name, i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 52 665444236@gamil.com</span>
+<span style="color: #000000;">
+ret9 </span>=<span style="color: #000000;"> session.query(Employee).filter(
+or_(
+        Employee.id </span>&gt; 2<span style="color: #000000;">,
+        and_(
+            Employee.age </span>&gt; 20,Employee.email == <span style="color: #800000;">"</span><span style="color: #800000;">465444236@gamil.com</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        ),
+        Employee.name </span>== <span style="color: #800000;">'</span><span style="color: #800000;">21</span><span style="color: #800000;">'</span><span style="color: #000000;">
+)
+).all()
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret9:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(i.id, i.name, i.email)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2 21 265444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 3 24 365444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 32 465444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 565444236@gamil.com</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 52 665444236@gamil.com</span>
+<span style="color: #000000;">
+session.commit()
+session.close()</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">9.<strong>原生SQL</strong></span>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18pt;"><strong><span style="background-color: #ff0000; color: #ffffff;">建立Relationship</span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">一般情况下我们要去<strong>获取员工信息以及与它关联的员工类型名称(正向操作)</strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">写法一:</span></p>
+<div class="cnblogs_code">
+<pre><code>ret = session.query(Employee,Department).join(Department,isouter=<span style="color: #000000;">True)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret)
+</span><span style="color: #0000ff;">for</span> row <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret:
+    </span><span style="color: #0000ff;">print</span>(row[0].id,row[0].name,row[0].age,row[0].email,row[0].employee_depart_id,row[1].depart)</pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">写法二:</span></p>
+<div class="cnblogs_code">
+<pre><code>ret = session.query(Employee.name,Department.depart).join(Department,isouter=<span style="color: #000000;">True)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret)
+</span><span style="color: #0000ff;">for</span> row <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret:
+    </span><span style="color: #0000ff;">print</span>(row[0],row[1])                　　　　　　　　　　<span style="color: #008000;">#</span><span style="color: #008000;">两种写法都一样</span>
+    <span style="color: #0000ff;">print</span>(row.name,row.depart)</pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">在query()后面不加上all()拿ret就相当于一个迭代器,加上all()就相当于fetchall()把所有的数据都拿回来了</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">那除了用以上的方法之外我们还可以在Employee表中加上关系:</span></p>
+<div class="cnblogs_code">
+<pre><code> depart_relation = relationship(<span style="color: #800000;">'</span><span style="color: #800000;">Department</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">在此之前要import relation模块</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> sqlalchemy.orm <span style="color: #0000ff;">import</span> relationship</pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">执行代码:</span></p>
+<div class="cnblogs_code">
+<pre><code>engine = create_engine(<span style="color: #800000;">'</span><span style="color: #800000;">mysql+pymysql://root:@127.0.0.1:3306/db3?charset=utf8</span><span style="color: #800000;">'</span>,max_overflow = 5<span style="color: #000000;">)
+Session </span>= sessionmaker(bind=<span style="color: #000000;">engine)
+session </span>=<span style="color: #000000;"> Session()
+
+ret </span>=<span style="color: #000000;"> session.query(Employee)
+</span><span style="color: #0000ff;">for</span> row <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(row.id,row.name,row.age,row.email,row.depart_relation.depart)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 1 22 21 165444236@gamil.com 保安</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 2 21 20 265444236@gamil.com 程序员</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 3 24 23 365444236@gamil.com DBA</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 32 31 465444236@gamil.com BOSS</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 5 21 20 565444236@gamil.com DBA</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 6 52 51 665444236@gamil.com DBA</span>
+<span style="color: #000000;">
+session.commit()
+session.close()</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体; font-size: 18px;">那如果要<strong>获取用户的数据类型(反向操作)</strong>该怎么写?</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">一般写法:</span></p>
+<div class="cnblogs_code">
+<pre><code>ret =<span style="color: #000000;"> session.query(Department)
+</span><span style="color: #0000ff;">for</span> row <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret:
+    </span><span style="color: #0000ff;">print</span>(row.id,row.depart,session.query(Employee).filter(Employee.employee_depart_id ==<span style="color: #000000;"> row.id).all())
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 1 保安 [&lt;__main__.Employee object at 0x0000000003F67358&gt;]</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 2 程序员 [&lt;__main__.Employee object at 0x0000000003F674A8&gt;]</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 3 DBA [&lt;__main__.Employee object at 0x0000000003F675F8&gt;, &lt;__main__.Employee object at 0x0000000003F47F28&gt;, &lt;__main__.Employee object at 0x0000000003F47CF8&gt;]</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 BOSS [&lt;__main__.Employee object at 0x0000000003F67588&gt;]</span></pre>
+</div>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;">将添加的关系语句后加上:</span></span></p>
+<div class="cnblogs_code">
+<pre><code>depart_relation = relationship(<span style="color: #800000;">'</span><span style="color: #800000;">Department</span><span style="color: #800000;">'</span>,backref = <span style="color: #800000;">'</span><span style="color: #800000;">relatvar</span><span style="color: #800000;">'</span>)                               <span style="color: #008000;">#</span><span style="color: #008000;">这里的backref是给Department用的</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">执行代码:</span></p>
+<div class="cnblogs_code">
+<pre><code>ret =<span style="color: #000000;"> session.query(Department)
+</span><span style="color: #0000ff;">for</span> row <span style="color: #0000ff;">in</span><span style="color: #000000;"> ret:
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(row.id,row.depart,row.relatvar)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 1 保安 [&lt;__main__.Employee object at 0x0000000003F66BE0&gt;]</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 2 程序员 [&lt;__main__.Employee object at 0x0000000003F66C88&gt;]</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 3 DBA [&lt;__main__.Employee object at 0x0000000003F66DD8&gt;, &lt;__main__.Employee object at 0x0000000003F66E48&gt;, &lt;__main__.Employee object at 0x0000000003F66EB8&gt;]</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 4 BOSS [&lt;__main__.Employee object at 0x0000000003F87048&gt;]</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">relationship一般写在有外键的那张表上</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

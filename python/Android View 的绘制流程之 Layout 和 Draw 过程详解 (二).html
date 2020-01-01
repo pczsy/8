@@ -1,0 +1,1013 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Android View 的绘制流程之 Layout 和 Draw 过程详解 (二)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Android View 的绘制流程之 Layout 和 Draw 过程详解 (二)</center></div><div class='banquan'>原文出处:本文由博客园博主huansky提供。<br/>
+原文连接:https://www.cnblogs.com/huansky/p/12000771.html</div><br>
+    <h3><span style="color: #003366;">View 的绘制系列文章：</span></h3>
+<ul>
+<li>
+<h3><span style="color: #ff0000;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/11911549.html"><span style="color: #ff0000;">Android View 绘制流程之 DecorView 与 ViewRootImpl</span></a></span></h3>
+</li>
+<li>
+<h3><span style="color: #ff0000;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/11920454.html"><span style="color: #ff0000;">Android View 的绘制流程之 Measure 过程详解 (一)</span></a></span></h3>
+</li>
+<li>
+<h3><span style="color: #ff0000;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/12000771.html"><span style="color: #ff0000;">Android View 的绘制流程之 Layout 和 Draw 过程详解 (二)</span></a></span></h3>
+</li>
+<li>
+<h3><span style="color: #ff0000;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/9656394.html"><span style="color: #ff0000;">Android View 的事件分发原理解析</span></a></span></h3>
+</li>
+</ul>
+<ul>
+<li>
+<h3><span style="color: #ff0000;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/9656394.html"></a><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/11808234.html"><span style="color: #ff0000;">Android 自定义 View 详解</span></a></span></h3>
+</li>
+</ul>
+<p>&nbsp;</p>
+<p><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/12000771.html"></a>在上一篇&nbsp;<strong><span style="color: #ff0000;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/huansky/p/11920454.html"><span style="color: #ff0000;">Android View 的绘制流程之 Measure 过程详解 (一)</span></a></span></strong>，已经详细的分析了 DecorView 和其子 View 的测量过程，接下去就要开始讲&nbsp; layout 和 draw 流程。下面开始进入分析：</p>
+<h1 style="background-color: #33cccc;">DecorView Layout 阶段</h1>
+<p>在 ViewRootImpl 中，调用&nbsp;performLayout 方法来确定 DecorView 在屏幕中的位置，下面看下具体的代码逻辑：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">// ViewRootImpl </span><br /><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> performLayout(WindowManager.LayoutParams lp, <span style="color: #0000ff;">int</span><span style="color: #000000;"> desiredWindowWidth,
+            </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> desiredWindowHeight) {
+        mLayoutRequested </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        mScrollMayChange </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        mInLayout </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+
+        </span><span style="color: #0000ff;">final</span> View host =<span style="color: #000000;"> mView;
+        </span><span style="color: #0000ff;">if</span> (host == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">if</span> (DEBUG_ORIENTATION ||<span style="color: #000000;"> DEBUG_LAYOUT) {
+            Log.v(mTag, </span>"Laying out " + host + " to (" +<span style="color: #000000;">
+                    host.getMeasuredWidth() </span>+ ", " + host.getMeasuredHeight() + ")"<span style="color: #000000;">);
+        }
+
+        Trace.traceBegin(Trace.TRACE_TAG_VIEW, </span>"layout"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {<br /><span style="color: #008000;">　　　　　　　// 根据测量结果进行绘制 
+</span><span style="color: #ff0000;">            host.layout(</span></span><span style="color: #ff0000;">0, 0</span><span style="color: #000000;"><span style="color: #ff0000;">, host.getMeasuredWidth(), host.getMeasuredHeight());
+</span>
+            mInLayout </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">int</span> numViewsRequestingLayout =<span style="color: #000000;"> mLayoutRequesters.size();
+            </span><span style="color: #0000ff;">if</span> (numViewsRequestingLayout &gt; 0<span style="color: #000000;">) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> requestLayout() was called during layout.
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> If no layout-request flags are set on the requesting views, there is no problem.
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> If some requests are still pending, then we need to clear those flags and do
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> a full request/measure/layout pass to handle this situation.</span>
+                ArrayList&lt;View&gt; validLayoutRequesters =<span style="color: #000000;"> getValidLayoutRequesters(mLayoutRequesters,
+                        </span><span style="color: #0000ff;">false</span><span style="color: #000000;">);
+                </span><span style="color: #0000ff;">if</span> (validLayoutRequesters != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Set this flag to indicate that any further requests are happening during
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> the second pass, which may result in posting those requests to the next
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> frame instead</span>
+                    mHandlingLayoutInLayoutRequest = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Process fresh layout requests, then measure and layout</span>
+                    <span style="color: #0000ff;">int</span> numValidRequests =<span style="color: #000000;"> validLayoutRequesters.size();
+                    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; numValidRequests; ++<span style="color: #000000;">i) {
+                        </span><span style="color: #0000ff;">final</span> View view =<span style="color: #000000;"> validLayoutRequesters.get(i);
+                        Log.w(</span>"View", "requestLayout() improperly called by " + view +
+                                " during layout: running second layout pass"<span style="color: #000000;">);
+                        view.requestLayout();
+                    }
+                   <span style="color: #ff0000;"> measureHierarchy(host, lp, mView.getContext().getResources(),
+                            desiredWindowWidth, desiredWindowHeight);
+                    mInLayout </span></span><span style="color: #ff0000;">= true;
+                    host.layout(0, 0</span><span style="color: #000000;"><span style="color: #ff0000;">, host.getMeasuredWidth(), host.getMeasuredHeight());</span>
+
+                    mHandlingLayoutInLayoutRequest </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Check the valid requests again, this time without checking/clearing the
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> layout flags, since requests happening during the second pass get noop'd</span>
+                    validLayoutRequesters = getValidLayoutRequesters(mLayoutRequesters, <span style="color: #0000ff;">true</span><span style="color: #000000;">);
+                    </span><span style="color: #0000ff;">if</span> (validLayoutRequesters != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                        </span><span style="color: #0000ff;">final</span> ArrayList&lt;View&gt; finalRequesters =<span style="color: #000000;"> validLayoutRequesters;
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;"> Post second-pass requests to the next frame</span>
+                        getRunQueue().post(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+                            @Override
+                            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                                </span><span style="color: #0000ff;">int</span> numValidRequests =<span style="color: #000000;"> finalRequesters.size();
+                                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; numValidRequests; ++<span style="color: #000000;">i) {
+                                    </span><span style="color: #0000ff;">final</span> View view =<span style="color: #000000;"> finalRequesters.get(i);
+                                    Log.w(</span>"View", "requestLayout() improperly called by " + view +
+                                            " during second layout pass: posting in next frame"<span style="color: #000000;">);
+                                    view.requestLayout();
+                                }
+                            }
+                        });
+                    }
+                }
+
+            }
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            Trace.traceEnd(Trace.TRACE_TAG_VIEW);
+        }
+        mInLayout </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }</span></pre>
+</div>
+<p>当在 layout 绘制过程中，收到了关于重新 layout 的请求，会先判断这些请求里面哪些是有效的，如果是有效的，那么就必须先处理，清除 layout-request flags （View.PFLAG_FORCE_LAYOUT）这些标记，再做一次彻底的重绘工作：重新测量，layout。</p>
+<p>那么对于 DecorView 来说，调用 layout 方法，就是对它自身进行布局，注意到传递的参数分别是 0，0， host.getMeasuredWidth, host.getMeasuredHeigh，它们分别代表了一个&nbsp; View 的上下左右四个位置，显然，DecorView 的左上位置为 0，然后宽高为它的测量宽高，下面来看&nbsp;layout 的具体代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> ViewGroup </span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">void</span> layout(<span style="color: #0000ff;">int</span> l, <span style="color: #0000ff;">int</span> t, <span style="color: #0000ff;">int</span> r, <span style="color: #0000ff;">int</span><span style="color: #000000;"> b) {
+        </span><span style="color: #0000ff;">if</span> (!mSuppressLayout &amp;&amp; (mTransition == <span style="color: #0000ff;">null</span> || !<span style="color: #000000;">mTransition.isChangingLayout())) {
+            </span><span style="color: #0000ff;">if</span> (mTransition != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                mTransition.layoutChange(</span><span style="color: #0000ff;">this</span><span style="color: #000000;">);
+            }
+            </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.layout(l, t, r, b);
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> record the fact that we noop'd it; request layout when transition finishes</span>
+            mLayoutCalledWhileSuppressed = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        }
+    }</span></pre>
+</div>
+<p>&nbsp;由于&nbsp;ViewGroup&nbsp;的 layout 方法是 final 类型，子类不能重写，这里调用了父类的&nbsp; View#layout&nbsp;方法，下面看看该方法是如何操作的：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">// View   </span><br /><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> layout(<span style="color: #0000ff;">int</span> l, <span style="color: #0000ff;">int</span> t, <span style="color: #0000ff;">int</span> r, <span style="color: #0000ff;">int</span><span style="color: #000000;"> b) {
+        </span><span style="color: #0000ff;">if</span> ((mPrivateFlags3 &amp; PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT) != 0<span style="color: #000000;">) {
+            onMeasure(mOldWidthMeasureSpec, mOldHeightMeasureSpec);
+            mPrivateFlags3 </span>&amp;= ~<span style="color: #000000;">PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;
+        }
+
+        </span><span style="color: #0000ff;">int</span> oldL =<span style="color: #000000;"> mLeft;
+        </span><span style="color: #0000ff;">int</span> oldT =<span style="color: #000000;"> mTop;
+        </span><span style="color: #0000ff;">int</span> oldB =<span style="color: #000000;"> mBottom;
+        </span><span style="color: #0000ff;">int</span> oldR =<span style="color: #000000;"> mRight;
+<span style="color: #008000;">　　　　　// 设置界面的显示大小
+        </span></span><span style="color: #0000ff;">boolean</span> changed = isLayoutModeOptical(mParent) ?<span style="color: #000000;">
+                setOpticalFrame(l, t, r, b) : setFrame(l, t, r, b);
+<span style="color: #008000;">　　　　　// 发生了改变，或者是需要重新 layout，那么就会进入 onLayout 逻辑
+        </span></span><span style="color: #0000ff;">if</span> (changed || (mPrivateFlags &amp; PFLAG_LAYOUT_REQUIRED) ==<span style="color: #000000;"> PFLAG_LAYOUT_REQUIRED) {<br /><span style="color: #008000;">            // 开始
+</span>            onLayout(changed, l, t, r, b);
+
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (shouldDrawRoundScrollbar()) {
+                </span><span style="color: #0000ff;">if</span>(mRoundScrollbarRenderer == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                    mRoundScrollbarRenderer </span>= <span style="color: #0000ff;">new</span> RoundScrollbarRenderer(<span style="color: #0000ff;">this</span><span style="color: #000000;">);
+                }
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                mRoundScrollbarRenderer </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+            }
+<span style="color: #008000;">　　　　　　　// 清除请求 layout 的标记
+</span>            mPrivateFlags </span>&amp;= ~<span style="color: #000000;">PFLAG_LAYOUT_REQUIRED;
+
+            ListenerInfo li </span>=<span style="color: #000000;"> mListenerInfo;
+            </span><span style="color: #0000ff;">if</span> (li != <span style="color: #0000ff;">null</span> &amp;&amp; li.mOnLayoutChangeListeners != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                ArrayList</span>&lt;OnLayoutChangeListener&gt; listenersCopy =<span style="color: #000000;">
+                        (ArrayList</span>&lt;OnLayoutChangeListener&gt;<span style="color: #000000;">)li.mOnLayoutChangeListeners.clone();
+                </span><span style="color: #0000ff;">int</span> numListeners =<span style="color: #000000;"> listenersCopy.size();
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; numListeners; ++<span style="color: #000000;">i) {
+                    listenersCopy.get(i).onLayoutChange(</span><span style="color: #0000ff;">this</span><span style="color: #000000;">, l, t, r, b, oldL, oldT, oldR, oldB);
+                }
+            }
+        }
+
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> wasLayoutValid =<span style="color: #000000;"> isLayoutValid();
+
+        mPrivateFlags </span>&amp;= ~<span style="color: #000000;">PFLAG_FORCE_LAYOUT;
+        mPrivateFlags3 </span>|=<span style="color: #000000;"> PFLAG3_IS_LAID_OUT;
+
+        </span><span style="color: #0000ff;">if</span> (!wasLayoutValid &amp;&amp;<span style="color: #000000;"> isFocused()) {
+            mPrivateFlags </span>&amp;= ~<span style="color: #000000;">PFLAG_WANTS_FOCUS;
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (canTakeFocus()) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> We have a robust focus, so parents should no longer be wanting focus.</span>
+<span style="color: #000000;">                clearParentsWantFocus();
+            } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (getViewRootImpl() == <span style="color: #0000ff;">null</span> || !<span style="color: #000000;">getViewRootImpl().isInLayout()) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> This is a weird case. Most-likely the user, rather than ViewRootImpl, called
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> layout. In this case, there's no guarantee that parent layouts will be evaluated
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> and thus the safest action is to clear focus here.</span>
+                clearFocusInternal(<span style="color: #0000ff;">null</span>, <span style="color: #008000;">/*</span><span style="color: #008000;"> propagate </span><span style="color: #008000;">*/</span> <span style="color: #0000ff;">true</span>, <span style="color: #008000;">/*</span><span style="color: #008000;"> refocus </span><span style="color: #008000;">*/</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">);
+                clearParentsWantFocus();
+            } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">hasParentWantsFocus()) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> original requestFocus was likely on this view directly, so just clear focus</span>
+                clearFocusInternal(<span style="color: #0000ff;">null</span>, <span style="color: #008000;">/*</span><span style="color: #008000;"> propagate </span><span style="color: #008000;">*/</span> <span style="color: #0000ff;">true</span>, <span style="color: #008000;">/*</span><span style="color: #008000;"> refocus </span><span style="color: #008000;">*/</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">);
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> otherwise, we let parents handle re-assigning focus during their layout passes.</span>
+        } <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ((mPrivateFlags &amp; PFLAG_WANTS_FOCUS) != 0<span style="color: #000000;">) {
+            mPrivateFlags </span>&amp;= ~<span style="color: #000000;">PFLAG_WANTS_FOCUS;
+            View focused </span>=<span style="color: #000000;"> findFocus();
+            </span><span style="color: #0000ff;">if</span> (focused != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> Try to restore focus as close as possible to our starting focus.</span>
+                <span style="color: #0000ff;">if</span> (!restoreDefaultFocus() &amp;&amp; !<span style="color: #000000;">hasParentWantsFocus()) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Give up and clear focus once we've reached the top-most parent which wants
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> focus.</span>
+                    focused.clearFocusInternal(<span style="color: #0000ff;">null</span>, <span style="color: #008000;">/*</span><span style="color: #008000;"> propagate </span><span style="color: #008000;">*/</span> <span style="color: #0000ff;">true</span>, <span style="color: #008000;">/*</span><span style="color: #008000;"> refocus </span><span style="color: #008000;">*/</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">);
+                }
+            }
+        }
+
+        </span><span style="color: #0000ff;">if</span> ((mPrivateFlags3 &amp; PFLAG3_NOTIFY_AUTOFILL_ENTER_ON_LAYOUT) != 0<span style="color: #000000;">) {
+            mPrivateFlags3 </span>&amp;= ~<span style="color: #000000;">PFLAG3_NOTIFY_AUTOFILL_ENTER_ON_LAYOUT;
+            notifyEnterOrExitForAutoFillIfNeeded(</span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+        }
+    }</span></pre>
+</div>
+<p>&nbsp;调用了 setFrame 方法，并把四个位置信息传递进去，这个方法用于确定 View 的四个顶点的位置，看下具体的代码：</p>
+<div>
+<div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">boolean</span> setFrame(<span style="color: #0000ff;">int</span> left, <span style="color: #0000ff;">int</span> top, <span style="color: #0000ff;">int</span> right, <span style="color: #0000ff;">int</span><span style="color: #000000;"> bottom) {
+        </span><span style="color: #0000ff;">boolean</span> changed = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (DBG) {
+            Log.d(VIEW_LOG_TAG, </span><span style="color: #0000ff;">this</span> + " View.setFrame(" + left + "," + top + ","
+                    + right + "," + bottom + ")"<span style="color: #000000;">);
+        }
+<span style="color: #008000;">　　　　　// 有一个不一样说明发生了改变
+        </span></span><span style="color: #0000ff;">if</span> (mLeft != left || mRight != right || mTop != top || mBottom !=<span style="color: #000000;"> bottom) {
+            changed </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> Remember our drawn bit</span>
+            <span style="color: #0000ff;">int</span> drawn = mPrivateFlags &amp;<span style="color: #000000;"> PFLAG_DRAWN;
+
+            </span><span style="color: #0000ff;">int</span> oldWidth = mRight -<span style="color: #000000;"> mLeft;
+            </span><span style="color: #0000ff;">int</span> oldHeight = mBottom -<span style="color: #000000;"> mTop;
+            </span><span style="color: #0000ff;">int</span> newWidth = right -<span style="color: #000000;"> left;
+            </span><span style="color: #0000ff;">int</span> newHeight = bottom -<span style="color: #000000;"> top;
+            </span><span style="color: #0000ff;">boolean</span> sizeChanged = (newWidth != oldWidth) || (newHeight !=<span style="color: #000000;"> oldHeight);
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> Invalidate our old position</span>
+<span style="color: #000000;">            invalidate(sizeChanged);
+
+            mLeft </span>=<span style="color: #000000;"> left;
+            mTop </span>=<span style="color: #000000;"> top;
+            mRight </span>=<span style="color: #000000;"> right;
+            mBottom </span>=<span style="color: #000000;"> bottom;
+            mRenderNode.setLeftTopRightBottom(mLeft, mTop, mRight, mBottom);
+<span style="color: #008000;">　　　　　　　// 做好标记
+</span>            mPrivateFlags </span>|=<span style="color: #000000;"> PFLAG_HAS_BOUNDS;
+
+<span style="color: #008000;">　　　　　　　// size 改变的回调
+            </span></span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (sizeChanged) {
+                sizeChange(newWidth, newHeight, oldWidth, oldHeight);
+            }
+
+            </span><span style="color: #0000ff;">if</span> ((mViewFlags &amp; VISIBILITY_MASK) == VISIBLE || mGhostView != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> If we are visible, force the DRAWN bit to on so that
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> this invalidate will go through (at least to our parent).
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> This is because someone may have invalidated this view
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> before this call to setFrame came in, thereby clearing
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> the DRAWN bit.</span>
+                mPrivateFlags |=<span style="color: #000000;"> PFLAG_DRAWN;
+                invalidate(sizeChanged);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> parent display list may need to be recreated based on a change in the bounds
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> of any child</span>
+<span style="color: #000000;">                invalidateParentCaches();
+            }
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> Reset drawn bit to original value (invalidate turns it off)</span>
+            mPrivateFlags |=<span style="color: #000000;"> drawn;
+
+            mBackgroundSizeChanged </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+            mDefaultFocusHighlightSizeChanged </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">if</span> (mForegroundInfo != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                mForegroundInfo.mBoundsChanged </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+            }
+
+            notifySubtreeAccessibilityStateChangedIfNeeded();
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> changed;
+    }</span></pre>
+</div>
+<div>
+<div>这里我们看到它对 mLeft、mTop、mRight、mBottom 这四个值进行了重新赋值，对于每一个View，包括 ViewGroup 来说，以上四个值保存了 Viwe 的位置信息，所以这四个值是最终宽高，也即是说，如果要得到 View 的位置信息，<strong><span style="color: #ff0000;">那么就应该在 layout 方法完成后调用 getLeft()、getTop() 等方法来取得最终宽高，</span></strong>如果是在此之前调用相应的方法，只能得到 0 的结果。当初始化完毕后，ViewGroup 的布局流程也就完成了。</div>
+</div>
+<p>赋值后，前后对比大小，如果发生了改变，就会调用了 sizeChange（）方法，最终会回调&nbsp;onSizeChanged，标明 view 的尺寸发生了变化，<strong><span style="color: #ff0000;">第一次 laout 的时候也会调用。在自定义view 的时候，可以在这里获取控件的宽和高度。</span></strong></p>
+</div>
+<div class="cnblogs_code">
+<pre><code>  <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> sizeChange(<span style="color: #0000ff;">int</span> newWidth, <span style="color: #0000ff;">int</span> newHeight, <span style="color: #0000ff;">int</span> oldWidth, <span style="color: #0000ff;">int</span><span style="color: #000000;"> oldHeight) {
+        onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
+    　　......
+}</span></pre>
+</div>
+<h1 style="background-color: #33cccc;">子 View Layout 流程</h1>
+<p>当 DecorView 确定好了自己的位置之后，开始调用 onLayout 来确定子 view 的位置。对于&nbsp;onLayout 方法，View 和 ViewGroup 类是空实现，接下来看 FrameLayout 的实现：</p>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> FrameLayout </span>
+<span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> onLayout(<span style="color: #0000ff;">boolean</span> changed, <span style="color: #0000ff;">int</span> left, <span style="color: #0000ff;">int</span> top, <span style="color: #0000ff;">int</span> right, <span style="color: #0000ff;">int</span><span style="color: #000000;"> bottom) {
+        layoutChildren(left, top, right, bottom, </span><span style="color: #0000ff;">false</span> <span style="color: #008000;">/*</span><span style="color: #008000;"> no force left gravity </span><span style="color: #008000;">*/</span><span style="color: #000000;">);
+    }</span></pre>
+</div>
+<p>&nbsp;可以看到，该方法调用了&nbsp;layoutChildren 来确定子 view 的位置。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> FrameLaout   <br /></span><span style="color: #0000ff;">void</span> layoutChildren(<span style="color: #0000ff;">int</span> left, <span style="color: #0000ff;">int</span> top, <span style="color: #0000ff;">int</span> right, <span style="color: #0000ff;">int</span> bottom, <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> forceLeftGravity) {
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> count =<span style="color: #000000;"> getChildCount();
+<span style="color: #008000;">　　　　　// 获取 DecoverView 剩余的空间范围
+        </span></span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> parentLeft =<span style="color: #000000;"> getPaddingLeftWithForeground();
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> parentRight = right - left -<span style="color: #000000;"> getPaddingRightWithForeground();
+
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> parentTop =<span style="color: #000000;"> getPaddingTopWithForeground();
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> parentBottom = bottom - top -<span style="color: #000000;"> getPaddingBottomWithForeground();
+
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; count; i++<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">final</span> View child =<span style="color: #000000;"> getChildAt(i);
+            </span><span style="color: #0000ff;">if</span> (child.getVisibility() !=<span style="color: #000000;"> GONE) {
+                </span><span style="color: #0000ff;">final</span> LayoutParams lp =<span style="color: #000000;"> (LayoutParams) child.getLayoutParams();
+
+                </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> width =<span style="color: #000000;"> child.getMeasuredWidth();
+                </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> height =<span style="color: #000000;"> child.getMeasuredHeight();
+
+                </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> childLeft;
+                </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> childTop;
+<br /></span></pre>
+<pre><code>　　　　　　　　　　<span style="color: #008000;">// DEFAULT_CHILD_GRAVITY = Gravity.TOP | Gravity.START 默认是在左上角</span></pre>
+<pre><code><span style="color: #0000ff;">int</span> gravity =<span style="color: #000000;"> lp.gravity;
+                </span><span style="color: #0000ff;">if</span> (gravity == -1<span style="color: #000000;">) {
+                    gravity </span>=<span style="color: #000000;"> DEFAULT_CHILD_GRAVITY;
+                }
+
+                </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> layoutDirection =<span style="color: #000000;"> getLayoutDirection();
+                </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> absoluteGravity =<span style="color: #000000;"> Gravity.getAbsoluteGravity(gravity, layoutDirection);
+                </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> verticalGravity = gravity &amp;<span style="color: #000000;"> Gravity.VERTICAL_GRAVITY_MASK;
+<span style="color: #008000;">　　　　　　　　　 // 确定左边起始点
+                </span></span><span style="color: #0000ff;">switch</span> (absoluteGravity &amp;<span style="color: #000000;"> Gravity.HORIZONTAL_GRAVITY_MASK) {
+                    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> Gravity.CENTER_HORIZONTAL:
+                        childLeft </span>= parentLeft + (parentRight - parentLeft - width) / 2 +<span style="color: #000000;">
+                        lp.leftMargin </span>-<span style="color: #000000;"> lp.rightMargin;
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> Gravity.RIGHT:
+                        </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">forceLeftGravity) {
+                            childLeft </span>= parentRight - width -<span style="color: #000000;"> lp.rightMargin;
+                            </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                        }
+                    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> Gravity.LEFT:
+                    </span><span style="color: #0000ff;">default</span><span style="color: #000000;">:
+                        childLeft </span>= parentLeft +<span style="color: #000000;"> lp.leftMargin;
+                }
+<span style="color: #008000;">　　　　　　　　　　// 确定上边起始点
+                </span></span><span style="color: #0000ff;">switch</span><span style="color: #000000;"> (verticalGravity) {
+                    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> Gravity.TOP:
+                        childTop </span>= parentTop +<span style="color: #000000;"> lp.topMargin;
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> Gravity.CENTER_VERTICAL:
+                        childTop </span>= parentTop + (parentBottom - parentTop - height) / 2 +<span style="color: #000000;">
+                        lp.topMargin </span>-<span style="color: #000000;"> lp.bottomMargin;
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> Gravity.BOTTOM:
+                        childTop </span>= parentBottom - height -<span style="color: #000000;"> lp.bottomMargin;
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">default</span><span style="color: #000000;">:
+                        childTop </span>= parentTop +<span style="color: #000000;"> lp.topMargin;
+                }
+
+                child.layout(childLeft, childTop, childLeft </span>+ width, childTop +<span style="color: #000000;"> height);
+            }
+        }
+    }</span></pre>
+</div>
+<p>先梳理一下以上逻辑：</p>
+<ul>
+<li>
+<p><span style="color: #000080;">首先先获取父容器的 padding 值，得到 DecorView 的可用于显示的空间范围。</span></p>
+</li>
+<li>
+<p><span style="color: #000080;">然后遍历其每一个子 View，根据子 View 的 layout_gravity 属性、子 View 的测量宽高、父容器的 padding 值、来确定子 View 的左上角的坐标位置</span></p>
+</li>
+<li>
+<p><span style="color: #000080;">然后调用 child.layout 方法，参数是左上角坐标和自身宽高结合起来的，这样就可以确定子 View 的位置。</span></p>
+</li>
+</ul>
+<div>
+<div>
+<p>最终调用 layout 是&nbsp;View#layout，前面已经分析过，就不在分析了。</p>
+<p>可以看到子 View 的布局流程也很简单，如果子 View 是一个 ViewGroup，那么就会重复以上步骤，如果是一个 View，那么会直接调用 View#layout 方法，根据以上分析，在该方法内部会设置 view 的四个布局参数，接着调用 onLayout 方法 ：</p>
+</div>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> onLayout(<span style="color: #0000ff;">boolean</span> changed, <span style="color: #0000ff;">int</span> left, <span style="color: #0000ff;">int</span> top, <span style="color: #0000ff;">int</span> right, <span style="color: #0000ff;">int</span><span style="color: #000000;"> bottom) {<br /><br />}</span></pre>
+</div>
+<p>此方法是一个空方法，也就是说需要子类去实现此方法，不同的 View 实现方式不同，这里就不分析了。</p>
+<p>layout阶段的基本思想也是由根View开始，递归地完成整个控件树的布局（layout）工作。&nbsp;</p>
+<p><strong>对于宽高的获取这里在总结下：</strong></p>
+<p><strong><img src="./images/Android View 的绘制流程之 Layout 和 Draw 过程详解 (二)0.png" alt="" width="1067" height="156" /></strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;这里需要注意一下，在非一般情况下，也就是通过人为设置，重写View的layout()强行设置，这种情况下，测量的值与最终的值是不一样的。</p>
+<h1 style="background-color: #33cccc;">Layout 整体的流程图</h1>
+<p>上面分别从 View 和 ViewGroup 的角度讲解了布局流程，这里再以流程图的形式归纳一下整个 Layout 过程，便于加深记忆：</p>
+<p><img src="./images/Android View 的绘制流程之 Layout 和 Draw 过程详解 (二)1.png" alt="" width="864" height="435" />&nbsp;</p>
+<h1 style="background-color: #33cccc;">DecorView Draw 流程</h1>
+<p>Draw 的入口也是在 ViewRootImpl 中，执行 ViewRootImpl#performTraversals 中会执行 ViewRootIml#performDraw：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> performDraw() {
+...
+</span><span style="color: #008000;">//</span><span style="color: #008000;">fullRedrawNeeded，它的作用是判断是否需要重新绘制全部视图</span>
+<span style="color: #000000;">draw(fullRedrawNeeded);
+...
+}</span></pre>
+</div>
+<p>然后会执行到 ViewRootImpl#draw：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> draw(<span style="color: #0000ff;">boolean</span><span style="color: #000000;"> fullRedrawNeeded) {
+ ...
+ </span><span style="color: #008000;">//</span><span style="color: #008000;">获取mDirty，该值表示需要重绘的区域</span>
+ <span style="color: #0000ff;">final</span> Rect dirty =<span style="color: #000000;"> mDirty;
+ </span><span style="color: #0000ff;">if</span> (mSurfaceHolder != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> The app owns the surface, we won't draw.</span>
+<span style="color: #000000;">  dirty.setEmpty();
+  </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (animating) {
+   </span><span style="color: #0000ff;">if</span> (mScroller != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+    mScroller.abortAnimation();
+   }
+   disposeResizeBuffer();
+  }
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+ }
+
+ </span><span style="color: #008000;">//</span><span style="color: #008000;">如果fullRedrawNeeded为真，则把dirty区域置为整个屏幕，表示整个视图都需要绘制
+ </span><span style="color: #008000;">//</span><span style="color: #008000;">第一次绘制流程，需要绘制所有视图</span>
+ <span style="color: #0000ff;">if</span><span style="color: #000000;"> (fullRedrawNeeded) {
+  mAttachInfo.mIgnoreDirtyState </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+  dirty.set(</span>0, 0, (<span style="color: #0000ff;">int</span>) (mWidth * appScale + 0.5f), (<span style="color: #0000ff;">int</span>) (mHeight * appScale + 0.5f<span style="color: #000000;">));
+ }
+ ...
+ </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">drawSoftware(surface, mAttachInfo, xOffset, yOffset, scalingRequired, dirty)) {
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+  }
+}</span></pre>
+</div>
+<p>&nbsp;接着会执行到 ViewRootIml#drawSoftware，然后在 ViewRootIml#drawSoftware 会执行到 mView.draw(canvas)。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">boolean</span> drawSoftware(Surface surface, AttachInfo attachInfo, <span style="color: #0000ff;">int</span> xoff, <span style="color: #0000ff;">int</span><span style="color: #000000;"> yoff,
+   </span><span style="color: #0000ff;">boolean</span><span style="color: #000000;"> scalingRequired, Rect dirty) {
+ </span><span style="color: #0000ff;">final</span><span style="color: #000000;"> Canvas canvas;
+  </span><span style="color: #008000;">//</span><span style="color: #008000;">锁定canvas区域，由dirty区域决定
+  </span><span style="color: #008000;">//</span><span style="color: #008000;">这个canvas就是我们想在上面绘制东西的画布</span>
+  canvas =<span style="color: #000000;"> mSurface.lockCanvas(dirty);
+  ...
+ </span><span style="color: #008000;">//</span><span style="color: #008000;">画布支持位图的密度，和手机分辨率相关</span>
+<span style="color: #000000;">  canvas.setDensity(mDensity);
+ ...
+   </span><span style="color: #0000ff;">if</span> (!canvas.isOpaque() || yoff != 0 || xoff != 0<span style="color: #000000;">) {
+                canvas.drawColor(</span>0<span style="color: #000000;">, PorterDuff.Mode.CLEAR);
+            }
+   ...
+      canvas.translate(</span>-xoff, -<span style="color: #000000;">yoff);
+   ...
+   </span><span style="color: #008000;">//</span><span style="color: #008000;">正式开始绘制</span>
+<span style="color: #000000;">   mView.draw(canvas);
+  ...
+ </span><span style="color: #008000;">//</span><span style="color: #008000;">提交需要绘制的东西</span>
+<span style="color: #000000;">  surface.unlockCanvasAndPost(canvas);
+}</span></pre>
+</div>
+<p>&nbsp;mView.draw(canvas) 开始真正的绘制。此处 mView 就是 DecorView，先看 DecorView 中 Draw 的方法：</p>
+<div class="cnblogs_code">
+<pre><code>  <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> draw(Canvas canvas) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.draw(canvas);
+
+        </span><span style="color: #0000ff;">if</span> (mMenuBackground != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            mMenuBackground.draw(canvas);
+        }
+    }</span></pre>
+</div>
+<p>&nbsp;里面会调用&nbsp;View#draw：</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> draw(Canvas canvas) {
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> privateFlags =<span style="color: #000000;"> mPrivateFlags;
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> dirtyOpaque = (privateFlags &amp; PFLAG_DIRTY_MASK) == PFLAG_DIRTY_OPAQUE &amp;&amp;<span style="color: #000000;">
+                (mAttachInfo </span>== <span style="color: #0000ff;">null</span> || !<span style="color: #000000;">mAttachInfo.mIgnoreDirtyState);
+        mPrivateFlags </span>= (privateFlags &amp; ~PFLAG_DIRTY_MASK) |<span style="color: #000000;"> PFLAG_DRAWN;
+
+        </span><span style="color: #008000;">/*</span><span style="color: #008000;">
+         * Draw traversal performs several drawing steps which must be executed
+         * in the appropriate order:
+         *
+         *      1. Draw the background
+         *      2. If necessary, save the canvas' layers to prepare for fading
+         *      3. Draw view's content
+         *      4. Draw children
+         *      5. If necessary, draw the fading edges and restore layers
+         *      6. Draw decorations (scrollbars for instance)
+         </span><span style="color: #008000;">*/</span>
+
+        <span style="color: #008000;">//</span><span style="color: #008000;"> Step 1, draw the background, if needed</span>
+        <span style="color: #0000ff;">int</span><span style="color: #000000;"> saveCount;
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">绘制背景</span>
+        <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">dirtyOpaque) {
+            drawBackground(canvas);
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果可以跳过2和5步</span>
+        <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> viewFlags =<span style="color: #000000;"> mViewFlags;
+      </span><span style="color: #008000;">//</span><span style="color: #008000;">判断是否有绘制衰退边缘的标示</span>
+        <span style="color: #0000ff;">boolean</span> horizontalEdges = (viewFlags &amp; FADING_EDGE_HORIZONTAL) != 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">boolean</span> verticalEdges = (viewFlags &amp; FADING_EDGE_VERTICAL) != 0<span style="color: #000000;">;
+     </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果没有绘制衰退边缘只需要3,4,6步</span>
+        <span style="color: #0000ff;">if</span> (!verticalEdges &amp;&amp; !<span style="color: #000000;">horizontalEdges) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 3, draw the content</span>
+            <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">dirtyOpaque) onDraw(canvas);
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 4, draw the children</span>
+<span style="color: #000000;">            dispatchDraw(canvas);
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> Overlay is part of the content and draws beneath Foreground</span>
+            <span style="color: #0000ff;">if</span> (mOverlay != <span style="color: #0000ff;">null</span> &amp;&amp; !<span style="color: #000000;">mOverlay.isEmpty()) {
+                mOverlay.getOverlayView().dispatchDraw(canvas);
+            }
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 6, draw decorations (foreground, scrollbars)</span>
+<span style="color: #000000;">            onDrawForeground(canvas);
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> we're done...</span>
+            <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+        }
+
+        </span><span style="color: #008000;">/*</span><span style="color: #008000;">
+         * Here we do the full fledged routine...
+         * (this is an uncommon case where speed matters less,
+         * this is why we repeat some of the tests that have been
+         * done above)
+         </span><span style="color: #008000;">*/</span>
+
+        <span style="color: #0000ff;">boolean</span> drawTop = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">boolean</span> drawBottom = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">boolean</span> drawLeft = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">boolean</span> drawRight = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+        </span><span style="color: #0000ff;">float</span> topFadeStrength = 0.0f<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">float</span> bottomFadeStrength = 0.0f<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">float</span> leftFadeStrength = 0.0f<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">float</span> rightFadeStrength = 0.0f<span style="color: #000000;">;
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 2, save the canvas' layers</span>
+        <span style="color: #0000ff;">int</span> paddingLeft =<span style="color: #000000;"> mPaddingLeft;
+
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> offsetRequired =<span style="color: #000000;"> isPaddingOffsetRequired();
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (offsetRequired) {
+            paddingLeft </span>+=<span style="color: #000000;"> getLeftPaddingOffset();
+        }
+
+        </span><span style="color: #0000ff;">int</span> left = mScrollX +<span style="color: #000000;"> paddingLeft;
+        </span><span style="color: #0000ff;">int</span> right = left + mRight - mLeft - mPaddingRight -<span style="color: #000000;"> paddingLeft;
+        </span><span style="color: #0000ff;">int</span> top = mScrollY +<span style="color: #000000;"> getFadeTop(offsetRequired);
+        </span><span style="color: #0000ff;">int</span> bottom = top +<span style="color: #000000;"> getFadeHeight(offsetRequired);
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (offsetRequired) {
+            right </span>+=<span style="color: #000000;"> getRightPaddingOffset();
+            bottom </span>+=<span style="color: #000000;"> getBottomPaddingOffset();
+        }
+
+        </span><span style="color: #0000ff;">final</span> ScrollabilityCache scrollabilityCache =<span style="color: #000000;"> mScrollCache;
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">float</span> fadeHeight =<span style="color: #000000;"> scrollabilityCache.fadingEdgeLength;
+        </span><span style="color: #0000ff;">int</span> length = (<span style="color: #0000ff;">int</span><span style="color: #000000;">) fadeHeight;
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> clip the fade length if top and bottom fades overlap
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> overlapping fades produce odd-looking artifacts</span>
+        <span style="color: #0000ff;">if</span> (verticalEdges &amp;&amp; (top + length &gt; bottom -<span style="color: #000000;"> length)) {
+            length </span>= (bottom - top) / 2<span style="color: #000000;">;
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> also clip horizontal fades if necessary</span>
+        <span style="color: #0000ff;">if</span> (horizontalEdges &amp;&amp; (left + length &gt; right -<span style="color: #000000;"> length)) {
+            length </span>= (right - left) / 2<span style="color: #000000;">;
+        }
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (verticalEdges) {
+            topFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getTopFadingEdgeStrength()));
+            drawTop </span>= topFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+            bottomFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getBottomFadingEdgeStrength()));
+            drawBottom </span>= bottomFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+        }
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (horizontalEdges) {
+            leftFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getLeftFadingEdgeStrength()));
+            drawLeft </span>= leftFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+            rightFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getRightFadingEdgeStrength()));
+            drawRight </span>= rightFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+        }
+
+        saveCount </span>=<span style="color: #000000;"> canvas.getSaveCount();
+
+        </span><span style="color: #0000ff;">int</span> solidColor =<span style="color: #000000;"> getSolidColor();
+        </span><span style="color: #0000ff;">if</span> (solidColor == 0<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> flags =<span style="color: #000000;"> Canvas.HAS_ALPHA_LAYER_SAVE_FLAG;
+
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawTop) {
+                canvas.saveLayer(left, top, right, top </span>+ length, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawBottom) {
+                canvas.saveLayer(left, bottom </span>- length, right, bottom, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawLeft) {
+                canvas.saveLayer(left, top, left </span>+ length, bottom, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawRight) {
+                canvas.saveLayer(right </span>- length, top, right, bottom, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            scrollabilityCache.setFadeColor(solidColor);
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 3, draw the content</span>
+        <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">dirtyOpaque) onDraw(canvas);
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 4, draw the children</span>
+<span style="color: #000000;">        dispatchDraw(canvas);
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 5, draw the fade effect and restore layers</span>
+        <span style="color: #0000ff;">final</span> Paint p =<span style="color: #000000;"> scrollabilityCache.paint;
+        </span><span style="color: #0000ff;">final</span> Matrix matrix =<span style="color: #000000;"> scrollabilityCache.matrix;
+        </span><span style="color: #0000ff;">final</span> Shader fade =<span style="color: #000000;"> scrollabilityCache.shader;
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawTop) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> topFadeStrength);
+            matrix.postTranslate(left, top);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(left, top, right, top </span>+<span style="color: #000000;"> length, p);
+        }
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawBottom) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> bottomFadeStrength);
+            matrix.postRotate(</span>180<span style="color: #000000;">);
+            matrix.postTranslate(left, bottom);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(left, bottom </span>-<span style="color: #000000;"> length, right, bottom, p);
+        }
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawLeft) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> leftFadeStrength);
+            matrix.postRotate(</span>-90<span style="color: #000000;">);
+            matrix.postTranslate(left, top);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(left, top, left </span>+<span style="color: #000000;"> length, bottom, p);
+        }
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawRight) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> rightFadeStrength);
+            matrix.postRotate(</span>90<span style="color: #000000;">);
+            matrix.postTranslate(right, top);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(right </span>-<span style="color: #000000;"> length, top, right, bottom, p);
+        }
+
+        canvas.restoreToCount(saveCount);
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> Overlay is part of the content and draws beneath Foreground</span>
+        <span style="color: #0000ff;">if</span> (mOverlay != <span style="color: #0000ff;">null</span> &amp;&amp; !<span style="color: #000000;">mOverlay.isEmpty()) {
+            mOverlay.getOverlayView().dispatchDraw(canvas);
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> Step 6, draw decorations (foreground, scrollbars)</span>
+<span style="color: #000000;">        onDrawForeground(canvas);
+    }</span></pre>
+</div>
+<div>
+<p>可以看到，draw过程比较复杂，但是逻辑十分清晰，而官方注释也清楚地说明了每一步的做法。我们首先来看一开始的标记位 dirtyOpaque，该标记位的作用是判断当前 View 是否是透明的，如果 View 是透明的，那么根据下面的逻辑可以看出，将不会执行一些步骤，比如绘制背景、绘制内容等。这样很容易理解，因为一个 View 既然是透明的，那就没必要绘制它了。接着是绘制流程的六个步骤，这里先小结这六个步骤分别是什么，然后再展开来讲。绘制流程的六个步骤：</p>
+<ol>
+<li>
+<p><span style="color: #000080;">对 View 的背景进行绘制</span></p>
+</li>
+<li>
+<p><span style="color: #000080;">保存当前的图层信息(可跳过)</span></p>
+</li>
+<li>
+<p><span style="color: #000080;">绘制 View 的内容</span></p>
+</li>
+<li>
+<p><span style="color: #000080;">对 View 的子 View 进行绘制(如果有子 View )</span></p>
+</li>
+<li>
+<p><span style="color: #000080;">绘制 View 的褪色的边缘，类似于阴影效果(可跳过)</span></p>
+</li>
+<li>
+<p><span style="color: #000080;">绘制 View 的装饰（例如：滚动条）</span></p>
+</li>
+</ol>
+<p>其中第2步和第5步是可以跳过的，我们这里不做分析，我们重点来分析其它步骤。</p>
+<p><span class="hljs-keyword">ViewGroup子类默认情况下就是不执行 onDraw 方法的，在 ViewGroup 源码中的 initViewGroup() 方法中设置了一个标记，源码如下：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> initViewGroup() {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> ViewGroup doesn't draw by default</span>
+        <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">debugDraw()) {
+            setFlags(WILL_NOT_DRAW, DRAW_MASK);
+        }
+        ......
+}</span></pre>
+</div>
+<p>看第二行注释也知道，ViewGroup 默认情况下是不会 draw 的。<span class="hljs-keyword">第四行调用 setFlags 方法设置标记 WILL_NOT_DRAW，</span><span class="hljs-keyword">在回到 View 中 draw 方法看第2行代码：</span></p>
+<div class="cnblogs_code">
+<pre><code>1  <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> privateFlags =<span style="color: #000000;"> mPrivateFlags;
+</span>2  <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> dirtyOpaque = (privateFlags &amp; PFLAG_DIRTY_MASK) == PFLAG_DIRTY_OPAQUE &amp;&amp;
+3      (mAttachInfo == <span style="color: #0000ff;">null</span> || !mAttachInfo.mIgnoreDirtyState);</pre>
+</div>
+<p>&nbsp;</p>
+<p>setFlags 方法就是对 View中mPrivateFlags 值进行相应改变，我们设置标记&nbsp;<span class="hljs-keyword"><span class="hljs-keyword"><span class="hljs-title"><span class="hljs-comment"><span class="hljs-comment"><span class="hljs-keyword"><span class="hljs-keyword"><span class="hljs-number"><span class="hljs-number">WILL_NOT_DRAW 那么 dirtyOpaque 得到的值就为 true，从而 if (!dirtyOpaque) 不成立，也就不会执行onDraw 方法。</span></span></span></span></span></span></span></span></span></p>
+</div>
+<h3 style="background-color: #33ffff;">1. 绘制背景</h3>
+<p>View#drawBackground</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> drawBackground(Canvas canvas) {
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">获取背景的Drawable，没有就不需要绘制</span>
+        <span style="color: #0000ff;">final</span> Drawable background =<span style="color: #000000;"> mBackground;
+        </span><span style="color: #0000ff;">if</span> (background == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+        }
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">确定背景Drawable边界</span>
+<span style="color: #000000;">        setBackgroundBounds();
+        ...
+
+       </span><span style="color: #008000;">//</span><span style="color: #008000;">如果有偏移量先偏移画布再将drawable绘制上去</span>
+        <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> scrollX =<span style="color: #000000;"> mScrollX;
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> scrollY =<span style="color: #000000;"> mScrollY;
+        </span><span style="color: #0000ff;">if</span> ((scrollX | scrollY) == 0<span style="color: #000000;">) {
+            background.draw(canvas);
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            canvas.translate(scrollX, scrollY);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">此处会执行各种Drawable对应的draw方法</span>
+<span style="color: #000000;">            background.draw(canvas);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">把画布的原点移回去，drawable在屏幕上的位置不动</span>
+            canvas.translate(-scrollX, -<span style="color: #000000;">scrollY);
+        }
+    }</span></pre>
+</div>
+<h3 style="background-color: #33ffff;">3. 绘制 View 的内容</h3>
+<p>先跳过第 2 步，是因为不是所有的 View 都需绘制褪色边缘。DecorView#onDraw：</p>
+<div class="cnblogs_code">
+<pre><code> 　　<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> onDraw(Canvas c) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.onDraw(c);
+
+        mBackgroundFallback.draw(</span><span style="color: #0000ff;">this</span><span style="color: #000000;">, mContentRoot, c, mWindow.mContentParent,
+                mStatusColorViewState.view, mNavigationColorViewState.view);
+    }</span></pre>
+</div>
+<p>View#onDraw</p>
+<div class="cnblogs_code">
+<pre><code>  <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> onDraw(Canvas canvas) {<br />
+  }</span></pre>
+</div>
+<p>onDraw 是空实现，需要子 View 自己去绘制。对于DecorView 一般也没啥内容，除了需要背景颜色等，所以本身并需要绘制啥。</p>
+<div>
+<div>
+<h3 style="background-color: #33ffff;">4. 绘制子View</h3>
+<p>DecorView 绘制完成后，开始绘制子 View，所以 ViewGroup 的绘制需要绘制子 View，直接看看 ViewGroup#dispatchDraw：</p>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> dispatchDraw(Canvas canvas) {
+       </span><span style="color: #0000ff;">boolean</span> usingRenderNodeProperties =<span style="color: #000000;"> canvas.isRecordingFor(mRenderNode);
+       </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> childrenCount =<span style="color: #000000;"> mChildrenCount;
+       </span><span style="color: #0000ff;">final</span> View[] children =<span style="color: #000000;"> mChildren;
+       </span><span style="color: #0000ff;">int</span> flags =<span style="color: #000000;"> mGroupFlags;
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">ViewGroup是否有设置子View入场动画，如果有绑定到View
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> 启动动画控制器</span>
+<span style="color: #000000;">      ...
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">指定修改区域</span>
+       <span style="color: #0000ff;">int</span> clipSaveCount = 0<span style="color: #000000;">;
+       </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> clipToPadding = (flags &amp; CLIP_TO_PADDING_MASK) ==<span style="color: #000000;"> CLIP_TO_PADDING_MASK;<br /><span style="color: #008000;">　　　　// 不让子view绘制在pandding里面，也就是去除padding
+       </span></span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (clipToPadding) {
+           clipSaveCount </span>=<span style="color: #000000;"> canvas.save();
+           canvas.clipRect(mScrollX </span>+ mPaddingLeft, mScrollY +<span style="color: #000000;"> mPaddingTop,
+                   mScrollX </span>+ mRight - mLeft -<span style="color: #000000;"> mPaddingRight,
+                   mScrollY </span>+ mBottom - mTop -<span style="color: #000000;"> mPaddingBottom);
+       }
+
+     ...
+
+       </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; childrenCount; i++<span style="color: #000000;">) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">先取mTransientViews中的View，mTransientViews中的View通过addTransientView添加，它们只是容器渲染的一个item</span>
+           <span style="color: #0000ff;">while</span> (transientIndex &gt;= 0 &amp;&amp; mTransientIndices.get(transientIndex) ==<span style="color: #000000;"> i) {
+               </span><span style="color: #0000ff;">final</span> View transientChild =<span style="color: #000000;"> mTransientViews.get(transientIndex);
+               </span><span style="color: #0000ff;">if</span> ((transientChild.mViewFlags &amp; VISIBILITY_MASK) == VISIBLE ||<span style="color: #000000;">
+                       transientChild.getAnimation() </span>!= <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                   more </span>|=<span style="color: #000000;"> drawChild(canvas, transientChild, drawingTime);
+               }
+               transientIndex</span>++<span style="color: #000000;">;
+               </span><span style="color: #0000ff;">if</span> (transientIndex &gt;=<span style="color: #000000;"> transientCount) {
+                   transientIndex </span>= -1<span style="color: #000000;">;
+               }
+           }
+           </span><span style="color: #0000ff;">int</span> childIndex = customOrder ?<span style="color: #000000;"> getChildDrawingOrder(childrenCount, i) : i;
+           </span><span style="color: #0000ff;">final</span> View child = (preorderedList == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                   </span>?<span style="color: #000000;"> children[childIndex] : preorderedList.get(childIndex);
+           </span><span style="color: #0000ff;">if</span> ((child.mViewFlags &amp; VISIBILITY_MASK) == VISIBLE || child.getAnimation() != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+               more </span>|=<span style="color: #000000;"> drawChild(canvas, child, drawingTime);
+           }
+       }
+    ...
+   }</span></pre>
+</div>
+<p>ViewGroup#dispatchDraw 的流程是先启动第一次加到布局中的动画，然后确定绘制区域，遍历绘制 View，遍历 View 的时候优先绘制渲染的 mTransientViews，绘制 View 调用到ViewGroup#drawChild：</p>
+<div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">boolean</span> drawChild(Canvas canvas, View child, <span style="color: #0000ff;">long</span><span style="color: #000000;"> drawingTime) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">View中有两个draw方法
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这个多参数的draw用于view绘制自身内容</span>
+        <span style="color: #0000ff;">return</span> child.draw(canvas, <span style="color: #0000ff;">this</span><span style="color: #000000;">, drawingTime);
+    }</span></pre>
+</div>
+<p>&nbsp;View#draw(canvas, this, drawingTime）</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">boolean</span> draw(Canvas canvas, ViewGroup parent, <span style="color: #0000ff;">long</span><span style="color: #000000;"> drawingTime) {
+ 
+       </span><span style="color: #0000ff;">boolean</span> drawingWithRenderNode = mAttachInfo != <span style="color: #0000ff;">null</span>
+                &amp;&amp;<span style="color: #000000;"> mAttachInfo.mHardwareAccelerated
+                </span>&amp;&amp;<span style="color: #000000;"> hardwareAcceleratedCanvas;
+      ...
+
+　　　　 </span><span style="color: #008000;">//</span><span style="color: #008000;">主要判断是否有绘制缓存，如果有，直接使用缓存，如果没有，调用 draw(canvas)方法</span>
+        <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">drawingWithDrawingCache) {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawingWithRenderNode) {
+                mPrivateFlags </span>&amp;= ~<span style="color: #000000;">PFLAG_DIRTY_MASK;
+                ((DisplayListCanvas) canvas).drawRenderNode(renderNode);
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> Fast path for layouts with no backgrounds</span>
+                <span style="color: #0000ff;">if</span> ((mPrivateFlags &amp; PFLAG_SKIP_DRAW) ==<span style="color: #000000;"> PFLAG_SKIP_DRAW) {
+                    mPrivateFlags </span>&amp;= ~<span style="color: #000000;">PFLAG_DIRTY_MASK;
+                    dispatchDraw(canvas);
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                    draw(canvas);
+                }
+            }
+        } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (cache != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            mPrivateFlags </span>&amp;= ~<span style="color: #000000;">PFLAG_DIRTY_MASK;
+            </span><span style="color: #0000ff;">if</span> (layerType ==<span style="color: #000000;"> LAYER_TYPE_NONE) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> no layer paint, use temporary paint to draw bitmap</span>
+                Paint cachePaint =<span style="color: #000000;"> parent.mCachePaint;
+                </span><span style="color: #0000ff;">if</span> (cachePaint == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                    cachePaint </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Paint();
+                    cachePaint.setDither(</span><span style="color: #0000ff;">false</span><span style="color: #000000;">);
+                    parent.mCachePaint </span>=<span style="color: #000000;"> cachePaint;
+                }
+                cachePaint.setAlpha((</span><span style="color: #0000ff;">int</span>) (alpha * 255<span style="color: #000000;">));
+                canvas.drawBitmap(cache, </span>0.0f, 0.0f<span style="color: #000000;">, cachePaint);
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> use layer paint to draw the bitmap, merging the two alphas, but also restore</span>
+                <span style="color: #0000ff;">int</span> layerPaintAlpha =<span style="color: #000000;"> mLayerPaint.getAlpha();
+                mLayerPaint.setAlpha((</span><span style="color: #0000ff;">int</span>) (alpha *<span style="color: #000000;"> layerPaintAlpha));
+                canvas.drawBitmap(cache, </span>0.0f, 0.0f<span style="color: #000000;">, mLayerPaint);
+                mLayerPaint.setAlpha(layerPaintAlpha);
+            }
+      }
+}</span></pre>
+</div>
+</div>
+<p>首先判断是否已经有缓存，即之前是否已经绘制过一次了，如果没有，则会调用 draw(canvas) 方法，开始正常的绘制，即上面所说的六个步骤，否则利用缓存来显示。</p>
+<p>这一步也可以归纳为 ViewGroup 绘制过程，它对子 View 进行了绘制，而子 View 又会调用自身的 draw 方法来绘制自身，这样不断遍历子 View 及子 View 的不断对自身的绘制，从而使得 View 树完成绘制。</p>
+<p>对于自定义 View ，如果需要绘制东西的话，直接重新 onDraw 就可以了。</p>
+<h3 style="background-color: #33ffff;">6. 绘制装饰</h3>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> onDrawForeground(Canvas canvas) {
+　　　　 </span><span style="color: #008000;">//</span><span style="color: #008000;">绘制滑动指示</span>
+<span style="color: #000000;">        onDrawScrollIndicators(canvas);
+　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制ScrollBar</span>
+<span style="color: #000000;">        onDrawScrollBars(canvas);
+　　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;">获取前景色的Drawable，绘制到canvas上</span>
+        <span style="color: #0000ff;">final</span> Drawable foreground = mForegroundInfo != <span style="color: #0000ff;">null</span> ? mForegroundInfo.mDrawable : <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">if</span> (foreground != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (mForegroundInfo.mBoundsChanged) {
+                mForegroundInfo.mBoundsChanged </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">final</span> Rect selfBounds =<span style="color: #000000;"> mForegroundInfo.mSelfBounds;
+                </span><span style="color: #0000ff;">final</span> Rect overlayBounds =<span style="color: #000000;"> mForegroundInfo.mOverlayBounds;
+                </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (mForegroundInfo.mInsidePadding) {
+                    selfBounds.set(</span>0, 0<span style="color: #000000;">, getWidth(), getHeight());
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                    selfBounds.set(getPaddingLeft(), getPaddingTop(),
+                            getWidth() </span>- getPaddingRight(), getHeight() -<span style="color: #000000;"> getPaddingBottom());
+                }
+                </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> ld =<span style="color: #000000;"> getLayoutDirection();
+                Gravity.apply(mForegroundInfo.mGravity, foreground.getIntrinsicWidth(),
+                        foreground.getIntrinsicHeight(), selfBounds, overlayBounds, ld);
+                foreground.setBounds(overlayBounds);
+            }
+            foreground.draw(canvas);
+        }
+    }</span></pre>
+</div>
+<h3 style="background-color: #33ffff;">&nbsp;2和5.绘制View的褪色边缘</h3>
+<p>当 horizontalEdges 或者 verticalEdges 有一个 true 的时候，表示需要绘制 View 的褪色边缘：</p>
+<div class="cnblogs_code">
+<pre><code>     <span style="color: #0000ff;">boolean</span> horizontalEdges = (viewFlags &amp; FADING_EDGE_HORIZONTAL) != 0<span style="color: #000000;">;
+     </span><span style="color: #0000ff;">boolean</span> verticalEdges = (viewFlags &amp; FADING_EDGE_VERTICAL) != 0;</pre>
+</div>
+<p>这时候先计算出是否需要绘制上下左右的褪色边缘和它的参数，然后保存视图层：</p>
+<div class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">int</span> paddingLeft =<span style="color: #000000;"> mPaddingLeft;
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> offsetRequired =<span style="color: #000000;"> isPaddingOffsetRequired();
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (offsetRequired) {
+            paddingLeft </span>+=<span style="color: #000000;"> getLeftPaddingOffset();
+        }
+        </span><span style="color: #0000ff;">int</span> left = mScrollX +<span style="color: #000000;"> paddingLeft;
+        </span><span style="color: #0000ff;">int</span> right = left + mRight - mLeft - mPaddingRight -<span style="color: #000000;"> paddingLeft;
+        </span><span style="color: #0000ff;">int</span> top = mScrollY +<span style="color: #000000;"> getFadeTop(offsetRequired);
+        </span><span style="color: #0000ff;">int</span> bottom = top +<span style="color: #000000;"> getFadeHeight(offsetRequired);
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (offsetRequired) {
+            right </span>+=<span style="color: #000000;"> getRightPaddingOffset();
+            bottom </span>+=<span style="color: #000000;"> getBottomPaddingOffset();
+        }
+        </span><span style="color: #0000ff;">final</span> ScrollabilityCache scrollabilityCache =<span style="color: #000000;"> mScrollCache;
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">float</span> fadeHeight =<span style="color: #000000;"> scrollabilityCache.fadingEdgeLength;
+        </span><span style="color: #0000ff;">int</span> length = (<span style="color: #0000ff;">int</span><span style="color: #000000;">) fadeHeight;
+        </span><span style="color: #0000ff;">if</span> (verticalEdges &amp;&amp; (top + length &gt; bottom -<span style="color: #000000;"> length)) {
+            length </span>= (bottom - top) / 2<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">if</span> (horizontalEdges &amp;&amp; (left + length &gt; right -<span style="color: #000000;"> length)) {
+            length </span>= (right - left) / 2<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (verticalEdges) {
+            topFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getTopFadingEdgeStrength()));
+            drawTop </span>= topFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+            bottomFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getBottomFadingEdgeStrength()));
+            drawBottom </span>= bottomFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (horizontalEdges) {
+            leftFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getLeftFadingEdgeStrength()));
+            drawLeft </span>= leftFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+            rightFadeStrength </span>= Math.max(0.0f, Math.min(1.0f<span style="color: #000000;">, getRightFadingEdgeStrength()));
+            drawRight </span>= rightFadeStrength * fadeHeight &gt; 1.0f<span style="color: #000000;">;
+        }
+        saveCount </span>=<span style="color: #000000;"> canvas.getSaveCount();
+        </span><span style="color: #0000ff;">int</span> solidColor =<span style="color: #000000;"> getSolidColor();
+        </span><span style="color: #0000ff;">if</span> (solidColor == 0<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> flags =<span style="color: #000000;"> Canvas.HAS_ALPHA_LAYER_SAVE_FLAG;
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawTop) {
+                canvas.saveLayer(left, top, right, top </span>+ length, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawBottom) {
+                canvas.saveLayer(left, bottom </span>- length, right, bottom, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawLeft) {
+                canvas.saveLayer(left, top, left </span>+ length, bottom, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawRight) {
+                canvas.saveLayer(right </span>- length, top, right, bottom, <span style="color: #0000ff;">null</span><span style="color: #000000;">, flags);
+            }
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            scrollabilityCache.setFadeColor(solidColor);
+        }</span></pre>
+</div>
+<p>绘制褪色边缘，恢复视图层 ：</p>
+<div class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">final</span> Paint p =<span style="color: #000000;"> scrollabilityCache.paint;
+        </span><span style="color: #0000ff;">final</span> Matrix matrix =<span style="color: #000000;"> scrollabilityCache.matrix;
+        </span><span style="color: #0000ff;">final</span> Shader fade =<span style="color: #000000;"> scrollabilityCache.shader;
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawTop) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> topFadeStrength);
+            matrix.postTranslate(left, top);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(left, top, right, top </span>+<span style="color: #000000;"> length, p);
+        }
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawBottom) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> bottomFadeStrength);
+            matrix.postRotate(</span>180<span style="color: #000000;">);
+            matrix.postTranslate(left, bottom);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(left, bottom </span>-<span style="color: #000000;"> length, right, bottom, p);
+        }
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawLeft) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> leftFadeStrength);
+            matrix.postRotate(</span>-90<span style="color: #000000;">);
+            matrix.postTranslate(left, top);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(left, top, left </span>+<span style="color: #000000;"> length, bottom, p);
+        }
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (drawRight) {
+            matrix.setScale(</span>1, fadeHeight *<span style="color: #000000;"> rightFadeStrength);
+            matrix.postRotate(</span>90<span style="color: #000000;">);
+            matrix.postTranslate(right, top);
+            fade.setLocalMatrix(matrix);
+            p.setShader(fade);
+            canvas.drawRect(right </span>-<span style="color: #000000;"> length, top, right, bottom, p);
+        }
+        canvas.restoreToCount(saveCount);</span></pre>
+</div>
+<p>所谓的绘制装饰，就是指 View 除了背景、内容、子 View 的其余部分，例如滚动条等。</p>
+<p>最后附上 View 的 draw 流程：</p>
+<p>&nbsp;</p>
+<p><img src="./images/Android View 的绘制流程之 Layout 和 Draw 过程详解 (二)2.png" alt="" width="748" height="1163" /></p>
+<p>&nbsp;</p>
+<p>到此，View 的绘制流程就讲完了，下一篇会讲自定义 View。</p>
+<p>&nbsp;</p>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

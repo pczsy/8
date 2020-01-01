@@ -1,0 +1,144 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修TypeScript躬行记（4）——泛型' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>TypeScript躬行记（4）——泛型</center></div><div class='banquan'>原文出处:本文由博客园博主咖啡机（K.F.J）提供。<br/>
+原文连接:https://www.cnblogs.com/strick/p/11697909.html</div><br>
+    <p>　　泛型是程序设计语言中的一种风格或范式，相当于类型模板，允许在声明类、接口或函数等成员时忽略类型，而在未来使用时再指定类型，其主要目的是为它们提供有意义的约束，提升代码的可重用性。</p>
+<h1>一、泛型参数</h1>
+<p>　　当一个函数需要能处理多种类型的参数和返回值，并且还得约束它们之间的关系（例如类型要相同）时，就可以采用泛型的语法，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> send&lt;T&gt;<span style="color: #000000;">(data: T): T {
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data;
+}</span></pre>
+</div>
+<p>　　函数名称后面跟了&lt;T&gt;，其中把T称为泛型参数或泛型变量，表示某种数据类型。注意，T只是个占位符，可以命名的更含语义，例如TKey、TValue等。在使用时，既可以指定类型，也可以利用类型推论自动确定类型，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>send&lt;number&gt;(10);        <span style="color: #008000;">//</span><span style="color: #008000;">指定类型</span>
+send(10);            　　<span style="color: #008000;">//</span><span style="color: #008000;">类型推论</span></pre>
+</div>
+<p>　　当需要处理T类型的数组时，可以像下面这么写。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> send&lt;T&gt;<span style="color: #000000;">(data: T[]): T[] {
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data;
+}
+send</span>&lt;number&gt;([1, 2, 3]);</pre>
+</div>
+<p>　　当指定一个泛型函数的类型时，需要包含泛型参数，如下所示，其中泛型参数和函数参数的名称都可与定义时的不同。</p>
+<div class="cnblogs_code">
+<pre><code>let func: &lt;U&gt;(data: U) =&gt; U = send;</pre>
+</div>
+<p>　　泛型参数还支持传递多个，只需在声明时增加类型占位符即可。在下面的示例中，将T和U合并成了一个元组类型，还有许多其它用法，将在后面讲解。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> send&lt;T, U&gt;<span style="color: #000000;">(data: [T, U]): [T, U] {
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data;
+}
+send</span>&lt;number, string&gt;([1, "a"]);</pre>
+</div>
+<h1>二、泛型接口</h1>
+<p>　　在接口中，可利用泛型来约束函数的结构，如下所示，接口中声明的调用签名包含泛型参数。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Func {
+  </span>&lt;T&gt;<span style="color: #000000;">(str: T): T;
+}
+function send</span>&lt;T&gt;<span style="color: #000000;">(str: T): T {
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> str;
+}
+let fn: Func </span>= send;</pre>
+</div>
+<p>　　泛型参数还可以作为接口的一个参数存在，即把用尖括号包裹的泛型参数移到接口名称之后，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span> Func&lt;T&gt;<span style="color: #000000;"> {
+  (str: T): T;
+}
+function send</span>&lt;T&gt;<span style="color: #000000;">(str: T): T {
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> str;
+}
+let fn: Func</span>&lt;<span style="color: #0000ff;">string</span>&gt; = send;</pre>
+</div>
+<p>　　当把Func接口作为类型使用时，需要向其传入一个类型，例如上面赋值语句中的string。</p>
+<h1>三、泛型类</h1>
+<p>　　泛型类与泛型接口类似，也是在名称后添加泛型参数，如下所示，其中send属性中的&ldquo;=&gt;&rdquo;符号不表示箭头函数，而是用来定义方法的返回值类型。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span> Person&lt;T&gt;<span style="color: #000000;"> {
+  name: T;
+  send: (data: T) </span>=&gt;<span style="color: #000000;"> T;
+}</span></pre>
+</div>
+<p>　　在实例化泛型类时，需要为其指定一种类型，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let person = <span style="color: #0000ff;">new</span> Person&lt;string&gt;<span style="color: #000000;">();
+person.send </span>= <span style="color: #0000ff;">function</span><span style="color: #000000;">(data) {
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data;
+}</span></pre>
+</div>
+<p>　　注意，类的静态部分不能使用泛型参数。</p>
+<h1>四、泛型约束</h1>
+<p>　　在使用泛型时，由于事先不清楚参数的数据类型，因此不能随意调用它的属性或方法，甚至无法对其使用运算符。在下面的示例中，访问了data的length属性，但由于编译器无法确定它的类型，因此就会报错。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> send&lt;T&gt;<span style="color: #000000;">(data: T): T {
+  console.log(data.length);
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data;
+}</span></pre>
+</div>
+<p>　　TypeScript允许为泛型参数添加约束条件，从而就能调用相应的属性或方法了，如下所示，通过extends关键字约束T必须是string的子类型。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> send&lt;T extends string&gt;<span style="color: #000000;">(data: T): T {
+  console.log(data.length);
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data;
+}</span></pre>
+</div>
+<p>　　在添加了这个约束之后，send()函数就无法接收数字类型的参数了，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>send("10");        <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+send(10);          <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>1）创建类的实例</strong></span></p>
+<p>　　在使用泛型创建类的工厂函数时，需要声明T类型拥有构造函数，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Programmer { }
+function create</span>&lt;T&gt;(ctor: {<span style="color: #0000ff;">new</span><span style="color: #000000;">(): T}): T {
+  </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> ctor();
+}
+create(Programmer);</span></pre>
+</div>
+<p>　　用&ldquo;{new(): T}&rdquo;替代原先的类型占位符，表示可以被new运算符实例化，并且得到的是T类型，另一种相同作用的写法如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span> create&lt;T&gt;(ctor: <span style="color: #0000ff;">new</span>()=&gt;<span style="color: #000000;">T): T {
+  </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> ctor();
+}</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>2）多个泛型参数</strong></span></p>
+<p>　　在TypeScript中，多个泛型参数之间也可以相互约束，如下所示，创建了基类Person和派生类Programmer，并将create()函数中的T约束为U的子类型。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person { }
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Programmer extends Person { }
+function create</span>&lt;T extends U, U&gt;<span style="color: #000000;">(target: T, source: U): T {
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> target;
+}</span></pre>
+</div>
+<p>　　当传递给create()函数的参数不符合约束条件时，就会在编译阶段报错，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>create(Programmer, Person);        <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+create(Programmer, 10);            <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

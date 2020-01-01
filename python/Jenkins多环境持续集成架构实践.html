@@ -1,0 +1,831 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Jenkins多环境持续集成架构实践' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Jenkins多环境持续集成架构实践</center></div><div class='banquan'>原文出处:本文由博客园博主滴答的雨提供。<br/>
+原文连接:https://www.cnblogs.com/heyuquan/p/jenkins-multi-env-cicd-architecture.html</div><br>
+    <p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: medium;">&nbsp;</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal; mso-tab-count: 1;">&nbsp;&nbsp;&nbsp;&nbsp; </span></span>自动化部署主要是为了解决项目多、环境多、持续集成慢、部署操作麻烦、手动操作易出错、自动化运维等问题。</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 21pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">Jenkins</span>是开源<span style="line-height: normal;" lang="EN-US">CI&amp;CD</span>软件领导者， 提供超过<span style="line-height: normal;" lang="EN-US">1000</span>个插件来支持构建、部署、自动化， 满足任何项目的需要。 </span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">目标</span></p>
+<p class="MsoListParagraph" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: -21pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 0; mso-list: l0 level1 lfo1;" align="justify"><span style="font-size: medium;"><span style="line-height: normal; mso-fareast-font-family: wingdings; mso-bidi-font-family: wingdings;" lang="EN-US"><span style="line-height: normal; mso-list: ignore;">l<span style="line-height: normal; font-size-adjust: none; font-stretch: normal;">&nbsp; </span></span></span>支持多分支、多环境、多项目、多套配置文件、多编程语言</span></p>
+<p class="MsoListParagraph" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: -21pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 0; mso-list: l0 level1 lfo1;" align="justify"><span style="font-size: medium;"><span style="line-height: normal; mso-fareast-font-family: wingdings; mso-bidi-font-family: wingdings;" lang="EN-US"><span style="line-height: normal; mso-list: ignore;">l<span style="line-height: normal; font-size-adjust: none; font-stretch: normal;">&nbsp; </span></span></span>支持一键构建、集群发布</span></p>
+<p class="MsoListParagraph" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: -21pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 0; mso-list: l0 level1 lfo1;" align="justify"><span style="font-size: medium;"><span style="line-height: normal; mso-fareast-font-family: wingdings; mso-bidi-font-family: wingdings;" lang="EN-US"><span style="line-height: normal; mso-list: ignore;">l<span style="line-height: normal; font-size-adjust: none; font-stretch: normal;">&nbsp; </span></span></span>支持一键回滚历史版本</span></p>
+<p class="MsoListParagraph" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: -21pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 0; mso-list: l0 level1 lfo1;" align="justify"><span style="font-size: medium;"><span style="line-height: normal; mso-fareast-font-family: wingdings; mso-bidi-font-family: wingdings;" lang="EN-US"><span style="line-height: normal; mso-list: ignore;">l<span style="line-height: normal; font-size-adjust: none; font-stretch: normal;">&nbsp; </span></span></span>快捷配置添加新的部署项目</span></p>
+<p class="MsoListParagraph" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: -21pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 0; mso-list: l0 level1 lfo1;" align="justify"><span style="font-size: medium;"><span style="line-height: normal; mso-fareast-font-family: wingdings; mso-bidi-font-family: wingdings;" lang="EN-US"><span style="line-height: normal; mso-list: ignore;">l<span style="line-height: normal; font-size-adjust: none; font-stretch: normal;">&nbsp; </span></span></span>支持多个项目使用同一个<span style="line-height: normal;" lang="EN-US">job</span>发布或回滚</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">另外：也可以根据需要加入<span style="line-height: normal;" lang="EN-US">gitlab</span>自动触发构建、自动化测试、钉钉通知、邮箱通知等需求</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: medium;">&nbsp;</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">本实践使用到的技术，可参考：</span><a href="https://www.cnblogs.com/heyuquan/p/jenkins-use-guide.html" target="_blank"><span style="font-size: medium;">《[CI&amp;CD]jenkins自动化工具使用教程》</span></a></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">技术关键词：<span style="line-height: normal;" lang="EN-US">jenkins master-slave</span>，<span style="line-height: normal;" lang="EN-US">jenkins </span>插件（<span style="line-height: normal;" lang="EN-US">multijob</span>、<span style="line-height: normal;" lang="EN-US">EnvInject</span>），<span style="line-height: normal;" lang="EN-US">rsync</span>工具，<span style="line-height: normal;" lang="EN-US">powershell</span>，<span style="line-height: normal;" lang="EN-US">dotnet core cli</span>，<span style="line-height: normal;" lang="EN-US">icacls</span>工具等等 </span></p>
+<p class="MsoTocHeading" style="margin: 24pt 0cm 0pt; line-height: 16pt; text-indent: 0pt; page-break-after: avoid;"><span style="font-size: medium;"><span style="line-height: 16pt; mso-ansi-language: zh-cn;">目录</span></span></p>
+<p class="MsoToc2" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span style="line-height: normal;" lang="EN-US"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;"><a href="#_Toc27945601"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">最终效果图</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">1</span></span></a></span></span></span></p>
+<p class="MsoToc2" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945602"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">目录设计</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">2</span></span></a></span></span></p>
+<p class="MsoToc2" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945603"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">约定及规范</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">3</span></span></a></span></span></p>
+<p class="MsoToc2" style="margin: 0cm 0cm 0pt 21pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945604"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">架构设计</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">4</span></span></a></span></span></p>
+<p class="MsoToc3" style="margin: 0cm 0cm 0pt 42pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945605"><span style="font-size: medium;">#<span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">、CICD</span></span><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">架构图</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">4</span></span></a></span></span></p>
+<p class="MsoToc3" style="margin: 0cm 0cm 0pt 42pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945606"><span style="font-size: medium;">#<span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">、项目映射配置文件设计</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">5</span></span></a></span></span></p>
+<p class="MsoToc3" style="margin: 0cm 0cm 0pt 42pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945607"><span style="font-size: medium;">#<span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">、一键发布job</span></span><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">设计</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">6</span></span></a></span></span></p>
+<p class="MsoToc3" style="margin: 0cm 0cm 0pt 42pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945608"><span style="font-size: medium;">#<span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">、一键回滚job</span></span><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">设计</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">8</span></span></a></span></span></p>
+<p class="MsoToc3" style="margin: 0cm 0cm 0pt 42pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph; tab-stops: right dotted 414.8pt;" align="justify"><span class="MsoHyperlink" style="line-height: normal;"><span style="line-height: normal; mso-no-proof: yes;" lang="EN-US"><a href="#_Toc27945609"><span style="font-size: medium;">#<span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">、简易多环境CICD</span></span><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal;" lang="EN-US">流程</span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;"><span style="line-height: normal; mso-tab-count: 1 dotted;">... </span></span><span style="line-height: normal; display: none; text-underline: none; mso-hide: screen;">8</span></span></a></span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US">&nbsp;</span></p>
+<h2 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph;" align="justify"><a name="_Toc27945601"></a><span style="font-size: 16pt;">最终效果图</span></h2>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">一键发布</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">&nbsp;</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><a href="https://img2018.cnblogs.com/blog/106337/201912/106337-20191223070230517-1756248525.png" target="_blank"><img style="display: inline; background-image: none;" title="publish-01" src="./images/Jenkins多环境持续集成架构实践0.png" alt="publish-01" width="835" height="607" border="0" /></a></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">&nbsp;</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">一键回滚</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">&nbsp;</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;<a href="https://img2018.cnblogs.com/blog/106337/201912/106337-20191223070231876-74496386.png" target="_blank"><img style="display: inline; background-image: none;" title="rollback-01" src="./images/Jenkins多环境持续集成架构实践1.png" alt="rollback-01" width="828" height="498" border="0" /></a></span></span></p>
+<h2 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph;" align="justify"><a name="_Toc27945602"></a><span style="font-size: 16pt;">目录设计</span></h2>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">Jenkins</span>相关目录设计</span></p>
+<pre><code>----jenkins-ex		jenkins构建时使用到的目录
+------software		Jenkins安装目录
+--------master
+--------slave
+------backup		jenkins备份目录
+--------master
+------module		功能模块，每一类功能相关的文件放在对应的子文件夹中
+--------common
+----------script		各模块公用的脚本
+------publish		发布功能
+--------settings
+----------config	构建时配置文件。Eg: jenkins_profile.pubxml、项目配置文件等
+------------test-publish-template-app-config.json	项目映射配置表
+----------script	Jenkins job构件时调用的脚本（方法封装）
+------source-code	拉取的源代码存放目录
+--------test
+----------系统标识 
+------------应用名
+------build-result		构建产物（编译后的结果）
+--------test
+----------系统标识 
+----------应用名
+------temp-file	临时文件，job执行过程中产生的文件
+--------builder-history	构建历史记录文件
+--------job-params		构建过程中传递参数的文件
+------app-config  应用对应的环境配置文件
+--------test
+----------系统标识
+------------应用名
+------other-sub-module
+&hellip;&hellip;</pre>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">&nbsp;</span></span></p>
+<h2 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph;" align="justify"><a name="_Toc27945603"></a><span style="font-size: 16pt;">约定及规范</span></h2>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">jenkins job</span>命名</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">#</span>、<span style="line-height: normal;" lang="EN-US">job</span>名全小写，多单词用<span style="line-height: normal;" lang="EN-US">&rdquo;-&rdquo;</span>分割。（<span style="line-height: normal;" lang="EN-US">eg</span>：<span style="line-height: normal;" lang="EN-US">publish-template-onekey-deploy</span>）</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">#</span>、<span style="line-height: normal;" lang="EN-US">job</span>命名约定：模块名<span style="line-height: normal;" lang="EN-US">-</span>环境<span style="line-height: normal;" lang="EN-US">-</span>功能名。（<span style="line-height: normal;" lang="EN-US">eg</span>：<span style="line-height: normal;" lang="EN-US">publish</span>模块，<span style="line-height: normal;" lang="EN-US">publish-test-onekey-deploy</span>）</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">#</span>、模块中组件<span style="line-height: normal;" lang="EN-US">job</span>命名约定：模块<span style="line-height: normal;" lang="EN-US">-c-</span>组件名。（<span style="line-height: normal;" lang="EN-US">eg</span>：<span style="line-height: normal;" lang="EN-US">publish-c-pull-code</span>）</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">#</span>、<span style="line-height: normal;" lang="EN-US">job</span>输入参数以<span style="line-height: normal;" lang="EN-US">&rdquo;p_&rdquo;</span>为前缀</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: medium;">&nbsp;</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">Jenkins job</span>中的脚本命名（<span style="line-height: normal;" lang="EN-US">eg</span>：<span style="line-height: normal;" lang="EN-US">powershell</span>）</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">#</span>、变量全小写，多单词用<span style="line-height: normal;" lang="EN-US">&rdquo;_&rdquo;</span>分割</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: medium;">&nbsp;</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">规范约定</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">#</span>、代表路径的变量值，以<span style="line-height: normal;" lang="EN-US">&rdquo;\&rdquo;</span>结尾</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">#</span>、备份名字中用&ldquo;<span style="line-height: normal;" lang="EN-US">#</span>&rdquo;做分隔符，还原时好取参数（<span style="line-height: normal;" lang="EN-US">eg</span>：<span style="line-height: normal;" lang="EN-US">p_app_key#2019-1219-1503</span>）</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US">&nbsp;</span></p>
+<h2 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph;" align="justify"><a name="_Toc27945604"></a><span style="font-size: 16pt;">架构设计</span></h2>
+<h3 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph; background-repeat: repeat;" align="justify"><a style="text-align: justify;" name="_Toc27945605"></a><span style="line-height: 28pt;" lang="EN-US"><span style="font-size: 16pt;">#</span></span><span style="font-size: 16pt;">、<span style="line-height: 28pt;" lang="EN-US">CICD</span>架构图</span></h3>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">CICD</span>过程主要在两个局域网中执行：构建服务器<span style="line-height: normal;" lang="EN-US">(</span>开发内网<span style="line-height: normal;" lang="EN-US">)</span>和部署服务器<span style="line-height: normal;" lang="EN-US">(</span>生产内网<span style="line-height: normal;" lang="EN-US">)</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">&nbsp;</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;&nbsp;&nbsp;&nbsp; <a href="https://img2018.cnblogs.com/blog/106337/201912/106337-20191223070232910-1799585076.jpg" target="_blank"><img style="display: inline; background-image: none;" title="jenkins CICD架构图" src="./images/Jenkins多环境持续集成架构实践2.png" alt="jenkins CICD架构图" width="734" height="924" border="0" /></a></span></span></p>
+<h3 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph; background-repeat: repeat;" align="justify"><a style="text-align: justify;" name="_Toc27945606"></a><span style="line-height: 28pt;" lang="EN-US"><span style="font-size: 16pt;">#</span></span><span style="font-size: 16pt;">、项目映射配置文件设计</span></h3>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 21pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;"><span style="font-size: medium;">想要实现使用一个<span style="line-height: normal;" lang="EN-US">job</span>，通过下拉来<span style="line-height: normal;" lang="EN-US">&rdquo; </span>发布<span style="line-height: normal;" lang="EN-US">|</span>回滚<span style="line-height: normal;" lang="EN-US">&rdquo;</span>不同的项目，我们需要一个灵活的项目配置映射文件，类似如下：</span> </span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 21pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><a href="https://img2018.cnblogs.com/blog/106337/201912/106337-20191223070234592-1125263920.png" target="_blank"><img style="display: inline; background-image: none;" title="config" src="./images/Jenkins多环境持续集成架构实践3.png" alt="config" width="805" height="408" border="0" /></a></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">&nbsp;</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 21pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">配置文件选项含义从命名上可以识别，主要包括：环境、代码分支、部署路径、拷贝排除文件列表、项目信息（项目唯一标识、目录文件夹名、源代码路径、开发语言、集群节点信息&hellip;）等等</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal; mso-tab-count: 1;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>app_config</span>节点下的配置，可以覆盖父节点配置，适配项目特定的部署要求。</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal; mso-tab-count: 1;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>app_config</span>是数组节点，可以轻松添加新的部署项目，实现新项目的快速<span style="line-height: normal;" lang="EN-US">CICD</span>。</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US">&nbsp;</span></p>
+<h3 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph; background-repeat: repeat;" align="justify"><a style="text-align: justify;" name="_Toc27945607"></a><span style="line-height: 28pt;" lang="EN-US"><span style="font-size: 16pt;">#</span></span><span style="font-size: 16pt;">、一键发布<span style="line-height: 28pt;" lang="EN-US">job</span>设计</span></h3>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 21pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">&ldquo;</span>一键发布<span style="line-height: normal;" lang="EN-US">&rdquo;</span>主要经历的阶段有：组合项目相关参数<span style="line-height: normal;" lang="EN-US">&gt;&gt;</span>获取最新代码<span style="line-height: normal;" lang="EN-US">&gt;&gt;</span>编译打包<span style="line-height: normal;" lang="EN-US">&gt;&gt;</span>推送应用文件到服务器<span style="line-height: normal;" lang="EN-US">&gt;&gt;</span>应用备份<span style="line-height: normal;" lang="EN-US">&gt;&gt;</span>拷贝到<span style="line-height: normal;" lang="EN-US">Temp</span>文件夹<span style="line-height: normal;" lang="EN-US">&gt;&gt;</span>发布到部署目录</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 21pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">为了更好的实现和控制<span style="line-height: normal;" lang="EN-US">&rdquo;</span>一键发布<span style="line-height: normal;" lang="EN-US">&rdquo;</span>这些阶段，设计了如下输入参数：</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt 10.5pt; line-height: normal; text-indent: -10.5pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: -1.0;" align="justify"><span style="line-height: normal;" lang="EN-US"><a href="https://img2018.cnblogs.com/blog/106337/201912/106337-20191223070235483-1563264249.png" target="_blank"><img style="display: inline; background-image: none;" title="publish-02" src="./images/Jenkins多环境持续集成架构实践4.png" alt="publish-02" width="748" height="600" border="0" /></a></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+<table class="MsoTableGrid" style="border: currentcolor; border-image: none; line-height: normal; overflow: visible; margin-left: 5.4pt; display: table; border-collapse: collapse; mso-border-alt: solid windowtext .5pt; mso-yfti-tbllook: 1184; mso-padding-alt: 0cm 5.4pt 0cm 5.4pt;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="mso-yfti-irow: 0; mso-yfti-firstrow: yes;">
+<td style="padding: 0cm 5.4pt; border: 1pt solid windowtext; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">参数名</span></p>
+</td>
+<td style="border-width: 1pt 1pt 1pt medium; border-style: solid solid solid none; border-color: windowtext windowtext windowtext currentcolor; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">类型</span></p>
+</td>
+<td style="border-width: 1pt 1pt 1pt medium; border-style: solid solid solid none; border-color: windowtext windowtext windowtext currentcolor; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">默认值</span></p>
+</td>
+<td style="border-width: 1pt 1pt 1pt medium; border-style: solid solid solid none; border-color: windowtext windowtext windowtext currentcolor; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">说明</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 1;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_publish_model</span></span></p>
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">下拉单选</span></p>
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">reality</span></span></p>
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">取值：<span style="line-height: normal;" lang="EN-US">reality</span>、</span><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">drill</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">发布模式<span style="line-height: normal;" lang="EN-US"><br />reality</span>：正常发布，发布到应用服务器应用文件夹，做真实应用发布部署 
+</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">drill</span></span><span style="font-size: 10.5pt;">：演练。发布到应用服务器<span style="line-height: normal;" lang="EN-US">temp</span>文件夹后结束</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 2;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_app_key</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">下拉单选</span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">通过这个<span style="line-height: normal;" lang="EN-US">key</span>到配置文件里面找站点的具体配置信息</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 3;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_do_code_pull</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">Bool</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">True</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">拉取最新代码</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 4;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_do_build_package</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">Bool</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">True</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">是否重新编译打包</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 5;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_do_backup</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">Bool</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">True</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">是否执行备份</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 6;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_publish_content</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">多选</span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">取值：<span style="line-height: normal;" lang="EN-US">app-file</span>、</span><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">config</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">发布文件列表（多选）</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">app-file</span></span><span style="font-size: 10.5pt;">：应用文件（不包含<span style="line-height: normal;" lang="EN-US">config</span>文件）</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">config</span></span><span style="font-size: 10.5pt;">：配置文件</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 7;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_restart_daemon_process</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">Bool</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">True</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">是否重启守护进程（如果是<span style="line-height: normal;" lang="EN-US">IIS</span>，勾选则重启应用程序池，不勾选则回收应用程序池） 
+ 为避免文件被占用，发布失败，所以这里默认勾选。如果只是新增页面文件，可以不勾选</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 8; mso-yfti-lastrow: yes;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_remark</span><span style="line-height: normal; mso-tab-count: 1;"><span style="font-size: 10.5pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">String</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">备注信息 </span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+
+
+
+
+
+
+
+
+</tbody>
+
+
+
+
+
+
+
+
+</table>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">
+<span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+<h3 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph; background-repeat: repeat;" align="justify"><a style="text-align: justify;" name="_Toc27945608"></a><span style="line-height: 28pt;" lang="EN-US"><span style="font-size: 16pt;">#</span></span><span style="font-size: 16pt;">、一键回滚<span style="line-height: 28pt;" lang="EN-US">job</span>设计</span></h3>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal; mso-tab-count: 1;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span>实现思路：在<span style="line-height: normal;" lang="EN-US">&rdquo;</span>一键发布<span style="line-height: normal;" lang="EN-US">&rdquo;</span>时，将发布记录存到文件中，存储<span style="line-height: normal;" lang="EN-US">key</span>为：<span style="line-height: normal;" lang="EN-US">p_app_key#2019-1219-1503</span>。执行回滚时，选择要回滚的历史项目，先解析出<span style="line-height: normal;" lang="EN-US">p_app_key</span>再获取项目配置信息，再回滚此项目的特定历史版本。</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 21pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;">设计的输入参数如图：</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">&nbsp;</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;<a href="https://img2018.cnblogs.com/blog/106337/201912/106337-20191223070236294-2097781238.png" target="_blank"><img style="display: inline; background-image: none;" title="rollback-02" src="./images/Jenkins多环境持续集成架构实践5.png" alt="rollback-02" width="742" height="382" border="0" /></a></span></span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US">&nbsp;</span></p>
+<table class="MsoTableGrid" style="border: currentcolor; border-image: none; line-height: normal; overflow: visible; margin-left: 5.4pt; display: table; border-collapse: collapse; mso-border-alt: solid windowtext .5pt; mso-yfti-tbllook: 1184; mso-padding-alt: 0cm 5.4pt 0cm 5.4pt;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="mso-yfti-irow: 0; mso-yfti-firstrow: yes;">
+<td style="padding: 0cm 5.4pt; border: 1pt solid windowtext; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">参数名</span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: 1pt 1pt 1pt medium; border-style: solid solid solid none; border-color: windowtext windowtext windowtext currentcolor; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">类型</span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: 1pt 1pt 1pt medium; border-style: solid solid solid none; border-color: windowtext windowtext windowtext currentcolor; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">默认值</span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: 1pt 1pt 1pt medium; border-style: solid solid solid none; border-color: windowtext windowtext windowtext currentcolor; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">说明</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 1;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_history_item</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">下拉单选</span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">每一次<span style="line-height: normal;" lang="EN-US">&rdquo;</span>一键发布<span style="line-height: normal;" lang="EN-US">&rdquo;</span>成功，都会生成一个对应的历史记录</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 2;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_restart_daemon_process</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">Bool</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">True</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">是否重启守护进程（如果是<span style="line-height: normal;" lang="EN-US">IIS</span>，勾选则重启应用程序池，不勾选则回收应用程序池） 
+ 为避免文件被占用，回滚失败，所以这里默认勾选。</span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+<tr style="mso-yfti-irow: 3; mso-yfti-lastrow: yes;">
+<td style="border-width: medium 1pt 1pt; border-style: none solid solid; border-color: currentcolor windowtext windowtext; padding: 0cm 5.4pt; border-image: none; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="188">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">p_remark</span><span style="line-height: normal; mso-tab-count: 1;"><span style="font-size: 10.5pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="49">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">String</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="63">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+
+
+
+
+
+
+
+
+</td>
+<td style="border-width: medium 1pt 1pt medium; border-style: none solid solid none; border-color: currentcolor windowtext windowtext currentcolor; padding: 0cm 5.4pt; white-space: normal; mso-border-alt: solid windowtext .5pt; mso-border-left-alt: solid windowtext .5pt; mso-border-top-alt: solid windowtext .5pt;" valign="top" width="238">
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: 10.5pt;">备注信息 </span></p>
+
+
+
+
+
+
+
+
+</td>
+
+
+
+
+
+
+
+
+</tr>
+
+
+
+
+
+
+
+
+</tbody>
+
+
+
+
+
+
+
+
+</table>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">
+<span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;</span></span></p>
+<h3 style="margin: 13pt 0cm; line-height: 28pt; -ms-text-justify: inter-ideograph; background-repeat: repeat;" align="justify"><a style="text-align: justify;" name="_Toc27945609"></a><span style="line-height: 28pt;" lang="EN-US"><span style="font-size: 16pt;">#</span></span><span style="font-size: 16pt;">、简易多环境<span style="line-height: 28pt;" lang="EN-US">CICD</span>流程</span></h3>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US"><span style="line-height: normal; mso-tab-count: 1;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span>一般软件公司对于软件的开发、测试、发布都有好几个环境，所以针对各个环境都会有对应的<span style="line-height: normal;" lang="EN-US">CICD</span>流程，这边设计了一个简易的多环境<span style="line-height: normal;" lang="EN-US">CICD</span>流程图，如下：&nbsp;</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US"><span style="font-size: 10.5pt;">&nbsp;<a href="https://img2018.cnblogs.com/blog/106337/201912/106337-20191223070237090-90366133.jpg" target="_blank"><img style="display: inline; background-image: none;" title="jenkins多环境简易发布流程" src="./images/Jenkins多环境持续集成架构实践6.png" alt="jenkins多环境简易发布流程" width="837" height="948" border="0" /></a></span></span></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;自动触发CICD还是手动触发CICD？？？我认为：</p>
+<p style="margin-left: 30px;">&nbsp; &nbsp; &nbsp; 开发环境采用手动触发：因为对于开发环境，提交代码比较频繁，而且有时候提交到git也并不想触发CICD。可以采取每晚定时自动触发CICD，便于异常代码及时抛出</p>
+<p style="margin-left: 30px;">&nbsp; &nbsp; &nbsp; 测试环境采用自动触发：因为测试代码的 git 分支合并是有条件限制的，合并频率比较少</p>
+<p style="margin-left: 30px;">&nbsp; &nbsp; &nbsp;&nbsp;生产环境采用手动触发：因为生产环境的发布比较复杂，合并分支后是不能直接自动触发CICD的。比如有严控发布时间、负载隔离（蓝绿部署）等要求，所以手动触发控制力强</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">&nbsp;</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify">&nbsp;</p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="font-size: medium;"><span style="line-height: normal;" lang="EN-US">over</span>，谢谢查阅，觉得文章对你有收获，请多帮推荐。欢迎向我提供更好的资料信息。</span></p>
+<p class="MsoNormal" style="margin: 0cm 0cm 0pt; line-height: normal; text-indent: 0pt; -ms-text-justify: inter-ideograph;" align="justify"><span style="line-height: normal;" lang="EN-US">&nbsp;</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,141 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修彻底搞懂感受野的含义与计算' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>彻底搞懂感受野的含义与计算</center></div><div class='banquan'>原文出处:本文由博客园博主shine-lee提供。<br/>
+原文连接:https://www.cnblogs.com/shine-lee/p/12069176.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#什么是感受野">什么是感受野</a></li>
+        <li><a href="#约定">约定</a></li>
+        <li><a href="#感受野大小">感受野大小</a></li>
+        <li><a href="#感受野中心">感受野中心</a></li>
+        <li><a href="#小结">小结</a></li>
+        <li><a href="#参考">参考</a></li>
+        </ul>
+    </div>
+</div>
+<p>博客：<a href="https://www.cnblogs.com/shine-lee/">博客园</a> | <a href="https://blog.csdn.net/blogshinelee">CSDN</a> | <a href="https://blog.shinelee.me/">blog</a></p>
+<h1 id="什么是感受野">什么是感受野</h1>
+<blockquote>
+<p>The <strong>receptive field</strong> is defined as the region in the input space that a particular CNN’s feature is looking at (i.e. be affected by).</p>
+<p>—— <a href="https://medium.com/mlreview/a-guide-to-receptive-field-arithmetic-for-convolutional-neural-networks-e0f514068807">A guide to receptive field arithmetic for Convolutional Neural Networks</a></p>
+</blockquote>
+<p><strong>感受野（Receptive Field），指的是神经网络中神经元“看到的”输入区域，在卷积神经网络中，feature map上某个元素的计算受输入图像上某个区域的影响，这个区域即该元素的感受野。</strong></p>
+<p>卷积神经网络中，越深层的神经元看到的输入区域越大，如下图所示，kernel size 均为<span class="math inline">\(3 \times 3\)</span>，stride均为1，绿色标记的是<span class="math inline">\(Layer 2\)</span> 每个神经元看到的区域，黄色标记的是<span class="math inline">\(Layer 3\)</span> 看到的区域，具体地，<span class="math inline">\(Layer 2\)</span>每个神经元可看到<span class="math inline">\(Layer 1\)</span> 上 <span class="math inline">\(3 \times 3\)</span> 大小的区域，<span class="math inline">\(Layer3\)</span> 每个神经元看到<span class="math inline">\(Layer 2\)</span> 上 <span class="math inline">\(3 \times 3\)</span> 大小的区域，该区域可以又看到<span class="math inline">\(Layer 1\)</span> 上 <span class="math inline">\(5 \times 5\)</span> 大小的区域。</p>
+<p><img src="./images/彻底搞懂感受野的含义与计算0.png" alt="https://www.researchgate.net/publication/316950618_Maritime_Semantic_Labeling_of_Optical_Remote_Sens" /></p>
+<p>所以，<strong>感受野是个相对概念，某层feature map上的元素看到前面不同层上的区域范围是不同的，通常在不特殊指定的情况下，感受野指的是看到输入图像上的区域。</strong></p>
+<p>为了具体计算感受野，这里借鉴视觉系统中的概念，<br />
+<span class="math display">\[
+receptive \ field = center + surround
+\]</span></p>
+<p>准确计算感受野，<strong>需要回答两个子问，即视野中心在哪和视野范围多大</strong>。</p>
+<ul>
+<li>只有看到”合适范围的信息”才可能做出正确的判断，否则就可能“盲人摸象”或者“一览众山小”；</li>
+<li>目标识别问题中，我们需要知道神经元看到是哪个区域，才能合理推断物体在哪以及判断是什么物体。</li>
+</ul>
+<p>但是，<strong>网络架构多种多样，每层的参数配置也不尽相同，感受野具体该怎么计算？</strong></p>
+<h1 id="约定">约定</h1>
+<p>在正式计算之前，先对数学符号做如下约定，</p>
+<p><img src="./images/彻底搞懂感受野的含义与计算1.png" alt="https://medium.com/mlreview/a-guide-to-receptive-field-arithmetic-for-convolutional-neural-networks-e0f514068807" /></p>
+<ul>
+<li><p><span class="math inline">\(k\)</span>：kernel size</p></li>
+<li><p><span class="math inline">\(p\)</span>：padding size</p></li>
+<li><p><span class="math inline">\(s\)</span>：stride size</p></li>
+<li><p><span class="math inline">\(Layer\)</span>：用<span class="math inline">\(Layer\)</span>表示feature map，特别地 <span class="math inline">\(Layer \ 0\)</span>为输入图像；</p></li>
+<li><p><span class="math inline">\(Conv\)</span>：用<span class="math inline">\(Conv\)</span>表示卷积，<span class="math inline">\(k\)</span>、<span class="math inline">\(p\)</span>、<span class="math inline">\(s\)</span>为卷积层的超参数，<span class="math inline">\(Conv \ l\)</span>的输入和输出分别为 <span class="math inline">\(Layer \ l-1\)</span> 和 <span class="math inline">\(Layer \ l+1\)</span>；</p></li>
+<li><p><span class="math inline">\(n\)</span>：feature map size为 <span class="math inline">\(n \times n\)</span>，这里假定<span class="math inline">\(height = width\)</span>；</p></li>
+<li><p><span class="math inline">\(r\)</span>：receptive field size为<span class="math inline">\(r \times r\)</span>，这里假定感受野为方形；</p></li>
+<li><p><span class="math inline">\(j\)</span>：feature map上相邻元素间的像素距离，即<strong>将feature map上的元素与输入图像<span class="math inline">\(Layer \ 0\)</span> 上感受野的中心对齐后，相邻元素在输入图像上的像素距离，也可以理解为 feature map上前进1步相当于输入图像上前进多少个像素</strong>，如下图所示，feature map上前进1步，相当于输入图像上前进2个像素，<span class="math inline">\(j=2\)</span>；</p>
+<p><img src="./images/彻底搞懂感受野的含义与计算2.png" alt="https://github.com/vdumoulin/conv_arithmetic/blob/master/gif/padding_strides.gif" /></p></li>
+<li><p><span class="math inline">\(start\)</span>：feature map左上角元素<strong>在输入图像上的感受野中心坐标</strong><span class="math inline">\((start, start)\)</span>，即<strong>视野中心的坐标</strong>，在上图中，左上角绿色块感受野中心坐标为<span class="math inline">\((0.5, 0.5)\)</span>，即左上角蓝色块中心的坐标，左上角白色虚线块中心的坐标为<span class="math inline">\((-0.5, -0.5)\)</span>；</p></li>
+<li><p><span class="math inline">\(l\)</span>：<span class="math inline">\(l\)</span>表示层，卷积层为<span class="math inline">\(Conv \ l\)</span>，其输入feature map为<span class="math inline">\(Layer \ l-1\)</span>，输出为<span class="math inline">\(Layer \ l\)</span>。</p></li>
+</ul>
+<p><strong>下面假定所有层均为卷积层。</strong></p>
+<h1 id="感受野大小">感受野大小</h1>
+<p><strong>感受野大小的计算是个递推公式。</strong></p>
+<p>再看上面的动图，如果feature map $Layer  2 $ 上的一个元素<span class="math inline">\(A\)</span>看到feature map <span class="math inline">\(Layer \ 1\)</span> 上的范围为<span class="math inline">\(3 \times 3\)</span>（图中绿色块），其大小等于kernel size <span class="math inline">\(k_2\)</span>，所以，<span class="math inline">\(A\)</span>看到的感受野范围<span class="math inline">\(r_2\)</span>等价于<span class="math inline">\(Layer \ 1\)</span>上<span class="math inline">\(3 \times 3\)</span>窗口看到的<span class="math inline">\(Layer \ 0\)</span> 范围，据此可以建立起相邻<span class="math inline">\(Layer\)</span>感受野的关系，如下所示，其中<span class="math inline">\(r_{l}\)</span>为<span class="math inline">\(Layer \ l\)</span>的感受野，<span class="math inline">\(r_{l-1}\)</span>为<span class="math inline">\(Layer \ l-1\)</span> 的感受野，<br />
+<span class="math display">\[
+r_{l} = r_{l-1} + (k_{l} - 1) * j_{l-1}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(Layer \ l\)</span> 一个元素的感受野<span class="math inline">\(r_{l}\)</span>等价于<span class="math inline">\(Layer \ l-1\)</span> 上<span class="math inline">\(k \times k\)</span> 个感受野的叠加；</li>
+<li><span class="math inline">\(Layer \ l-1\)</span> 上一个元素的感受野为<span class="math inline">\(r_{l-1}\)</span>；</li>
+<li><span class="math inline">\(Layer \ l-1\)</span> 上连续<span class="math inline">\(k\)</span> 个元素的感受野可以看成是，<strong>第1个元素看到的感受野加上剩余<span class="math inline">\(k-1\)</span>步扫过的范围</strong>，<span class="math inline">\(Layer \ l-1\)</span> 上每前进1个元素相当于在输入图像上前进<span class="math inline">\(j_{l-1}\)</span>个像素，结果等于<span class="math inline">\(r_{l-1} + (k - 1) \times j_{l-1}\)</span></li>
+</ul>
+<p>可视化如下图所示，</p>
+<p><img src="./images/彻底搞懂感受野的含义与计算3.png" alt="receptive field size" /></p>
+<p>下面的问题是，<span class="math inline">\(j_{in}\)</span>怎么求？</p>
+<p><span class="math inline">\(Layer \ l\)</span> <strong>上前进1个元素相当于<span class="math inline">\(Layer \ l-1\)</span>上前进<span class="math inline">\(s_l\)</span>个元素</strong>，转换成像素单位为<br />
+<span class="math display">\[
+j_{l} = j_{l-1} \times s_{l}
+\]</span><br />
+其中，<span class="math inline">\(s_l\)</span>为<span class="math inline">\(Conv \ l\)</span>的kernel在<span class="math inline">\(Layer \ l-1\)</span> 上滑动的步长，输入图像的<span class="math inline">\(s_0 = 1\)</span>。</p>
+<p>根据递推公式可知，<br />
+<span class="math display">\[
+\begin{aligned}j_l &amp;= \prod_{i=1}^{l} s_{i}\\\end{aligned}
+\]</span><br />
+<span class="math inline">\(Layer \ l\)</span>上前进1个元素，相当于在输入图像前进了<span class="math inline">\(\prod_{i=1}^{l} s_{i}\)</span>个像素，即前面所有层<span class="math inline">\(stride\)</span>的连乘。</p>
+<p>进一步可得，<span class="math inline">\(Layer \ l\)</span>的感受野大小为<br />
+<span class="math display">\[
+\begin{aligned}r_{l} &amp;= r_{l-1} + \left(k_{l}-1\right) * j_{l-1} \\&amp;= r_{l-1}+\left(\left(k_{l}-1\right) * \prod_{i=1}^{l-1} s_{i}\right)\end{aligned}
+\]</span></p>
+<h1 id="感受野中心">感受野中心</h1>
+<p><strong>感受野中心的计算也是个递推公式。</strong></p>
+<p>在上一节中计算得<span class="math inline">\(j_l = \prod_{i=1}^{l} s_{i}\)</span>，表示<strong>feature map <span class="math inline">\(Layer \ l\)</span>上前进1个元素相当于在输入图像上前进的像素数目，如果将feature map上元素与感受野中心对齐，则<span class="math inline">\(j_l\)</span>为感受野中心之间的像素距离。</strong>如下图所示，</p>
+<p><img src="./images/彻底搞懂感受野的含义与计算4.png" alt="receptive field center" /></p>
+<p>其中，各层的kernel size、padding、stride超参数已在图中标出，右侧图为feature map和感受野中心对齐后的结果。</p>
+<p>相邻<span class="math inline">\(Layer\)</span>间，感受野中心的关系为<br />
+<span class="math display">\[
+start_{l} = start_{l-1} + (\frac{k_l - 1}{2} - p_l) * j_{l-1}
+\]</span><br />
+<strong>所有的<span class="math inline">\(start\)</span>坐标均相对于输入图像坐标系</strong>。其中，<span class="math inline">\(start_0=(0.5,0.5)\)</span>，为输入图像左上角像素的中心坐标，<span class="math inline">\(start_{l-1}\)</span>表示<span class="math inline">\(Layer \ l-1\)</span>左上角元素的感受野中心坐标，<span class="math inline">\((\frac{k_l - 1}{2} - p_l)\)</span>为<span class="math inline">\(Layer \ l\)</span>与<span class="math inline">\(Layer \ l-1\)</span>感受野中心<strong>相对于<span class="math inline">\(Layer \ l-1\)</span>坐标系的偏差，该偏差需折算到输入图像坐标系</strong>，其值需要乘上<span class="math inline">\(j_{l-1}\)</span>，即<span class="math inline">\(Layer \ l-1\)</span>相邻元素间的像素距离，相乘的结果为<span class="math inline">\((\frac{k_l - 1}{2} - p_l) * j_{l-1}\)</span>，即感受野中心间的像素距离——相对输入图像坐标系。至此，相邻<span class="math inline">\(Layer\)</span>间感受野中心坐标间的关系就不难得出了，这个过程可视化如下。</p>
+<p><img src="./images/彻底搞懂感受野的含义与计算5.png" alt="receptive field center calculation" /></p>
+<p><strong>知道了<span class="math inline">\(Layer \ l\)</span>左上角元素的感受野中心坐标<span class="math inline">\((start_l, start_l)\)</span>，通过该层相邻元素间的像素距离<span class="math inline">\(j_l\)</span>可以推算其他元素的感受野中心坐标。</strong></p>
+<h1 id="小结">小结</h1>
+<p>将感受野的相关计算小结一下，<br />
+<span class="math display">\[
+\begin{aligned}j_{l} &amp;= j_{l-1} \times s_{l} \\j_l &amp;= \prod_{i=1}^{l} s_{i}\\r_{l} &amp;= r_{l-1} + \left(k_{l}-1\right) * j_{l-1} \\&amp;= r_{l-1}+\left(\left(k_{l}-1\right) * \prod_{i=1}^{l-1} s_{i}\right) \\start_{l} &amp;= start_{l-1} + (\frac{k_l - 1}{2} - p_l) * j_{l-1}\end{aligned}
+\]</span><br />
+由上面的递推公式，就可以从前向后逐层计算感受野了，代码可参见<a href="https://gist.github.com/Nikasa1889/781a8eb20c5b32f8e378353cde4daa51#file-computereceptivefield-py"><strong>computeReceptiveField.py</strong></a>，在线可视化计算可参见<a href="https://fomoro.com/research/article/receptive-field-calculator"><strong>Receptive Field Calculator</strong></a>。</p>
+<p>最后，还有几点需要注意，</p>
+<ul>
+<li><span class="math inline">\(Layer \ l\)</span>的感受野大小与<span class="math inline">\(s_l\)</span>、<span class="math inline">\(p_l\)</span>无关，即当前feature map元素的感受野大小与该层相邻元素间的像素距离无关；</li>
+<li>为了简化，通常将padding size设置为kernel的半径，即<span class="math inline">\(p = \frac{k-1}{2}\)</span>，可得<span class="math inline">\(start_l = start_{l-1}\)</span>，使得feature map <span class="math inline">\(Layer \ l\)</span> 上<span class="math inline">\((x, y)\)</span>位置的元素，其感受野中心坐标为<span class="math inline">\((x j_l, y j_l)\)</span>；</li>
+<li>对于<strong>空洞卷积dilated convolution，相当于改变了卷积核的尺寸</strong>，若含有<span class="math inline">\(dilation\ rate\)</span>参数，只需将<span class="math inline">\(k_l\)</span>替换为<span class="math inline">\(dilation \ rate * (k_l - 1) + 1\)</span> ，<span class="math inline">\(dilation\ rate=1\)</span>时为正常卷积；</li>
+<li><strong>对于pooling层，可将其当成特殊的卷积层</strong>，同样存在kernel size、padding、stride参数；</li>
+<li><strong>非线性激活层为逐元素操作，不改变感受野。</strong></li>
+</ul>
+<p>以上。</p>
+<h1 id="参考">参考</h1>
+<ul>
+<li><a href="https://wiki2.org/en/Receptive_field">wiki-Receptive field</a></li>
+<li><a href="https://fomoro.com/research/article/receptive-field-calculator">wiki-Receptive Field Calculator</a></li>
+<li><a href="https://arxiv.org/abs/1701.04128">arXiv-Understanding the Effective Receptive Field in Deep Convolutional Neural Networks</a></li>
+<li><a href="https://medium.com/mlreview/a-guide-to-receptive-field-arithmetic-for-convolutional-neural-networks-e0f514068807">medium-A guide to receptive field arithmetic for Convolutional Neural Networks</a></li>
+<li><a href="https://medium.com/@abhigoku10/topic-dl03-receptive-field-in-cnn-and-the-math-behind-it-e17565212a20">medium-Topic DL03: Receptive Field in CNN and the Math behind it</a></li>
+<li><a href="http://kaiminghe.com/iccv15tutorial/iccv2015_tutorial_convolutional_feature_maps_kaiminghe.pdf">ppt-Convolutional Feature Maps: Elements of Efficient (and Accurate) CNN-based Object Detection</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/40424530">SIGAI-关于感受野的总结</a></li>
+<li><a href="https://shawnleezx.github.io/blog/2017/02/11/calculating-receptive-field-of-cnn/">Calculating Receptive Field of CNN</a></li>
+</ul>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

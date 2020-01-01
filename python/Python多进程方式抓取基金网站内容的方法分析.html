@@ -1,0 +1,142 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python多进程方式抓取基金网站内容的方法分析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python多进程方式抓取基金网站内容的方法分析</center></div><div class='banquan'>原文出处:本文由博客园博主嗨学编程提供。<br/>
+原文连接:https://www.cnblogs.com/Pythonmiss/p/11228184.html</div><br>
+    <p>因为进程也不是越多越好，我们计划分3个进程执行。意思就是 ：把总共要抓取的28页分成三部分。</p>
+<p>怎么分呢？</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 初始range</span>
+r = range(1,29<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 步长</span>
+step = 10<span style="color: #000000;">
+myList </span>= [r[x:x+step] <span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(0,len(r),step)]
+</span><span style="color: #0000ff;">print</span>(myList) <span style="color: #008000;">#</span><span style="color: #008000;"> [range(1, 11), range(11, 21), range(21, 29)]</span></pre>
+</div>
+<p>看上面代码，我们就把1~29分成了三部分，list里三个range。</p>
+<p>2、还记得我们抓取基金网站内容的<code>getData()</code>函数？</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> getData(start, end):
+  </span><span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span> range(start, end+1<span style="color: #000000;">):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 去第几页 输入框</span>
+    tonum = driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">tonum</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 去第几页 提交按钮</span>
+    jumpBtn = driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">btn_jump</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    tonum.clear() </span><span style="color: #008000;">#</span><span style="color: #008000;"> 第x页 输入框</span>
+    tonum.send_keys(str(x)) <span style="color: #008000;">#</span><span style="color: #008000;"> 去第x页</span>
+    jumpBtn.click() <span style="color: #008000;">#</span><span style="color: #008000;"> 点击按钮</span>
+    WebDriverWait(driver, 20).until(<span style="color: #0000ff;">lambda</span> driver: driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">pager</span><span style="color: #800000;">"</span><span style="color: #000000;">) \
+                    .find_element_by_xpath(</span><span style="color: #800000;">"</span><span style="color: #800000;">span[@value={0} and @class!='end page']</span><span style="color: #800000;">"</span><span style="color: #000000;">.format(x)) \
+                    .get_attribute(</span><span style="color: #800000;">"</span><span style="color: #800000;">class</span><span style="color: #800000;">"</span>).find(<span style="color: #800000;">"</span><span style="color: #800000;">at</span><span style="color: #800000;">"</span>) != -1<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存抓取到的html内容</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 保存到html目录下</span>
+    with open(<span style="color: #800000;">"</span><span style="color: #800000;">./htmls/{0}.txt</span><span style="color: #800000;">"</span>.format(x),<span style="color: #800000;">"</span><span style="color: #800000;">wb</span><span style="color: #800000;">"</span><span style="color: #000000;">) as f:
+      f.write(driver.find_element_by_id(</span><span style="color: #800000;">"</span><span style="color: #800000;">tableDiv</span><span style="color: #800000;">"</span>).get_attribute(<span style="color: #800000;">"</span><span style="color: #800000;">innerHTML</span><span style="color: #800000;">"</span>).encode(<span style="color: #800000;">"</span><span style="color: #800000;">utf8</span><span style="color: #800000;">"</span><span style="color: #000000;">))
+      f.close()</span></pre>
+</div>
+<p>函数是有2个参数：一个开始页码，一个结束页码，也就是从第start页，到第end页。</p>
+<p>这2个参数实际上也是<code>range</code>。</p>
+<p>改造<code>getData()</code>函数如下（参数不同了）：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 循环抓取网页内容的函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> getData(myrange):
+  </span><span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span><span style="color: #000000;"> myrange:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 去第几页 输入框</span>
+    tonum = driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">tonum</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 去第几页 提交按钮</span>
+    jumpBtn = driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">btn_jump</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    tonum.clear() </span><span style="color: #008000;">#</span><span style="color: #008000;"> 第x页 输入框</span>
+    tonum.send_keys(str(x)) <span style="color: #008000;">#</span><span style="color: #008000;"> 去第x页</span>
+    jumpBtn.click() <span style="color: #008000;">#</span><span style="color: #008000;"> 点击按钮</span>
+    WebDriverWait(driver, 20).until(<span style="color: #0000ff;">lambda</span> driver: driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">pager</span><span style="color: #800000;">"</span><span style="color: #000000;">) \
+                    .find_element_by_xpath(</span><span style="color: #800000;">"</span><span style="color: #800000;">span[@value={0} and @class!='end page']</span><span style="color: #800000;">"</span><span style="color: #000000;">.format(x)) \
+                    .get_attribute(</span><span style="color: #800000;">"</span><span style="color: #800000;">class</span><span style="color: #800000;">"</span>).find(<span style="color: #800000;">"</span><span style="color: #800000;">at</span><span style="color: #800000;">"</span>) != -1<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存抓取到的html内容</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 保存到html目录下</span>
+    with open(<span style="color: #800000;">"</span><span style="color: #800000;">./htmls/{0}.txt</span><span style="color: #800000;">"</span>.format(x),<span style="color: #800000;">"</span><span style="color: #800000;">wb</span><span style="color: #800000;">"</span><span style="color: #000000;">) as f:
+      f.write(driver.find_element_by_id(</span><span style="color: #800000;">"</span><span style="color: #800000;">tableDiv</span><span style="color: #800000;">"</span>).get_attribute(<span style="color: #800000;">"</span><span style="color: #800000;">innerHTML</span><span style="color: #800000;">"</span>).encode(<span style="color: #800000;">"</span><span style="color: #800000;">utf8</span><span style="color: #800000;">"</span><span style="color: #000000;">))
+      f.close()</span></pre>
+</div>
+<p>3、创建进程，把target设置为上面的<code>getData()</code>：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 初始range</span>
+r = range(1,int(total_page)+1<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 步长</span>
+step = 10<span style="color: #000000;">
+myList </span>= [r[x:x+step] <span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span> range(0,len(r),step)] <span style="color: #008000;">#</span><span style="color: #008000;"> 把页面分段</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 创建进程</span>
+processList =<span style="color: #000000;"> []
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">"</span><span style="color: #800000;">__main__</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+  </span><span style="color: #0000ff;">for</span> r <span style="color: #0000ff;">in</span><span style="color: #000000;"> myList:
+    p </span>= Process(target=getData,args=<span style="color: #000000;">(r,))
+    processList.append(p)
+  </span><span style="color: #008000;">#</span><span style="color: #008000;"> 开始执行进程</span>
+  <span style="color: #0000ff;">for</span> p <span style="color: #0000ff;">in</span><span style="color: #000000;"> processList:
+    p.start()</span></pre>
+</div>
+<p>这样就有三个进程分别抓取。</p>
+<p>4、多进程抓取基金网站多页内容完全代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+</span><span style="color: #0000ff;">from</span> selenium.webdriver.support.ui <span style="color: #0000ff;">import</span><span style="color: #000000;"> WebDriverWait
+</span><span style="color: #0000ff;">from</span> selenium.webdriver.support <span style="color: #0000ff;">import</span><span style="color: #000000;"> expected_conditions
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;"> Process
+driver </span>= webdriver.PhantomJS(executable_path=r<span style="color: #800000;">"</span><span style="color: #800000;">你phantomjs的可执行文件路径</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 请求一个网址</span>
+driver.get(<span style="color: #800000;">"</span><span style="color: #800000;">http://fund.eastmoney.com/fund.html</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+page_text </span>= driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">pager</span><span style="color: #800000;">"</span>).find_element_by_xpath(<span style="color: #800000;">"</span><span style="color: #800000;">span[@class='nv']</span><span style="color: #800000;">"</span><span style="color: #000000;">).text
+total_page </span>= <span style="color: #800000;">''</span>.join(filter(str.isdigit,page_text)) <span style="color: #008000;">#</span><span style="color: #008000;"> 得到总共有多少页</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 循环抓取网页内容的函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> getData(myrange):
+  </span><span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span><span style="color: #000000;"> myrange:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 去第几页 输入框</span>
+    tonum = driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">tonum</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 去第几页 提交按钮</span>
+    jumpBtn = driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">btn_jump</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    tonum.clear() </span><span style="color: #008000;">#</span><span style="color: #008000;"> 第x页 输入框</span>
+    tonum.send_keys(str(x)) <span style="color: #008000;">#</span><span style="color: #008000;"> 去第x页</span>
+    jumpBtn.click() <span style="color: #008000;">#</span><span style="color: #008000;"> 点击按钮</span>
+    WebDriverWait(driver, 20).until(<span style="color: #0000ff;">lambda</span> driver: driver.find_element_by_id(<span style="color: #800000;">"</span><span style="color: #800000;">pager</span><span style="color: #800000;">"</span><span style="color: #000000;">) \
+                    .find_element_by_xpath(</span><span style="color: #800000;">"</span><span style="color: #800000;">span[@value={0} and @class!='end page']</span><span style="color: #800000;">"</span><span style="color: #000000;">.format(x)) \
+                    .get_attribute(</span><span style="color: #800000;">"</span><span style="color: #800000;">class</span><span style="color: #800000;">"</span>).find(<span style="color: #800000;">"</span><span style="color: #800000;">at</span><span style="color: #800000;">"</span>) != -1<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存抓取到的html内容</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 保存到html目录下</span>
+    with open(<span style="color: #800000;">"</span><span style="color: #800000;">./htmls/{0}.txt</span><span style="color: #800000;">"</span>.format(x),<span style="color: #800000;">"</span><span style="color: #800000;">wb</span><span style="color: #800000;">"</span><span style="color: #000000;">) as f:
+      f.write(driver.find_element_by_id(</span><span style="color: #800000;">"</span><span style="color: #800000;">tableDiv</span><span style="color: #800000;">"</span>).get_attribute(<span style="color: #800000;">"</span><span style="color: #800000;">innerHTML</span><span style="color: #800000;">"</span>).encode(<span style="color: #800000;">"</span><span style="color: #800000;">utf8</span><span style="color: #800000;">"</span><span style="color: #000000;">))
+      f.close()
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 初始range</span>
+r = range(1,int(total_page)+1<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 步长</span>
+step = 10<span style="color: #000000;">
+myList </span>= [r[x:x+step] <span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span> range(0,len(r),step)] <span style="color: #008000;">#</span><span style="color: #008000;"> 把页面分段</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 创建进程</span>
+processList =<span style="color: #000000;"> []
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">"</span><span style="color: #800000;">__main__</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+  </span><span style="color: #0000ff;">for</span> r <span style="color: #0000ff;">in</span><span style="color: #000000;"> myList:
+    p </span>= Process(target=getData,args=<span style="color: #000000;">(r,))
+    processList.append(p)
+  </span><span style="color: #008000;">#</span><span style="color: #008000;"> 开始执行进程</span>
+  <span style="color: #0000ff;">for</span> p <span style="color: #0000ff;">in</span><span style="color: #000000;"> processList:
+    p.start()</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

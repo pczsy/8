@@ -1,0 +1,251 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【原创】这道Java基础题真的有坑！我也没想到还有续集。' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【原创】这道Java基础题真的有坑！我也没想到还有续集。</center></div><div class='banquan'>原文出处:本文由博客园博主why技术提供。<br/>
+原文连接:https://www.cnblogs.com/thisiswhy/p/12072467.html</div><br>
+    <h1 class="pgc-h-arrow-right" data-pm-slice="0 0 []">前情回顾</h1>
+<p>自从我上次发了《这道Java基础题真的有坑！我求求你，认真思考后再回答。》这篇文章后。我通过这样的一个行文结构：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。0.png" alt="" data-ic="false" data-width="600" data-height="566" data-ic-uri="" /></div>
+<p>解析了小马哥出的这道题，让大家明白了这题的坑在哪里，这题背后隐藏的知识点是什么。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。1.png" alt="" data-ic="false" data-width="236" data-height="203" data-ic-uri="" /></div>
+<p>但是我是万万没想到啊，这篇文章居然还有续集。因为有很多读者给我留言，问我为什么？怎么回事？啥情况？</p>
+<p><strong>问题片段一：到底循环几次?</strong></p>
+<p>有很多读者针对文章的下面的这个片段：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。2.png" alt="" data-ic="false" data-width="627" data-height="975" data-ic-uri="" /></div>
+<p>来问了一些问题：为什么会循环三次？循环二次？循环一次？</p>
+<p>源码看的脑袋疼。那我觉得我需要"拯救"一下这个哥们了。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。3.png" alt="" data-ic="false" data-width="607" data-height="145" data-ic-uri="" /></div>
+<p><strong>问题片段二:为什么删除第一个不出错?</strong></p>
+<p>还有这个片段，对于为什么删除第一个元素不会抛出异常，也是一众选手，不明就里：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。4.png" alt="" data-ic="false" data-width="659" data-height="492" data-ic-uri="" /></div>
+<p>为什么？为什么没有问题啊？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。5.png" alt="" data-ic="false" data-width="348" data-height="308" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。6.png" alt="" data-ic="false" data-width="930" data-height="537" data-ic-uri="" /></div>
+<h1 class="pgc-h-arrow-right">提炼问题</h1>
+<p>上面看着有点乱是不是呢？</p>
+<p>那肯定是你没看过我这篇文章《这道Java基础题真的有坑！我求求你，认真思考后再回答。》。没关系，我先把问题提炼出来，然后有兴趣你可以再去看看这篇文章。</p>
+<p>在描述问题之前，需要说明一下，为了方便演示说明，我会去掉Java的foreach语法糖，直接替换为编译后的代码，如下:</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。7.png" alt="" data-ic="false" data-width="675" data-height="403" data-ic-uri="" /></div>
+<p>请坐稳扶好，下面的几个问题有点绕。主要是看图，先知道这几个现象。之后我还会把问题再简化一下。</p>
+<p>问题一:如图所示，为什么删除第一个元素(公众号)可以正常执行，删除第二个元素(why技术)就会抛出异常呢？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。8.png" alt="" data-ic="false" data-width="608" data-height="497" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。9.png" alt="" data-ic="false" data-width="734" data-height="560" data-ic-uri="" /></div>
+<p>问题二:为什么当集合大小大于2时，删除第一个元素(公众号)也抛出了异常？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。10.png" alt="" data-ic="false" data-width="725" data-height="573" data-ic-uri="" /></div>
+<p>问题三:为什么删除倒数第二个元素可以正常执行？删除倒数第二个元素以外的任意元素就会抛出异常？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。11.png" alt="" data-ic="false" data-width="666" data-height="564" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。12.png" alt="" data-ic="false" data-width="741" data-height="639" data-ic-uri="" /></div>
+<p>问题四:为什么在删除完成之后立即break，则可以删除任意元素呢？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。13.png" alt="" data-ic="false" data-width="664" data-height="573" data-ic-uri="" /></div>
+<p>问题五:如图所示，为什么注释掉判断语句直接remove("why技术")不会报错，而加上判断语句就报错了呢？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。14.png" alt="" data-ic="false" data-width="621" data-height="498" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。15.png" alt="" data-ic="false" data-width="745" data-height="573" data-ic-uri="" /></div>
+<p>问题六:为什么判断"why技术"并remove的时候循环三次？为什么注释掉remove只循环两次？为什么判断"公众号"并remove的时候只循环一次？</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。16.png" alt="" data-ic="false" data-width="719" data-height="559" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。17.png" alt="" data-ic="false" data-width="604" data-height="517" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。18.png" alt="" data-ic="false" data-width="600" data-height="495" data-ic-uri="" /></div>
+<p>我再把问题汇总一下，你瞟一眼就行，不用细读：</p>
+<blockquote class="js_blockquote_wrap">
+<p><strong>问题一:</strong>当集合大小等于2时，为什么删除第一个元素(公众号)可以正常执行，删除第二个元素(why技术)就会抛出异常呢？</p>
+<p><strong>问题二:</strong>为什么当集合大小大于2时，删除第一个元素(公众号)也抛出了异常？</p>
+<p><strong>问题三:</strong>为什么删除倒数第二个元素可以正常执行？删除倒数第二个元素以外的任意元素就会抛出异常？</p>
+<p><strong>问题四:</strong>为什么在删除完成之后立即break，则可以删除任意元素不会报错呢？</p>
+<p><strong>问题五:</strong>为什么注释掉判断语句直接remove(why技术)不会报错，而加上判断语句就报错了呢？</p>
+<p><strong>问题六:</strong>为什么判断"why技术"并remove的时候循环三次？为什么注释掉remove只循环两次？为什么判断"公众号"并remove的时候只循环一次？</p>
+</blockquote>
+<p>晕不晕？</p>
+<p>不要晕。上面我只是为了把各种情况都执行一下，然后截图出来，方便大家有个直观的理解。其实，上面的这六个问题，我在看来就只有两个问题：</p>
+<blockquote class="js_blockquote_wrap">
+<p>1.当前循环会执行几次？</p>
+<p>2.为什么会抛出异常？</p>
+</blockquote>
+<p>而这两个问题中的第二个问题【为什么会抛出异常？】我已经在《这道Java基础题真的有坑！我求求你，认真思考后再回答。》这篇文章中进行了十分详尽的解答。所以，就不在这篇文章中讨论了。</p>
+<p>那么，现在就只剩下一个问题了:<strong>当前循环会执行几次?</strong></p>
+<p>本文会围绕这个问题进行展开，当你明白这个问题后，上面的所有问题都迎刃而解了。</p>
+<h1 class="pgc-h-arrow-right">明确分析程序</h1>
+<p>我们就拿下面这个程序来进行分析：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。19.png" alt="" data-ic="false" data-width="733" data-height="565" data-ic-uri="" /></div>
+<p>我写文章之前，在Debug模式下碰到了一些不是程序导致的意外bug(我怀疑是jdk或idea版本的问题)，我最后会讲一下，而且我觉得Debug模式也不太好对这个问题进行直观的文字描述，需要截取大量图片，这样不太方便阅读。所以为了更好的解释这个问题，更加方便大家阅读，我们先进行几个"骚"操作，对程序进行一下改造。&nbsp;</p>
+<p>正如上图红色粗线框起来的代码所示。由于这个循环体循环几次是由while里面的条件hasNext()方法，即【cursor!=size】这个条件决定的。</p>
+<p>hasNext()方法是ArrayList中一个叫做Itr内部类中的一个方法。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。20.png" alt="" data-ic="false" data-width="707" data-height="275" data-ic-uri="" /></div>
+<p>如果我们能把hasNext()方法修改成这个样子，加上几行输出，对于我们的分析来说简直完美，直观，漂亮。（Java程序员确实是靠日志活着。）</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。21.png" alt="" data-ic="false" data-width="546" data-height="171" data-ic-uri="" /></div>
+<p>这里我们就不去编译一套JDK然后修改源码了，可以投机取个巧，和我之前的文章中说的一样，我们自定义一个ArrayList。</p>
+<p><strong>改造点一:自定义ArrayList</strong></p>
+<p>我们怎么自定义ArrayList呢？</p>
+<p>首先，我们的需求是为了演示问题方便，但是我们的前提是得保证实验对象的一致性，换句话说就是：我们自定义的ArrayList需要和JDK的ArrayList的实现，一模一样，只是换个名称而已。</p>
+<p>所以，我们直接把JDK的ArrayList拷贝一份出来并修改一个名字即可。</p>
+<p>直接拷贝一个ArrayList过来后你发现会有报错的地方：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。22.png" alt="" data-ic="false" data-width="284" data-height="136" data-ic-uri="" /></div>
+<p>具体报错的信息如下：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。23.png" alt="" data-ic="false" data-width="639" data-height="367" data-ic-uri="" /></div>
+<p>并不影响我们这次的测试。所以直接注释掉相关报错的地方。为了便于区分，我们修改名称为WhyArrayList，并修改对应的代码：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。24.png" alt="" data-ic="false" data-width="284" data-height="131" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。25.png" alt="" data-ic="false" data-width="764" data-height="342" data-ic-uri="" /></div>
+<p>到这一步我们自定义的ArrayList就算是改造完成了。只需要把他用起来即可，怎么用，很简单，替换原来的ArrayList即可，如下图所示(如果不清晰，可以点看看大图哦)：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。26.png" alt="" data-ic="false" data-width="1025" data-height="702" data-ic-uri="" /></div>
+<p>但是我觉得输出的日志还是不够清晰，直观。我想要直接输出当前是第几次循环，如下：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。27.png" alt="" data-ic="false" data-width="895" data-height="176" data-ic-uri="" /></div>
+<p>那我们怎么实现呢？这就是我们的第二个改造点了。</p>
+<p><strong>改造点二:自定义Iterator</strong></p>
+<p>要实现上面的日志输出我们很容易能想到第一个修改点，如下：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。28.png" alt="" data-ic="false" data-width="719" data-height="330" data-ic-uri="" /></div>
+<p>现在我们的问题是怎么把loopTime(循环次数)这个值传进来。直接调用肯定是不行的， Iterator并没有这个方法。可以看看提示：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。29.png" alt="" data-ic="false" data-width="644" data-height="366" data-ic-uri="" /></div>
+<p>那怎么办呢？</p>
+<p>你想啊，Iterator是一个接口，既然它没有这个方法，那我们也就自定义一个WhyIterator继承JDK的Iterator，然后在WhyIterator里面定义我们想要的接口即可：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。30.png" alt="" data-ic="false" data-width="266" data-height="153" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。31.png" alt="" data-ic="false" data-width="554" data-height="207" data-ic-uri="" /></div>
+<p>然后我们在WhyArrayList里面只需要让内部类Itr实现WhyIterator接口即可：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。32.png" alt="" data-ic="false" data-width="773" data-height="425" data-ic-uri="" /></div>
+<p>最后一步，调用起来，修改程序，并执行如下：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。33.png" alt="" data-ic="false" data-width="960" data-height="610" data-ic-uri="" /></div>
+<p>啊，这日志，舒服了！</p>
+<p>接下来，我们进行丧心病狂的第三个改造点：</p>
+<p><strong>改造点三:一步一输出</strong></p>
+<p>这一个改造点，我就不进行详细说明了，授人以鱼不如授人以渔，前面两个改造点你如果会了，那你也能继续改造，得到下面的程序，并搞出一步一输出日志：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。34.png" alt="" data-ic="false" data-width="952" data-height="759" data-ic-uri="" /></div>
+<p>上面这图，就是我们最后需要分析的程序和日志了。</p>
+<p>如果你对于得到上面的输出还是有点困难的话，你可以在文末找到我的git地址，我把程序都上传到了git上。</p>
+<h1 class="pgc-h-arrow-right">真相已经摆在眼前了</h1>
+<p>其实你想一想，还用分析吗？经过上面的三个"骚"操作后，真相已经摆在眼前了。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。3.png" alt="" data-ic="false" data-width="607" data-height="145" data-ic-uri="" /></div>
+<p>以这位读者的问题举例.</p>
+<p>第一个问题：<strong>为什么判断"why技术"并remove的时候循环三次？</strong></p>
+<p>你品一品这个输出，这就是真相呀！为什么会循环三次，一目了然了啊！</p>
+<blockquote class="js_blockquote_wrap">
+<p>【第1次循环】cursor=0,size=2,判定结果:true</p>
+<p>【第1次循环】var3.next方法被调用cursor进行加一操作</p>
+<p>&nbsp;</p>
+<p>【第2次循环】cursor=1,size=2,判定结果:true</p>
+<p>【第2次循环】var3.next方法被调用cursor进行加一操作</p>
+<p>【第2次循环】list.remove方法被调用size进行减一操作</p>
+<p>【第3次循环】cursor=2,size=1,判定结果:true</p>
+</blockquote>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。36.png" alt="" data-ic="false" data-width="500" data-height="324" data-ic-uri="" /></div>
+<p>再回答另外一个问题：<strong>为什么注释掉remove只循环两次？</strong></p>
+<p>你再品一品这个输出：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。37.png" alt="" data-ic="false" data-width="567" data-height="426" data-ic-uri="" /></div>
+<p>第三个问题：<strong>为什么判断"公众号"并remove的时候只循环一次？</strong></p>
+<p>继续品这个输出：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。38.png" alt="" data-ic="false" data-width="643" data-height="516" data-ic-uri="" /></div>
+<p><strong>致命一问，灵魂一击</strong></p>
+<p>对于之前列举的其他问题，你有没有发现其实有很多共同的地方，但是我故意扰乱了你的判断，你仔细读这几个问题：</p>
+<blockquote class="js_blockquote_wrap">
+<p>当集合大小等于2时，为什么删除第一个元素(公众号)可以正常执行？</p>
+<p>当集合大小大于2时，删除第一个元素(公众号)也抛出了异常？</p>
+<p>为什么删除倒数第二个元素可以正常执行？</p>
+</blockquote>
+<p>上面的三个问题其实是在说一个问题，你发现了吗？</p>
+<p><strong>当集合大小等于2时第一个元素(公众号)，是不是就是倒数第二个元素？！</strong></p>
+<p>恍然大悟有没有？</p>
+<p>再看一个示例：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。39.png" alt="" data-ic="false" data-width="576" data-height="435" data-ic-uri="" /></div>
+<p>下图是上面示例的输出：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。40.png" alt="" data-ic="false" data-width="421" data-height="258" data-ic-uri="" /></div>
+<p>敲黑板，数学推理来了：</p>
+<p><strong>在单线程的情况下，只要你的ArrayList集合大小大于等于2(假设大小为n，即size=n)，你删除倒数第二个元素的时候，cursor从0进行了n-1次的加一操作，size(即n)进行了一次减1的操作,所以n-1=n-1，即cursor=size。</strong></p>
+<p><strong>因为判断条件返回为fales，虽然你的modCount变化了。但是不会进入下次循环，就不会触发modCount和expectedModCount的检查，也就不会抛出ConcurrentModifyException.</strong></p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。41.png" alt="" data-ic="false" data-width="484" data-height="103" data-ic-uri="" /></div>
+<p>所以这个问题我也就回答了。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。42.png" alt="" data-ic="false" data-width="310" data-height="67" data-ic-uri="" /></div>
+<h1 class="pgc-h-arrow-right">意外收获</h1>
+<p>我在写文章的过程中，还有意外收获。就是一个读者提出的这个问题：为什么迭代器里面的hasNext()里面要用!=来判断index和size之间的关系，而不是用&lt;符号呢。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。43.png" alt="" data-ic="false" data-width="253" data-height="97" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。44.png" alt="" data-ic="false" data-width="668" data-height="583" data-ic-uri="" /></div>
+<p>当时我并没有留意到这个问题，我觉得就是都可以，无关紧要。但是写的时候我突然想明白了，这可不是无关紧要的事，这地方必须是 【!=】。</p>
+<p>我给你看个表格：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。45.png" alt="" data-ic="false" data-width="428" data-height="121" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。46.png" alt="" data-ic="false" data-width="970" data-height="648" data-ic-uri="" /></div>
+<p>在上面的程序中我把判断条件改为了【cursor&lt;size】，当执行到第三次循环，cursor=2，size=1时。用cursor&lt;size返回的是false，则不会继续循环，所以不会触发fail-fast机制。如果用cursor!=size返回的是true，会继续执行循环，所以会触发检查modCount的操作，触发fail-fast机制。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。47.png" alt="" data-ic="false" data-width="940" data-height="1452" data-ic-uri="" /></div>
+<p>正如我截图中说的：这里用【!=】判断，是符合它的语境的。用迭代器循环的时候，循环结束的条件就是循环到最后一个元素就停止循环。但是这一条件的前提是在我循环的过程中，集合大小是固定的。如果集合大小发生了变化，那就会触发fail-fast机制。</p>
+<h1 class="pgc-h-arrow-right">智子封锁:Debug下的问题</h1>
+<p>说到这个问题，我真的觉得我被智子封锁了，我开始理解那些科学家为什么要自杀了。如果你读过《三体》，你知道我在说什么。</p>
+<p>不论是用我们自定义的WhyArrayList还是JDK的ArrayList结果都是一样的，为了结果的直观，我用WhyArrayList给你演示一下：</p>
+<p>第一步是没有问题的：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。48.png" alt="" data-ic="false" data-width="589" data-height="346" data-ic-uri="" /></div>
+<p>但是当进入第一次循环，cursor=1，return之前又变成了2。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。49.png" alt="" data-ic="false" data-width="780" data-height="353" data-ic-uri="" /></div>
+<p>所以程序在Debug模式下的输出变成了这样：</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。50.png" alt="" data-ic="false" data-width="597" data-height="566" data-ic-uri="" /></div>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。51.png" alt="" data-ic="false" data-width="500" data-height="363" data-ic-uri="" /></div>
+<p>我的Idea版本是：IntelliJ IDEA 2019.2.4 (Ultimate Edition)</p>
+<p>我的JDK版本信息如下：</p>
+<blockquote class="js_blockquote_wrap">
+<p>openjdk version "1.8.0_212"</p>
+<p>OpenJDK Runtime Environment (AdoptOpenJDK)(build 1.8.0_212-b03)</p>
+<p>OpenJDK 64-Bit Server VM (AdoptOpenJDK)(build 25.212-b03, mixed mode)</p>
+</blockquote>
+<p>如果你也碰到过，你知道是怎么情况，请你告诉我究竟是怎么回事，是不是计划的一部分。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。52.png" alt="" data-ic="false" data-width="480" data-height="480" data-ic-uri="" /></div>
+<h1 class="pgc-h-arrow-right">扩展阅读</h1>
+<p><strong>本文前传</strong></p>
+<p>答应我，如果你不知道这个知识点，想完全掌握的话，一定要去读一读本文的前传《这道Java基础题真的有坑！我求求你，认真思考后再回答。》。两篇文章合计一起食用，味道更佳。</p>
+<p><strong>本文代码</strong></p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。53.png" alt="" data-ic="false" data-width="812" data-height="537" data-ic-uri="" /></div>
+<p>本文的源码我已经上传到git上了，git地址如下：</p>
+<blockquote class="js_blockquote_wrap">
+<p>git&nbsp;clone&nbsp;git@github.com:thisiswanghy/WhyArrayList.git</p>
+</blockquote>
+<p><strong>fail-fast机制和fail-safe机制</strong></p>
+<p>文中多次提到了"fail-fast"机制(快速失败)，与其对应的还有"fail-safe"机制(失败安全)。</p>
+<p>这种机制是一种思想，它不仅仅是体现在Java的集合中。在我们常用的rpc框架Dubbo中，在集群容错时也有相关的实现。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。54.png" alt="" data-ic="false" data-width="614" data-height="309" data-ic-uri="" /></div>
+<p>Dubbo 主要提供了这样几种容错方式：</p>
+<blockquote class="js_blockquote_wrap">
+<p>Failover&nbsp;Cluster&nbsp;-&nbsp;失败自动切换&nbsp;&nbsp;</p>
+<p>Failfast&nbsp;Cluster&nbsp;-&nbsp;快速失败&nbsp;&nbsp;</p>
+<p>Failsafe&nbsp;Cluster&nbsp;-&nbsp;失败安全&nbsp;&nbsp;</p>
+<p>Failback&nbsp;Cluster&nbsp;-&nbsp;失败自动恢复&nbsp;&nbsp;</p>
+<p>Forking&nbsp;Cluster&nbsp;-&nbsp;并行调用多个服务提供者</p>
+</blockquote>
+<p>如果对这两种机制感兴趣的朋友可以查阅相关资料，进行了解。如果想要了解Dubbo的集群容错机制，可以看官方文档，地址如下：</p>
+<blockquote class="js_blockquote_wrap">
+<p>http://dubbo.apache.org/zh-cn/docs/source_code_guide/cluster.html</p>
+</blockquote>
+<p><strong>Java语法糖</strong></p>
+<p>文中说到foreach循环的时候提到了Java的语法糖。如果对这一块有兴趣的读者，可以在网上查阅相关资料，也可以看看《深入理解Java虚拟机》的第10.3节，有专门的介绍。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。55.png" alt="" data-ic="false" data-width="532" data-height="171" data-ic-uri="" /></div>
+<p>书中说到:</p>
+<blockquote class="js_blockquote_wrap">
+<p>总而言之，语法糖可以看做是编译器实现的一些&ldquo;小把戏&rdquo;，这些&ldquo;小把戏&rdquo;可能会使得效率&ldquo;大提升&rdquo;，但我们也应该去了解这些&ldquo;小把戏&rdquo;背后的真实世界，那样才能利用好它们，而不是被它们所迷惑。</p>
+</blockquote>
+<p><strong>阿里Java开发手册</strong></p>
+<p>阿里Java开发手册中也有对该问题的描述，强制要求：</p>
+<blockquote class="js_blockquote_wrap">
+<p>不要在foreach循环里面进行元素的remove/add操作。remove元素请使用Iterator方式，如果并发操作，需要对Iterator对象加锁。</p>
+</blockquote>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。56.png" alt="" data-ic="false" data-width="524" data-height="342" data-ic-uri="" /></div>
+<p>阿里的孤尽大佬作为主要作者写的这本《阿里Java开发手册》，可以说是呕心沥血推出的业界权威，非常值得阅读。读完此书，你不仅能够获得很多干货，甚至你还能读出一点技术情怀在里面。</p>
+<p>对于技术情怀，孤尽大佬是这样的说的：</p>
+<p>热爱、思考、卓越。热爱是一种源动力，而思考是一个过程，而卓越是一个结果。如果给这三个词加一个定语，使技术情怀更加立体、清晰地被解读，那就是奉献式的热爱，主动式的思考，极致式的卓越。</p>
+<p>关注公众号并回复关键字【Java】。即可获得此书的电子版。</p>
+<h1 class="pgc-h-arrow-right">最后说一句</h1>
+<p>如果你之前对于这个知识点掌握的不牢固，读完这篇文章之后你会知道有这么一个知识点，但是仅仅是知道，不是一个十分具化的印象。只有你实际的操作一下之后，才能算是掌握了，源码会刻在你的潜意识里面。久久不会忘记。这部分现在对我来说，我输出了共计1万3千多字的文章，在我的脑海中固若金汤。</p>
+<p>所以我个人建议，最好再去实际操作一下吧。git地址我前面给你了。</p>
+<p>再推销一下我公众号：对于写文章，其实想到写什么内容并不难，难的是你对内容的把控。关于技术性的语言，我是反复推敲，查阅大量文章来进行证伪，总之<strong>慎言慎言再慎言，</strong>毕竟做技术，我认为是一件非常严谨的事情，我常常想象自己就是在故宫修文物的工匠，在工匠精神的认知上，目前我可能和他们还差的有点远，但是我时常以工匠精神要求自己。就像我之前表达的：对于技术文章（因为我偶尔也会荒腔走板的聊一聊生活，写一写书评，影评），我尽量保证周推，全力保证质量。<strong>坚持输出原创。</strong></p>
+<p>才疏学浅，难免会有纰漏，如果你发现了错误的地方，还请你留言给我指出来，我对其加以修改。<br />以上。<br />谢谢您的阅读，感谢您的关注。</p>
+<div class="pgc-img"><img src="./images/【原创】这道Java基础题真的有坑！我也没想到还有续集。57.png" alt="" data-ic="false" data-width="258" data-height="258" data-ic-uri="" /></div>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

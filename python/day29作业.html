@@ -1,0 +1,118 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修day29作业' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>day29作业</center></div><div class='banquan'>原文出处:本文由博客园博主SetCreed提供。<br/>
+原文连接:https://www.cnblogs.com/setcreed/p/11722122.html</div><br>
+    <h1 id="写一个基于tcp协议套接字服务端实现接收客户端的连接并发">写一个基于TCP协议套接字，服务端实现接收客户端的连接并发。</h1>
+<h2 id="多进程实现">多进程实现</h2>
+<p>服务端：</p>
+<pre><code><code>from multiprocessing import Process
+import socket
+
+
+def task(conn, addr):
+    while True:
+        try:
+            data = conn.recv(1024)
+            if not data:
+                break
+            print(addr)
+            print(data.decode(&#39;utf-8&#39;))
+            conn.send(data.upper())
+
+        except Exception:
+            break
+
+
+if __name__ == &#39;__main__&#39;:
+    server = socket.socket()
+    server.bind((&#39;127.0.0.1&#39;, 9999))
+    server.listen(5)
+    while True:
+
+        conn, addr = server.accept()
+        print(addr)
+        p = Process(target=task, args=(conn, addr))
+        p.start()
+</code></pre>
+<p>客户端</p>
+<pre><code><code>
+import socket
+
+client = socket.socket()
+client.connect((&#39;127.0.0.1&#39;, 9999))
+
+while True:
+    send_msg = input(&#39;客户端：&#39;)
+    if send_msg == &#39;q&#39;:
+        break
+
+    client.send(send_msg.encode(&#39;utf-8&#39;))
+
+    data = client.recv(1024)
+    print(data.decode(&#39;utf-8&#39;))</code></pre>
+<h2 id="多线程实现">多线程实现</h2>
+<p>服务端：</p>
+<pre><code><code>import socket
+from threading import Thread
+
+server = socket.socket()
+server.bind((&#39;127.0.0.1&#39;, 9999))
+server.listen(5)
+
+
+def task(conn):
+    while True:
+        data = conn.recv(1024)
+        if len(data) == 0:
+            continue
+
+        print(data.decode(&#39;utf-8&#39;))
+
+        conn.send(data.upper())
+
+
+if __name__ == &#39;__main__&#39;:
+    while True:
+        conn, addr = server.accept()
+        print(addr)
+
+        t = Thread(target=task, args=(conn,))
+        t.start()
+</code></pre>
+<p>客户端：</p>
+<pre><code><code>import socket
+
+client = socket.socket()
+client.connect((&#39;127.0.0.1&#39;, 9999))
+
+while True:
+    send_msg = input(&#39;客户端：&#39;)
+    if send_msg == &#39;q&#39;:
+        break
+
+    client.send(send_msg.encode(&#39;utf-8&#39;))
+
+    data = client.recv(1024)
+    print(data.decode(&#39;utf-8&#39;))</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,199 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【Python3爬虫】我爬取了七万条弹幕，看看RNG和SKT打得怎么样' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【Python3爬虫】我爬取了七万条弹幕，看看RNG和SKT打得怎么样</center></div><div class='banquan'>原文出处:本文由博客园博主TM0831提供。<br/>
+原文连接:https://www.cnblogs.com/TM0831/p/11706309.html</div><br>
+    <h2>一、写在前面</h2>
+<p>　　直播行业已经火热几年了，几个大平台也有了各自独特的&ldquo;弹幕文化&rdquo;，不过现在很多平台直播比赛时的弹幕都基本没法看的，主要是因为网络上的喷子还是挺多的，尤其是在观看比赛的时候，很多弹幕不是喷选手就是喷战队，如果看了这种弹幕，真是让比赛减分不少。</p>
+<p>　　<img src="./images/【Python3爬虫】我爬取了七万条弹幕，看看RNG和SKT打得怎么样0.png" alt="" /></p>
+<p>　　但和别的平台比起来，B 站的弹幕会好一些。正好现在是英雄联盟的世界总决赛时间，也有不少人选择在 B 站看比赛直播，那么大家在看直播的时候会发什么弹幕呢？话不多说，这就用 Python 写个爬虫来爬取 B 站直播时的弹幕吧！</p>
+<p>&nbsp;</p>
+<h2>二、爬取分析</h2>
+<p>　　首先打开 <a href="https://www.bilibili.com/" target="_blank">Bilibili</a>，然后找到英雄联盟比赛的直播间：</p>
+<p>　　<img src="./images/【Python3爬虫】我爬取了七万条弹幕，看看RNG和SKT打得怎么样1.png" alt="" /></p>
+<p>　　我得到的直播间的链接为：<a href="https://live.bilibili.com/6?broadcast_type=0&amp;visit_id=8abcmywu95s0#/" target="_blank">https://live.bilibili.com/6?broadcast_type=0&amp;visit_id=8abcmywu95s0#/</a>，这个链接中的 broadcast_type 和 visit_id 是随机生成的，不过对我们的爬取也没影响，只要找到直播间的链接就好了。</p>
+<p>　　打开开发者工具，切换到 NetWork，点选上 XHR，在其中能找到一个请求：https://api.live.bilibili.com/ajax/msg。这个请求需要四个参数（roomid，csrf_token，csrf，visit_id），其中 roomid 为直播间的 id，csrf_token 和 csrf 可以从浏览器上 copy，visit_id 为空。该请求返回的结果中包含十条弹幕信息，包括弹幕内容、弹幕发送人昵称等等。所以要获得更多弹幕内容，我们只需要一直发送这个请求就 OK 了！</p>
+<p>&nbsp;</p>
+<h2>三、爬取实现</h2>
+<p>　　通过前面的分析可以发现要爬取 B 站直播弹幕还是很轻松的，但是要得到大量弹幕可能就需要考虑使用多线程了。对于爬取到的弹幕，还要及时地保存下来，这里我选择使用 MongoDB 数据库来保存弹幕信息。在爬取直播弹幕的时候，我开了四个线程来爬取，开了两个线程来解析和保存数据，线程之间使用队列来处理数据。</p>
+<p>　　这里建了两个类 CrawlThread 和 ParseThread，CrawThread 是用于爬取弹幕的线程，ParseThread 是用于解析和保存弹幕的线程，两个类都继承了 threading.Thread，并重写了 run() 方法。下面是爬取弹幕的代码内容：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> CrawlThread(threading.Thread):
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, url: str, name: str, data_queue: Queue):
+</span><span style="color: #008080;"> 3</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 4</span> <span style="color: #800000;">        initial function
+</span><span style="color: #008080;"> 5</span> <span style="color: #800000;">        :param url: room url
+</span><span style="color: #008080;"> 6</span> <span style="color: #800000;">        :param name: thread name
+</span><span style="color: #008080;"> 7</span> <span style="color: #800000;">        :param data_queue: data queue
+</span><span style="color: #008080;"> 8</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 9</span>         super(CrawlThread, self).<span style="color: #800080;">__init__</span><span style="color: #000000;">()
+</span><span style="color: #008080;">10</span>         self.room_url =<span style="color: #000000;"> url
+</span><span style="color: #008080;">11</span>         self.room_id = re.findall(r<span style="color: #800000;">"</span><span style="color: #800000;">/(\d+)\?</span><span style="color: #800000;">"</span><span style="color: #000000;">, url)[0]
+</span><span style="color: #008080;">12</span>         self.headers =<span style="color: #000000;"> {
+</span><span style="color: #008080;">13</span>             <span style="color: #800000;">"</span><span style="color: #800000;">Accept</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">application/json, text/plain, */*</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">14</span>             <span style="color: #800000;">"</span><span style="color: #800000;">Content-Type</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">application/x-www-form-urlencoded</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">15</span>             <span style="color: #800000;">"</span><span style="color: #800000;">Origin</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">https://live.bilibili.com</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">16</span>             <span style="color: #800000;">"</span><span style="color: #800000;">Referer</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span><span style="color: #000000;">,
+</span><span style="color: #008080;">17</span>             <span style="color: #800000;">"</span><span style="color: #800000;">Sec-Fetch-Mode</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">cors</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">18</span>             <span style="color: #800000;">"</span><span style="color: #800000;">UserAgent</span><span style="color: #800000;">"</span><span style="color: #000000;">: get_random_ua()
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">20</span>         self.name =<span style="color: #000000;"> name
+</span><span style="color: #008080;">21</span>         self.data_queue =<span style="color: #000000;"> data_queue
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> run(self):
+</span><span style="color: #008080;">24</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">25</span> <span style="color: #800000;">        send request and receive response
+</span><span style="color: #008080;">26</span> <span style="color: #800000;">        :return:
+</span><span style="color: #008080;">27</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">28</span>         <span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+</span><span style="color: #008080;">29</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+</span><span style="color: #008080;">30</span>                 time.sleep(1<span style="color: #000000;">)
+</span><span style="color: #008080;">31</span>                 msg_url = <span style="color: #800000;">"</span><span style="color: #800000;">https://api.live.bilibili.com/ajax/msg</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">32</span>                 <span style="color: #008000;">#</span><span style="color: #008000;"> set referer</span>
+<span style="color: #008080;">33</span>                 self.headers[<span style="color: #800000;">"</span><span style="color: #800000;">Referer</span><span style="color: #800000;">"</span>] =<span style="color: #000000;"> self.room_url
+</span><span style="color: #008080;">34</span>                 <span style="color: #008000;">#</span><span style="color: #008000;"> set data</span>
+<span style="color: #008080;">35</span>                 data =<span style="color: #000000;"> {
+</span><span style="color: #008080;">36</span>                     <span style="color: #800000;">"</span><span style="color: #800000;">roomid</span><span style="color: #800000;">"</span><span style="color: #000000;">: self.room_id,
+</span><span style="color: #008080;">37</span>                     <span style="color: #800000;">"</span><span style="color: #800000;">csrf_token</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">e7433feb8e629e50c8c316aa52e78cb2</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">38</span>                     <span style="color: #800000;">"</span><span style="color: #800000;">csrf</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">e7433feb8e629e50c8c316aa52e78cb2</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">39</span>                     <span style="color: #800000;">"</span><span style="color: #800000;">visit_id</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span>
+<span style="color: #008080;">40</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">41</span>                 res = requests.post(msg_url, headers=self.headers, data=<span style="color: #000000;">data)
+</span><span style="color: #008080;">42</span>                 self.data_queue.put(res.json()[<span style="color: #800000;">"</span><span style="color: #800000;">data</span><span style="color: #800000;">"</span>][<span style="color: #800000;">"</span><span style="color: #800000;">room</span><span style="color: #800000;">"</span><span style="color: #000000;">])
+</span><span style="color: #008080;">43</span>             <span style="color: #0000ff;">except</span><span style="color: #000000;"> Exception as e:
+</span><span style="color: #008080;">44</span>                 logging.error(self.name, e)</pre>
+</div>
+<p>　　下面是解析和保存弹幕的代码内容，主要是一直查询队列，如果队列中有数据，就取出来进行解析和保存：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ParseThread(threading.Thread):
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, url: str, name: str, data_queue: Queue):
+</span><span style="color: #008080;"> 3</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 4</span> <span style="color: #800000;">        initial function
+</span><span style="color: #008080;"> 5</span> <span style="color: #800000;">        :param url: room url
+</span><span style="color: #008080;"> 6</span> <span style="color: #800000;">        :param name: thread name
+</span><span style="color: #008080;"> 7</span> <span style="color: #800000;">        :param data_queue: data queue
+</span><span style="color: #008080;"> 8</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 9</span>         super(ParseThread, self).<span style="color: #800080;">__init__</span><span style="color: #000000;">()
+</span><span style="color: #008080;">10</span>         self.name =<span style="color: #000000;"> name
+</span><span style="color: #008080;">11</span>         self.data_queue =<span style="color: #000000;"> data_queue
+</span><span style="color: #008080;">12</span>         self.room_id = re.findall(r<span style="color: #800000;">"</span><span style="color: #800000;">/(\d+)\?</span><span style="color: #800000;">"</span><span style="color: #000000;">, url)[0]
+</span><span style="color: #008080;">13</span>         client = pymongo.MongoClient(host=MONGO_HOST, port=<span style="color: #000000;">MONGO_PORT)
+</span><span style="color: #008080;">14</span>         self.col = client[MONGO_DB][MONGO_COL +<span style="color: #000000;"> self.room_id]
+</span><span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> run(self):
+</span><span style="color: #008080;">17</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">18</span> <span style="color: #800000;">        get data from queue
+</span><span style="color: #008080;">19</span> <span style="color: #800000;">        :return:
+</span><span style="color: #008080;">20</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">21</span>         <span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+</span><span style="color: #008080;">22</span>             comments =<span style="color: #000000;"> self.data_queue.get()
+</span><span style="color: #008080;">23</span>             logging.info(<span style="color: #800000;">"</span><span style="color: #800000;">Comment count: {}</span><span style="color: #800000;">"</span><span style="color: #000000;">.format(len(comments)))
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">            self.parse(comments)
+</span><span style="color: #008080;">25</span> 
+<span style="color: #008080;">26</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> parse(self, comments):
+</span><span style="color: #008080;">27</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">28</span> <span style="color: #800000;">        parse comment to get message
+</span><span style="color: #008080;">29</span> <span style="color: #800000;">        :return:
+</span><span style="color: #008080;">30</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">31</span>         <span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span><span style="color: #000000;"> comments:
+</span><span style="color: #008080;">32</span>             comment =<span style="color: #000000;"> {
+</span><span style="color: #008080;">33</span>                 <span style="color: #800000;">"</span><span style="color: #800000;">text</span><span style="color: #800000;">"</span>: x[<span style="color: #800000;">"</span><span style="color: #800000;">text</span><span style="color: #800000;">"</span><span style="color: #000000;">],
+</span><span style="color: #008080;">34</span>                 <span style="color: #800000;">"</span><span style="color: #800000;">time</span><span style="color: #800000;">"</span>: x[<span style="color: #800000;">"</span><span style="color: #800000;">timeline</span><span style="color: #800000;">"</span><span style="color: #000000;">],
+</span><span style="color: #008080;">35</span>                 <span style="color: #800000;">"</span><span style="color: #800000;">username</span><span style="color: #800000;">"</span>: x[<span style="color: #800000;">"</span><span style="color: #800000;">nickname</span><span style="color: #800000;">"</span><span style="color: #000000;">],
+</span><span style="color: #008080;">36</span>                 <span style="color: #800000;">"</span><span style="color: #800000;">user_id</span><span style="color: #800000;">"</span>: x[<span style="color: #800000;">"</span><span style="color: #800000;">uid</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">38</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> print(comment)</span>
+<span style="color: #008080;">39</span> <span style="color: #000000;">            self.save_msg(comment)
+</span><span style="color: #008080;">40</span> 
+<span style="color: #008080;">41</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> save_msg(self, msg: dict):
+</span><span style="color: #008080;">42</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">43</span> <span style="color: #800000;">        save comment to MongoDB
+</span><span style="color: #008080;">44</span> <span style="color: #800000;">        :param msg: comment
+</span><span style="color: #008080;">45</span> <span style="color: #800000;">        :return:
+</span><span style="color: #008080;">46</span>         <span style="color: #800000;">"""</span>
+<span style="color: #008080;">47</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+</span><span style="color: #008080;">48</span> <span style="color: #000000;">            self.col.insert_one(msg)
+</span><span style="color: #008080;">49</span>         <span style="color: #0000ff;">except</span><span style="color: #000000;"> Exception as e:
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">            logging.info(msg)
+</span><span style="color: #008080;">51</span>             logging.error(e)</pre>
+</div>
+<p>　　从比赛开始到比赛结束，总共爬取到了76530条弹幕，在 Robot 3T 中截图如下：</p>
+<p>　　<img src="./images/【Python3爬虫】我爬取了七万条弹幕，看看RNG和SKT打得怎么样2.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>四、生成词云</h2>
+<p>　　弹幕信息已经存好了，但是考虑到其中有很多表情等无用内容，所以需要将这些内容给清洗掉。清洗结束之后就能够进行分词操作了，这里我选择用 jieba 库来处理，在使用 jieba 的时候，可以设置用户词典，因为像选手 ID，英雄名称这些内容是会被分词的，但设置用户词典之后就不会被分词了，设置方法如下：</p>
+<blockquote>
+<p>jieba.load_userdict("userdict.txt")</p>
+</blockquote>
+<p>　　userdict.txt 中保存了选手 ID，选手外号，英雄名称等内容，在设置了用户词典后，这些内容在分词的时候都不会被分开了。在分词结束之后，需要将那些长度为1的部分清除掉，然后将出现频次高的内容提取出来，这里用到了 collecttions 中的 Counter，利用 Counter 可以很方便地统计频次。这一部分代码内容如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">def</span> get_words(txt: str) -&gt;<span style="color: #000000;"> str:
+</span><span style="color: #008080;"> 2</span>     <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 3</span> <span style="color: #800000;">    use jieba to cut words
+</span><span style="color: #008080;"> 4</span> <span style="color: #800000;">    :param txt: input text
+</span><span style="color: #008080;"> 5</span> <span style="color: #800000;">    :return:
+</span><span style="color: #008080;"> 6</span>     <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 7</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> cut words</span>
+<span style="color: #008080;"> 8</span>     seg_list =<span style="color: #000000;"> jieba.cut(txt)
+</span><span style="color: #008080;"> 9</span>     c =<span style="color: #000000;"> Counter()
+</span><span style="color: #008080;">10</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> count words</span>
+<span style="color: #008080;">11</span>     <span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span><span style="color: #000000;"> seg_list:
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">if</span> len(x) &gt; 1 <span style="color: #0000ff;">and</span> x != <span style="color: #800000;">'</span><span style="color: #800000;">\r\n</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+</span><span style="color: #008080;">13</span>             c[x] += 1
+<span style="color: #008080;">14</span>     result = <span style="color: #800000;">""</span>
+<span style="color: #008080;">15</span>     <span style="color: #0000ff;">for</span> (k, v) <span style="color: #0000ff;">in</span> c.most_common(300<span style="color: #000000;">):
+</span><span style="color: #008080;">16</span>         <span style="color: #008000;">#</span><span style="color: #008000;"> print('%s %d' % (k, v))</span>
+<span style="color: #008080;">17</span>         result += <span style="color: #800000;">"</span><span style="color: #800000;">\n</span><span style="color: #800000;">"</span> +<span style="color: #000000;"> k
+</span><span style="color: #008080;">18</span>     <span style="color: #0000ff;">return</span> result</pre>
+</div>
+<p>&nbsp;　　在进行完上述操作之后，就可以使用 wordcloud 这个库来生成词云了，生成词云时可以设置停止词和字体，这一部分的代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> generate_word_cloud(text):
+</span><span style="color: #008080;"> 2</span>     <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 3</span> <span style="color: #800000;">    generate word cloud
+</span><span style="color: #008080;"> 4</span> <span style="color: #800000;">    :param text: text
+</span><span style="color: #008080;"> 5</span> <span style="color: #800000;">    :return:
+</span><span style="color: #008080;"> 6</span>     <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 7</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> text cleaning</span>
+<span style="color: #008080;"> 8</span>     with open(<span style="color: #800000;">"</span><span style="color: #800000;">stopwords.txt</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">r</span><span style="color: #800000;">"</span>, encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+</span><span style="color: #008080;"> 9</span>         stopwords = set(f.read().split(<span style="color: #800000;">"</span><span style="color: #800000;">\n</span><span style="color: #800000;">"</span><span style="color: #000000;">))
+</span><span style="color: #008080;">10</span>     wc =<span style="color: #000000;"> WordCloud(
+</span><span style="color: #008080;">11</span>         font_path=<span style="color: #800000;">"</span><span style="color: #800000;">font.ttf</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">12</span>         background_color=<span style="color: #800000;">"</span><span style="color: #800000;">white</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">13</span>         width=1200<span style="color: #000000;">,
+</span><span style="color: #008080;">14</span>         height=800<span style="color: #000000;">,
+</span><span style="color: #008080;">15</span>         max_words=100<span style="color: #000000;">,
+</span><span style="color: #008080;">16</span>         max_font_size=200<span style="color: #000000;">,
+</span><span style="color: #008080;">17</span>         min_font_size=10<span style="color: #000000;">,
+</span><span style="color: #008080;">18</span>         stopwords=stopwords,  <span style="color: #008000;">#</span><span style="color: #008000;"> 设置停用词</span>
+<span style="color: #008080;">19</span> <span style="color: #000000;">    )
+</span><span style="color: #008080;">20</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> generate word cloud</span>
+<span style="color: #008080;">21</span>     wc.generate(<span style="color: #800000;">""</span><span style="color: #000000;">.join(text))
+</span><span style="color: #008080;">22</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> save as an image</span>
+<span style="color: #008080;">23</span>     wc.to_file(<span style="color: #800000;">"</span><span style="color: #800000;">rng_vs_skt.png</span><span style="color: #800000;">"</span>)</pre>
+</div>
+<p>&nbsp;　　最终生成的词云图为：</p>
+<p>　　<img src="./images/【Python3爬虫】我爬取了七万条弹幕，看看RNG和SKT打得怎么样3.png" alt="" /></p>
+<p>　　可以看到很多人都在讨论 faker 的，李哥还是李哥啊，李哥的瑞兹也是强的不行，也有不少弹幕在说天使和加里奥的问题，不得不说，小虎小明的发挥是有问题的，此外还有一些说喷子的，看来 B 站的喷子也不少啊。</p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 14pt;">完整代码已上传到 <a href="https://github.com/TM0831/Spiders/tree/master/Bilibili" target="_blank">GitHub</a>！</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

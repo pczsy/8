@@ -1,0 +1,173 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修3.GO-项目结构、包访问权限、闭包和值传递引用传递' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>3.GO-项目结构、包访问权限、闭包和值传递引用传递</center></div><div class='banquan'>原文出处:本文由博客园博主zhang_derek提供。<br/>
+原文连接:https://www.cnblogs.com/derek1184405959/p/11299671.html</div><br>
+    <h3><span style="color: #ff00ff;">3.1.goland中项目结构</span></h3>
+<p>（1）在goland中创建标准Go项目</p>
+<p><img src="./images/3.GO-项目结构、包访问权限、闭包和值传递引用传递0.png" alt="" /></p>
+<p>（2）goland配置</p>
+<p>创建项目Learn-Go</p>
+<p><img src="./images/3.GO-项目结构、包访问权限、闭包和值传递引用传递1.png" alt="" /></p>
+<p>file-settings-go-GOPATH-添加</p>
+<p><img src="./images/3.GO-项目结构、包访问权限、闭包和值传递引用传递2.png" alt="" /></p>
+<p>在项目目录下创建src目录，在src目录下创建demo目录，在demo目录下创建demo.go文件</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/src/demo/demo.go
+package demo
+
+import "fmt"
+
+func Demo()  {
+	fmt.Println("执行demo")
+}　</pre>
+</div>
+<p>&nbsp;在项目目录下创建main.go文件</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "demo"
+
+func main()  {
+	demo.Demo()     //执行demo
+}
+</pre>
+</div>
+<p>　目录结果</p>
+<p><img src="./images/3.GO-项目结构、包访问权限、闭包和值传递引用传递3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">点项目右键--&gt;&gt;run--&gt;&gt;go_build Learn_Go</span></p>
+<p>&nbsp;</p>
+<p><img src="./images/3.GO-项目结构、包访问权限、闭包和值传递引用传递4.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3><span style="color: #ff00ff;">3.2.包和包级别访问权限</span></h3>
+<p>&nbsp;同一个包内小写可以访问，其它包要想访问必须大写</p>
+<p>目录结果</p>
+<p><img src="./images/3.GO-项目结构、包访问权限、闭包和值传递引用传递5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;demo1.go</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/src/demo/demo1.go
+package demo
+
+import "fmt"
+
+func demo1()  {
+	fmt.Println("执行demo111")
+}
+</pre>
+</div>
+<p>demo2.go</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/src/demo/demo2.go
+package demo
+
+import "fmt"
+
+func Demo2()  {
+	fmt.Println("执行demo222")
+	demo1()    //同包内可以访问，不需要大写
+}
+</pre>
+</div>
+<p>main.go</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "demo"
+
+func main()  {
+	demo.Demo2()
+}
+
+//结果
+执行demo222
+执行demo111
+</pre>
+</div>
+<h3><span style="color: #ff00ff;">3.3.闭包</span></h3>
+<p>闭包就是解决局部变量不能被外部访问一种解决方案，在函数内部定义局部变量，把另一个函数当中返回值，局部变量</p>
+<p>对于返回值函数就相当于全局变量，所以多次调用返回值函数局部变量的值跟随变化。</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+func closure() func()int{
+	i := 1
+	return func() int {
+		i = i+1
+		return i
+	}
+}
+
+func main()  {
+	f := closure()
+	fmt.Println(f())     //2
+	fmt.Println(f())    //3
+	fmt.Println(f())    //4
+}
+</pre>
+</div>
+<h3><span style="color: #ff00ff;">3.4.值传递和引用传递</span></h3>
+<p>讨论值传递和引用传递时，其实就是看值类型变量和引用类型变量作为函数参数时，修改</p>
+<p>形参是否会影响到实参，在Go语言中五个引用类型变量，其它都是值类型</p>
+<ul>
+<li>slice</li>
+<li>map&nbsp;</li>
+<li>channel</li>
+<li>inrerface</li>
+<li>fun()</li>
+</ul>
+<p>引用类型作为参数时，称为浅拷贝，形参改变，实参数跟着变化，因为传递的是地址，形参和实参都指向同一块地址</p>
+<p>值类型作为参数时，称为深拷贝，形参改变，实参不变，因为传递的是值的副本，形参会新开辟一块空间，与实参指向不同</p>
+<p>如果希望值类型数据在修改形参时实参跟随变化，可以把参数设置为指针类型</p>
+<div class="cnblogs_Highlighter">
+<pre><code>//Learn_Go/main.go
+package main
+
+import "fmt"
+
+//int,string:值类型  切片和指针可以改变值
+func demo(i int, s string, arr []int, content *int)  {
+	i = 110
+	s = "derek"
+	arr[0] = 3
+	arr[1] = 4
+	*content = 110
+}
+
+func main()  {
+	a := 119
+	b := "jack"
+	c := []int{1,2}
+	d := 119
+	demo(a,b,c,&amp;d)
+	fmt.Println(a,b,c,d)      //119 jack [3 4] 110
+}
+</pre>
+</div>
+<p>　　</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

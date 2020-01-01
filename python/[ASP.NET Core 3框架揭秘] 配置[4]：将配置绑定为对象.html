@@ -1,0 +1,362 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[ASP.NET Core 3框架揭秘] 配置[4]：将配置绑定为对象' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[ASP.NET Core 3框架揭秘] 配置[4]：将配置绑定为对象</center></div><div class='banquan'>原文出处:本文由博客园博主Artech提供。<br/>
+原文连接:https://www.cnblogs.com/artech/p/inside-asp-net-core-05-04.html</div><br>
+    <p>虽然应用程序可以直接利用通过IConfigurationBuilder对象创建的IConfiguration对象来提取配置数据，但是我们更倾向于将其转换成一个POCO对象，以面向对象的方式来使用配置，我们将这个转换过程称为配置绑定。配置绑定可以通过如下几个针对IConfiguration的扩展方法来实现，这些扩展方法都定义在NuGet包“Microsoft.Extensions.Configuration.Binder”中。</p><h1><font size="4">一、ConfigurationBinder</font></h1><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> ConfigurationBinder
+{    
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span> Bind(<span style="color: rgb(0, 0, 255);">this</span> IConfiguration configuration, <span style="color: rgb(0, 0, 255);">object</span><span style="color: rgb(0, 0, 0);"> instance);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span> Bind(<span style="color: rgb(0, 0, 255);">this</span> IConfiguration configuration, <span style="color: rgb(0, 0, 255);">object</span> instance,  Action&lt;BinderOptions&gt;<span style="color: rgb(0, 0, 0);"> configureOptions);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span> Bind(<span style="color: rgb(0, 0, 255);">this</span> IConfiguration configuration, <span style="color: rgb(0, 0, 255);">string</span> key,  <span style="color: rgb(0, 0, 255);">object</span><span style="color: rgb(0, 0, 0);"> instance);
+   
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> T Get&lt;T&gt;(<span style="color: rgb(0, 0, 255);">this</span><span style="color: rgb(0, 0, 0);"> IConfiguration configuration);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> T Get&lt;T&gt;(<span style="color: rgb(0, 0, 255);">this</span> IConfiguration configuration,  Action&lt;BinderOptions&gt;<span style="color: rgb(0, 0, 0);"> configureOptions);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">object</span> Get(<span style="color: rgb(0, 0, 255);">this</span><span style="color: rgb(0, 0, 0);"> IConfiguration configuration, Type type);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">object</span> Get(<span style="color: rgb(0, 0, 255);">this</span> IConfiguration configuration, Type type,  Action&lt;BinderOptions&gt;<span style="color: rgb(0, 0, 0);"> configureOptions);
+}
+
+</span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> BinderOptions
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">bool</span> BindNonPublicProperties { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }
+}</span></pre></div><p>Bind方法将指定的IConfiguration对象（对应于configuration参数）绑定一个预先创建的对象（对应于instance参数），如果参数绑定的只是当前IConfiguration对象的某个子配置节，我们需要通过参数sectionKey指定对应子配置节的相对路径。Get和Get&lt;T&gt;方法则直接将指定的IConfiguration对象转换成指定类型的POCO对象。</p><p>旨在生成POCO对象的配置绑定实现在IConfiguration接口的扩展方法<font color="#ff0000">Bind</font>上。配置绑定的目标类型可以是一个简单的<font color="#ff0000">基元类</font>型，也可以是一个<font color="#ff0000">自定义数据类型</font>，还可以是一个<font color="#ff0000">数组</font>、<font color="#ff0000">集合</font>或者<font color="#ff0000">字典</font>类型。通过前面的介绍我们知道IConfigurationProvider对象将原始的配置数据读取出来后会将其转换成Key和Value均为字符串的数据字典，那么针对这些完全不同的目标类型，原始的配置数据如何通过数据字典的形式来体现呢？</p><h1><font size="4">二、绑定配置项的值</font></h1><p>我们知道配置模型采用字符串键值对的形式来承载基础配置数据，我们将这组键值对称为配置字典，扁平的字典因为采用路径化的Key使配置项在逻辑上具有了层次结构。IConfigurationBuilder对象将配置的层次化结构体现在由它创建的IConfigurationRoot对象上，我们将IConfigurationRoot对象视为一棵配置树。所谓的配置绑定体现为如何将映射为配置树上某个节点的IConfiguration对象（可以是IConfigurationRoot对象或者IConfigurationSection对象）转换成一个对应的POCO对象。</p><p>对于针对IConfiguration对象的配置绑定来说，最简单的莫过于针对<font color="#ff0000">叶子节点</font>的IConfigurationSection对象的绑定。表示配置树叶子节点的IConfigurationSection对象承载着原子配置项的值，而且这个值是一个字符串，那么针对它的配置绑定最终体现为如何将这个字符串转换成指定的目标类型，这样的操作体现在IConfiguration如下两个扩展方法GetValue上。</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> ConfigurationBinder
+{    
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> T GetValue&lt;T&gt;(IConfiguration configuration, <span style="color: rgb(0, 0, 255);">string</span><span style="color: rgb(0, 0, 0);"> sectionKey);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> T GetValue&lt;T&gt;(IConfiguration configuration, <span style="color: rgb(0, 0, 255);">string</span><span style="color: rgb(0, 0, 0);"> sectionKey,  T defaultValue);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">object</span> GetValue(IConfiguration configuration, Type type,   <span style="color: rgb(0, 0, 255);">string</span><span style="color: rgb(0, 0, 0);"> sectionKey);
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">object</span> GetValue(IConfiguration configuration, Type type,   <span style="color: rgb(0, 0, 255);">string</span> sectionKey, <span style="color: rgb(0, 0, 255);">object</span><span style="color: rgb(0, 0, 0);"> defaultValue);
+}</span></pre></div><p>对于给出的这四个重载，其中两个方法定义了一个表示默认值的defaultValue参数，如果对应配置节的值为Null或者空字符串，指定的默认值将作为方法的返回值。对于其他的方法重载，它们实际上将Null或者Default(T)作为隐式默认值。上述这些GetValue方法被执行的时候，它们会将配置节名称（对应sectionKey参数）作为参数调用指定IConfiguation对象的GetSection方法得到表示对应配置节的IConfigurationSection对象，它的Value属性被提取出来并按照如下的逻辑转换成目标类型：</p><ul><li>如果目标类型为object，直接返回<font color="#ff0000">原始值</font>（字符串或者Null）。</li><li>如果目标类型不是Nullable&lt;T&gt;，那么针对目标类型的<font color="#ff0000">TypeConverter</font>将被用来做类型转换。</li><li>如果目标类型为Nullable&lt;T&gt;，那么在原始值不为Null或者空字符串的情况下会将基础类型T作为新的目标类型进行转换，否则直接返回<font color="#ff0000">Null</font>。</li></ul><p>为了验证上述这些类型转化规则，我们编写了如下的测试程序。如下面的代码片段所示，我们利用注册的MemoryConfigurationSource添加了三个配置项，对应的值分别为Null、空字符串和“123”，然后调用GetValue方法分别对它们进行类型转换，转换的目标类型分别是Object、Int32和Nullable&lt;Int32&gt;，上述的转换规则体现在对应的调试断言中。</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> Program
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span><span style="color: rgb(0, 0, 0);"> Main()
+    {
+        </span><span style="color: rgb(0, 0, 255);">var</span> source = <span style="color: rgb(0, 0, 255);">new</span> Dictionary&lt;<span style="color: rgb(0, 0, 255);">string</span>, <span style="color: rgb(0, 0, 255);">string</span>&gt;<span style="color: rgb(0, 0, 0);">
+        {
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(0, 0, 255);">null</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">""</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">
+        };
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> root = <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> ConfigurationBuilder()
+            .AddInMemoryCollection(source)
+            .Build();
+
+        </span><span style="color: rgb(0, 128, 0);">//</span><span style="color: rgb(0, 128, 0);">针对object</span>
+         Debug.Assert(root.GetValue&lt;<span style="color: rgb(0, 0, 255);">object</span>&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo</span><span style="color: rgb(128, 0, 0);">"</span>) == <span style="color: rgb(0, 0, 255);">null</span><span style="color: rgb(0, 0, 0);">);
+        Debug.Assert(</span><span style="color: rgb(128, 0, 0);">""</span>.Equals(root.GetValue&lt;<span style="color: rgb(0, 0, 255);">object</span>&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">)));
+        Debug.Assert(</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123</span><span style="color: rgb(128, 0, 0);">"</span>.Equals(root.GetValue&lt;<span style="color: rgb(0, 0, 255);">object</span>&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">)));
+
+        </span><span style="color: rgb(0, 128, 0);">//</span><span style="color: rgb(0, 128, 0);">针对普通类型</span>
+         Debug.Assert(root.GetValue&lt;<span style="color: rgb(0, 0, 255);">int</span>&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo</span><span style="color: rgb(128, 0, 0);">"</span>) == <span style="color: rgb(128, 0, 128);">0</span><span style="color: rgb(0, 0, 0);">);
+        Debug.Assert(root.GetValue</span>&lt;<span style="color: rgb(0, 0, 255);">int</span>&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz</span><span style="color: rgb(128, 0, 0);">"</span>) == <span style="color: rgb(128, 0, 128);">123</span><span style="color: rgb(0, 0, 0);">);
+
+        </span><span style="color: rgb(0, 128, 0);">//</span><span style="color: rgb(0, 128, 0);">针对Nullable&lt;T&gt;</span>
+        Debug.Assert(root.GetValue&lt;<span style="color: rgb(0, 0, 255);">int</span>?&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo</span><span style="color: rgb(128, 0, 0);">"</span>) == <span style="color: rgb(0, 0, 255);">null</span><span style="color: rgb(0, 0, 0);">);
+        Debug.Assert(root.GetValue</span>&lt;<span style="color: rgb(0, 0, 255);">int</span>?&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar</span><span style="color: rgb(128, 0, 0);">"</span>) == <span style="color: rgb(0, 0, 255);">null</span><span style="color: rgb(0, 0, 0);">);
+    }
+}</span></pre></div><h1><font size="4">三、自定义TypeConverter</font></h1><p>按照前面介绍的类型转换规则，如果目标类型支持源自字符串的类型转换，那么我们就能够将配置项的原始值绑定为该类型的对象，而让某个类型支持某种类型转换规则的途径就是为之注册相应的TypeConverter。如下面的代码片段所示，我们定义了一个表示二维坐标的Point对象，并为它注册了一个类型为PointTypeConverter的TypeConverter，PointTypeConverter通过实现的ConvertFrom方法将坐标的字符串表达式（比如“（123，456）”）转换成一个Point对象。</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code>[TypeConverter(<span style="color: rgb(0, 0, 255);">typeof</span><span style="color: rgb(0, 0, 0);">(PointTypeConverter))]
+</span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> Point
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">double</span> X { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">double</span> Y { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }
+}
+
+</span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> PointTypeConverter : TypeConverter
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">override</span> <span style="color: rgb(0, 0, 255);">bool</span> CanConvertFrom(ITypeDescriptorContext context, Type sourceType) =&gt; sourceType == <span style="color: rgb(0, 0, 255);">typeof</span>(<span style="color: rgb(0, 0, 255);">string</span><span style="color: rgb(0, 0, 0);">);
+
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">override</span> <span style="color: rgb(0, 0, 255);">object</span> ConvertFrom(ITypeDescriptorContext context,  CultureInfo culture, <span style="color: rgb(0, 0, 255);">object</span><span style="color: rgb(0, 0, 0);"> value)
+    {
+        </span><span style="color: rgb(0, 0, 255);">string</span>[] split = value.ToString().Split(<span style="color: rgb(128, 0, 0);">'</span><span style="color: rgb(128, 0, 0);">,</span><span style="color: rgb(128, 0, 0);">'</span><span style="color: rgb(0, 0, 0);">);
+        </span><span style="color: rgb(0, 0, 255);">double</span> x = <span style="color: rgb(0, 0, 255);">double</span>.Parse(split[<span style="color: rgb(128, 0, 128);">0</span>].Trim().TrimStart(<span style="color: rgb(128, 0, 0);">'</span><span style="color: rgb(128, 0, 0);">(</span><span style="color: rgb(128, 0, 0);">'</span><span style="color: rgb(0, 0, 0);">));
+        </span><span style="color: rgb(0, 0, 255);">double</span> y = <span style="color: rgb(0, 0, 255);">double</span>.Parse(split[<span style="color: rgb(128, 0, 128);">1</span>].Trim().TrimEnd(<span style="color: rgb(128, 0, 0);">'</span><span style="color: rgb(128, 0, 0);">)</span><span style="color: rgb(128, 0, 0);">'</span><span style="color: rgb(0, 0, 0);">));
+        </span><span style="color: rgb(0, 0, 255);">return</span> <span style="color: rgb(0, 0, 255);">new</span> Point { X = x, Y =<span style="color: rgb(0, 0, 0);"> y };
+    }
+}</span></pre></div><p>由于定义的Point类型支持源自字符串的类型转换，所以如果配置项的原始值（字符串）具有与之兼容的格式，我们将能按照如下的方式将它绑定为一个Point对象。（S608）</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> Program
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span><span style="color: rgb(0, 0, 0);"> Main()
+    {
+        </span><span style="color: rgb(0, 0, 255);">var</span> source = <span style="color: rgb(0, 0, 255);">new</span> Dictionary&lt;<span style="color: rgb(0, 0, 255);">string</span>, <span style="color: rgb(0, 0, 255);">string</span>&gt;<span style="color: rgb(0, 0, 0);">
+        {
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">point</span><span style="color: rgb(128, 0, 0);">"</span>] = <font color="#ff0000"><strong>"(123,456)"</strong></font><span style="color: rgb(0, 0, 0);">
+        };
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> root = <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> ConfigurationBuilder()
+            .AddInMemoryCollection(source)
+            .Build();
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> point = root.GetValue&lt;Point&gt;(<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">point</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">);
+        Debug.Assert(point.X </span>== <span style="color: rgb(128, 0, 128);">123</span><span style="color: rgb(0, 0, 0);">);
+        Debug.Assert(point.Y </span>== <span style="color: rgb(128, 0, 128);">456</span><span style="color: rgb(0, 0, 0);">);
+    }
+}</span></pre></div><h1><font size="4">四、绑定复合数据类型</font></h1><p>这里所谓的复合类型表示一个具有属性数据成员的自定义类型。如果通过一颗树来表示一个复合对象，那么叶子节点承载所有的数据，并且叶子节点的数据类型均为基元类型。如果通过数据字典来提供一个复杂对象所有的原始数据，那么这个字典中只需要包含叶子节点对应的值即可。<a>至于如何通过一个字典对象体现复合对象的结构，我们只需要将叶子节点所在的路径作为字典元素的</a>Key就可以了。</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> Profile: IEquatable&lt;Profile&gt;<span style="color: rgb(0, 0, 0);">
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> Gender Gender { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">int</span> Age { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }
+    </span><span style="color: rgb(0, 0, 255);">public</span> ContactInfo ContactInfo { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }
+
+    </span><span style="color: rgb(0, 0, 255);">public</span><span style="color: rgb(0, 0, 0);"> Profile() {}
+    </span><span style="color: rgb(0, 0, 255);">public</span> Profile(Gender gender, <span style="color: rgb(0, 0, 255);">int</span> age, <span style="color: rgb(0, 0, 255);">string</span> emailAddress, <span style="color: rgb(0, 0, 255);">string</span><span style="color: rgb(0, 0, 0);"> phoneNo)
+    {
+        Gender </span>=<span style="color: rgb(0, 0, 0);"> gender;
+        Age </span>=<span style="color: rgb(0, 0, 0);"> age;
+        ContactInfo </span>= <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> ContactInfo
+        {
+            EmailAddress </span>=<span style="color: rgb(0, 0, 0);"> emailAddress,
+            PhoneNo </span>=<span style="color: rgb(0, 0, 0);"> phoneNo
+        };
+    }       
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">bool</span><span style="color: rgb(0, 0, 0);"> Equals(Profile other)
+    {
+        </span><span style="color: rgb(0, 0, 255);">return</span> other == <span style="color: rgb(0, 0, 255);">null</span>
+            ? <span style="color: rgb(0, 0, 255);">false</span><span style="color: rgb(0, 0, 0);">
+            : Gende </span>== other.Gender &amp;&amp;  Age == other.Age &amp;&amp;<span style="color: rgb(0, 0, 0);"> ContactInfo.Equals(other.ContactInfo);
+    }
+}
+
+</span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> ContactInfo: IEquatable&lt;ContactInfo&gt;<span style="color: rgb(0, 0, 0);">
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">string</span> EmailAddress { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">string</span> PhoneNo { <span style="color: rgb(0, 0, 255);">get</span>; <span style="color: rgb(0, 0, 255);">set</span><span style="color: rgb(0, 0, 0);">; }  
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">bool</span><span style="color: rgb(0, 0, 0);"> Equals(ContactInfo other)
+    {
+        </span><span style="color: rgb(0, 0, 255);">return</span> other == <span style="color: rgb(0, 0, 255);">null</span>
+           ? <span style="color: rgb(0, 0, 255);">false</span><span style="color: rgb(0, 0, 0);">
+           : EmailAddress </span>== other.EmailAddress &amp;&amp; PhoneNo ==<span style="color: rgb(0, 0, 0);"> other.PhoneNo;
+    }
+}
+
+</span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">enum</span><span style="color: rgb(0, 0, 0);"> Gender
+{
+    Male,
+    Female
+}</span></pre></div><p>如上面的代码片段所示，我们定义了一个表示个人基本信息的Profile类，它的三个属性（Gender、Age和ContactInfo）分别表示性别、年龄和联系方式。由于配置绑定会调用默认无参构造函数来创建绑定的目标对象，所以我们需要为Profile类型定义一个默认构造函数。表示联系信息的ContactInfo类型具有两个属性（EmailAddress和PhoneNo），它们分别表示电子邮箱地址和电话号码。一个完整的Profile对象可以通过如下图所示的树来体现。</p><p><a href="https://img2018.cnblogs.com/blog/19327/201912/19327-20191212082918391-987649610.png"><img width="221" height="137" title="6-13" style="border: 0px currentcolor; border-image: none; display: inline; background-image: none;" alt="6-13" src="./images/[ASP.NET Core 3框架揭秘] 配置[4]：将配置绑定为对象0.png" border="0"></a></p><p>如果需要通过配置的形式来表示一个完整的Profile对象，我们只需要将四个叶子节点（性别、年龄、电子邮箱地址和电话号码）对应的数据由配置来提供即可。对于承载配置数据的数据字典，我们需要按照如下表所示的方式将这四个叶子节点的路径作为字典元素的Key。</p><font style="font-size: 12pt;"> 
+ </font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"> 
+</font><table width="456" style="line-height: normal; overflow: visible; display: table; border-collapse: collapse; -ms-word-break: normal;" border="0" cellspacing="0" cellpadding="0">
+<colgroup>
+<col width="268" style="mso-width-source: userset; mso-width-alt: 9801;"></colgroup>
+<colgroup><col width="188" style="mso-width-source: userset; mso-width-alt: 6875;"></colgroup>
+<tbody>
+<tr height="21" style="height: 15.75pt;">
+<td width="268" height="21" class="xl65" style="border-width: 1pt; border-color: windowtext; padding: 1px 1px 1px 9px;"><font style="font-size: 11pt;">   </font>
+<div style="border: currentcolor; border-image: none; padding-top: 0px; padding-bottom: 0px; margin-right: 0px;"><font style="font-size: 11pt;">Key</font></div></td>
+<td width="188" class="xl65" style="border-width: 1pt 1pt 1pt medium; border-color: windowtext windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-left-style: none;"><font style="font-size: 11pt;">Value</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl65" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">Gender</font></td>
+<td class="xl65" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">Male</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl65" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">Age</font></td>
+<td class="xl65" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">18</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl65" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">ContactInfo:Email</font></td>
+<td class="xl65" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">foobar@outlook.com</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl65" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">ContactInfo:PhoneNo</font></td>
+<td class="xl65" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">123456789   </font></td></tr></tbody></table><p>我们通过如下的程序来验证针对复合数据类型的配置绑定。我们创建了一个ConfigurationBuilder对象并为它添加了一个MemoryConfigurationSource对象，它按照如上表所示的结构提供了原始的配置数据。在调用Build方法构建出IConfiguration对象之后，我们直接调用扩展方法Get&lt;T&gt;将它转换成一个Profile对象。</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> Program
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span><span style="color: rgb(0, 0, 0);"> Main()
+    {
+        </span><span style="color: rgb(0, 0, 255);">var</span> source = <span style="color: rgb(0, 0, 255);">new</span> Dictionary&lt;<span style="color: rgb(0, 0, 255);">string</span>, <span style="color: rgb(0, 0, 255);">string</span>&gt;<span style="color: rgb(0, 0, 0);">
+        {
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Male</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">age</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">18</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foobar@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123456789</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">
+        };
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> configuration = <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> ConfigurationBuilder()
+            .AddInMemoryCollection(source)
+            .Build();
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> profile = configuration.Get&lt;Profile&gt;<span style="color: rgb(0, 0, 0);">();
+        Debug.Assert(profile.Equals( </span><span style="color: rgb(0, 0, 255);">new</span> Profile(Gender.Male, <span style="color: rgb(128, 0, 128);">18</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foobar@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123456789</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">)));
+    }
+}</span></pre></div><h1><font size="4">五、绑定集合对象</font></h1><p>如果配置绑定的目标类型是一个集合（包括数组），那么当前IConfiguration对象的每一个子配置节将绑定为集合的元素。假设我们需要将一个IConfiguration对象绑定为一个元素类型为Profile的集合，它表示的配置树应该具有如下图所示的结构。</p><p><a href="https://img2018.cnblogs.com/blog/19327/201912/19327-20191212082918953-2021973507.png"><img width="240" height="134" title="6-14" style="border: 0px currentcolor; border-image: none; display: inline; background-image: none;" alt="6-14" src="./images/[ASP.NET Core 3框架揭秘] 配置[4]：将配置绑定为对象1.png" border="0"></a></p><p>既然我们能够正确将集合对象通过一个合法的配置树体现出来，那么我们就可以将它转换成配置字典。对于通过下表所示的这个包含三个元素的Profile集合，我们可以采用如下表所示的结构来定义对应的配置字典。</p><font style="font-size: 12pt;"> 
+ </font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;">   
+</font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"></font><font style="font-size: 12pt;"> 
+</font><table width="456" style="line-height: normal; overflow: visible; display: table; border-collapse: collapse; -ms-word-break: normal;" border="0" cellspacing="0" cellpadding="0">
+<colgroup>
+<col width="268" style="mso-width-source: userset; mso-width-alt: 9801;"></colgroup>
+<colgroup><col width="188" style="mso-width-source: userset; mso-width-alt: 6875;"></colgroup>
+<tbody>
+<tr height="21" style="height: 15.75pt;">
+<td width="268" height="21" class="xl65" style="border-width: 1pt; border-color: windowtext; padding: 1px 1px 1px 9px;"><font style="font-size: 11pt;">   </font>
+<div style="border: currentcolor; border-image: none; padding-top: 0px; padding-bottom: 0px; margin-right: 0px;"><font style="font-size: 11pt;">Key</font></div></td>
+<td width="188" class="xl65" style="border-width: 1pt 1pt 1pt medium; border-color: windowtext windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-left-style: none;"><font style="font-size: 11pt;">Value</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">foo:Gender</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">Male</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">foo:Age</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">18</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">foo:ContactInfo:EmailAddress</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">foo@outlook.com</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">foo:ContactInfo:PhoneNo</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">123</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">bar:Gender</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">Male</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">bar:Age</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">25</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">bar:ContactInfo:EmailAddress</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">bar@outlook.com</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">bar:ContactInfo:PhoneNo</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">456</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">baz:Gender</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">Female</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">baz:Age</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">40</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">baz:ContactInfo:EmailAddress</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">baz@outlook.com</font></td></tr>
+<tr height="21" style="height: 15.75pt;">
+<td height="21" class="xl66" style="border-width: medium 1pt 1pt; border-color: currentcolor windowtext windowtext; padding: 1px 1px 1px 9px; border-top-style: none;"><font style="font-size: 11pt;">baz:ContactInfo:PhoneNo</font></td>
+<td class="xl66" style="border-width: medium 1pt 1pt medium; border-color: currentcolor windowtext windowtext currentcolor; padding: 1px 1px 1px 9px; border-top-style: none; border-left-style: none;"><font style="font-size: 11pt;">789   </font></td></tr></tbody></table><p>我们依然通过一个简单的实例来演示针对集合的配置绑定。如下面的代码片段所示，我们创建了一个ConfigurationBuilder对象并为它注册了一个MemoryConfigurationSource对象，它按照如s上表所示的结构提供了原始的配置数据。在得到这个ConfigurationBuilder对象创建的IConfiguration对象之后，我们两次调用其Get&lt;T&gt;方法将它分别绑定为一个IEnumerable&lt;Profile&gt;对象和一个Profile[] 数组。由于IConfigurationProvider通过GetChildKeys方法提供的Key是经过排序的，所以在绑定生成的集合或者数组中的元素的顺序与配置源是不相同的，如下的调试断言也体现了这一点。</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> Program
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span><span style="color: rgb(0, 0, 0);"> Main()
+    {
+        </span><span style="color: rgb(0, 0, 255);">var</span> source = <span style="color: rgb(0, 0, 255);">new</span> Dictionary&lt;<span style="color: rgb(0, 0, 255);">string</span>, <span style="color: rgb(0, 0, 255);">string</span>&gt;<span style="color: rgb(0, 0, 0);">
+        {
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Male</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:age</span><span style="color: rgb(128, 0, 0);">"</span>]      = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">18</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Male</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:age</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">25</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">456</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Female</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:age</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">36</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">789</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">
+        };
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> configuration = <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> ConfigurationBuilder()
+            .AddInMemoryCollection(source)
+            .Build();
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> profiles = <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> Profile[]
+        {
+            </span><span style="color: rgb(0, 0, 255);">new</span> Profile(Gender.Male,<span style="color: rgb(128, 0, 128);">18</span>,<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span>,<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">),
+            </span><span style="color: rgb(0, 0, 255);">new</span> Profile(Gender.Male,<span style="color: rgb(128, 0, 128);">25</span>,<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span>,<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">456</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">),
+            </span><span style="color: rgb(0, 0, 255);">new</span> Profile(Gender.Female,<span style="color: rgb(128, 0, 128);">36</span>,<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span>,<span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">789</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">),
+        };
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> collection = configuration.Get&lt;IEnumerable&lt;Profile&gt;&gt;<span style="color: rgb(0, 0, 0);">();
+        Debug.Assert(collection.Any(it </span>=&gt; it.Equals(profiles[<span style="color: rgb(128, 0, 128);">0</span><span style="color: rgb(0, 0, 0);">])));
+        Debug.Assert(collection.Any(it </span>=&gt; it.Equals(profiles[<span style="color: rgb(128, 0, 128);">1</span><span style="color: rgb(0, 0, 0);">])));
+        Debug.Assert(collection.Any(it </span>=&gt; it.Equals(profiles[<span style="color: rgb(128, 0, 128);">2</span><span style="color: rgb(0, 0, 0);">])));
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> array = configuration.Get&lt;Profile[]&gt;<span style="color: rgb(0, 0, 0);">();
+        Debug.Assert(array[</span><span style="color: rgb(128, 0, 128);">0</span>].Equals(profiles[<span style="color: rgb(128, 0, 128);">1</span><span style="color: rgb(0, 0, 0);">]));
+        Debug.Assert(array[</span><span style="color: rgb(128, 0, 128);">1</span>].Equals(profiles[<span style="color: rgb(128, 0, 128);">2</span><span style="color: rgb(0, 0, 0);">]));
+        Debug.Assert(array[</span><span style="color: rgb(128, 0, 128);">2</span>].Equals(profiles[<span style="color: rgb(128, 0, 128);">0</span><span style="color: rgb(0, 0, 0);">]));
+    }
+}</span></pre></div><p>在针对集合类型的配置绑定过程中，如果某个配置节绑定失败，该配置节将被<font color="#ff0000">忽略并选择下一个配置节继续进行绑定</font>。但是如果目标类型为数组，最终绑定生成的<font color="#ff0000">数组长度与子配置节的个数总是一致的，绑定失败的元素将被设置为Null</font>。比如我们将上面的程序作了如下的改写，保存原始配置的字典对象包含两个元素，第一个元素的性别从“Male”改为“男”，毫无疑问这个值是不可能转换成Gender枚举对象的，所以针对这个Profile的配置绑定会失败。如果将目标类型设置为IEnumerable&lt;Profile&gt;，那么最终生成的集合只会有<font color="#ff0000">两个元素</font>，倘若目标类型切换成Profile数组，<font color="#ff0000">数组的长度依然为3，但是第一个元素是Null</font>。</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> Program
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span><span style="color: rgb(0, 0, 0);"> Main()
+    {
+        </span><span style="color: rgb(0, 0, 255);">var</span> source = <span style="color: rgb(0, 0, 255);">new</span> Dictionary&lt;<span style="color: rgb(0, 0, 255);">string</span>, <span style="color: rgb(0, 0, 255);">string</span>&gt;<span style="color: rgb(0, 0, 0);">
+        {
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:gender</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);"><font color="#ff0000"><strong>男</strong></font></span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:age</span><span style="color: rgb(128, 0, 0);">"</span>]      = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">18</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Male</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:age</span><span style="color: rgb(128, 0, 0);">"</span>]      = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">25</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">456</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Female</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:age</span><span style="color: rgb(128, 0, 0);">"</span>]      = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">36</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">789</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">
+        };
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> configuration = <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> ConfigurationBuilder()
+            .AddInMemoryCollection(source)
+            .Build();
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> collection = configuration.Get&lt;IEnumerable&lt;Profile&gt;&gt;<span style="color: rgb(0, 0, 0);">();
+        Debug.Assert(collection.Count() </span>== <span style="color: rgb(128, 0, 128);">2</span><span style="color: rgb(0, 0, 0);">);
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> array = configuration.Get&lt;Profile[]&gt;<span style="color: rgb(0, 0, 0);">();
+        Debug.Assert(array.Length </span>== <span style="color: rgb(128, 0, 128);">3</span><span style="color: rgb(0, 0, 0);">);
+        Debug.Assert(array[</span><span style="color: rgb(128, 0, 128);">2</span>] == <span style="color: rgb(0, 0, 255);">null</span><span style="color: rgb(0, 0, 0);">); 
+        </span><span style="color: rgb(0, 128, 0);">//</span><span style="color: rgb(0, 128, 0);">由于配置节按照Key进行排序，绑定失败的配置节为最后一个</span>
+<span style="color: rgb(0, 0, 0);">    }
+}</span></pre></div><h1><font size="4">六、绑定字典</font></h1><p>能够通过配置绑定生成的字典是一个实现了IDictionary&lt;string,T&gt;的类型，也就是说配置模型没有对字典的Value类型作任何要求，但是字典对象的Key必须是一个字符串（或者枚举）。如果采用配置树的形式来表示这么一个字典对象，我们会发现它与针对集合的配置树在结构上几乎是一样的。唯一的区别是集合元素的索引直接变成了字典元素的Key。</p><p><a href="https://img2018.cnblogs.com/blog/19327/201912/19327-20191212082919599-1368536453.png"><img width="240" height="132" title="6-14" style="border: 0px currentcolor; border-image: none; display: inline; background-image: none;" alt="6-14" src="./images/[ASP.NET Core 3框架揭秘] 配置[4]：将配置绑定为对象2.png" border="0"></a></p><p>也就是说上图所示的这棵配置树同样可以表示成一个具有三个元素的Dictionary&lt;string, Profile&gt;对象 ，它们对应的Key分别是“Foo”、“Bar”和“Baz”，所以我们可以按照如下的方式将承载相同数据的IConfiguration对象绑定为一个IDictionary&lt;string,T&gt;对象。（S612）</p><div class="cnblogs_code" style="padding: 5px; border: 1px solid rgb(204, 204, 204); border-image: none; background-color: rgb(245, 245, 245);"><pre><code><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span><span style="color: rgb(0, 0, 0);"> Program
+{
+    </span><span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span><span style="color: rgb(0, 0, 0);"> Main()
+    {
+        </span><span style="color: rgb(0, 0, 255);">var</span> source = <span style="color: rgb(0, 0, 255);">new</span> Dictionary&lt;<span style="color: rgb(0, 0, 255);">string</span>, <span style="color: rgb(0, 0, 255);">string</span>&gt;<span style="color: rgb(0, 0, 0);">
+        {
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Male</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:age</span><span style="color: rgb(128, 0, 0);">"</span>]      = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">18</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>] = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Male</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:age</span><span style="color: rgb(128, 0, 0);">"</span>]      = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">25</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">456</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:gender</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">Female</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:age</span><span style="color: rgb(128, 0, 0);">"</span>]        = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">36</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:contactInfo:emailAddress</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">,
+            [</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz:contactInfo:phoneNo</span><span style="color: rgb(128, 0, 0);">"</span>]  = <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">789</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">
+        };
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> configuration = <span style="color: rgb(0, 0, 255);">new</span><span style="color: rgb(0, 0, 0);"> ConfigurationBuilder()
+            .AddInMemoryCollection(source)
+            .Build();
+
+        </span><span style="color: rgb(0, 0, 255);">var</span> profiles = configuration.Get&lt;IDictionary&lt;<span style="color: rgb(0, 0, 255);">string</span>, Profile&gt;&gt;<span style="color: rgb(0, 0, 0);">();
+        Debug.Assert(profiles[</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo</span><span style="color: rgb(128, 0, 0);">"</span>].Equals(  <span style="color: rgb(0, 0, 255);">new</span> Profile(Gender.Male, <span style="color: rgb(128, 0, 128);">18</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">foo@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">123</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">)));
+        Debug.Assert(profiles[</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar</span><span style="color: rgb(128, 0, 0);">"</span>].Equals(  <span style="color: rgb(0, 0, 255);">new</span> Profile(Gender.Male, <span style="color: rgb(128, 0, 128);">25</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">bar@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">456</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">)));
+        Debug.Assert(profiles[</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz</span><span style="color: rgb(128, 0, 0);">"</span>].Equals(  <span style="color: rgb(0, 0, 255);">new</span> Profile(Gender.Female, <span style="color: rgb(128, 0, 128);">36</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">baz@outlook.com</span><span style="color: rgb(128, 0, 0);">"</span>, <span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(128, 0, 0);">789</span><span style="color: rgb(128, 0, 0);">"</span><span style="color: rgb(0, 0, 0);">)));
+    }
+}</span></pre></div><p><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-01.html">[ASP.NET Core 3框架揭秘] 配置[1]：读取配置数据[上篇]</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-02.html">[ASP.NET Core 3框架揭秘] 配置[2]：读取配置数据[下篇]</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-03.html">[ASP.NET Core 3框架揭秘] 配置[3]：配置模型总体设计</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-04.html">[ASP.NET Core 3框架揭秘] 配置[4]：将配置绑定为对象</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-05.html">[ASP.NET Core 3框架揭秘] 配置[5]：配置数据与数据源的实时同步</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-06.html">[ASP.NET Core 3框架揭秘] 配置[6]：多样化的配置源[上篇]</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-07.html">[ASP.NET Core 3框架揭秘] 配置[7]：多样化的配置源[中篇]</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-08.html">[ASP.NET Core 3框架揭秘] 配置[8]：多样化的配置源[下篇]</a><br><a href="https://www.cnblogs.com/artech/p/inside-asp-net-core-05-09.html">[ASP.NET Core 3框架揭秘] 配置[9]：自定义配置源</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

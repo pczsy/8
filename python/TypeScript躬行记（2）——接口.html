@@ -1,0 +1,199 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修TypeScript躬行记（2）——接口' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>TypeScript躬行记（2）——接口</center></div><div class='banquan'>原文出处:本文由博客园博主咖啡机（K.F.J）提供。<br/>
+原文连接:https://www.cnblogs.com/strick/p/11654181.html</div><br>
+    <p>　　在传统的面向对象语言中，接口（Interface）好比协议，它会列出一系列的规则（即对行为进行抽象），再由类来实现这些规则。而TypeScript中的接口更加灵活，除了包含常规的作用之外，它还能扩展其它的类、为对象的类型命名以及约束值的结构等，大大消除了许多潜在的错误。</p>
+<h1>一、属性</h1>
+<p>　　TypeScript中的接口可通过声明属性和其类型来限制对象的结构。例如定义一个名为Person的接口，包含一个字符串类型的name属性和一个数字类型的age属性，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  name: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+  age: number;
+}</span></pre>
+</div>
+<p>　　当声明一个Person类型的对象时，必须将两个属性都定义，并且类型也要与接口中的一致，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let worker: Person =<span style="color: #000000;"> {
+  name: </span><span style="color: #800000;">"</span><span style="color: #800000;">strick</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+  age: </span><span style="color: #800080;">28</span><span style="color: #000000;">
+};</span></pre>
+</div>
+<p>　　一旦在worker对象中少定义某个接口中的属性或多一个在接口中未声明的属性，那么就会在编译阶段报错。注意，TypeScript的类型检查器不会比对属性在接口和对象中的定义顺序，只要名称和类型匹配，就能编译通过。</p>
+<p><span style="font-size: 18px;"><strong>1）可选属性</strong></span></p>
+<p>　　TypeScript允许接口中的属性定义为可选的，只要在属性名后跟问号（?），就能变为可选属性，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  school</span>?: <span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>　　可选属性既能预定义可能需要的属性，也能在捕获没有的属性时给出带有启发作用的错误提示，例如在创建worker对象时，定义一个schools属性（如下所示），在编译时就会报"'schools' does not exist in type 'Person'. Did you mean to write 'school'?"的错误。</p>
+<div class="cnblogs_code">
+<pre><code>let worker: Person =<span style="color: #000000;"> {
+  schools: </span><span style="color: #800000;">"</span><span style="color: #800000;">university</span><span style="color: #800000;">"</span><span style="color: #000000;">
+};</span></pre>
+</div>
+<p>　　由此可知，在对象中定义一个未在接口中声明的属性仍然是不允许的。</p>
+<p><span style="font-size: 18px;"><strong>2）只读属性</strong></span></p>
+<p>　　如果要让对象的某个属性只能在创建时被赋值，那么可以将readonly关键字作用于相应的接口属性，使其变为只读的，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  </span><span style="color: #0000ff;">readonly</span> gender: <span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>　　由于gender是一个只读属性，因此不能在对象初始化后对其进行修改，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let worker: Person = {    <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+  gender: <span style="color: #800000;">"</span><span style="color: #800000;">男</span><span style="color: #800000;">"</span><span style="color: #000000;">
+};
+worker.gender </span>= <span style="color: #800000;">"</span><span style="color: #800000;">女</span><span style="color: #800000;">"</span>;     <span style="color: #008000;">//</span><span style="color: #008000;">错误</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>3）任意属性</strong></span></p>
+<p>　　当接口需要包含任意属性时，可以通过索引的方式实现，如下所示，用方括号将索引名和索引类型包裹起来。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  [prop: </span><span style="color: #0000ff;">string</span>]: <span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>　　在使用Person类型时，可以传任意多个字符串类型的属性，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code>let worker: Person =<span style="color: #000000;"> {
+  name: </span><span style="color: #800000;">"</span><span style="color: #800000;">strick</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+  gender: </span><span style="color: #800000;">"</span><span style="color: #800000;">男</span><span style="color: #800000;">"</span><span style="color: #000000;">
+};</span></pre>
+</div>
+<p>　　注意，一旦声明了任意属性之后，那么必选属性和可选属性都得是其类型的子类型。在下面的示例中，由于可选的age属性的类型是number，不是string的子类型，因此在编译时会报错。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  name: </span><span style="color: #0000ff;">string</span>;                <span style="color: #008000;">//</span><span style="color: #008000;">正确</span>
+  age?: number;                <span style="color: #008000;">//</span><span style="color: #008000;">错误</span>
+  [prop: <span style="color: #0000ff;">string</span>]: <span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>　　TypeScript除了支持字符串类型的索引之外，还支持数字类型的索引，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  [prop: number]: number;
+}</span></pre>
+</div>
+<p>　　有一点需要注意，当在接口中同时定义字符串和数字两种类型的索引时，后者对应的值类型得是前者的子类型。因为这个原因，导致下面的代码无法在编译时通过。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  [prop: </span><span style="color: #0000ff;">string</span>]: <span style="color: #0000ff;">string</span><span style="color: #000000;">;
+  [prop: number]: number;            </span><span style="color: #008000;">//</span><span style="color: #008000;">错误</span>
+}</pre>
+</div>
+<p>　　TypeScript之所以如此限制，是因为JavaScript会将数字自动转换成字符串后再去索引对象，例如用10和&ldquo;10&rdquo;两个值去索引，得到的结果是一样的，所以两种索引对应的值类型要保持一致。</p>
+<h1>二、继承</h1>
+<p><span style="font-size: 18px;"><strong>1）类继承接口</strong></span></p>
+<p>　　与C#、Java等面向对象语言一样，TypeScript中的类也能继承接口，并且接口中的成员会让类强制实现。有了接口之后，它的任何更改都有可能导致编译错误，从而就能保证相关代码的同步。下面通过一个示例来演示类继承接口，首先创建一个名为Person的接口，包含name属性和getName()方法，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  name: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+  getName(): </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>　　然后再创建一个名为Member的类，通过implements关键字继承Person接口，如下所示。在编译时，一旦发现类中缺少接口的属性或方法，就会马上报错。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Member implements Person {
+  name: </span><span style="color: #0000ff;">string</span> = <span style="color: #800000;">"</span><span style="color: #800000;">strick</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+  getName() {
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">.name;
+  }
+}</span></pre>
+</div>
+<p>　　类能继承多个接口，只要在类中实现它的成员，就能编译成功，如下所示，Member类继承了Person和Profile两个接口，限于篇幅原因，在其内部省略了name和getName()两个成员的实现。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Profile {
+  school: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Member implements Person, Profile {
+  school: </span><span style="color: #0000ff;">string</span> = <span style="color: #800000;">"</span><span style="color: #800000;">university</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>　　注意，类不能实现接口中的所有成员，例如在接口中定义一个构造器，再用一个类通过构造函数来实现这个接口，此时编译将会失败，代码如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Person {
+  </span><span style="color: #0000ff;">new</span> (name: <span style="color: #0000ff;">string</span><span style="color: #000000;">);
+}
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Member implements Person {
+  constructor(name: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">) { }
+}</span></pre>
+</div>
+<p>　　类包含静态和实例两部分，由于编译器只会对接口的实例部分进行类型检查，而constructor()函数属于类的静态部分，因此会被忽略，从而导致无法在类中找到匹配的成员来实现接口。</p>
+<p>　　如果要实现接口中的构造器，那么有两种方式可供选择。第一种是参数回调，如下代码所示，Member类不再直接继承Person接口，而是作为参数传递给createPerson()函数，并且其第一个参数被声明为Person类型。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Member {
+  constructor(name: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">) { }
+}
+function createPerson(ctor: Person, name: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">) {
+  </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> ctor(name);
+}
+createPerson(Member, </span><span style="color: #800000;">"</span><span style="color: #800000;">strick</span><span style="color: #800000;">"</span>);</pre>
+</div>
+<p>　　第二种是类表达式，如下代码所示，将Man变量声明为Person类型，并把Member类赋给它。</p>
+<div class="cnblogs_code">
+<pre><code>let Man: Person = <span style="color: #0000ff;">class</span><span style="color: #000000;"> Member {
+  constructor(name: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">) { }
+}</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>2）接口继承接口</strong></span></p>
+<p>　　接口之间也可相互继承，这样既能更细粒度的分割接口，也能最大化的重用代码。与类不同的是，只需将其它的接口成员复制过来，而不必实现它们。在下面的示例中，Square接口通过extends关键字继承了Shape接口。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Shape {
+  background: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}
+</span><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Square extends Shape {
+  width: number;
+}</span></pre>
+</div>
+<p>　　一个接口还可以继承多个其它接口，创建出一个合成接口，如下所示，extends后面跟了Shape和Border两个接口。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Border {
+  color: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}
+</span><span style="color: #0000ff;">interface</span><span style="color: #000000;"> Ellipse extends Shape, Border {
+  angle: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p><span style="font-size: 18px;"><strong>3）接口继承类</strong></span></p>
+<p>　　当接口继承一个类时，它会继承类的所有成员（包括私有和受保护的成员），但不会去实现它们。以下面的TextBox接口为例，它继承了Control类。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Control {
+  </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> width: number;
+  </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> height: number;
+}
+</span><span style="color: #0000ff;">interface</span><span style="color: #000000;"> TextBox extends Control {
+  type: </span><span style="color: #0000ff;">string</span><span style="color: #000000;">;
+}
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Tel implements TextBox {
+  type: </span><span style="color: #0000ff;">string</span> = <span style="color: #800000;">"</span><span style="color: #800000;">tel</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>　　上例中的Tel类直接继承了TextBox接口，虽然实现了接口中的type属性，但仍然会报&ldquo;Type 'Tel' is missing the following properties from type 'TextBox': width, height&rdquo;的错误。因为Button接口继承的width和height两个属性也需要实现。为了避免出现这些错误，可以通过Control的子类来实现TextBox接口，如下所示。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Password extends Control implements TextBox {
+  type: </span><span style="color: #0000ff;">string</span> = <span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

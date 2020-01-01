@@ -1,0 +1,111 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python3装饰器用法示例' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python3装饰器用法示例</center></div><div class='banquan'>原文出处:本文由博客园博主正态分个布提供。<br/>
+原文连接:https://www.cnblogs.com/zrmw/p/11244215.html</div><br>
+    <p>装饰器在编写后台的逻辑时有可能会用到，比方说一个场景：公司的员工想要登录自己公司的考勤记录系统去修改自己的考勤，以前是随便谁都有权限去修改，这样老板不同意了，现在，要在你登录前加一个权限验证的逻辑，如果你权限没有达到等级要求，你就不能登录系统去修改自己的考勤记录。如何在不改动原函数的情况下去增加这部分权限验证的功能呢？这就用到的装饰器函数。</p>
+<p>装饰器函数的一大有点就是，在不改动原函数的基础上，去给函数增加新的功能。</p>
+<p>装饰器有两种，一种是没有参数的，一种是有参数的，本示例两种装饰器都有，不过只运行了有参数的。</p>
+<p>有关用法和解释在代码中已经注释。下面是一个例子。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 装饰器函数的两个特点，也是必须满足的条件</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 1. 闭包</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 2. 外部函数的返回值必须是内部函数</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 这是一个没有参数的装饰器的例子</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> decorator(func):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> wrapper():
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">在登录前，先检查有没有此账号。</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> !@#$%^&amp;*，在数据库中查询</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 如果数据库的已注册表中查到此用户，就执行登录函数 login()。</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 如果没有查到，则显示&ldquo;请先注册，然后登录&rdquo;</span>
+<span style="color: #000000;">        func()
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 上面已经写好了一个装饰器，下面是用法</span>
+<span style="color: #000000;">@decorator
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> login1():
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 比方说这里是一段很复杂的逻辑，现在用登录操作代替</span>
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">我现在要登录了</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这是一个有参数的装饰器例子</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> decorator2(func):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> wrapper2(name):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 数字越小，权限越高</span>
+        priLevelDict = {<span style="color: #800000;">'</span><span style="color: #800000;">赵总</span><span style="color: #800000;">'</span>: 1, <span style="color: #800000;">'</span><span style="color: #800000;">赵总</span><span style="color: #800000;">'</span>: 2, <span style="color: #800000;">'</span><span style="color: #800000;">小王</span><span style="color: #800000;">'</span>: 3<span style="color: #000000;">}
+
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 判断字典中是否存在某个key，可以用 in 或者 not in来判断</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> print('小王' in priLevelDict)</span>
+
+        <span style="color: #0000ff;">if</span> name <span style="color: #0000ff;">in</span><span style="color: #000000;"> priLevelDict:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">正在对{}进行权限验证</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 如果权限验证通过，则可以进行下一步的登录，管理</span>
+            <span style="color: #008000;">#</span><span style="color: #008000;"> 如果权限验证不通过，则不能登录。逻辑自己设计就好</span>
+            <span style="color: #008000;">#</span><span style="color: #008000;"> print(priLevelDict[name])</span>
+            <span style="color: #0000ff;">if</span> priLevelDict[name] == 1 <span style="color: #0000ff;">or</span> priLevelDict[name] == 2<span style="color: #000000;">:
+                </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">验证通过</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+                func(name)
+            </span><span style="color: #0000ff;">elif</span> priLevelDict[name] == 3<span style="color: #000000;">:
+                </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">对不起，{}，您没有权限登录，请有点自知之明。</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+                </span><span style="color: #0000ff;">print</span><span style="color: #000000;">()
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">你tm是谁啊，数据库里都找不到你，滚犊子。</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper2
+
+@decorator2
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> login2(name):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">尊敬的{}， 现在您可以登录管理系统进行管理</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name))
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">()
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    </span><span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+        name </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">请输入你的姓名：</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        login2(name)</span></pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">请输入你的姓名：赵总
+正在对赵总进行权限验证
+验证通过
+尊敬的赵总， 现在您可以登录管理系统进行管理
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这可是领导，老板要查岗，必须得通过啊</span>
+<span style="color: #000000;">
+请输入你的姓名：钱经理
+正在对钱经理进行权限验证
+验证通过
+尊敬的钱经理， 现在您可以登录管理系统进行管理
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这是顶头上司，也要好好巴结一下</span>
+<span style="color: #000000;">
+请输入你的姓名：小王
+正在对小王进行权限验证
+对不起，小王，您没有权限登录，请有点自知之明。
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这是同事，说话比较随意</span>
+<span style="color: #000000;">
+请输入你的姓名：老李
+你tm是谁啊，数据库里都找不到你，滚犊子。
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这不是我们公司员工 ，不用客气</span>
+请输入你的姓名：</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

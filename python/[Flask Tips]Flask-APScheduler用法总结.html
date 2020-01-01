@@ -1,0 +1,85 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[Flask Tips]Flask-APScheduler用法总结' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[Flask Tips]Flask-APScheduler用法总结</center></div><div class='banquan'>原文出处:本文由博客园博主朽木Sweayer提供。<br/>
+原文连接:https://www.cnblogs.com/tengwei6328/p/11581457.html</div><br>
+    <p>在应用中需要使用调度框架来做一些统计的功能，可惜在Windows上可用的不多，最后选择了APScheduler这个调度器。<br />
+用法不多介绍，只总结一下在使用中遇到的坑。</p>
+<h1 id="app_context-问题">app_context 问题</h1>
+<p>凡是在APScheduler中调用的function，只要用到初始化跟app相关的对象(如db,mail)，都是需要app上下文的，正常情况下都需要push app_context的。<br />
+否则将会报&quot;No application found. Either work inside a view function or push an application context.&quot;的错误。<br />
+因为Flask-APScheduler在运行的时候是单独的一个进程，在这个进程中app是没有实例化的。使用之前要先实例化app对象。<br />
+以下代码可以解决这个问题：</p>
+<pre><code><code>
+#此创建app实例
+def get_app():
+    flask_app=create_app(&#39;production&#39;)
+    return flask_app
+
+def job1():
+    with get_app().app_context():
+        #需要做的操作
+</code></pre>
+<h1 id="重复运行问题">重复运行问题</h1>
+<p>在create_app时同时创建APScheduler对象，并且init然后start，会出现一个重复运行的问题。<br />
+那是因为FastCGI进程管理器在Web Server启动时，会自动创建若干个进程等待客户端的连接。如果访问量比较大，FastCGI会创建更多的进程以响应客户端的连接。<br />
+而每启动一个进程都会在后台创建一个APScheduler对象，所以会出现重复运行的情况。<br />
+在Linux上可以通过Python的fcntl包获得一个文件的排他锁，以达到只启动一个APScheduler对象的功能。但是在Windows上没有相应的包。<br />
+试过很多种获得文件排他锁的方法，终于找到一个第三方的包：<a href="https://portalocker.readthedocs.io/en/latest/">portalocker</a>，果断安装。<br />
+使用方法如下：</p>
+<pre><code><code>
+scheduler=APScheduler()
+
+def create_app(config_name):
+    app=Flask(__name__)
+    app.jinja_env.trim_blocks=True
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
+
+    scheduler_init(app)
+
+    return app
+
+
+def scheduler_init(app):
+    try:
+        lockfile=open(&#39;scheduler.lock&#39;,&#39;w&#39;)
+        portalocker.lock(lockfile,portalocker.LOCK_EX | portalocker.LOCK_NB)
+        lockfile.write(str(datetime.datetime.now()))
+        scheduler.init_app(app)
+        scheduler.start()
+    except:
+        pass
+
+    def _unlock_file():
+        try:
+            portalocker.unlock(lockfile)
+        except:
+            pass
+
+    atexit.register(_unlock_file)
+</code></pre>
+<p>获得锁的进程，在解释器被销毁时会调用_unlock_file释放锁，新创建的进程又会得到锁，所以APScheduler会一直运行。<br />
+如果要想获得准确调度，可以使用APScheduler另外启动一个进程，而不要使用Flask-APScheduler。<br />
+不过Flask-APScheduler对我的应用来说够用了。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,188 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修HADOOP 与 jupyterlab 链接' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>HADOOP 与 jupyterlab 链接</center></div><div class='banquan'>原文出处:本文由博客园博主Supmens提供。<br/>
+原文连接:https://www.cnblogs.com/Zhchan/p/11321799.html</div><br>
+    <p>首先&nbsp; &nbsp; &nbsp;咱们先把jdk1.0.0_60.tar.gz&nbsp; &nbsp; &nbsp;和&nbsp; &nbsp; &nbsp; &nbsp;hadoop-2.7.2.tar.gz&nbsp; &nbsp; 的压缩包放到root根目录下的opt文件夹下&nbsp; &nbsp; &nbsp; 如图：</p>
+<p>&nbsp;</p>
+<p><img src="./images/HADOOP 与 jupyterlab 链接0.png" alt="" /></p>
+<p>然后&nbsp; &nbsp;进入opt目录下执行解压命令：</p>
+<p>tar -zxvf hadoop-2.7.2.tar.gz&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Hadoop的解压命令<br />tar -zxvf jdk1.8.0_60.tar.gz&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;jdk的解压命令</p>
+<p>解压完以后，修改环境变量：</p>
+<p>vim ~/.bashrc&nbsp; &nbsp; 修改环境变量</p>
+<p>&nbsp;</p>
+<p>export JAVA_HOME="/opt/jdk1.8.0_60"<br />export  PATH="$PATH:$JAVA_HOME/bin"<br />export  HADOOP_HOME="/opt/hadoop-2.7.2"<br />export  PATH="$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin"</p>
+<p><img src="./images/HADOOP 与 jupyterlab 链接1.png" alt="" /></p>
+<p>添加完毕以后&nbsp; &nbsp;保存退出！&nbsp; &nbsp; &nbsp;保存退出以后一定要执行应用命令&nbsp; &nbsp;不然还是报错：</p>
+<p>source ~/.bashrc&nbsp; &nbsp;应用修改后的环境</p>
+<p>验证: 输入java或者javac, 能够找到这个命令, 说明JAVA环境配置完成</p>
+<p>同样的操作, 在两个虚拟机内分别配置</p>
+<p>&nbsp;</p>
+<p>在以下文件里加入下面的内容：</p>
+<h4 id="core_site">core-site.xml</h4>
+<p>从这一步开始, 把目录切换到 /opt/bigData/Hadoop/hadoop-2.7.2/etc/hadoop/ 下</p>
+<p>编辑core-site.xml文件</p>
+<p>&nbsp;</p>
+<pre><code>&lt;property&gt;
+	&lt;name&gt;fs.default.name&lt;/name&lt;
+	&lt;value&gt;hdfs://master:9000/&lt;/value&gt;
+&lt;/property&gt;
+&lt;property&gt;		
+	&lt;name&gt;dfs.permissions&lt;/name&gt;
+	&lt;value&gt;false&lt;/value&gt;
+&lt;/property&gt;
+    				</pre>
+<p>&nbsp;</p>
+<p><br /><br /></p>
+<h4 id="hdfs">hdfs-site.xml</h4>
+<p>编辑hdfs-site.xml文件</p>
+<p>&nbsp;</p>
+<pre><code>&lt;property&gt;
+	&lt;name&gt;dfs.data.dir&lt;/name&gt;
+    &lt;value&gt;/home/luds/bigData/dfs/data&lt;/value&gt;
+    &lt;final&gt;true&lt;/final&gt;
+&lt;/property&gt;
+&lt;property&gt;
+    &lt;name&gt;dfs.name.dir&lt;/name&gt;
+    &lt;value&gt;/home/luds/bigData/dfs/name&lt;/value&gt;
+    &lt;final&gt;true&lt;/final&gt;
+&lt;/property&gt;
+&lt;property&gt;
+    &lt;name&gt;dfs.replication&lt;/name&gt;
+    &lt;value&gt;1&lt;/value&gt;
+&lt;/property&gt;
+
+&lt;property&gt;
+    &lt;name&gt;dfs.secondary.http.address&lt;/name&gt;
+    &lt;value&gt;master:50090&lt;/value&gt;
+&lt;/property&gt;
+				</pre>
+<p>&nbsp;</p>
+<p><br /><br /></p>
+<h4 id="mapred_xml">mapred-site.xml</h4>
+<p>编辑mapred-site.xml</p>
+<p>这个目录下面没有这个文件, 但是有这个文件的模板, 可以先从这个模板拷贝一个方案</p>
+<p>指令: cp mapred-site.xml.template mapred-site.xml</p>
+<p>然后再编辑这个文件</p>
+<p>&nbsp;</p>
+<pre><code>&lt;property&gt;
+    &lt;name&gt;mapred.job.tracker&lt;/name&gt;
+    &lt;value&gt;master:9001&lt;/value&gt;
+&lt;/property&gt;
+
+&lt;property&gt;
+    &lt;name&gt;mapreduce.framework.name&lt;/name&gt;
+    &lt;value&gt;yarn&lt;/value&gt;
+&lt;/property&gt;
+
+&lt;property&gt;
+    &lt;name&gt;mapreduce.jobhistory.address&lt;/name&gt;
+    &lt;value&gt;master:10020&lt;/value&gt;
+    &lt;description&gt;MapReduce JobHistory Server IPC host:port&lt;/description&gt;
+&lt;/property&gt;
+				</pre>
+<p>&nbsp;</p>
+<p><br /><br /></p>
+<h4 id="yarn">yarn-site.xml</h4>
+<p>&nbsp;</p>
+<pre><code>&lt;property&gt;
+    &lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;
+    &lt;value&gt;mapreduce_shuffle&lt;/value&gt;
+&lt;/property&gt;
+
+&lt;property&gt;
+    &lt;name&gt;yarn.resourcemanager.hostname&lt;/name&gt;
+    &lt;value&gt;master&lt;/value&gt;
+    &lt;description&gt;The hostname of the RM.&lt;/description&gt;
+&lt;/property&gt;
+
+&lt;property&gt;
+    &lt;name&gt;yarn.log-aggregation-enable&lt;/name&gt;
+    &lt;value&gt;true&lt;/value&gt;
+&lt;/property&gt;
+				</pre>
+<p>&nbsp;</p>
+<p><br /><br /></p>
+<h4 id="java_hadoop">配置hadoop_env.sh 环境</h4>
+<p>编辑文件 hadoop-env.sh</p>
+<p>添加一行:</p>
+<p>export JAVA_HOME=/opt/bigData/Java/jdk1.8.0_60</p>
+<p>
+<br /><br /></p>
+<h4 id="mapred_env">mapred-env.sh</h4>
+<p>编辑文件 mapred-env.sh</p>
+<p>添加一行:</p>
+<p>export JAVA_HOME=/opt/bigData/Java/jdk1.8.0_60</p>
+<p>
+<br /><br /></p>
+<h4 id="masters">添加masters</h4>
+<p>添加一个masters文件, 将master添加进去</p>
+<p>指令: vi masters</p>
+<p>添加:</p>
+<p>master</p>
+<p>&nbsp;</p>
+<h4 id="slaves">修改slaves</h4>
+<p>添加:</p>
+<p>slave0<br />slave1</p>
+<p>&nbsp;</p>
+<p><strong>Hadoop简单语法：</strong></p>
+<p>hdfs 常用命令<br />（1）查看帮助<br />        hdfs dfs -help <br />        <br />    （2）查看当前目录信息<br />        hdfs dfs -ls /<br />        <br />    （3）上传文件<br />        hdfs dfs -put /本地路径 /hdfs路径<br />        <br />    （4）剪切文件<br />        hdfs dfs -moveFromLocal a.txt /aa.txt<br />        <br />    （5）下载文件到本地<br />        hdfs dfs -get /hdfs路径 /本地路径<br />        <br />    （6）合并下载<br />        hdfs dfs -getmerge /hdfs路径文件夹 /合并后的文件<br />        <br />    （7）创建文件夹<br />        hdfs dfs -mkdir /hello<br />        <br />    （8）创建多级文件夹<br />        hdfs dfs -mkdir -p /hello/world<br />        <br />    （9）移动hdfs文件<br />        hdfs dfs -mv /hdfs路径 /hdfs路径<br />        <br />    （10）复制hdfs文件<br />        hdfs dfs -cp /hdfs路径 /hdfs路径<br />        <br />    （11）删除hdfs文件<br />        hdfs dfs -rm /aa.txt<br />        <br />    （12）删除hdfs文件夹<br />        hdfs dfs -rm -r /hello<br />        <br />    （13）查看hdfs中的文件<br />        hdfs dfs -cat /文件<br />        hdfs dfs -tail -f /文件<br />        <br />    （14）查看文件夹中有多少个文件<br />        hdfs dfs -count /文件夹<br />        <br />    （15）查看hdfs的总空间<br />        hdfs dfs -df /<br />        hdfs dfs -df -h /<br />        <br />    （16）修改副本数    <br />        hdfs dfs -setrep 1 /a.txt</p>
+<p>&nbsp;</p>
+<p><strong>然后设置IP映射</strong>：</p>
+<p>vim /etc/hosts&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ip映射</p>
+<p>文件里面只留下ip&nbsp; &nbsp; &nbsp;和&nbsp; &nbsp; &nbsp; master就行</p>
+<p><img src="./images/HADOOP 与 jupyterlab 链接2.png" alt="" /></p>
+<p>vim /etc/hostname&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 修改主机名</p>
+<p>&nbsp;同上&nbsp; &nbsp;只留下master&nbsp; &nbsp;不需要ip</p>
+<p>下载：tree</p>
+<p>yum install tree</p>
+<p>tree . 当前目录</p>
+<p>tree bigdata&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;查看bigdata目录</p>
+<p>&nbsp;Hadoop&nbsp; namenode -format&nbsp; &nbsp; &nbsp;格式化磁盘</p>
+<p>格式化完了&nbsp; 就会生成一个bigdata目录</p>
+<p><img src="./images/HADOOP 与 jupyterlab 链接3.png" alt="" /></p>
+<p>然后启动服务：</p>
+<p>start-all.sh&nbsp; &nbsp;启动服务</p>
+<p>启动服务密码要输入root用户的密码，少了输入四次，多的时候五六次&nbsp; 不要怕麻烦</p>
+<p>启动好了&nbsp; &nbsp;查看&nbsp; &nbsp;jps&nbsp; &nbsp;就行</p>
+<p>如果只有一个的情况下&nbsp; &nbsp;建议删掉bigdata&nbsp; &nbsp;然后重新格式化磁盘以后在运行</p>
+<p><img src="./images/HADOOP 与 jupyterlab 链接4.png" alt="" /></p>
+<p>启动没有问题以后直接访问http://127.0.0.1：50070</p>
+<p>链接jupyter</p>
+<p>hdfs-site.xml文件中添加：</p>
+<p>&lt;property&gt;<br />&lt;name&gt;dfs.permissions&lt;/name&gt;<br />&lt;value&gt;false&lt;/value&gt;<br />&lt;/property&gt;</p>
+<p>执行：stop-all.sh</p>
+<p>执行：start-all.sh</p>
+<p>然后在jupyter中执行代码就可以了</p>
+<p>#谨记： C:\Windows\System32\drivers\etc\hosts文件里做ip映射，否则连接不上</p>
+<p><img src="./images/HADOOP 与 jupyterlab 链接5.png" alt="" /></p>
+<p>from hdfs.client import Client<br />#关于python操作hdfs的API可以查看官网:<br />#https://hdfscli.readthedocs.io/en/latest/api.html</p>
+<p>#读取hdfs文件内容,将每行存入数组返回<br />def read_hdfs_file(client,filename):<br />    lines = []<br />    with client.read(filename, encoding='utf-8', delimiter='\n') as reader:<br />        for line in reader:<br />            #pass<br />            #print line.strip()<br />            lines.append(line.strip())<br />    return lines</p>
+<p>#创建目录<br />def mkdirs(client,hdfs_path) :<br />    client.makedirs(hdfs_path)</p>
+<p>#删除hdfs文件<br />def delete_hdfs_file(client,hdfs_path):<br />    client.delete(hdfs_path)</p>
+<p>#上传文件到hdfs<br />def put_to_hdfs(client,local_path,hdfs_path):<br />    client.upload(hdfs_path, local_path,cleanup=True)</p>
+<p>#从hdfs获取文件到本地<br />def get_from_hdfs(client,hdfs_path,local_path):<br />    client.download(hdfs_path, local_path, overwrite=False)</p>
+<p>#追加数据到hdfs文件    <br />def append_to_hdfs(client,hdfs_path,data):<br />    client.write(hdfs_path, data,overwrite=False,append=True)<br />    <br />#覆盖数据写到hdfs文件<br />def write_to_hdfs(client,hdfs_path,data):<br />    client.write(hdfs_path, data,overwrite=True,append=False)</p>
+<p>#移动或者修改文件  <br />def move_or_rename(client,hdfs_src_path, hdfs_dst_path):<br />    client.rename(hdfs_src_path, hdfs_dst_path)<br />    <br />#返回目录下的文件<br />def list(client,hdfs_path):<br />    return client.list(hdfs_path, status=False)</p>
+<p># root:连接的跟目录<br />client = Client("http://192.168.161.134:50070",<br />                root="/",timeout=5*1000,session=False)<br /># put_to_hdfs(client,'a.txt','/b.txt')    #上传文件<br /># append_to_hdfs(client,'/b.txt','111111111111111'+'\n')   #追加数据<br /># write_to_hdfs(client,'/b.txt','222222222222'+'\n')       #替换数据</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

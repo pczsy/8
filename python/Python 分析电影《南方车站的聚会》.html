@@ -1,0 +1,221 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python 分析电影《南方车站的聚会》' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python 分析电影《南方车站的聚会》</center></div><div class='banquan'>原文出处:本文由博客园博主程序员野客提供。<br/>
+原文连接:https://www.cnblogs.com/ityard/p/12075904.html</div><br>
+    <p><img src="./images/Python 分析电影《南方车站的聚会》0.png" /><br />
+《南方车站的聚会》由刁亦男执导，主要演员包括：胡歌、桂纶镁、廖凡、万茜等，该片于 2019 年 5 月 18 在戛纳电影节首映，2019 年 12 月 6 日在中国正式上映。故事灵感来自真实新闻事件，主要讲述盗窃团伙头目周泽农（胡歌饰），在重金悬赏下走上逃亡之路，艰难寻求自我救赎的故事。</p>
+<p>影片上映了一周多，票房接近 2 亿，作为一部文艺片，这个表现应该算是属于中上水平了。下面打开<a href="https://movie.douban.com/subject/27668250/">豆瓣</a>看一下评分情况，如下图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》1.png" /><br />
+从图中我们可以看到目前有 13 万多人评分，达到了 7.5 分，打 4 星和 3 星的居多，并非网上一些人所说的<code>口碑两极分化</code>（如果两级分化，应该是打 5 星 和 1 星的居多吧？！）。</p>
+<p>页面向下拉到影评位置，如下图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》2.png" /><br />
+我们可以看到有 5 万多条影评，目前豆瓣对查看影评数据的限制是：未登录最多可以查看 200 条数据，登录用户最多可以查看 500 条数据，我们要做的是通过 Python 爬取豆瓣 500 条影评数据，然后进行数据分析。</p>
+<p>首先获取影片列表 URL，具体操作为：点击上图中 <code>全部 52846 条</code>，进入影评列表首页，如下图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》3.png" /><br />
+但我们发现一个问题，该 URL 参数中并没有行号等信息（实现翻页需要），这个问题我们只需点击<code>后页</code>按钮即可看到，结果如图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》4.png" /><br />
+现在我们可以从 URL 中看到这些信息了，因 <code>start</code> 参数为变量，我们将上面 URL 修改为：<code>https://movie.douban.com/subject/27668250/comments?start=%d&amp;limit=20&amp;sort=new_score&amp;status=P</code> 作为爬取开始 URL。</p>
+<p>接着我们看一下如何实现登陆，首先打开<a href="https://accounts.douban.com/passport/login">登录页</a>，如下图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》5.png" /><br />
+我们先在<code>手机号/邮箱</code>和<code>密码</code>输入框处随意输入（不要输入正确的用户名和密码），再按 <code>F12</code> 键打开开发者工具，最后点击<code>登录豆瓣</code>按钮，结果如图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》6.png" /><br />
+我们点击上面图中所示 <code>basic</code> 项，点击后结果如图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》7.png" /><br />
+此时可以看到 <code>Request URL</code>（登录所需 URL） 和 <code>Form Data</code> 项，这两项是我们登录时需要的，当然我们还需 <code>User-Agent</code>，点击上面图中所示的 <code>Request Headers</code> 项即可看到，如图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》8.png" /><br />
+所需要的东西都找好了，接下来就是具体实现了，豆瓣登录和影评数据爬取的具体实现如下所示：</p>
+<pre><code><code>import requests
+import time
+import random
+from lxml import etree
+import csv
+
+# 新建 csv 文件
+csvfile = open(&#39;南方车站的聚会.csv&#39;,&#39;w&#39;,encoding=&#39;utf-8&#39;,newline=&#39;&#39;)
+writer = csv.writer(csvfile)
+# 表头
+writer.writerow([&#39;时间&#39;,&#39;星级&#39;,&#39;评论内容&#39;])
+
+def spider():
+    url = &#39;https://accounts.douban.com/j/mobile/login/basic&#39;
+    headers = {&quot;User-Agent&quot;: &#39;Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)&#39;}
+    comment_url = &#39;https://movie.douban.com/subject/27668250/comments?start=%d&amp;limit=20&amp;sort=new_score&amp;status=P&#39;
+    data = {
+        &#39;ck&#39;: &#39;&#39;,
+        &#39;name&#39;: &#39;自己的用户名&#39;,
+        &#39;password&#39;: &#39;自己的密码&#39;,
+        &#39;remember&#39;: &#39;false&#39;,
+        &#39;ticket&#39;: &#39;&#39;
+    }
+    session = requests.session()
+    session.post(url=url, headers=headers, data=data)
+    # 总共 500 条，每页 20 条
+    for i in range(0, 500, 20):
+        # 获取 HTML
+        data = session.get(comment_url % i, headers=headers)
+        print(&#39;第&#39;, i, &#39;页&#39;, &#39;状态码：&#39;, data.status_code)
+        # 暂停 0-1 秒
+        time.sleep(random.random())
+        # 解析 HTML
+        selector = etree.HTML(data.text)
+        # 获取当前页所有评论
+        comments = selector.xpath(&#39;//div[@class=&quot;comment&quot;]&#39;)
+        # 遍历所有评论
+        for comment in comments:
+            # 获取星级
+            star = comment.xpath(&#39;.//h3/span[2]/span[2]/@class&#39;)[0][7]
+            # 获取时间
+            t = comment.xpath(&#39;.//h3/span[2]/span[3]/text()&#39;)
+            # 获取评论内容
+            content = comment.xpath(&#39;.//p/span/text()&#39;)[0].strip()
+            # 排除时间为空的项
+            if len(t) != 0:
+                t = t[0].strip()
+                writer.writerow([t, star, content])</code></pre>
+<p>接下来我们通过词云直观的来展示下整体评论情况，具体实现如下所示：</p>
+<pre><code><code>import csv
+import jieba
+from wordcloud import WordCloud
+import numpy as np
+from PIL import Image
+
+# jieba 分词处理
+def jieba_():
+    csv_list = csv.reader(open(&#39;南方车站的聚会.csv&#39;, &#39;r&#39;, encoding=&#39;utf-8&#39;))
+    print(&#39;csv_list&#39;,csv_list)
+    comments = &#39;&#39;
+    for i,line in enumerate(csv_list):
+        if i != 0:
+            comment = line[2]
+            comments += comment
+    print(&quot;comment--&gt;&quot;,comments)
+    # jieba 分词
+    words = jieba.cut(comments)
+    new_words = []
+    # 要排除的词
+    remove_words = [&#39;以及&#39;, &#39;在于&#39;, &#39;一些&#39;, &#39;一场&#39;, &#39;只有&#39;,
+                    &#39;不过&#39;, &#39;东西&#39;, &#39;场景&#39;, &#39;所有&#39;, &#39;这么&#39;,
+                    &#39;但是&#39;, &#39;全片&#39;, &#39;之前&#39;, &#39;一部&#39;, &#39;一个&#39;,
+                    &#39;作为&#39;, &#39;虽然&#39;, &#39;一切&#39;, &#39;怎么&#39;, &#39;表现&#39;,
+                    &#39;人物&#39;, &#39;没有&#39;, &#39;不是&#39;, &#39;一种&#39;, &#39;个人&#39;
+                    &#39;如果&#39;, &#39;之后&#39;, &#39;出来&#39;, &#39;开始&#39;, &#39;就是&#39;,
+                    &#39;电影&#39;, &#39;还是&#39;, &#39;不是&#39;, &#39;武汉&#39;, &#39;镜头&#39;]
+    for word in words:
+        if word not in remove_words:
+            new_words.append(word)
+    global word_cloud
+    # 用逗号分隔词语
+    word_cloud = &#39;，&#39;.join(new_words)
+
+# 生成词云
+def world_cloud():
+    # 背景图
+    cloud_mask = np.array(Image.open(&#39;bg.jpg&#39;))
+    wc = WordCloud(
+        # 背景图分割颜色
+        background_color=&#39;white&#39;,
+        # 背景图样
+        mask=cloud_mask,
+        # 显示最大词数
+        max_words=600,
+        # 显示中文
+        font_path=&#39;./fonts/simhei.ttf&#39;,
+        # 字的尺寸限制
+        min_font_size=20,
+        max_font_size=100,
+        margin=5
+    )
+    global word_cloud
+    x = wc.generate(word_cloud)
+    # 生成词云图片
+    image = x.to_image()
+    # 展示词云图片
+    image.show()
+    # 保存词云图片
+    wc.to_file(&#39;wc.png&#39;)</code></pre>
+<p><strong>整体评论词云图</strong><br />
+<img src="./images/Python 分析电影《南方车站的聚会》9.png" /></p>
+<p>因为有人说了影片口碑两级分化，接下来我们看一下打 1 星和 5 星的词云效果如何，主要实现如下所示：</p>
+<pre><code><code>for i,line in enumerate(csv_list):
+    if i != 0:
+        star = line[1]
+        comment = line[2]
+        # 一星评论用 1，五星评论用 5
+        if star == &#39;1&#39;:
+            comments += comment</code></pre>
+<p><strong>一星评论词云图</strong></p>
+<p><img src="./images/Python 分析电影《南方车站的聚会》10.png" /></p>
+<p><strong>五星评论词云图</strong></p>
+<p><img src="./images/Python 分析电影《南方车站的聚会》11.png" /><br />
+上面我们只使用了评论内容信息，还有时间和星级信息没有使用，最后我们可以用这两项数据分析下随着时间的变化影片星级的波动情况，以月为单位统计影片从首映（2019 年 5 月）到当前时间（2019 年 12月）的星级波动情况，具体实现如下所示：</p>
+<pre><code><code>import csv
+from pyecharts.charts import Line
+import pyecharts.options as opts
+import numpy as np
+from datetime import datetime
+
+def score():
+    csv_list = csv.reader(open(&#39;南方车站的聚会.csv&#39;, &#39;r&#39;, encoding=&#39;utf-8&#39;))
+    print(&#39;csv_list&#39;, csv_list)
+    comments = &#39;&#39;
+    ts = []
+    ss = set()
+    for i, line in enumerate(csv_list):
+        if i != 0:
+            t = line[0][0:7]
+            s = line[1]
+            ts.append(t+&#39;:&#39;+s)
+            ss.add(t)
+    new_times = []
+    new_starts = []
+    new_ss = []
+    for i in ss:
+        new_ss.append(i)
+    arr = np.array(new_ss)
+    new_ss = arr[np.argsort([datetime.strptime(i, &#39;%Y-%m&#39;) for i in np.array(new_ss)])].tolist()
+    print(&#39;new_ss&#39;,new_ss)
+    for i in new_ss:
+        x = 0
+        y = 0
+        z = 0
+        for j in ts:
+            t = j.split(&#39;:&#39;)[0]
+            s = int(j.split(&#39;:&#39;)[1])
+            if i == t:
+                x += s
+                z += 1
+        new_times.append(i)
+        new_starts.append(round(x / z, 1))
+    c = (
+            Line()
+           .add_xaxis(new_times)
+           .add_yaxis(&#39;南方车站的聚会&#39;,new_starts)
+            .set_global_opts(title_opts=opts.TitleOpts(title=&#39;豆瓣星级波动图&#39;))
+        ).render()</code></pre>
+<p>影片星级波动效果如下图所示：<br />
+<img src="./images/Python 分析电影《南方车站的聚会》12.png" /><br />
+根据影片星级的波动情况我们也能大致预测到影片评分的波动情况。</p>
+<p>参考：<br />
+<a href="https://baike.baidu.com/item/%E5%8D%97%E6%96%B9%E8%BD%A6%E7%AB%99%E7%9A%84%E8%81%9A%E4%BC%9A/22547693?fr=aladdin">https://baike.baidu.com/item/%E5%8D%97%E6%96%B9%E8%BD%A6%E7%AB%99%E7%9A%84%E8%81%9A%E4%BC%9A/22547693?fr=aladdin</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

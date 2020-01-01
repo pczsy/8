@@ -1,0 +1,45 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django上线部署之Apache' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django上线部署之Apache</center></div><div class='banquan'>原文出处:本文由博客园博主Siriusmath提供。<br/>
+原文连接:https://www.cnblogs.com/Siriusmath/p/11393784.html</div><br>
+    <p><span style="font-family: 'courier new', courier; font-size: 16px;"><strong>环境：</strong></span><br /><span style="font-family: 'courier new', courier;">　　<strong>1</strong>.Windows Server 2016 Datacenter 64位</span><br /><span style="font-family: 'courier new', courier;">　　<strong>2</strong>.SQL Server 2016 Enterprise 64位</span><br /><span style="font-family: 'courier new', courier;">　　<strong>3</strong>.Python 3.6.0 64位</span><br /><span style="font-family: 'courier new', courier;">　　<strong>4</strong>.administrator用户，无域环境，最高权限</span></p>
+<p><span style="font-family: 'courier new', courier; font-size: 16px;"><strong>要求：</strong></span><br /><span style="font-family: 'courier new', courier;">　　<span style="color: #ff0000;"><strong>按照顺序部署</strong></span></span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>1</strong>.安装数据库</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>2</strong>.安装数据库客户端【SSMS】</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>3</strong>.安装Python</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>4<em>.</em></strong>下载apache2.4（<a href="https://www.apachelounge.com/download/VC14/" target="_blank">httpd-2.4.41-win64-VC14.zip</a> ）</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>5</strong>.解压至C盘根目录，打开cmd执行：C:\Apache24\bin\httpd.exe -k install</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>6</strong>.下载编译后的wsgi（<a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#mod_wsgi" target="_blank">mod_wsgi-4.5.24+ap24vc14-cp36-cp36m-win_amd64.whl</a>）</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>7</strong>.cmd执行：pip install 【路径】\mod_wsgi-4.5.24+ap24vc14-cp36-cp36m-win_amd64.whl</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>8</strong>.cmd执行：mod_wsgi-express module-config（执行结果追加到【httpd.conf】）</span></p>
+<p><span style="font-family: 'courier new', courier;">LoadFile "d:/programs/python/python36.dll"</span><br /><span style="font-family: 'courier new', courier;">LoadModule wsgi_module "d:/programs/python/lib/site-packages/mod_wsgi/server/mod_wsgi.cp36-win_amd64.pyd"</span><br /><span style="font-family: 'courier new', courier;">WSGIPythonHome "d:/programs/python"</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>9</strong>.修改【httpd.conf】</span></p>
+<p><span style="font-family: 'courier new', courier;">　　Define SRVROOT "c:/Apache24"（默认不动）</span><br /><span style="font-family: 'courier new', courier;">	　　ServerName 【IP】:80（修改IP）</span><br /><span style="font-family: 'courier new', courier;">	　　Include conf/extra/django.conf（添加这一行）</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>10</strong>.在C:\Apache24\conf\extra添加【django.conf】文件，内容如下：</span></p>
+<p><span style="font-family: 'courier new', courier;">LoadFile "d:/programs/python36/python36.dll"</span><br /><span style="font-family: 'courier new', courier;">LoadModule wsgi_module "d:/programs/python36/lib/site-packages/mod_wsgi/server/mod_wsgi.cp36-win_amd64.pyd"</span><br /><span style="font-family: 'courier new', courier;">WSGIPythonHome "d:/programs/python36"</span><br /><span style="font-family: 'courier new', courier;">WSGIPythonPath "${SRVROOT}/htdocs/MySite"</span><br /><span style="font-family: 'courier new', courier;">WSGIScriptAlias / "${SRVROOT}/htdocs/MySite/Project/wsgi.py"</span></p>
+<p><span style="font-family: 'courier new', courier;">&lt;VirtualHost *:80&gt;</span><br /><span style="font-family: 'courier new', courier;">    ServerName "192.168.70.111"</span><br /><span style="font-family: 'courier new', courier;">    DocumentRoot "${SRVROOT}/htdocs/MySite"</span><br /><span style="font-family: 'courier new', courier;">    ErrorLog "logs/Project-error.log"</span><br /><span style="font-family: 'courier new', courier;">    CustomLog "logs/Project-access.log" common</span><br /><span style="font-family: 'courier new', courier;">&lt;/VirtualHost&gt;</span></p>
+<p><span style="font-family: 'courier new', courier;">Alias /media/ "${SRVROOT}/htdocs/MySite/media/"</span><br /><span style="font-family: 'courier new', courier;">&lt;Directory "${SRVROOT}/htdocs/MySite/media/"&gt;</span><br /><span style="font-family: 'courier new', courier;">    Require all granted</span><br /><span style="font-family: 'courier new', courier;">&lt;/Directory&gt;</span></p>
+<p><span style="font-family: 'courier new', courier;">Alias /static/ "${SRVROOT}/htdocs/MySite/static/"</span><br /><span style="font-family: 'courier new', courier;">&lt;Directory "${SRVROOT}/htdocs/MySite/static/"&gt;</span><br /><span style="font-family: 'courier new', courier;">    Require all granted</span><br /><span style="font-family: 'courier new', courier;">&lt;/Directory&gt;</span></p>
+<p><span style="font-family: 'courier new', courier;">&lt;Directory "${SRVROOT}/htdocs/MySite/Project/"&gt;</span><br /><span style="font-family: 'courier new', courier;">    &lt;Files wsgi.py&gt;</span><br /><span style="font-family: 'courier new', courier;">        Require all granted</span><br /><span style="font-family: 'courier new', courier;">    &lt;/Files&gt;</span><br /><span style="font-family: 'courier new', courier;">&lt;/Directory&gt;</span></p>
+<p><span style="font-family: 'courier new', courier;"><strong>11</strong>.启动c:\Apache24\bin\ApacheMonitor.exe</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

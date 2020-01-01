@@ -1,0 +1,155 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python案例：实现一个函数版的名片管理系统' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python案例：实现一个函数版的名片管理系统</center></div><div class='banquan'>原文出处:本文由博客园博主三国小梦提供。<br/>
+原文连接:https://www.cnblogs.com/lxy0/p/11369548.html</div><br>
+    <p>本案例使用了自定义函数以及对字符串的常见操作、判断语句和循环语句等知识。</p>
+<h1 id="要求">要求</h1>
+<ol>
+<li>必须使用自定义函数，完成对程序的模块化。</li>
+<li>名片信息至少包括：姓名、电话、住址。</li>
+<li><p>必须完成的功能：增、删、改、查、退出。</p>
+<h1 id="分析">分析</h1></li>
+<li>首先呢，我们应该先定义一个全局变量，用于存储所有的名片信息。</li>
+</ol>
+<pre><code><code>cards = [{
+    &quot;name&quot;: &quot;张三&quot;,
+    &quot;phone&quot;: &quot;10086&quot;,
+    &quot;address&quot;: &quot;山西省&quot;,
+}, {
+    &quot;name&quot;: &quot;李四&quot;,
+    &quot;phone&quot;: &quot;10010&quot;,
+    &quot;address&quot;: &quot;北京市&quot;,
+}]  # 定义一个的列表用于存放名片信息，默认里面有张三和李四的信息，方便以后调试用。</code></pre>
+<ol>
+<li>完成增加，删除，修改，查找等相关操作的函数（cards是可变类型的全局变量，故在函数中不用加global也可调用），注意：如定义变量 a: int = 0, int只是单纯的提示开发人员它的类型是int,方便调试。</li>
+</ol>
+<pre><code><code>def print_menu():
+    &quot;&quot;&quot;&quot;完成打印功能菜单&quot;&quot;&quot;
+    print(&quot;=&quot; * 20)
+    print(&quot;    名片管理系统&quot;)
+    print(&quot; 1:添加一个名片&quot;)
+    print(&quot; 2:删除一个名片&quot;)
+    print(&quot; 3:修改一个名片&quot;)
+    print(&quot; 4:查询一个名片&quot;)
+    print(&quot; 5:显示所有的名片&quot;)
+    print(&quot; 6:退出&quot;)
+    print(&quot;=&quot; * 20)
+
+
+def add_card():
+    &quot;&quot;&quot;完成添加一个名片的功能&quot;&quot;&quot;
+    new_infor: dict = {
+        &quot;name&quot;: input(&quot;请输入一个名字：&quot;), 
+        &quot;phone&quot;: input(&quot;请输入一个电话：&quot;), 
+        &quot;address&quot;: input(&quot;请输入一个地址：&quot;)
+    }
+    cards.append(new_infor)
+    print(&quot;添加成功！&quot;)
+
+
+def delete_card():
+    del_name = input(&quot;请输入要删除的名字：&quot;)
+    for person in cards:
+        if del_name == person[&quot;name&quot;]:
+            cards.remove(person)
+            print(&quot;删除成功！&quot;)
+            break
+    else:
+        print(&quot;找不到要删除的人！&quot;)
+
+
+def update_card():
+    name: str = input(&quot;请输入要修改的名字（只能通过名字来修改电话和住址）：&quot;)
+    for person in cards:
+        if name == person[&quot;name&quot;]:
+            phone = input(&quot;请输入新的的电话（直接回车则不修改）：&quot;)
+            address = input(&quot;请输入新的的地址（直接回车则不修改）：&quot;)
+            if phone:
+                person[&quot;phone&quot;] = phone
+            if address:
+                person[&quot;address&quot;] = address
+            print(&quot;修改成功&quot;)
+            break
+    else:
+        print(&quot;找不到要修改的人！&quot;)
+
+
+def find_card():
+    &quot;&quot;&quot;用来查询一个名片&quot;&quot;&quot;
+
+    find_name: str = input(&quot;请输入要查询的名字（支持模糊查询）：&quot;)
+    flag: int = 1
+    for temp in cards:
+        # 遍历名片中的所有名字，判断要查找的名字是否存在，不存在则打印查无此人
+        if temp[&quot;name&quot;].find(find_name) != -1:
+            print(&quot;%s\t%s\t%s&quot; % (temp[&quot;name&quot;], temp[&quot;phone&quot;], temp[&quot;address&quot;]))
+            flag = 0
+    if flag:
+        print(&quot;查无此人&quot;)
+
+
+def show_all():
+    print(&quot;姓名\t电话\t住址&quot;)
+    for temp in cards:
+        print(&quot;%s\t%s\t%s&quot; % (temp[&quot;name&quot;], temp[&quot;phone&quot;], temp[&quot;address&quot;]))</code></pre>
+<ol>
+<li>最后完成主函数的功能，并调用主函数</li>
+</ol>
+<pre><code><code>def main():
+    &quot;&quot;&quot;&quot;完成对整个程序的控制&quot;&quot;&quot;
+    # 打印功能提示
+    print_menu()
+    while True:
+        # 获取用户的选择
+        num: str = input(&quot;请输入功能序号：&quot;)
+        # 判断输入的是否为数字
+        if not num.isdigit():
+            print(&quot;请输入数字！&quot;)
+            continue
+        # 转换成数字类型
+        num: int = int(num)
+        # 增
+        if num == 1:
+            add_card()
+        # 删
+        elif num == 2:
+            delete_card()
+        # 改
+        elif num == 3:
+            update_card()
+        # 查
+        elif num == 4:
+            find_card()
+        elif num == 5:
+            show_all()
+        elif num == 6:
+            break
+        else:
+            print(&quot;请按号输入！&quot;)
+        print()
+
+# 调用主函数
+if __name__ == &#39;__main__&#39;:
+    main()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

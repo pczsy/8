@@ -1,0 +1,161 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修全面讲解：委托、事件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>全面讲解：委托、事件</center></div><div class='banquan'>原文出处:本文由博客园博主小项目笔记提供。<br/>
+原文连接:https://www.cnblogs.com/ysyn/p/12012517.html</div><br>
+    <h4>每个编程者在项目中必定绕不开的话题：委托和事件。对于初学者来说，总会感觉有些难以理解，或者说无法自己随意运用。本文对委托、事件做一个详细的讲解，即是基础知识的自我温故，同时亦是记录。篇幅有些长，如果认真阅读，相信你会有所收获。</h4>
+<p>《Introducing Visual C# 2010》（Adam Freeman著，Apress出版）一书的第10章中有这样的介绍：</p>
+<p>Delegates are special types thatencapsulate a method, similar to function pointers found in other programminglanguages. Delegates have a number of uses in C#, but you are most likely toencounter a special type of delegate&mdash;the event. Events make notifyinginterested parties simple and flexible, and I&rsquo;ll explain the convention fortheir use later in the chapter.</p>
+<p>委托是封装方法的特殊类型，它类似于其它编程语言中的函数指针。委托在C#中有大量运用，但你最可能遇到的是一种特殊的委托类型&mdash;&nbsp;事件。事件使得对相关部件的通知变得简单而灵活，本章后面将解释其使用约定。</p>
+<p>I&rsquo;ll also explain the Func and Action typesthat let you use delegates in a more convenient form and that are usedextensively in some of the latest C# language features, such as parallelprogramming. We&rsquo;ll finish up this chapter with a look at anonymous methods andlambda expressions, two C# features that let us implement delegates withouthaving to define methods in our classes.</p>
+<p>我也会解释Func和Action类型，它们让你以更方便的形式使用委托，而且在一些最新的C#特性中也有广泛使用，如并行编程。本章最后考察匿名方法和lambda表达式，这是让我们不必在类中定义方法就可以使用委托的两个C#特性。</p>
+<p>&nbsp;</p>
+<p><strong>委托：</strong></p>
+<h4>委托定义：将函数作为另一个函数的参数进行调用。另外的解释：当一个类或者是进程需要调用另外一个方法时，需要借助另外的类或者是进程进行调用，这种机制称为委托。网上有大牛说：委托可以理解为函数指针，不同的是委托是面向对象、类型安全的。</h4>
+<p>实现步骤：</p>
+<p>1、声明一个委托类型：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">delegate</span> <span style="color: #0000ff;">int</span> CalculateDelegate(<span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span> y);</pre>
+</div>
+<p>2、定义一个委托对象：</p>
+<div class="cnblogs_code">
+<pre><code>CalculateDelegate calculateDelegate = <span style="color: #0000ff;">new</span> CalculateDelegate(Add);</pre>
+</div>
+<p>其中Add是委托封装的方法；</p>
+<p>3、执行委托方法：</p>
+<div class="cnblogs_code">
+<pre><code>calculateDelegate(<span style="color: #800080;">2</span>, <span style="color: #800080;">3</span>);</pre>
+</div>
+<p>其中委托绑定的方法Add：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> Add(<span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span> y)<br />{      <span style="color: #0000ff;">return</span> x + y;}</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>事件：</strong></p>
+<p>事件是一种特殊类型的委托</p>
+<p>拿winform中button双击举例说明委托可能更加贴切：</p>
+<p>声明一个委托，并声明一个事件：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">delegate</span> <span style="color: #0000ff;">void</span> EventHandler(<span style="color: #0000ff;">object</span><span style="color: #000000;"> sender, EventArgs e);
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">event</span> EventHandler Click;</pre>
+</div>
+<p>绑定一个事件：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">this</span>.button1.Click += <span style="color: #0000ff;">new</span> System.EventHandler(<span style="color: #0000ff;">this</span>.button1_Click);</pre>
+</div>
+<p>this.button1_Click是一个方法：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> button1_Click(<span style="color: #0000ff;">object</span> sender, EventArgs e){}</pre>
+</div>
+<p>&nbsp;</p>
+<p>拿一个实际项目举例说明：</p>
+<p><img src="./images/全面讲解：委托、事件0.png" alt="" /></p>
+<p><strong>匿名方法：</strong></p>
+<p>匿名方法（Anonymous methods） 提供了一种传递代码块作为委托参数的技术。匿名方法是没有名称只有主体的方法。在匿名方法中您不需要指定返回类型，它是从方法主体内的 return 语句推断的。</p>
+<p>在之前讲解委托时写到绑定方法：</p>
+<div class="cnblogs_code">
+<pre><code>CalculateDelegate calculateDelegate = <span style="color: #0000ff;">new</span><span style="color: #000000;"> CalculateDelegate(Add);
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> Add(<span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span> y)<br />{     <br /><span style="color: #0000ff;">    return</span> x + y;<br />}</pre>
+</div>
+<p>如果使用匿名方法重写上面的代码：</p>
+<div class="cnblogs_code">
+<pre><code>CalculateDelegate calculateDelegate = <span style="color: #0000ff;">delegate</span>(<span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span> y){<span style="color: #0000ff;">return</span> x + y;};</pre>
+</div>
+<p>可见：匿名方法绑定委托直接省去了编写一个单独的方法，使得代码更为简洁。</p>
+<p>项目中，使用委托时，很多时候编辑器会帮助我们把方法直接放入合适的委托对象中，但有时候编辑器帮助不了我们，比如：Control.Dispatcher.Invoke(delegate). 例如：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">this</span>.btnExit .Dispatcher .Invoke (<span style="color: #0000ff;">new</span> Action(() =&gt; {}));</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>Lambda表达式：</strong></p>
+<p>Lambda 表达式是一种匿名函数，简单地说，它是没有声明的方法，也即没有访问修饰符、返回值声明和名字;</p>
+<p>C#的Lambda 表达式都使用 Lambda 运算符 =&gt;，该运算符读为&ldquo;goes to&rdquo;。语法如下：</p>
+<div class="cnblogs_code">
+<pre><code>(<span style="color: #0000ff;">object</span> argOne, <span style="color: #0000ff;">object</span> argTwo) =&gt; {; <span style="color: #008000;">/*</span><span style="color: #008000;">Your statement goes here</span><span style="color: #008000;">*/</span>}</pre>
+</div>
+<p>用Lambda表达式重写上面使用匿名方法编写的委托实例，在匿名方法的基础上，编写如下：</p>
+<p>方式一：</p>
+<div class="cnblogs_code">
+<pre><code>CalculateDelegate calculateDelegate = (<span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span> y) =&gt; { <span style="color: #0000ff;">return</span> x + y; };</pre>
+</div>
+<p>方式二，更简单的表达：</p>
+<div class="cnblogs_code">
+<pre><code>CalculateDelegate calculateDelegate = (x, y) =&gt; { <span style="color: #0000ff;">return</span> x + y; };</pre>
+</div>
+<p>方式三，再简单：</p>
+<div class="cnblogs_code">
+<pre><code>CalculateDelegate calculateDelegate = (x, y) =&gt; x + y;</pre>
+</div>
+<p>从上面可以看出，Lambda仅仅是在匿名方法的基础上加上 =&gt; 符号，但是却让整个代码实现起来显得更为优雅。&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>泛型委托：</strong></p>
+<p>在.net平台下有Microsoft自带的泛型委托，如：Action,Action&lt;T&gt;,Fun&lt;T&gt;等。实际使用中，如果需要用到泛型委托，系统内置的委托基本上就能满足需求了，下面一一介绍它们的原型及调用实例。</p>
+<p>Action</p>
+<p>系统封装的Action委托，没有参数没有返回值。调用实例为：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">delegate</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Action();
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Main(<span style="color: #0000ff;">string</span>[] args)       <br />{            <br />　　Action action = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Action(Method);            <br />　　action();        <br />}
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Method()        <br />{            <br />　　Console.WriteLine(<span style="color: #800000;">"</span><span style="color: #800000;">i am is a action</span><span style="color: #800000;">"</span>);        <br />}</pre>
+</div>
+<p>如果方法的表达很简单，可以使用Lambda表达式，代码如下：&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code>Action action = () =&gt; { Console.WriteLine(<span style="color: #800000;">"</span><span style="color: #800000;">i am is a action</span><span style="color: #800000;">"</span>); };</pre>
+</div>
+<p>&nbsp;</p>
+<p>Action&lt;T&gt;</p>
+<p>系统封装的Action&lt;T&gt;委托，有参数但是没有返回值。调用实例为：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">delegate</span> <span style="color: #0000ff;">void</span> Action&lt;<span style="color: #0000ff;">in</span> T1, <span style="color: #0000ff;">in</span> T2&gt;<span style="color: #000000;">(T1 arg1, T2 arg2);
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Main(<span style="color: #0000ff;">string</span>[] args)        <br />{            <br />　　Action&lt;<span style="color: #0000ff;">int</span>,<span style="color: #0000ff;">int</span>&gt; action = <span style="color: #0000ff;">new</span> Action&lt;<span style="color: #0000ff;">int</span>,<span style="color: #0000ff;">int</span>&gt;(Method);            <br />　　action(<span style="color: #800080;">2</span>,<span style="color: #800080;">3</span><span style="color: #000000;">);        <br />}
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Method(<span style="color: #0000ff;">int</span> x,<span style="color: #0000ff;">int</span> y)        <br />{            <br />　　Console.WriteLine(<span style="color: #800000;">"</span><span style="color: #800000;">i am is a action</span><span style="color: #800000;">"</span>);        <br />}</pre>
+</div>
+<p>&nbsp;</p>
+<p>使用Lambda表达式编写Action&lt;T&gt;代码如下：</p>
+<div class="cnblogs_code">
+<pre><code>Action&lt;<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">int</span>&gt; action = (x, y) =&gt; { Console.WriteLine(<span style="color: #800000;">"</span><span style="color: #800000;">i am is a action</span><span style="color: #800000;">"</span>); };</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>Fun&lt;T&gt;</strong></p>
+<p>系统封装的Fun&lt;T&gt;委托，有返回值。调用实例为：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">delegate</span> TResult Fun&lt;<span style="color: #0000ff;">in</span> T1, <span style="color: #0000ff;">in</span> T2, <span style="color: #0000ff;">out</span> TResult&gt;<span style="color: #000000;">(T1 arg1, T2 arg2);
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Main(<span style="color: #0000ff;">string</span>[] args) <br />{       <br />　　Fun&lt;<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">bool</span>&gt; fun = <span style="color: #0000ff;">new</span> Fun&lt;<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">bool</span>&gt;(Method);       <br /><span style="color: #0000ff;">　　bool</span> ret = fun(<span style="color: #800080;">2</span>,<span style="color: #800080;">3</span><span style="color: #000000;">);  <br />}
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">bool</span> Method(<span style="color: #0000ff;">int</span> x,<span style="color: #0000ff;">int</span> y)        <br />{            <br /><br /><span style="color: #0000ff;">　　if</span> (x + y == <span style="color: #800080;">5</span>) <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span>;            <br /><span style="color: #0000ff;">　　else</span> <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span>;        <br />}</pre>
+</div>
+<p>&nbsp;</p>
+<p>使用Lambda表达式编写Fun&lt;T&gt;，代码如下：</p>
+<div class="cnblogs_code">
+<pre><code>Fun&lt;<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">bool</span>&gt; fun = (x, y) =&gt;            <br />{                <br /><span style="color: #0000ff;">　　if</span> (x + y == <span style="color: #800080;">5</span>) <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span>;                <br /><span style="color: #0000ff;">　　else</span> <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span>;            <br />};</pre>
+</div>
+<p>&nbsp;</p>
+<p>Fun&lt;T&gt;没有参数有返回值的情况：</p>
+<div class="cnblogs_code">
+<pre><code>Fun&lt;<span style="color: #0000ff;">bool</span>&gt; fun = () =&gt;    <br />{         <br /><span style="color: #0000ff;">　　int</span> x = <span style="color: #800080;">4</span>;         <br /><span style="color: #0000ff;">　　int</span> y = <span style="color: #800080;">3</span>;         <br /><span style="color: #0000ff;">　　if</span> (x + y == <span style="color: #800080;">5</span>) <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span>;         <br /><span style="color: #0000ff;">　　else</span> <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span>;      <br />}; <span style="color: #008000;">//</span><span style="color: #008000;">也可以如此编写Fun&lt;bool&gt; fun = () =&gt; false;</span></pre>
+</div>
+<p>&nbsp;&nbsp;</p>
+<p><strong>多播委托：</strong></p>
+<p>最后说下多播委托，所谓多播委托，即 &ldquo;多路广播委托&rdquo;（MulticastDelegate）。从它的名字就可以看出，此种委托可以像广播一样将影响信息&ldquo;传播&rdquo;到四面八方。多播委托类拥有一个方法调用列表，调用委托时，它就会逐一调用该列表中的方法，从而实现多重影响。比较简单，暂不举例说明了。</p>
+<p>&nbsp;</p>
+<p>本文暂且告一段落，如果想查看更多文章，请关注&ldquo;小项目笔记&rdquo;公众号；</p>
+<p>如有疑问：可加入QQ群号：732982683</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

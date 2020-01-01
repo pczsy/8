@@ -1,0 +1,120 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修10.python3实用编程技巧进阶（五）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>10.python3实用编程技巧进阶（五）</center></div><div class='banquan'>原文出处:本文由博客园博主zhang_derek提供。<br/>
+原文连接:https://www.cnblogs.com/derek1184405959/p/11386134.html</div><br>
+    <h3><span style="background-color: #ffffff; color: #ff00ff;">5.1.如何派生内置不可变类型并修其改实例化行为</span></h3>
+<p><span style="background-color: #ffffff; color: #000000;">修改实例化行为</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 5.1.如何派生内置不可变类型并修其改实例化行为</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">继承内置tuple， 并实现__new__,在其中修改实例化行为</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> IntTuple(tuple):
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__new__</span><span style="color: #000000;">(cls, iterable):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">过滤掉元祖中不是int类型且小于0的元素</span>
+        f_it = (e <span style="color: #0000ff;">for</span> e <span style="color: #0000ff;">in</span> iterable <span style="color: #0000ff;">if</span> isinstance(e, int) <span style="color: #0000ff;">and</span> e &gt;<span style="color: #000000;"> 0)
+        </span><span style="color: #0000ff;">return</span> super().<span style="color: #800080;">__new__</span><span style="color: #000000;">(cls, f_it)
+
+int_t </span>= IntTuple([1, 8, -2, -3, <span style="color: #800000;">'</span><span style="color: #800000;">abc</span><span style="color: #800000;">'</span>, [4,5], 10<span style="color: #000000;">])
+
+</span><span style="color: #0000ff;">print</span>(int_t)    <span style="color: #008000;">#</span><span style="color: #008000;">(1, 8, 10)</span></pre>
+</div>
+<h3><span style="color: #ff00ff;">5.2.如何为创建大量实例节省内存</span></h3>
+<p>定义类的__slots__属性，声明实例有哪些属性（关闭动态绑定）</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">5.2.如何为创建大量实例节省内存</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Player1:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,uid, name, level):
+        self.uid </span>=<span style="color: #000000;"> uid
+        self.name </span>=<span style="color: #000000;"> name
+        self.level </span>=<span style="color: #000000;"> level
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Player2:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">定义类的__slots__属性，声明实例有哪些属性（关闭动态绑定）</span>
+    <span style="color: #800080;">__slots__</span> = [<span style="color: #800000;">'</span><span style="color: #800000;">uid</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">level</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,uid, name, level):
+        self.uid </span>=<span style="color: #000000;"> uid
+        self.name </span>=<span style="color: #000000;"> name
+        self.level </span>=<span style="color: #000000;"> level
+
+p1 </span>= Player1(1,<span style="color: #800000;">'</span><span style="color: #800000;">derek</span><span style="color: #800000;">'</span>,20<span style="color: #000000;">)
+p2 </span>= Player2(2,<span style="color: #800000;">'</span><span style="color: #800000;">jack</span><span style="color: #800000;">'</span>,50<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(p1.name)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(p2.name)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">可以为实例动态添加属性,但是这样会消耗内存</span>
+p1.age = 18
+<span style="color: #0000ff;">print</span>(p1.<span style="color: #800080;">__dict__</span>[<span style="color: #800000;">'</span><span style="color: #800000;">age</span><span style="color: #800000;">'</span>])    <span style="color: #008000;">#</span><span style="color: #008000;">18</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">用__slot__声明了实例有哪些属性后,则不能动态为实例添加属性</span><span style="color: #008000;">
+#</span><span style="color: #008000;">p2.age = 22    #AttributeError: 'Player2' object has no attribute 'age'</span></pre>
+</div>
+<h3><span style="color: #ff00ff;">&nbsp;5.3.如何创建可管理的对象属性</span></h3>
+<p>一般写法</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">5.3.如何创建可管理的对象属性</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Student():
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,score):
+        self.score </span>=<span style="color: #000000;"> score
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_score(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.score
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> set_score(self, score):
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> isinstance(score, int):
+            </span><span style="color: #0000ff;">raise</span> TypeError(<span style="color: #800000;">"</span><span style="color: #800000;">wrong type</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        self.score </span>=<span style="color: #000000;"> score
+
+s </span>= Student(70<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(s.get_score())
+
+s.set_score(</span>80<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(s.score)</pre>
+</div>
+<p>用property装饰器</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">5.3.如何创建可管理的对象属性</span>
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Student():
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self,score):
+        self.score </span>=<span style="color: #000000;"> score
+
+    @property
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> value(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.score
+
+    @value.setter
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> value(self, score):
+        </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> isinstance(score, int):
+            </span><span style="color: #0000ff;">raise</span> TypeError(<span style="color: #800000;">"</span><span style="color: #800000;">wrong type</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+        self.score </span>=<span style="color: #000000;"> score
+
+s </span>= Student(70<span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(s.value)
+
+s.value </span>= 80
+<span style="color: #0000ff;">print</span>(s.value)</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,148 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修软件开发程序猿日常必备，现用现查&amp;日志记录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>软件开发程序猿日常必备，现用现查&amp;日志记录</center></div><div class='banquan'>原文出处:本文由博客园博主江春水提供。<br/>
+原文连接:https://www.cnblogs.com/shenhongbo/p/11419620.html</div><br>
+    <h3 id="日志记录-logging模块">日志记录—— logging模块</h3>
+<p>日志用处：<br />
+1.记录用户信息<br />
+2.记录个人流水<br />
+3.记录软件的运行状态<br />
+4.记录程序员发出的指令（跳板机）<br />
+5.用于程序员代码调试（print特别消耗内存，在开发测试过程中不建议使用）</p>
+<h4 id="函数式简单配置">函数式简单配置</h4>
+<pre><code><code>importlogging
+logging.debug()     #debug 调试
+logging.info()      #info 信息
+logging.warning()   # info 警告
+logging.error()     # error 错误
+logging.critical()  # critical 危险</code></pre>
+<ul>
+<li><h5 id="日志中要记录的信息默认从warning开始记录">日志中要记录的信息，默认从warning开始记录</h5></li>
+<li><h5 id="默认情况下python的logging模块将日志打印到了标准输出中且只显示了大于等于warning级别的日志后边的级别日志不显示这说明默认的日志级别设置为warning">默认情况下Python的logging模块将日志打印到了标准输出中，且只显示了大于等于WARNING级别的日志，后边的级别日志不显示，这说明默认的日志级别设置为WARNING</h5></li>
+<li><h5 id="日志级别等级critical50-error40-warning30-info20-debug10">（日志级别等级:CRITICAL(50) &gt; ERROR(40) &gt; WARNING(30) &gt; INFO(20) &gt; DEBUG(10)）</h5></li>
+<li><h5 id="默认的日志格式为日志级别logger名称用户输出消息">默认的日志格式为日志级别：Logger名称：用户输出消息</h5></li>
+</ul>
+<h4 id="手动挡-已经配置好的直接拿过来使用">手动挡 ——已经配置好的，直接拿过来使用</h4>
+<pre class="python"><code>import logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format=&#39;%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s&#39;,
+                    datefmt=&#39;%Y-%m-%d %H:%M:%S&#39;,
+                    filename=&quot;test.log&quot;,
+                    filemode=&quot;a&quot;,
+)
+
+logging.debug(&#39;调试消息&#39;)
+logging.info(&#39;信息消息&#39;)
+logging.warning(&#39;警告消息&#39;)
+logging.error(&#39;错误消息&#39;)
+logging.critical(&#39;关键信息&#39;)
+</code></pre>
+<h5 id="自动挡-需要自己去进行配置">自动挡 ——需要自己去进行配置</h5>
+<pre class="python"><code>import logging
+初始化一个空日志
+logger = logging.getLogger()   # -- 创建了一个对象
+创建一个文件,用于记录日志信息
+fh = logging.FileHandler(&#39;test.log&#39;,encoding=&#39;utf-8&#39;)
+# 创建一个文件,用于记录日志信息
+
+fh1 = logging.FileHandler(&#39;test1.log&#39;,encoding=&#39;utf-8&#39;)
+
+# 创建一个可以在屏幕输出的东西
+
+ch = logging.StreamHandler()
+
+# 对要记录的信息定义格式
+
+msg = logging.Formatter(&#39;%(asctime)s - [line:%(lineno)d] %(filename)s - %(levelname)s - %(message)s&#39;)
+
+# 对要记录的信息定义格式
+
+msg1 = logging.Formatter(&#39;%(asctime)s - %(levelname)s - %(message)s&#39;)
+
+# 设置记录等级
+
+logger.setLevel(10) or logger.setLevel(logging.DEBUG)
+
+# 等级对应表
+
+&#39;&#39;&#39;
+DEBUG - 10
+INFO - 20
+WARNING - 30
+ERROR - 40
+CRITICAL - 50
+&#39;&#39;&#39;
+
+# 将咱们设置好的格式绑定到文件上
+
+fh.setFormatter(msg)
+fh1.setFormatter(msg)
+
+# 将咱们设置好的格式绑定到屏幕上
+
+ch.setFormatter(msg1)
+
+# 将设置存储日志信息的文件绑定到logger日志上
+
+logger.addHandler(fh) #logger对象可以添加多个fh和ch对象
+logger.addHandler(fh1)
+logger.addHandler(ch)
+
+# 记录日志
+
+logger.debug([1,2,3,4,])
+logger.info(&#39;logger info message&#39;)
+logger.warning(&#39;logger warning message&#39;)
+logger.error(&#39;logger error message&#39;)
+logger.critical(&#39;logger critical message&#39;)</code></pre>
+<p><strong>basicConfig()函数中可通过具体参数来更改logging模块默认行为，可用参数有：</strong></p>
+<ul>
+<li>filename：用指定的文件名创建FiledHandler，这样日志会被存储在指定的文件中。</li>
+<li>filemode：文件打开方式，在指定了filename时使用这个参数，默认值为“a”还可指定为“w”。</li>
+<li>format：指定handler使用的日志显示格式。</li>
+<li>datefmt：指定日期时间格式。</li>
+<li>level：设置记录日志的级别</li>
+<li>stream：用指定的stream创建StreamHandler。可以指定输出到</li>
+<li>sys.stderr,sys.stdout或者文件(f=open(‘test.log’,’w’))，默认为sys.stderr。若同时列出了filename和stream两个参数，则stream参数会被忽略。</li>
+</ul>
+<p><strong>format参数中可能用到的格式化串</strong>：</p>
+<ul>
+<li>%(name)s Logger的名字</li>
+<li>%(levelno)s 数字形式的日志级别</li>
+<li>%(levelname)s 文本形式的日志级别</li>
+<li>%(pathname)s 调用日志输出函数的模块的完整路径名，可能没有</li>
+<li>%(filename)s 调用日志输出函数的模块的文件名</li>
+<li>%(module)s 调用日志输出函数的模块名</li>
+<li>%(funcName)s 调用日志输出函数的函数名</li>
+<li>%(lineno)d 调用日志输出函数的语句所在的代码行</li>
+<li>%(created)f 当前时间，用UNIX标准的表示时间的浮 点数表示</li>
+<li>%(relativeCreated)d 输出日志信息时的，自Logger创建以 来的毫秒数</li>
+<li>%(asctime)s 字符串形式的当前时间。默认格式是 “2003-07-08 16:49:45,896”。逗号后面的是毫秒</li>
+<li>%(thread)d 线程ID。可能没有</li>
+<li>%(threadName)s 线程名。可能没有</li>
+<li>%(process)d 进程ID。可能没有</li>
+<li>%(message)s用户输出的消息</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

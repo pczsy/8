@@ -1,0 +1,161 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修DHCP服务相关实验' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>DHCP服务相关实验</center></div><div class='banquan'>原文出处:本文由博客园博主叶落西南提供。<br/>
+原文连接:https://www.cnblogs.com/hjnzs/p/12078283.html</div><br>
+    <h4 id="一dhcp-相关介绍">一、DHCP 相关介绍</h4>
+<h6 id="dhcp服务相关">1、dhcp服务相关</h6>
+<pre><code><code>软件名： 
+dhcp    #DHCP服务软件包 
+dhcp-common  #DHCP命令软件包（默认已安装） 
+服务名： 
+dhcpd   #DHCP服务名 
+dhcrelay   #DHCP中继服务名 
+端口号： 
+udp 67   #作为客户端的目标端口，接收客户端的请求DHCP请求 
+udp 68   #作为服务器的源端口，用来向客户端回复数据包  
+配置文件： 
+dhcpd  /etc/dhcp/dhcpd.conf   #此配置文件默认是空的，需要找模板文件重新生成 
+dhcpd.conf.sample /usr/share/doc/dhcp-4.*.*/dhcpd.conf.sample 
+#DHCP的模板配置文件 
+dhcrelay  /etc/sysconfig/dhcrelay #该文件时中继配置文件 </code></pre>
+<h6 id="配置文件解释">2、配置文件解释</h6>
+<p>vim /etc/dhcp/dhcpd.conf</p>
+<pre><code><code>subnet  100.100.100.0  netmask  255.255.255.0｛    #声明要分配的网段和子网掩码 
+range  100.100.100.120 100.100.100.130；     #声明可用 IP 地址池 
+option domain-name &quot;centos&quot; ;      #设置 DNS 域,可选。
+option domain-name-servers 114.114.114.114 ;     #设置 DNS 服务器地址 ,可选
+option routers  100.100.100.2；      #默认网关的地址 
+option broadcast-address 100.100.100.255；    #广播地址，可选 
+default-lease-time 600；       #默认租约（s） 
+max-lease-time 7200；        #最大租约（s） 
+｝ </code></pre>
+<h4 id="二dhcp实验">二、DHCP实验</h4>
+<h5 id="基本实验">1、基本实验</h5>
+<h6 id="环境准备">1.1、环境准备</h6>
+<p>1、使用自定义nat模式，网段为100.100.100.0，方便一些软件包的安装。<br />
+2、关闭虚拟机的自带的dhcp配置，防止对自定义的dhcp服务造成干扰。<br />
+3、关闭服务器的防火墙，及selinux服务</p>
+<h6 id="dhcp服务器配置网络">1.2、dhcp服务器配置网络</h6>
+<p>使用setup工具配置网络<br />
+<img src="./images/DHCP服务相关实验0.png" /></p>
+<h6 id="安装dhcp服务">1.3、安装dhcp服务</h6>
+<pre><code><code> yum install dhcp -y</code></pre>
+<h6 id="生成配置文件">1.4、生成配置文件</h6>
+<pre><code><code>cp -a /usr/share/doc/dhcp-4.*.*/dhcpd.conf.sample  /etc/dhcp/dhcpd.conf 
+cp: overwrite `/etc/dhcp/dhcpd.conf&#39;? y
+vim /etc/dhcp/dhcpd.conf</code></pre>
+<p>添加以下代码</p>
+<pre><code><code>subnet  100.100.100.0  netmask  255.255.255.0{
+range  100.100.100.120 100.100.100.130;  #设置ip地址范围
+option domain-name-servers 114.114.114.114; #设置dns服务器
+option routers  100.100.100.2; #设置网关
+}</code></pre>
+<h6 id="重启dhcp服务设置客户机dhcp自动获取ip">1.5 重启dhcp服务，设置客户机dhcp自动获取ip</h6>
+<pre><code><code>[root@centos ~]# service dhcpd restart
+Starting dhcpd:                                            [  OK  ]
+#使用setup工具设置dhcp自动获取ip
+#重启客户机网络</code></pre>
+<p><img src="./images/DHCP服务相关实验1.png" /><br />
+<img src="./images/DHCP服务相关实验2.png" /><br />
+可查看日志信息，<br />
+tail /var/log/messages</p>
+<pre><code><code>Dec 21 15:17:17 centos dhclient[2235]: DHCPDISCOVER on eth0 to 255.255.255.255 port 67 interval 3 (xid=0x73189009)
+Dec 21 15:17:17 centos dhclient[2235]: DHCPOFFER from 100.100.100.100
+Dec 21 15:17:17 centos dhclient[2235]: DHCPREQUEST on eth0 to 255.255.255.255 port 67 (xid=0x73189009)
+Dec 21 15:17:17 centos dhclient[2235]: DHCPACK from 100.100.100.100 (xid=0x73189009)</code></pre>
+<h5 id="固定地址分配">2、固定地址分配</h5>
+<p>dhcp服务器，将一个IP地址固定的分配给一台客户机。</p>
+<h6 id="获取客户端的mac地址">2.1、获取客户端的mac地址</h6>
+<pre><code><code>[root@centos ~]# arp -a
+? (100.100.100.1) at 00:50:56:c0:00:08 [ether] on eth0
+? (100.100.100.2) at 00:50:56:eb:dc:de [ether] on eth0
+? (100.100.100.120) at 00:0c:29:ee:12:a5 [ether] on eth0
+</code></pre>
+<h6 id="修改etcdhcpdhcpd.conf文件">2.2、修改/etc/dhcp/dhcpd.conf文件</h6>
+<pre><code><code>host fantasia {
+  hardware ethernet 00:0c:29:ee:12:a5; #客户机mac地址
+  fixed-address 100.100.100.200;       #要分配的ip，子网段就行
+}</code></pre>
+<h6 id="重启dhcp服务查看ip地址是否获取成功">2.3、重启DHCP服务，查看IP地址是否获取成功</h6>
+<pre><code><code>service  dhcpd   restart
+重启客户机网卡验证IP获取是否成功 service network restart</code></pre>
+<h5 id="超级作用域">3、超级作用域</h5>
+<p>一个DHCP服务器，为一个局域网内部客户机分配不同网段的ip，以解决IP地址不足问题。</p>
+<h6 id="修改dhcp服务器网卡配置">3.1、修改DHCP服务器网卡配置</h6>
+<pre><code><code>cp -a ifcfg-eth0 ifcfg-eth0:0 #编辑此文件,留下重要信息就行。
+DEVICE=eth0:0
+ONBOOT=yes
+IPADDR=200.200.200.200
+NETMASK=255.255.255.0</code></pre>
+<h6 id="开启路由转发">3.2、开启路由转发：</h6>
+<p>vim /etc/sysctl.conf</p>
+<pre><code><code>net.ipv4.ip_forward = 1  #此选项修改为1即可 
+sysctl -p      #刷新内核参数配置文件 </code></pre>
+<h6 id="修改dhcpd配置文件">3.3、修改dhcpd配置文件</h6>
+<pre><code><code>shared-network 224-29 {
+  subnet 100.100.100.0 netmask 255.255.255.0 {
+    option routers 100.100.100.100;
+    range 100.100.100.130 100.100.100.130;  #只分配一个ip更好看到效果
+  }
+  subnet 200.200.200.0 netmask 255.255.255.0 {
+    option routers 200.200.200.200;
+    range 200.200.200.230 200.200.200.230;
+}
+}</code></pre>
+<h6 id="重启dhcp服务重启两台客户机的网络">3.4、重启DHCP服务,重启两台客户机的网络</h6>
+<pre><code><code>service  dhcpd restart 
+service network restart</code></pre>
+<h5 id="dhcp中继">4、dhcp中继</h5>
+<p>Relay（DHCPR）DHCP中继是一个小程序，可以实现在不同物理网段之间处理和转发dhcp信息的功能</p>
+<h5 id="实验准备">4.1、实验准备</h5>
+<p>1、三台主机<br />
+2、拓扑图<br />
+<img src="./images/DHCP服务相关实验3.png" /></p>
+<h5 id="服务器配置">4.2、服务器配置</h5>
+<pre><code><code>修改/etc/dhcp/dhcpd.conf文件:
+subnet 100.100.100.0 netmask 255.255.255.0 {#此处配置用不到，但不配置服务将会报错
+  range 100.100.100.120 100.100.100.120;
+  option routers 100.100.100.101;
+}
+subnet 10.10.10.0 netmask 255.255.255.0 {
+  range 10.10.10.20 10.10.10.30;
+  option routers 10.10.10.10;
+}  
+重启dhcpd服务： 
+service dhcpd start  </code></pre>
+<h5 id="中继器配置">4.3、中继器配置</h5>
+<pre><code><code>1、软件安装 
+    yum -y install dhcp 
+2、修改配置文件
+    vim /etc/sysconfig/dhcrelay 
+    INTERFACES=&quot;eth0 eth1&quot;
+    DHCPSERVERS=&quot;100.100.100.100&quot;
+3、开启路由转发 
+    vim /etc/sysctl.conf 
+    netipv4.ip_forward = 1 
+    sysctl  -p
+4、重启中继服务 
+    service dhcrelay start</code></pre>
+<h5 id="重启客户机网络">4.4 重启客户机网络</h5>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

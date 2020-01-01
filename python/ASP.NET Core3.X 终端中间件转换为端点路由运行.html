@@ -1,0 +1,137 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修ASP.NET Core3.X 终端中间件转换为端点路由运行' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>ASP.NET Core3.X 终端中间件转换为端点路由运行</center></div><div class='banquan'>原文出处:本文由博客园博主HueiFeng提供。<br/>
+原文连接:https://www.cnblogs.com/yyfh/p/12010232.html</div><br>
+    <blockquote>
+<h2 id="引言">引言</h2>
+</blockquote>
+<p>前几天<a href="https://www.cnblogs.com/yyfh/p/11980790.html">.NET Core3.1发布</a>,于是我把公司一个基础通用系统升级了,同时删除了几个基础模块当然这几个基础模块与.NET Core3.1无关，其中包括了支付模块，升级完后静文（同事）问我你把支付删除了啊？我说是啊，没考虑好怎么加上(感觉目前不太好，我需要重新设计一下)。</p>
+<blockquote>
+<h2 id="故事从这开始">故事从这开始</h2>
+</blockquote>
+<p>考虑支付的时候我考虑的是将支付sdk如何直接引入到系统，以及可以有一系列支付的路由，我需要考虑的是如果创建响应给指定的地址，so我开始想如何达到我的目的自定义个中间件，Use、Run、Map???</p>
+<blockquote>
+<h2 id="路由的进阶">路由的进阶</h2>
+</blockquote>
+<p>路由负责将请求 URI 映射到终结点并向这些终结点调度传入的请求。 路由在应用中定义，并在应用启动时进行配置。 路由可以选择从请求包含的 URL 中提取值，然后这些值便可用于处理请求。 通过使用应用中的路由信息，路由还能生成映射到终结点的 URL。</p>
+<p>在ASP.NET Core 2.1和更低版本中，路由是通过实现将IRouter传入的URL映射到处理程序的接口来处理的。通常，将直接依赖MvcMiddleware添加到中间件管道末端的实现，而不是直接实现该接口。一旦请求到达MvcMiddleware，便会应用路由来确定传入请求URL路径所对应的控制器和操作。</p>
+<p>然后，该请求在执行处理程序之前经过了各种MVC筛选器。这些过滤器形成了另一条“管道”，让人联想到中间件管道，并且在某些情况下必须复制某些中间件的行为。一个典型的例子就是CORS政策。为了对每个MVC操作以及中间件管道的其他“分支”实施不同的CORS策略，内部需要进行一定程度的重复。</p>
+<p>“分支”中间件管道通常用于“伪路由”。如Map()在中间件管道中的扩展方法，将允许您在传入路径具有给定前缀时有条件地执行某些中间件。</p>
+<p>如下所示：</p>
+<pre><code><code>       app.Map(&quot;/order&quot;, app =&gt; app.Run(async context =&gt;
+              {
+                  await context.Response.WriteAsync(&quot;Order&quot;);
+              })
+            );
+</code></pre>
+<p>在这种情况下，该Run()方法是“终端”中间件，因为它返回响应。但是从某种意义上说，整个Map分支对应于应用程序的“端点”.</p>
+<p>在ASP.NET Core 2.2中，引入了终结点路由作为MVC控制器的新路由机制。此实现本质上是的内部实现MvcMiddleware .</p>
+<blockquote>
+<h2 id="在asp.net-core-2.x中使用map">在ASP.NET Core 2.x中使用Map()</h2>
+</blockquote>
+<p>下面我们自定义一个中间件，该中间件返回直接返回一个相应而不是继续往下执行调用_next委托，一个很基本的中间件。</p>
+<pre><code><code>    public class ApiEndpointMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public ApiEndpointMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+         
+            context.Response.StatusCode = 200;
+
+            await context.Response.WriteAsync(&quot;Order&quot;);
+        }
+
+    }</code></pre>
+<p>在ASP.NET Core 2.x中，可以通过使用扩展方法指定路由访问该中间件，从而将其包含在Startup.cs的中间件管道中</p>
+<pre><code><code>public void Configure(IApplicationBuilder app)
+{
+    app.UseStaticFiles();
+
+    app.Map(&quot;/order&quot;, app =&gt; app.UseMiddleware&lt;ApiEndpointMiddleware&gt;()); versionApp.UseMiddleware&lt;VersionMiddleware&gt;()); 
+
+    app.UseMvcWithDefaultRoute();
+}</code></pre>
+<p>当我们访问 <em>/order</em> 或者 <em>/order/1</em> 路由都会得到自定义中间件返回的相应。</p>
+<blockquote>
+<h2 id="将中间件转换为端点路由">将中间件转换为端点路由</h2>
+</blockquote>
+<p>在ASP.NET Core 3.0中，我们使用端点路由，因此路由步骤与端点的调用是分开的。实际上，这意味着我们有两个中间件：</p>
+<ul>
+<li>EndpointRoutingMiddleware 实际的路由，即计算将为指定的请求URL路径调用哪个端点。</li>
+<li>EndpointMiddleware 所有调用的端点。</li>
+</ul>
+<p>它们在中间件管道中的两个不同点处添加，因为它们起着两个不同的作用。一般而言，我们想的是路由中间件提前在管道中，以便后续的中间件可以访问有关将执行的端点的信息。端点的调用应在管道的末端进行。</p>
+<p>如下所示：</p>
+<pre><code><code> public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =&gt;
+            {
+                endpoints.MapControllers();
+            });
+
+        }
+        </code></pre>
+<p>该UseRouting()扩展方法添加EndpointRoutingMiddleware到管道，同时将UseEndpoints()扩展方法添加EndpointMiddleware到管道。UseEndpoints()实际上为应用程序注册所有端点的位置。</p>
+<p>那么如何将我们自定义中间件使用端点路由来映射呢？</p>
+<p>从概念上讲，我们UseEndpoints()使用/OrderURL作为匹配的路径，将“order”端点的注册移动到调用中：</p>
+<pre><code><code>         endpoints.MapControllers();
+                endpoints.Map(&quot;/order&quot;,endpoints.CreateApplicationBuilder()
+                .UseMiddleware&lt;ApiEndpointMiddleware&gt;().Build()).WithDisplayName(&quot;order-api&quot;);
+</code></pre>
+<p>在我们上面针对ASP.NET Core 2.x的实现中，我们将匹配/order，/order/123等端点路由</p>
+<p>例如：</p>
+<pre><code><code>endpoints.Map(&quot;/order/{action}&quot;,null);</code></pre>
+<p>这将同时匹配 <em>/order</em> <em>/order/1</em>，但不匹配/order/status/1。它比以前的版本功能强大得多.</p>
+<p>在上一个示例中，我们提供了一个显示名称（主要用于调试目的），但是我们可以附加其他的信息，例如授权策略或CORS策略，其他中间件可以查询这些信息。例如：</p>
+<pre><code><code>     app.UseEndpoints(endpoints =&gt;
+            {
+                endpoints.MapControllers();
+                endpoints.Map(&quot;/order/{action}&quot;,endpoints.CreateApplicationBuilder()
+                .UseMiddleware&lt;ApiEndpointMiddleware&gt;().Build()).WithDisplayName(&quot;order-api&quot;).RequireCors(&quot;AllowAllHosts&quot;)
+            .RequireAuthorization(&quot;AdminOnly&quot;); 
+            });
+</code></pre>
+<p>我们向端点添加了CORS策略（AllowAllHosts）和授权策略（AdminOnly）。当到达端点的请求到达时，并在执行端点之前采取相应的措施。</p>
+<blockquote>
+<h2 id="参考">参考</h2>
+</blockquote>
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#endpoint-routing-differences-from-earlier-versions-of-routing" class="uri">https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#endpoint-routing-differences-from-earlier-versions-of-routing</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

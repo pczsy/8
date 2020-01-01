@@ -1,0 +1,271 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修django中使用pandas Django-pandas' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>django中使用pandas Django-pandas</center></div><div class='banquan'>原文出处:本文由博客园博主xsan提供。<br/>
+原文连接:https://www.cnblogs.com/xshan/p/11343100.html</div><br>
+    <p>在django中使用pandas操作django的ORM查询出来的QuerySet对象，可以使用插件django-pandas。</p>
+<p>截止教程书写时间，django-pandas已发布到0.6.1。</p>
+<p>依赖：django&gt;=1.4.5</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;Django-model-utils &gt;=1.4.0</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;Pandas &gt;=0.12.0</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; 当然，还需要numpy</p>
+<h1>用法：</h1>
+<h2>1、IO模块：</h2>
+<p>该django-pandas.io模块提供了一些方便的方法，以便从django的查询集转换成DataFrames的创建。</p>
+<h3>read_frame</h3>
+<p>参数：</p>
+<p>l&nbsp;&nbsp; qs ：一个django的QuerySet。</p>
+<p>l&nbsp;&nbsp; fieldnames ：用于创建DataFrame的模型字段名称列表。可以使用双下划线指定另一个model中的相关字段，以通常的Django方式跨越关系。</p>
+<p>l&nbsp;&nbsp; index_col：使用指定用于DataFrame索引的字段名称。如果索引字段不在fieldnames参数中，则将会添加，注意这里的字段必须为该model里的字段。</p>
+<p>l&nbsp;&nbsp; coerce_float：Boolean（布尔值），默认为True。尝试将值转换为非字符串，将非数字对象（如decimal.Decimal）转化为浮点类型。</p>
+<p>&nbsp;&nbsp; Eg：</p>
+<p>model.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Img_info(models.Model):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    图片信息表
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    img_name </span>= models.CharField(max_length=128, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">图片名</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    img </span>= models.ImageField(upload_to=<span style="color: #800000;">"</span><span style="color: #800000;">img</span><span style="color: #800000;">"</span>, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">图片</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        db_table </span>= <span style="color: #800000;">"</span><span style="color: #800000;">img_info</span><span style="color: #800000;">"</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Product_score(models.Model):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    图片打分表
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    img_of </span>= models.ForeignKey(Img_info, on_delete=models.CASCADE, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">图片</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    scoring_staff </span>= models.CharField(max_length=32, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">打分员</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    score_num </span>= models.FloatField(verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">分数</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        db_table </span>= <span style="color: #800000;">"</span><span style="color: #800000;">product_score</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>views.py</p>
+<p>1、直接转化</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django_pandas.io <span style="color: #0000ff;">import</span><span style="color: #000000;"> read_frame
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> tset(request):
+    qs </span>=<span style="color: #000000;"> Product_score.objects.all()
+    qs_dataframe </span>= read_frame(qs=<span style="color: #000000;">qs)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(qs_dataframe)
+    </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">    id               img_of scoring_staff  score_num
+0   </span>15  Img_info object (5)           测试1       22.0
+1   16  Img_info object (6)           测试1       23.0
+2   17  Img_info object (7)           测试1       24.0
+3   18  Img_info object (8)           测试1       25.0
+4   19  Img_info object (9)           测试1       26.0
+5   20  Img_info object (5)           测试2       22.0
+6   21  Img_info object (6)           测试2       23.0
+7   22  Img_info object (7)           测试2       24.0
+8   23  Img_info object (8)           测试2       25.0
+9   24  Img_info object (9)           测试2       26.0
+10  25  Img_info object (5)           测试3       22.0
+11  26  Img_info object (6)           测试3       23.0
+12  27  Img_info object (7)           测试3       24.0
+13  28  Img_info object (8)           测试3       25.0</pre>
+</div>
+<p>2、跨关联表显示</p>
+<p>views.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django_pandas.io <span style="color: #0000ff;">import</span><span style="color: #000000;"> read_frame
+
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> tset(request):
+    qs </span>=<span style="color: #000000;"> Product_score.objects.all()
+    qs_dataframe </span>= read_frame(qs=qs,fieldnames=[<span style="color: #800000;">'</span><span style="color: #800000;">img_of__img_name</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">scoring_staff</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">score_num</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(qs_dataframe)
+    </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">   img_of__img_name scoring_staff  score_num
+0               士大夫           测试1       </span>22.0
+1               士大夫           测试2       22.0
+2               士大夫           测试3       22.0
+3               54撒           测试1       23.0
+4               54撒           测试2       23.0
+5               54撒           测试3       23.0
+6               撒旦撒           测试1       24.0
+7               撒旦撒           测试2       24.0
+8               撒旦撒           测试3       24.0
+9              撒旦撒2           测试1       25.0
+10             撒旦撒2           测试2       25.0
+11             撒旦撒2           测试3       25.0
+12               24           测试1       26.0
+13               24           测试2       26.0</pre>
+</div>
+<p>3、指定索引</p>
+<p>views.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> tset(request):
+    qs </span>=<span style="color: #000000;"> Product_score.objects.all()
+    qs_dataframe </span>= read_frame(qs=qs,fieldnames=[<span style="color: #800000;">'</span><span style="color: #800000;">img_of__img_name</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">scoring_staff</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">score_num</span><span style="color: #800000;">'</span>],index_col=<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(qs_dataframe)
+    </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">   img_of__img_name scoring_staff  score_num
+id                                          
+</span>15              士大夫           测试1       22.0
+20              士大夫           测试2       22.0
+25              士大夫           测试3       22.0
+16              54撒           测试1       23.0
+21              54撒           测试2       23.0
+26              54撒           测试3       23.0
+17              撒旦撒           测试1       24.0
+22              撒旦撒           测试2       24.0
+27              撒旦撒           测试3       24.0
+18             撒旦撒2           测试1       25.0
+23             撒旦撒2           测试2       25.0
+28             撒旦撒2           测试3       25.0
+19               24           测试1       26.0
+24               24           测试2       26.0</pre>
+</div>
+<h2>2、DataFrameManager</h2>
+<p>django-pandas提供了一个自定义管理器，可用于要呈现为pandas Dataframes的模型。该DataFrameManager管理器提供to_dataframe返回你模型查询集（queryset&nbsp;）为pandas的DataFrame。要使用DataFrameManager，首先覆盖model定义中的默认管理器（objects）。</p>
+<p>这将使您可以访问以下QuerySet方法：</p>
+<p>l&nbsp;&nbsp; to_dataframe　　从QuerySet返回DataFrame</p>
+<p>l&nbsp;&nbsp; to_timeserie　　用于创建时间序列的便捷方法，即DataFrame索引是DateTime或PeriodIndex的实例</p>
+<p>l&nbsp;&nbsp; to_pivot_table　从QuerySet创建数据透视表的便捷方法</p>
+<h3><span lang="EN-US">to_dataframe</span></h3>
+<p>l&nbsp;&nbsp; fieldnames ：用于创建DataFrame的模型字段名称列表。可以使用双下划线指定另一个model中的相关字段，以通常的Django方式跨越关系。</p>
+<p>l&nbsp;&nbsp; index：使用指定用于DataFrame索引的字段名称。如果索引字段不在fieldnames参数中，则将会添加，注意这里的字段必须为该model里的字段。</p>
+<p>l&nbsp;&nbsp; coerce_float：Boolean（布尔值），默认为True。尝试将值转换为非字符串，将非数字对象（如decimal.Decimal）转化为浮点类型。</p>
+<p>eg：</p>
+<p>models.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Img_info(models.Model):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    图片信息表
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    img_name </span>= models.CharField(max_length=128, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">图片名</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    img </span>= models.ImageField(upload_to=<span style="color: #800000;">"</span><span style="color: #800000;">img</span><span style="color: #800000;">"</span>, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">图片</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        db_table </span>= <span style="color: #800000;">"</span><span style="color: #800000;">img_info</span><span style="color: #800000;">"</span>
+
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Product_score(models.Model):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">
+    图片打分表
+    </span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    img_of </span>= models.ForeignKey(Img_info, on_delete=models.CASCADE, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">图片</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    scoring_staff </span>= models.CharField(max_length=32, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">打分员</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    score_num </span>= models.FloatField(verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">分数</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    objects </span>=<span style="color: #000000;"> DataFrameManager()
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        db_table </span>= <span style="color: #800000;">"</span><span style="color: #800000;">product_score</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>views.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> tset(request):
+    qs </span>=<span style="color: #000000;"> Product_score.objects.all()
+    qs_dataframe </span>= qs.to_dataframe(fieldnames=[<span style="color: #800000;">'</span><span style="color: #800000;">img_of__img_name</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">scoring_staff</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">score_num</span><span style="color: #800000;">'</span>], index=<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>, coerce_float=<span style="color: #000000;">True)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(qs_dataframe)
+    </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">   img_of__img_name scoring_staff  score_num
+id                                          
+</span>15              士大夫           测试1       22.0
+20              士大夫           测试2       22.0
+25              士大夫           测试3       22.0
+16              54撒           测试1       23.0
+21              54撒           测试2       23.0
+26              54撒           测试3       23.0
+17              撒旦撒           测试1       24.0
+22              撒旦撒           测试2       24.0
+27              撒旦撒           测试3       24.0
+18             撒旦撒2           测试1       25.0
+23             撒旦撒2           测试2       25.0
+28             撒旦撒2           测试3       25.0
+19               24           测试1       26.0
+24               24           测试2       26.0</pre>
+</div>
+<p>您可以使用过滤器和排除：</p>
+<p>筛选出分数大于23的</p>
+<p>views.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> tset(request):
+    qs </span>=<span style="color: #000000;"> Product_score.objects.all()
+    qs_dataframe </span>= qs.filter(score_num__gt=23).to_dataframe(fieldnames=[<span style="color: #800000;">'</span><span style="color: #800000;">img_of__img_name</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">scoring_staff</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">score_num</span><span style="color: #800000;">'</span>], index=<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>, coerce_float=<span style="color: #000000;">True)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(qs_dataframe)
+    </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">   img_of__img_name scoring_staff  score_num
+id                                          
+</span>17              撒旦撒           测试1       24.0
+18             撒旦撒2           测试1       25.0
+19               24           测试1       26.0
+22              撒旦撒           测试2       24.0
+23             撒旦撒2           测试2       25.0
+24               24           测试2       26.0
+27              撒旦撒           测试3       24.0
+28             撒旦撒2           测试3       25.0</pre>
+</div>
+<h3><span>to_pivot_table</span></h3>
+<ul>
+<li><dl><dt><span>fieldnames：用于创建DataFrame的模型字段名称列表。可以使用双下划线指定另一个model中的相关字段，以通常的Django方式跨越关系。</span></dt></dl></li>
+<li><span>values：要聚合的列，可选</span></li>
+<li><dl><dt><span>rows&nbsp;</span><span class="classifier-delimiter">：&nbsp;<span class="classifier">要分组的列名称或数组的列表，在数据透视表的x轴上分组的键</span></span></dt></dl></li>
+<li><dl><dt><span>cols&nbsp;</span><span class="classifier-delimiter">：&nbsp;<span class="classifier">要分组的列名称或数组的列表，在数据透视表的y轴上分组的键</span></span></dt></dl></li>
+<li><dl><dt><span>aggfunc&nbsp;</span><span class="classifier-delimiter">：&nbsp;<span class="classifier">function，默认numpy.mean或函数列表，如果传递的函数列表，生成的数据透视表将具有分层列，其顶层是函数名称（从函数对象本身推断）</span></span></dt></dl></li>
+<li><dl><dt><span>fill_value&nbsp;</span><span class="classifier-delimiter">：&nbsp;<span class="classifier">标量，默认无，用于替换缺失值的值</span></span></dt></dl></li>
+<li><dl><dt><span>margin&nbsp;</span><span class="classifier-delimiter">：&nbsp;<span class="classifier">boolean，默认为False，添加所有行/列（例如，对于小计/总计）</span></span></dt></dl></li>
+<li><span>dropna：布尔值，默认为True，去除NaN值</span></li>
+</ul>
+<h4>views.py</h4>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> tset(request):
+    qs </span>=<span style="color: #000000;"> Product_score.objects.all()
+    data_df_to_pivot_table </span>=<span style="color: #000000;"> qs.to_pivot_table(
+        values</span>=<span style="color: #800000;">'</span><span style="color: #800000;">score_num</span><span style="color: #800000;">'</span>, rows=[<span style="color: #800000;">'</span><span style="color: #800000;">img_of__img_name</span><span style="color: #800000;">'</span>], cols=[<span style="color: #800000;">'</span><span style="color: #800000;">scoring_staff</span><span style="color: #800000;">'</span>], fieldnames=[<span style="color: #800000;">'</span><span style="color: #800000;">img_of__img_name</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">scoring_staff</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">score_num</span><span style="color: #800000;">'</span>], margins=<span style="color: #000000;">True)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(data_df_to_pivot_table)
+    </span><span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">'</span><span style="color: #800000;">ok</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>运行结果：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">scoring_staff      测试1   测试2   测试3        All
+img_of__img_name                             
+</span>24                26.0  26.0   NaN  26.000000<span style="color: #000000;">
+54撒               </span>23.0  23.0  23.0  23.000000<span style="color: #000000;">
+士大夫               </span>22.0  22.0  22.0  22.000000<span style="color: #000000;">
+撒旦撒               </span>24.0  24.0  24.0  24.000000<span style="color: #000000;">
+撒旦撒2              </span>25.0  25.0  25.0  25.000000<span style="color: #000000;">
+All               </span>24.0  24.0  23.5  23.857143</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

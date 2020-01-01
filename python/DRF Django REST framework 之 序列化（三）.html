@@ -1,0 +1,307 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修DRF Django REST framework 之 序列化（三）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>DRF Django REST framework 之 序列化（三）</center></div><div class='banquan'>原文出处:本文由博客园博主Nolinked提供。<br/>
+原文连接:https://www.cnblogs.com/pungchur/p/12022990.html</div><br>
+    <h2>Django 原生 serializer (序列化)</h2>
+<ol>
+<li>导入模块&nbsp;&nbsp;<span class="cnblogs_code"><span style="color: #0000ff;">from</span> django.core.serializers <span style="color: #0000ff;">import</span> serialize</span>&nbsp;</li>
+<li>获取&nbsp;<span class="cnblogs_code">queryset</span>&nbsp;</li>
+<li>对&nbsp;<span class="cnblogs_code">queryset</span>&nbsp;进行序列化</li>
+<li>将序列化之后的数据，返回给客户端</li>
+</ol>
+<p>首先，设计url, 先只定义GET和POST接口</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> path
+
+</span><span style="color: #0000ff;">from</span> DrfOne <span style="color: #0000ff;">import</span><span style="color: #000000;"> views
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">books/</span><span style="color: #800000;">'</span><span style="color: #000000;">, views.BookView.as_view()),
+]</span></pre>
+</div>
+<p>再定义几个models</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('32f34b83-2209-4587-afc5-02a32b77941f')"><img id="code_img_closed_32f34b83-2209-4587-afc5-02a32b77941f" class="code_img_closed" src="./images/DRF Django REST framework 之 序列化（三）0.png" alt="" /><img id="code_img_opened_32f34b83-2209-4587-afc5-02a32b77941f" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('32f34b83-2209-4587-afc5-02a32b77941f',event)" src="./images/DRF Django REST framework 之 序列化（三）1.png" alt="" />
+<div id="cnblogs_code_open_32f34b83-2209-4587-afc5-02a32b77941f" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">from</span> django.db <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Publish(models.Model):
+</span><span style="color: #008080;"> 5</span>     nid = models.AutoField(primary_key=<span style="color: #000000;">True)
+</span><span style="color: #008080;"> 6</span>     name = models.CharField(<span style="color: #800000;">"</span><span style="color: #800000;">出版社名</span><span style="color: #800000;">"</span>, max_length=32<span style="color: #000000;">)
+</span><span style="color: #008080;"> 7</span>     address = models.CharField(<span style="color: #800000;">"</span><span style="color: #800000;">出版社位置</span><span style="color: #800000;">"</span>, max_length=32<span style="color: #000000;">)
+</span><span style="color: #008080;"> 8</span>     email = models.EmailField(<span style="color: #800000;">"</span><span style="color: #800000;">邮箱</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__str__</span><span style="color: #000000;">(self):
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> self.name
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Author(models.Model):
+</span><span style="color: #008080;">15</span>     nid = models.AutoField(primary_key=<span style="color: #000000;">True)
+</span><span style="color: #008080;">16</span>     name = models.CharField(<span style="color: #800000;">"</span><span style="color: #800000;">姓名</span><span style="color: #800000;">"</span>, max_length=31<span style="color: #000000;">)
+</span><span style="color: #008080;">17</span>     age = models.IntegerField(<span style="color: #800000;">"</span><span style="color: #800000;">年龄</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__str__</span><span style="color: #000000;">(self):
+</span><span style="color: #008080;">20</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> self.name
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Book(models.Model):
+</span><span style="color: #008080;">24</span>     nid = models.AutoField(primary_key=<span style="color: #000000;">True)
+</span><span style="color: #008080;">25</span>     title = models.CharField(<span style="color: #800000;">"</span><span style="color: #800000;">书名</span><span style="color: #800000;">"</span>, max_length=32<span style="color: #000000;">)
+</span><span style="color: #008080;">26</span>     price = models.DecimalField(<span style="color: #800000;">"</span><span style="color: #800000;">价格</span><span style="color: #800000;">"</span>, max_digits=5, decimal_places=2<span style="color: #000000;">)
+</span><span style="color: #008080;">27</span>     publish = models.ForeignKey(to=<span style="color: #800000;">"</span><span style="color: #800000;">Publish</span><span style="color: #800000;">"</span>, on_delete=<span style="color: #000000;">models.CASCADE)
+</span><span style="color: #008080;">28</span>     authors = models.ManyToManyField(to=<span style="color: #800000;">"</span><span style="color: #800000;">Author</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;">29</span> 
+<span style="color: #008080;">30</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__str__</span><span style="color: #000000;">(self):
+</span><span style="color: #008080;">31</span>         <span style="color: #0000ff;">return</span> self.title</pre>
+</div>
+<span class="cnblogs_code_collapse">models.py</span></div>
+<p>使用</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.shortcuts <span style="color: #0000ff;">import</span><span style="color: #000000;"> render, HttpResponse
+</span><span style="color: #0000ff;">from</span> rest_framework.views <span style="color: #0000ff;">import</span><span style="color: #000000;"> APIView
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 1.导入模块</span>
+<span style="color: #0000ff;">from</span> django.core.serializers <span style="color: #0000ff;">import</span><span style="color: #000000;"> serialize
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> CourseView(APIView):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, request):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 2.获取queryset    </span>
+        course_obj =<span style="color: #000000;"> models.Course.objects.all()
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 3.序列化</span>
+        serialized_data = serialize(<span style="color: #800000;">"</span><span style="color: #800000;">json</span><span style="color: #800000;">"</span><span style="color: #000000;">, course_obj)
+        </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(serialized_data)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 4.将序列化之后的数据返回</span>
+        <span style="color: #0000ff;">return</span> HttpResponse(serialized_data)</pre>
+</div>
+<h2>序列化组件serializer的使用</h2>
+<h3>Serializer</h3>
+<p><span style="font-size: 16px;"><strong>GET接口设计（获取所有数据）</strong></span></p>
+<ol>
+<li>导入模块</li>
+<li>建立一个序列化类</li>
+<li>获取&nbsp;<span class="cnblogs_code">queryset</span>&nbsp;</li>
+<li>开始序列化</li>
+<li>获取序列化后的数据，返回给客户端</li>
+</ol>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> rest_framework.views <span style="color: #0000ff;">import</span><span style="color: #000000;"> APIView
+</span><strong><span style="color: #008000;">#</span><span style="color: #008000;"> 1.导入模块</span></strong>
+<span style="color: #0000ff;">from</span> rest_framework <span style="color: #0000ff;">import</span><span style="color: #000000;"> serializers
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> drf重新封装之后的Response基于TemplateResponse类型，</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 可以将未处理的内容通过内容协商来决定返回给客户端的正确内容形式</span>
+<span style="color: #0000ff;">from</span> rest_framework.response <span style="color: #0000ff;">import</span><span style="color: #000000;"> Response
+
+</span><span style="color: #0000ff;">from</span> DrfOne <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+
+
+</span><strong><span style="color: #008000;">#</span><span style="color: #008000;"> 2.创建一个序列化类，字段类型不一定要跟models的字段一样</span></strong>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> BookSerializer(serializers.Serializer):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> id一般情况不用写</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> nid = serializers.CharField(max_length=32)</span>
+    title = serializers.CharField(max_length=32<span style="color: #000000;">)
+    price </span>= serializers.DecimalField(max_digits=5, decimal_places=2<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 外键字段，显示__str__方法的返回值</span>
+    publish = serializers.CharField(<span style="color: #000000;">)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 多对多字段, 执行get_字段名 方法，手动获取数据</span>
+    author_list =<span style="color: #000000;"> serializers.SerializerMethodField()
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_author_list(self, book_obj):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 第二个参数随意</span>
+        author_list =<span style="color: #000000;"> list()
+        </span><span style="color: #0000ff;">for</span> author <span style="color: #0000ff;">in</span><span style="color: #000000;"> book_obj.authors.all():
+            author_list.append(author.name)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> author_list
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookView1(APIView):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, request):
+        </span><strong><span style="color: #008000;">#</span><span style="color: #008000;"> 3.获取queryset</span></strong>
+        book_objs =<span style="color: #000000;"> models.Book.objects.all()
+        </span><strong><span style="color: #008000;">#</span><span style="color: #008000;"> 4.通过序列化类进行序列化</span></strong>
+        serialized_obj = BookSerializer(book_objs, many=<span style="color: #000000;">True)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> print(serialized_obj)</span>
+
+        <strong><span style="color: #008000;">#</span><span style="color: #008000;"> 5.获取序列化之后的数据，返回给客户端</span></strong>
+        <span style="color: #0000ff;">return</span> Response(serialized_obj.data)</pre>
+</div>
+<p><strong><span style="font-size: 16px;">POST接口设计</span></strong></p>
+<ol>
+<li>导入模块</li>
+<li>建立一个序列化类</li>
+<li>获取客户端请求数据</li>
+<li>开始序列化</li>
+<li>写入数据库</li>
+<li>将插入的对象返回给客户端</li>
+</ol>
+<p>请注意，因为多对多关系字段是我们自定义的，而且必须这样定义，返回的数据才有意义，而用户插入数据的时候，serializers.Serializer没有实现create，我们必须手动插入数据，就像这样：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><strong><span style="color: #008000;"> 1.导入模块</span></strong>
+<span style="color: #0000ff;">from</span> rest_framework <span style="color: #0000ff;">import</span><span style="color: #000000;"> serializers
+</span><span style="color: #0000ff;">from</span> rest_framework.views <span style="color: #0000ff;">import</span><span style="color: #000000;"> APIView
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> drf重新封装之后的Response基于TemplateResponse类型，</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 可以将未处理的内容通过内容协商来决定返回给客户端的正确内容形式</span>
+<span style="color: #0000ff;">from</span> rest_framework.response <span style="color: #0000ff;">import</span><span style="color: #000000;"> Response
+
+</span><span style="color: #0000ff;">from</span> DrfOne <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+
+
+</span><span style="color: #008000;">#</span><strong><span style="color: #008000;"> 2.创建一个序列化类，字段名和字段类型不一定要跟models的字段一样</span></strong>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> BookSerializer(serializers.Serializer):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> id一般情况不用写</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> nid = serializers.CharField(max_length=32)</span>
+    title = serializers.CharField(max_length=32<span style="color: #000000;">)
+    price </span>= serializers.DecimalField(max_digits=5, decimal_places=2<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 外键字段，显示__str__方法的返回值</span>
+    publish =<span style="color: #000000;"> serializers.CharField()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 仅读字段read_only=True，source是该字段显示出版社地址</span>
+    publish_address = serializers.CharField(max_length=32, read_only=True, source=<span style="color: #800000;">"</span><span style="color: #800000;">publish.address</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    publish_email </span>= serializers.CharField(max_length=32, read_only=True, source=<span style="color: #800000;">"</span><span style="color: #800000;">publish.email</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 多对多字段, 执行get_字段名 方法，手动获取数据</span>
+    author_list =<span style="color: #000000;"> serializers.SerializerMethodField()
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_author_list(self, book_obj):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 第二个参数随意</span>
+        author_list =<span style="color: #000000;"> list()
+        </span><span style="color: #0000ff;">for</span> author <span style="color: #0000ff;">in</span><span style="color: #000000;"> book_obj.authors.all():
+            author_list.append(author.name)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> author_list
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> create(self, validated_data):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 创建时调用</span>
+        validated_data[<span style="color: #800000;">'</span><span style="color: #800000;">publish_id</span><span style="color: #800000;">'</span>] = validated_data.pop(<span style="color: #800000;">'</span><span style="color: #800000;">publish</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        book </span>= models.Book.objects.create(**<span style="color: #000000;">validated_data)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> book
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> update(self, instance, validated_data):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 更新数据会调用该方法</span>
+        instance.title = validated_data.get(<span style="color: #800000;">'</span><span style="color: #800000;">title</span><span style="color: #800000;">'</span><span style="color: #000000;">, instance.title)
+        instance.publishDate </span>= validated_data.get(<span style="color: #800000;">'</span><span style="color: #800000;">publishDate</span><span style="color: #800000;">'</span><span style="color: #000000;">, instance.publishDate)
+        instance.price </span>= validated_data.get(<span style="color: #800000;">'</span><span style="color: #800000;">price</span><span style="color: #800000;">'</span><span style="color: #000000;">, instance.price)
+        instance.publish_id </span>= validated_data.get(<span style="color: #800000;">'</span><span style="color: #800000;">publish</span><span style="color: #800000;">'</span><span style="color: #000000;">, instance.publish.nid)
+
+        instance.save()
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> instance
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookView(APIView):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, request):
+        </span><span style="color: #0000ff;">pass</span>
+
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> post(self, request):
+        </span><span style="color: #008000;">#</span><strong><span style="color: #008000;"> 3.获取客户端的数据</span></strong>
+        client_data =<span style="color: #000000;"> request.data
+        </span><span style="color: #008000;">#</span><strong><span style="color: #008000;"> 4.序列化，默认many=False单条数据</span></strong>
+        verified_data = BookSerializer(data=<span style="color: #000000;">client_data)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 对数据进行验证</span>
+        <span style="color: #0000ff;">if</span><span style="color: #000000;"> verified_data.is_valid():
+            </span><span style="color: #008000;">#</span><strong><span style="color: #008000;"> 5.写入数据库</span></strong>
+            book =<span style="color: #000000;"> verified_data.save()
+            authors </span>= models.Author.objects.filter(nid__in=request.data[<span style="color: #800000;">"</span><span style="color: #800000;">authors</span><span style="color: #800000;">"</span><span style="color: #000000;">])
+            book.authors.add(</span>*<span style="color: #000000;">authors)
+            </span><span style="color: #008000;">#</span><strong><span style="color: #008000;"> 6.将插入的对象数据返回</span></strong>
+            <span style="color: #0000ff;">return</span><span style="color: #000000;"> Response(verified_data.data)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 验证失败返回错误信息</span>
+        <span style="color: #0000ff;">return</span> Response(verified_data.errors)</pre>
+</div>
+<p><strong>从上面可以看出：</strong></p>
+<ol>
+<li><strong>&nbsp;<span class="cnblogs_code">serializers.Serializer</span>&nbsp;无法插入数据，只能自己实现。</strong></li>
+<li><strong>字段太多，不能自动序列化</strong></li>
+</ol>
+<p>这样就会非常复杂化程序，如果我希望序列化类自动插入数据呢？</p>
+<p>这也就有了&nbsp;<span class="cnblogs_code">ModelSerializer</span>&nbsp;</p>
+<h3>ModelSerializer</h3>
+<p>&nbsp;<span class="cnblogs_code">ModelSerializer&nbsp;</span>&nbsp;类似于form组件里的&nbsp;<span class="cnblogs_code">ModelForm</span>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> rest_framework <span style="color: #0000ff;">import</span><span style="color: #000000;"> serializers
+</span><span style="color: #0000ff;">from</span> rest_framework.views <span style="color: #0000ff;">import</span><span style="color: #000000;"> APIView
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookSerializer(serializers.ModelSerializer):
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        model </span>=<span style="color: #000000;"> models.Book
+        fields </span>= <span style="color: #800000;">"</span><span style="color: #800000;">__all__</span><span style="color: #800000;">"</span><span style="color: #000000;">
+
+        extra_kwargs </span>=<span style="color: #000000;"> {
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 仅写</span>
+            <span style="color: #800000;">"</span><span style="color: #800000;">publish</span><span style="color: #800000;">"</span>: {<span style="color: #800000;">'</span><span style="color: #800000;">write_only</span><span style="color: #800000;">'</span><span style="color: #000000;">: True},
+            </span><span style="color: #800000;">"</span><span style="color: #800000;">authors</span><span style="color: #800000;">"</span>: {<span style="color: #800000;">'</span><span style="color: #800000;">write_only</span><span style="color: #800000;">'</span><span style="color: #000000;">: True},
+        }
+
+    publish_name </span>= serializers.CharField(max_length=32, read_only=True, source=<span style="color: #800000;">"</span><span style="color: #800000;">publish.name</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    publish_address </span>= serializers.CharField(max_length=32, read_only=True, source=<span style="color: #800000;">"</span><span style="color: #800000;">publish.address</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    author_name </span>=<span style="color: #000000;"> serializers.SerializerMethodField()
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_author_name(self, book_obj):
+        author_list </span>=<span style="color: #000000;"> list()
+        </span><span style="color: #0000ff;">for</span> author <span style="color: #0000ff;">in</span><span style="color: #000000;"> book_obj.authors.all():
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 注意列表添加字段，author.name而不是author</span>
+<span style="color: #000000;">            author_list.append(author.name)
+        </span><span style="color: #0000ff;">return</span> author_list</pre>
+</div>
+<p>这样看起来简单多了！</p>
+<h3>get(单条数据)、put(改)、delete(删) 接口设计</h3>
+<p>设计url</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> path, re_path
+
+</span><span style="color: #0000ff;">from</span> DrfOne <span style="color: #0000ff;">import</span><span style="color: #000000;"> views
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    path(</span><span style="color: #800000;">'</span><span style="color: #800000;">books/</span><span style="color: #800000;">'</span><span style="color: #000000;">, views.BookView.as_view()),
+    re_path(</span><span style="color: #800000;">"</span><span style="color: #800000;">books/(\d+)/</span><span style="color: #800000;">"</span><span style="color: #000000;">, views.BookFilterView.as_view()),
+]</span></pre>
+</div>
+<p>视图设计</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookFilterView(APIView):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, request, nid):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取queryset</span>
+        book_obj = models.Book.objects.get(pk=<span style="color: #000000;">nid)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 序列化</span>
+        serialized_data =<span style="color: #000000;"> BookSerializer(book_obj)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回数据</span>
+        <span style="color: #0000ff;">return</span><span style="color: #000000;"> Response(serialized_data.data)
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> put(self, request, nid):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取queryset</span>
+        book_obj = models.Book.objects.get(pk=<span style="color: #000000;">nid)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 序列化, 根据instance是确认是否是更新, many默认为False可以不写</span>
+        verified_data = BookSerializer(data=request.data, instance=book_obj, many=<span style="color: #000000;">False)
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> verified_data.is_valid():
+            verified_data.save()
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回数据</span>
+            <span style="color: #0000ff;">return</span><span style="color: #000000;"> Response(verified_data.data)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Response(verified_data.errors)
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> delete(self, request, nid):
+        models.Book.objects.get(pk</span>=<span style="color: #000000;">nid).delete()
+
+        </span><span style="color: #0000ff;">return</span> Response(<span style="color: #800000;">""</span>)</pre>
+</div>
+<p><span style="color: #33cccc;"><strong>~&gt;.&lt;~</strong></span></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

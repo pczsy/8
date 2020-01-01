@@ -1,0 +1,80 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修上手spring boot项目(四)之springboot如何返回json数据' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>上手spring boot项目(四)之springboot如何返回json数据</center></div><div class='banquan'>原文出处:本文由博客园博主程序猿修炼之道提供。<br/>
+原文连接:https://www.cnblogs.com/Code-Handling/p/12041253.html</div><br>
+    <p>在springboot整合thymeleaf中，经常会在HTML页面中接收来自服务器的json数据，然后处理json数据并在页面上渲染。那么如何在服务器中返回json类型的数据呢？</p>
+<h1>1.使用@ResponseBody注解</h1>
+<p>该注解用于将 Controller 的方法返回的对象，通过 HttpMessageConverter 接口转换为指定格式的</p>
+<p><em id="__mceDel">数据如：json,xml 等，通过 Response 响应给客户端</em></p>
+<p>在controller的方法上增加@RespongBody</p>
+<div class="cnblogs_code">
+<pre><code>@RequestMapping("/findAll.do"<span>)
+@ResponseBody
+public List&lt;SysCategory&gt;<span> findAll(){
+        //查询分类信息，具体的service层方法略
+        List&lt;SysCategory&gt; categoryList =<span> categoryService.findAll();
+        System.out.println(categoryList);
+        return<span> categoryList;
+}    </span></span></span></span></pre>
+</div>
+<p>Java控制台打印出的结果如下：</p>
+<p><img src="./images/上手spring boot项目(四)之springboot如何返回json数据0.png" alt="" /></p>
+<p>&nbsp;接下来是在前端接收服务器返回的json数据</p>
+<div class="cnblogs_code">
+<pre><code> $.get("/category/findAll.do"<span>,{},function (data) {
+            console.log(data);
+},"json");</span></pre>
+</div>
+<p>在页面控制台打印出的结果如下：</p>
+<p><img src="./images/上手spring boot项目(四)之springboot如何返回json数据1.png" alt="" /></p>
+<p>&nbsp;可以看到 服务器端的返回的确实是json类型的数据</p>
+<h1>2. 使用@RestController注解</h1>
+<pre><code>@RestController是@ResponseBody和@Controller两者的结合，使用这个注解后就无需再用那两个注解。</pre>
+<div class="cnblogs_code">
+<pre><code><span>@RestController
+@RequestMapping("/category"<span>)
+public class<span> CategoryController {
+
+    @Autowired
+    private<span> CategoryService categoryService;
+
+    @RequestMapping("/findAll.do"<span>)
+    public List&lt;SysCategory&gt;<span> findAll(){
+        List&lt;SysCategory&gt; categoryList =<span> categoryService.findAll();
+        System.out.println(categoryList);
+        return<span> categoryList;
+    }
+}</span></span></span></span></span></span></span></span></pre>
+</div>
+<p>发送的请求和在controller层的业务逻辑和第一种方法一样。</p>
+<p>在页面控制台打印出的结果如下：</p>
+<p><img src="./images/上手spring boot项目(四)之springboot如何返回json数据2.png" alt="" /></p>
+<h1>3.使用response将数据写回客户端（不推荐）</h1>
+<div class="cnblogs_code">
+<pre><code><span>String obj = "[SysCategory{id=1, name='JavaSe'}, SysCategory{id=2, name='JavaEE'}, SysCategory{id=3, name='前端'}, SysCategory{id=4, name='其他'}]"<br />ObjectMapper mapper = new<span> ObjectMapper();
+response.setContentType("application/json;charset=utf-8"<span>);
+mapper.writeValue(response.getOutputStream(),obj);    </span></span></span></pre>
+</div>
+<p>在页面控制台打印出的结果如下：</p>
+<p>&nbsp;<img src="./images/上手spring boot项目(四)之springboot如何返回json数据3.png" alt="" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

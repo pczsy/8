@@ -1,0 +1,303 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python+爬虫+微信机器人 打造属于你的网购价格监督利器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python+爬虫+微信机器人 打造属于你的网购价格监督利器</center></div><div class='banquan'>原文出处:本文由博客园博主风，又奈何提供。<br/>
+原文连接:https://www.cnblogs.com/CYHISTW/p/11378886.html</div><br>
+    <h1>写在最前</h1>
+<p>　　程序是为人类服务的，最近正好身边小伙伴们在做球衣生意，当然是去nikenba专区购买了，可是有些热门球衣发布几分钟就被抢完，有些折扣球衣也是很快就被抢售一空，那么我们只能靠自己的眼睛一直盯着网站吗？NoNoNo，作为计算机专业的学生，怎么能为这种事情浪费时间呢？那肯定想法就是写爬虫自动比对价格啊，后来又在想，爬虫数据也是在PC端啊，该怎么实时提醒我们呢？再弄一个微信机器人发送数据不就可以了吗？说干就干，代码开撸</p>
+<p>先看下效果：</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器0.png" alt="" width="327" height="581" /></p>
+<h2>准备工作：</h2>
+<p>首先本文使用py3，需要安装以下库:</p>
+<p>1)itchat</p>
+<p>2)requests</p>
+<p>3)apscheduler</p>
+<h2>分析网页：</h2>
+<p>首先我们需要做什么？毫无疑问，分析网页，因为最重要的一步就是获取数据，那么如何获取数据就是我们首先要克服的困难</p>
+<p>附上 nike nba专区地址：<a href="https://www.nike.com/cn/w/nba-sleeveless-and-tank-tops-18iwiz9sbux">https://www.nike.com/cn/w/nba-sleeveless-and-tank-tops-18iwiz9sbux</a></p>
+<p>首先我们要明确一个地方，我们的目的是实时监控热门打折球衣，所以我们的价格肯定首先降序排列，不过先不用着急，打开F12先看下调试器，对了我使用的是chrome浏览器</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器1.png" alt="" width="1078" height="556" /></p>
+<p>由于我们是先打开网页再打开调试窗口，所以目前我们看不到数据，别急，我们刷新一下再看</p>
+<p>哦吼，完蛋，怎么这么多东西貌似根本没法看</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器2.png" alt="" width="1063" height="544" /></p>
+<p>别急 继续分析，作为一个学（qiong）生（bi）,我们肯定先关注价格了，当然要升序排列啊！</p>
+<p>好的 点下浏览器调试窗口中的清除按钮（就是下面这个蓝色标记的按钮）先清除下调试台中的数据 然后呢我们点下筛选方式价格由低到高（红色标记的菜单键中选择）</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器3.png" alt="" width="1064" height="548" /></p>
+<p>得到调试台如下，完蛋了还是一堆怎么办？</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器4.png" alt="" width="530" height="493" /></p>
+<p>没关系，至少现在网页内容已经是按照价格升序排列了，我们再来看看得到的Network数据，挨个点一点看看，发现当点到名称为graphql开头的文件里去时候，有东西出现了</p>
+<p>里面的响应内容出现了几个熟悉的队名称和球员名称甚至还有价格，等等，这不就是我们要的数据吗?</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器5.png" alt="" width="437" height="210" /></p>
+<p>看来我们找对了地方，我们双击点开graphql开头的网页文件看看会有什么呢？ 。。。 看起来杂乱无章，但是貌似确实是我们要的数据，是json格式的</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器6.png" alt="" width="1124" height="412" /></p>
+<p>在网页上看json简直是折磨，好的，我们用python开始把这个网页内容给弄下来仔细研究下</p>
+<p>pycharm开搞</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">刚刚在调试台得到的地址</span>
+url=<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/w/graphql?queryid=filteredProductsWithContext&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;uuids=1c7c3d67-5d46-432d-9910-b1128d1b6503,e09eabe9-5ff0-42af-b0a3-5f68af19d89a&amp;language=zh-Hans&amp;country=CN&amp;sortBy=priceAsc</span><span style="color: #800000;">'</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;">使json数据格式化输出更好观察</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> better_jsprint(json_obj):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 使用indent=4 这个参数对json进行数据格式化输出</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">因为json.dumps 序列化时对中文默认使用的ascii编码.想输出真正的中文需要指定ensure_ascii=False</span>
+    <span style="color: #0000ff;">return</span> json.dumps(json.loads(json_obj),indent=4,ensure_ascii=<span style="color: #000000;">False)
+
+response</span>=<span style="color: #000000;">requests.get(url)
+
+</span><span style="color: #0000ff;">print</span>(better_jsprint(response.text))</pre>
+</div>
+<p>看看输出什么：</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器7.png" alt="" width="1057" height="475" /></p>
+<p>这样看起来好多了，好的 似乎到这里我们已经可以开始选取我们需要的数据进行记录了，但是我们又会注意到一点，这个网页的内容是瀑布流方式，也就是说滚轮往下滚动才会有更多的数据出现，可是我们目前只获取了这个页面最上端的数据，如果我们想获取更多的数据怎么办？</p>
+<p>我们还是使用调试台，其实他页面只要变化，网站交互一定是有活动的，所以我们现在就观察当滚轮往下滚动到瀑布流下端时调试台会出现什么东西就可以了</p>
+<p>往下滚动，发现调试台确实出现了很多新的文件，我们猜想这些文件中一定有瀑布流下端的数据，对了还记得我们刚才找到的文件名是什么吗？对的，是名称为graphql开头的文件，那么会不会新的数据文件也是这个名字开头的呢？我们使用调试台搜索下看看</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器8.png" alt="" width="488" height="403" /></p>
+<p>来了来了，它真的出现了，现在出现了3个文件都是graphql名字开头，毫无疑问第一个文件是我们上面找到的，那么第二个第三个呢？ 我们点开看看，会发现对应的商品名称之类的真的是瀑布流下端的数据。</p>
+<p>OK看起来我们现在确实得到了所有数据文件的url</p>
+<p>我最初的想法是直接将3个url写到一个列表中然后使用循环读取如下图（其实会发现第二个url与第三个看起来貌似一样啊怎么回事？下面有解释别急）</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器9.png" alt="" width="949" height="231" /></p>
+<p>后来呢我突然意识到，万一商品更多了怎么办？会不会出现4个5个url?而总不能每次都靠人力去数有多少个url吧？然后就想，怎样才能让程序自动添加url呢？</p>
+<p>我们再回头看看第一次抓取下来的 url1 的json数据，首先尝试下检索page这个关键词（毕竟一般程序员都会写这个作为页面标识吧？），哦霍，发现了了不得的东西，</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器10.png" alt="" width="1022" height="418" /></p>
+<p>这些数据看起来很眼熟啊，还有uuids？再比对下第一次抓的 url1 发现里面的uuids还真的就是json里面的数据，那么又看到pages里面有个next 纳尼？这会不会是瀑布流下半部分url组成呢？快来比对 url2 地址</p>
+<div class="cnblogs_code">
+<pre><code>https://www.nike.com/w/graphql?queryid=products&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;<span style="color: #ff0000;">endpoint=</span>%2Fproduct_feed%2Frollup_threads%2Fv2%3Ffilter%3Dmarketplace(CN)%26filter%3Dlanguage(zh-Hans)%26filter%3DemployeePrice(true)%26filter%3DattributeIds(1c7c3d67-5d46-432d-9910-b1128d1b6503%2Ce09eabe9-5ff0-42af-b0a3-5f68af19d89a)%26anchor%3D24%26count%3D24%26consumerChannelId%3Dd9a5bc42-4b9c-4976-858a-f159cf99c647%26sort%3DproductInfo.merchPrice.currentPriceAsc</pre>
+</div>
+<p>尝试检索下next中的内容，发现真的存在与endpoint参数后面，哦霍 现在我们猜想，会不会每个json中都包含pages next这个数据</p>
+<p>打印url2继续检索pages的next&nbsp;</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器11.png" alt="" width="1197" height="175" /></p>
+<p>真的存在，并且还存在prev参数（前一页），说明我们的猜想可能是正确的，这时候细心的小伙伴可能发现了 url2中的next内容与url1中一致啊，哦原来是这样，这样才导致了我们刚刚调试台中出现3个url文件但是第二个与第三个一样的情况</p>
+<p>但是我们猜想第三个url返回数据中应该没有next否则就应该出现第四个文件了，我们来试一试</p>
+<p>在url3返回数据中检索next</p>
+<p><img src="./images/python+爬虫+微信机器人 打造属于你的网购价格监督利器12.png" alt="" width="781" height="129" /></p>
+<p>真的为空了所以我们可以确定，只要瀑布流下方仍有数据，那么一定存在next参数 因此我们可以确定瀑布流url写法 我们网页分析完成 接下来就要进行真正的代码编写了</p>
+<p>（其实我有一个疑问 url2与url3看起来确实是一模一样的并且我尝试做了差值运算，发现还是一样的，但是返回数据确实不同，有大神可以发现这两个url不同之处吗 下面放上这两个url）</p>
+<p>（url已改变，根据官网实时更新数据一直在变）</p>
+<div class="cnblogs_code">
+<pre><code>url2=<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/w/graphql?queryid=products&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;endpoint=%2Fproduct_feed%2Frollup_threads%2Fv2%3Ffilter%3Dmarketplace(CN)%26filter%3Dlanguage(zh-Hans)%26filter%3DemployeePrice(true)%26filter%3DattributeIds(1c7c3d67-5d46-432d-9910-b1128d1b6503%2Ce09eabe9-5ff0-42af-b0a3-5f68af19d89a)%26anchor%3D24%26count%3D24%26consumerChannelId%3Dd9a5bc42-4b9c-4976-858a-f159cf99c647%26sort%3DproductInfo.merchPrice.currentPriceAsc</span><span style="color: #800000;">'</span><span style="color: #000000;">
+url3</span>=<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/w/graphql?queryid=products&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;endpoint=%2Fproduct_feed%2Frollup_threads%2Fv2%3Ffilter%3Dmarketplace(CN)%26filter%3Dlanguage(zh-Hans)%26filter%3DemployeePrice(true)%26filter%3DattributeIds(1c7c3d67-5d46-432d-9910-b1128d1b6503%2Ce09eabe9-5ff0-42af-b0a3-5f68af19d89a)%26anchor%3D48%26count%3D24%26consumerChannelId%3Dd9a5bc42-4b9c-4976-858a-f159cf99c647%26sort%3DproductInfo.merchPrice.currentPriceAsc</span><span style="color: #800000;">'</span></pre>
+</div>
+<h2>urls构建与objects获取</h2>
+<p>我们首先需要写递归函数获取所有urls</p>
+<p>我们观察json内容就会发现我们需要的商品数据都在一个名为objects的key中 因此需要将所有objects放在一起</p>
+<p>递归函数(核心函数)如下</p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">#</span><span style="color: #008000;">刚刚在调试台得到的初始地址</span>
+    url1=<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/w/graphql?queryid=filteredProductsWithContext&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;uuids=1c7c3d67-5d46-432d-9910-b1128d1b6503,e09eabe9-5ff0-42af-b0a3-5f68af19d89a&amp;language=zh-Hans&amp;country=CN&amp;sortBy=priceAsc</span><span style="color: #800000;">'</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;">观察其他urls发现前面参数是一样的如下 我们先写前半部分</span>
+    urlother=<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/w/graphql?queryid=products&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;endpoint=</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    urls</span>=<span style="color: #000000;">[url1]
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">空list存放物品信息 观察发现json中的objects数据类型为list</span>
+    pricedictlist=<span style="color: #000000;">[]
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">递归函数得到urls列表以及每个url中物品数据</span>
+    <span style="color: #0000ff;">def</span> get_url_objcts(url=<span style="color: #000000;">url1):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">首先得到初始url的json数据</span>
+        response=<span style="color: #000000;">requests.get(url)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">只取有用的数据内容 仔细观察json数据 得到下一个页面的next参数</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">urllib.parse.quote(text)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 按照标准， URL 只允许一部分 ASCII 字符（数字字母和部分符号），其他的字符（如汉字）是不符合 URL 标准的。</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 所以 URL 中使用其他字符就需要进行 URL 编码。</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            nextpage_json</span>=quote(response.json()[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">filteredProductsWithContext</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">pages</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">next</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+            </span><span style="color: #008000;">#</span><span style="color: #008000;">添加objects内容到列表</span>
+            pricedictlist.extend(response.json()[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">filteredProductsWithContext</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">objects</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> KeyError:
+            nextpage_json </span>= quote(response.json()[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">products</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">pages</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">next</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 添加objects内容到列表</span>
+            pricedictlist.extend(response.json()[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">products</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">objects</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> TypeError:
+            nextpage_json</span>=<span style="color: #800000;">''</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">递归获取url与objects</span>
+        <span style="color: #0000ff;">if</span> nextpage_json!=<span style="color: #800000;">''</span><span style="color: #000000;">:
+            urlnext</span>=urlother+<span style="color: #000000;">nextpage_json
+            urls.append(urlnext)
+            nextpage_json</span>=<span style="color: #800000;">''</span><span style="color: #000000;">
+            get_url_objcts(urlnext)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">else只在不存在下一页时执行，相当于此时已经完成了objects的获取 下面构建发送信息</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            i </span>=<span style="color: #000000;"> 0
+            STR </span>= str(<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/cn/w/nba-sleeveless-and-tank-tops-18iwiz9sbux?sort=priceAsc</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+            compStr1 </span>= <span style="color: #800000;">''</span>
+            <span style="color: #0000ff;">for</span> each <span style="color: #0000ff;">in</span><span style="color: #000000;"> pricedictlist:
+                title </span>= each[<span style="color: #800000;">'</span><span style="color: #800000;">publishedContent</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">properties</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">seo</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+                </span><span style="color: #0000ff;">if</span> title ==<span style="color: #000000;"> None:
+                    </span><span style="color: #0000ff;">continue</span><span style="color: #000000;">
+                currentPrice </span>= each[<span style="color: #800000;">'</span><span style="color: #800000;">productInfo</span><span style="color: #800000;">'</span>][0][<span style="color: #800000;">'</span><span style="color: #800000;">merchPrice</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">currentPrice</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+                fullPrice </span>= each[<span style="color: #800000;">'</span><span style="color: #800000;">productInfo</span><span style="color: #800000;">'</span>][0][<span style="color: #800000;">'</span><span style="color: #800000;">merchPrice</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">fullPrice</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+                </span><span style="color: #008000;">#</span><span style="color: #008000;">只选取有用的数据 我们不要童装 同时只要打折商品</span>
+                <span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">not</span> re.search(<span style="color: #800000;">'</span><span style="color: #800000;">童</span><span style="color: #800000;">'</span>, str(title[<span style="color: #800000;">'</span><span style="color: #800000;">slug</span><span style="color: #800000;">'</span>]))) <span style="color: #0000ff;">and</span> (fullPrice !=<span style="color: #000000;"> currentPrice):
+                    i </span>= i + 1<span style="color: #000000;">
+                    STR </span>= STR + <span style="color: #800000;">'</span><span style="color: #800000;">\n\n</span><span style="color: #800000;">'</span> + ((str(title[<span style="color: #800000;">'</span><span style="color: #800000;">slug</span><span style="color: #800000;">'</span>]) + <span style="color: #800000;">"</span><span style="color: #800000;">\n</span><span style="color: #800000;">"</span> + <span style="color: #800000;">"</span><span style="color: #800000;">  原价</span><span style="color: #800000;">"</span> + str(fullPrice) + <span style="color: #800000;">"</span><span style="color: #800000;">  现价</span><span style="color: #800000;">"</span> +<span style="color: #000000;"> str(
+                        currentPrice)) </span>+ <span style="color: #800000;">'</span>  <span style="color: #800000;">'</span> + str(currentPrice * 100 / fullPrice) + <span style="color: #800000;">'</span><span style="color: #800000;">%</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+                    </span><span style="color: #008000;">#</span><span style="color: #008000;">发现每个商品名称后面都有独特的商品码为6个字母标识，所以切片记录下来用于对比</span>
+                    compStr1 = compStr1 + str(title[<span style="color: #800000;">'</span><span style="color: #800000;">slug</span><span style="color: #800000;">'</span>][-6<span style="color: #000000;">:])
+
+            STR </span>= STR + <span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span> + (<span style="color: #800000;">"</span><span style="color: #800000;">本次数据一共：</span><span style="color: #800000;">"</span> + str(i) + <span style="color: #800000;">"</span><span style="color: #800000;">个</span><span style="color: #800000;">"</span>)</pre>
+</div>
+<p>这之上 我们已经完成了数据的获取，接下来就是微信机器人发送了</p>
+<h2>itchat微信机器人</h2>
+<p><span>itchat是个人账户的开放源码wechat api项目，</span>它使您可以通过命令行访问您的个人微信帐户。</p>
+<p>如何向群发送消息？</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> itchat
+</span><span style="color: #008000;">#</span><span style="color: #008000;">登录微信网页版 参数enableCmdQR=0会出现图片二维码登录 为1则命令行窗口输出字符二维码 有的linux因为字符间距问题需要设置为2</span>
+itchat.auto_login(hotReload=0,enableCmdQR=<span style="color: #000000;">0)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 自己创建微信群，名称自定，并且要保存到通信录</span>
+chatroomName = <span style="color: #800000;">'</span><span style="color: #800000;">Money</span><span style="color: #800000;">'</span>  <span style="color: #008000;">#</span><span style="color: #008000;"> 群名</span>
+itchat.get_chatrooms(update=<span style="color: #000000;">True)
+chatrooms </span>= itchat.search_chatrooms(name=<span style="color: #000000;">chatroomName)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> print(compStr0)</span>
+<span style="color: #0000ff;">if</span> len(chatrooms) ==<span style="color: #000000;"> 0:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> print('没有找到群聊：' + chatroomName)</span>
+<span style="color: #000000;">    exit(0)
+</span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+    itchat.send_msg(</span><span style="color: #800000;">'</span><span style="color: #800000;">hello world</span><span style="color: #800000;">'</span>, toUserName=chatrooms[0][<span style="color: #800000;">'</span><span style="color: #800000;">UserName</span><span style="color: #800000;">'</span>])  <span style="color: #008000;">#</span><span style="color: #008000;"> 发送消息</span></pre>
+</div>
+<p>这就是简单的发送消息了，将我们上面的程序接合就可以实现微信发送了 还差一步，没错就是定时任务的问题</p>
+<h2 class="title-article">Python定时任务框架apscheduler</h2>
+<p>听名字就知道是干什么的 没错就是任务调度，我们可以使用这个库简洁的实现任务调度问题</p>
+<p>简单例程如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> apscheduler.schedulers.blocking <span style="color: #0000ff;">import</span><span style="color: #000000;"> BlockingScheduler
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+scheduler </span>=<span style="color: #000000;"> BlockingScheduler()
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> job1():
+ </span><span style="color: #0000ff;">print</span> (<span style="color: #800000;">"</span><span style="color: #800000;">%s: 执行任务</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> time.asctime())
+scheduler.add_job(job1, </span><span style="color: #800000;">'</span><span style="color: #800000;">interval</span><span style="color: #800000;">'</span>, seconds=3<span style="color: #000000;">)
+scheduler.start()</span></pre>
+</div>
+<p>输出：</p>
+<div class="cnblogs_code">
+<pre><code>Mon Aug 19 18:35:52 2019<span style="color: #000000;">: 执行任务
+Mon Aug </span>19 18:35:55 2019<span style="color: #000000;">: 执行任务
+Mon Aug </span>19 18:35:58 2019<span style="color: #000000;">: 执行任务
+Mon Aug </span>19 18:36:01 2019<span style="color: #000000;">: 执行任务
+Mon Aug </span>19 18:36:04 2019<span style="color: #000000;">: 执行任务
+Mon Aug </span>19 18:36:07 2019<span style="color: #000000;">: 执行任务
+Mon Aug </span>19 18:36:10 2019: 执行任务</pre>
+</div>
+<p>最后一步就是将上面讲的所有来一个大集合</p>
+<h2>程序送上~：</h2>
+<p>将环境配置好，直接放在自己的服务器就可以运行了，这一步就不再赘述</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> re
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #0000ff;">from</span> urllib.parse <span style="color: #0000ff;">import</span><span style="color: #000000;"> quote
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> itchat
+</span><span style="color: #0000ff;">from</span> datetime <span style="color: #0000ff;">import</span><span style="color: #000000;"> datetime
+</span><span style="color: #0000ff;">from</span> apscheduler.schedulers.blocking <span style="color: #0000ff;">import</span><span style="color: #000000;"> BlockingScheduler
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">登录微信网页版 参数enableCmdQR=0会出现图片二维码登录 为1则命令行窗口输出字符二维码 有的linux因为字符间距问题需要设置为2</span>
+itchat.auto_login(hotReload=0,enableCmdQR=<span style="color: #000000;">2)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">比较字符串，用于判断是否更新数据</span>
+compStr0=<span style="color: #800000;">'</span><span style="color: #800000;">fuckkkkkkkkkkkkkkkk</span><span style="color: #800000;">'</span>
+
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> main():
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">刚刚在调试台得到的初始地址</span>
+    url1=<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/w/graphql?queryid=filteredProductsWithContext&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;uuids=1c7c3d67-5d46-432d-9910-b1128d1b6503,e09eabe9-5ff0-42af-b0a3-5f68af19d89a&amp;language=zh-Hans&amp;country=CN&amp;sortBy=priceAsc</span><span style="color: #800000;">'</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;">观察其他urls发现前面参数是一样的如下 我们先写前半部分</span>
+    urlother=<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/w/graphql?queryid=products&amp;anonymousId=A54CD5202A87B54B4415AD4BC11E5692&amp;endpoint=</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    urls</span>=<span style="color: #000000;">[url1]
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">空list存放物品信息 观察发现json中的objects数据类型为list</span>
+    pricedictlist=<span style="color: #000000;">[]
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">递归函数得到urls列表以及每个url中物品数据</span>
+    <span style="color: #0000ff;">def</span> get_url_objcts(url=<span style="color: #000000;">url1):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">首先得到初始url的json数据</span>
+        response=<span style="color: #000000;">requests.get(url)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">只取有用的数据内容 仔细观察json数据 得到下一个页面的next参数</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">urllib.parse.quote(text)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 按照标准， URL 只允许一部分 ASCII 字符（数字字母和部分符号），其他的字符（如汉字）是不符合 URL 标准的。</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 所以 URL 中使用其他字符就需要进行 URL 编码。</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            nextpage_json</span>=quote(response.json()[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">filteredProductsWithContext</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">pages</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">next</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+            pricedictlist.extend(response.json()[</span><span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">filteredProductsWithContext</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">objects</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> KeyError:
+            nextpage_json </span>= quote(response.json()[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">products</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">pages</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">next</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+            pricedictlist.extend(response.json()[</span><span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">products</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">objects</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> TypeError:
+            nextpage_json</span>=<span style="color: #800000;">''</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">递归获取url与objects</span>
+        <span style="color: #0000ff;">if</span> nextpage_json!=<span style="color: #800000;">''</span><span style="color: #000000;">:
+            urlnext</span>=urlother+<span style="color: #000000;">nextpage_json
+            urls.append(urlnext)
+            nextpage_json</span>=<span style="color: #800000;">''</span><span style="color: #000000;">
+            get_url_objcts(urlnext)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">else只在不存在下一页时执行，相当于此时已经完成了objects的获取</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            i </span>=<span style="color: #000000;"> 0
+            STR </span>= str(<span style="color: #800000;">'</span><span style="color: #800000;">https://www.nike.com/cn/w/nba-sleeveless-and-tank-tops-18iwiz9sbux?sort=priceAsc</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+            compStr1 </span>= <span style="color: #800000;">''</span>
+            <span style="color: #0000ff;">for</span> each <span style="color: #0000ff;">in</span><span style="color: #000000;"> pricedictlist:
+                title </span>= each[<span style="color: #800000;">'</span><span style="color: #800000;">publishedContent</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">properties</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">seo</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+                </span><span style="color: #0000ff;">if</span> title ==<span style="color: #000000;"> None:
+                    </span><span style="color: #0000ff;">continue</span><span style="color: #000000;">
+                currentPrice </span>= each[<span style="color: #800000;">'</span><span style="color: #800000;">productInfo</span><span style="color: #800000;">'</span>][0][<span style="color: #800000;">'</span><span style="color: #800000;">merchPrice</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">currentPrice</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+                fullPrice </span>= each[<span style="color: #800000;">'</span><span style="color: #800000;">productInfo</span><span style="color: #800000;">'</span>][0][<span style="color: #800000;">'</span><span style="color: #800000;">merchPrice</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">fullPrice</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+                </span><span style="color: #008000;">#</span><span style="color: #008000;">只选取有用的数据 我们不要童装 同时只要打折商品</span>
+                <span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">not</span> re.search(<span style="color: #800000;">'</span><span style="color: #800000;">童</span><span style="color: #800000;">'</span>, str(title[<span style="color: #800000;">'</span><span style="color: #800000;">slug</span><span style="color: #800000;">'</span>]))) <span style="color: #0000ff;">and</span> (fullPrice !=<span style="color: #000000;"> currentPrice):
+                    i </span>= i + 1<span style="color: #000000;">
+                    STR </span>= STR + <span style="color: #800000;">'</span><span style="color: #800000;">\n\n</span><span style="color: #800000;">'</span> + ((str(title[<span style="color: #800000;">'</span><span style="color: #800000;">slug</span><span style="color: #800000;">'</span>]) + <span style="color: #800000;">"</span><span style="color: #800000;">\n</span><span style="color: #800000;">"</span> + <span style="color: #800000;">"</span><span style="color: #800000;">  原价</span><span style="color: #800000;">"</span> + str(fullPrice) + <span style="color: #800000;">"</span><span style="color: #800000;">  现价</span><span style="color: #800000;">"</span> +<span style="color: #000000;"> str(
+                        currentPrice)) </span>+ <span style="color: #800000;">'</span>  <span style="color: #800000;">'</span> + str(currentPrice * 100 / fullPrice) + <span style="color: #800000;">'</span><span style="color: #800000;">%</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+                    </span><span style="color: #008000;">#</span><span style="color: #008000;">发现每个商品名称后面都有独特的商品码为6个字母标识，所以切片记录下来用于对比</span>
+                    compStr1 = compStr1 + str(title[<span style="color: #800000;">'</span><span style="color: #800000;">slug</span><span style="color: #800000;">'</span>][-6<span style="color: #000000;">:])
+
+            STR </span>= STR + <span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span> + (<span style="color: #800000;">"</span><span style="color: #800000;">本次数据一共：</span><span style="color: #800000;">"</span> + str(i) + <span style="color: #800000;">"</span><span style="color: #800000;">个</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+            </span><span style="color: #008000;">#</span><span style="color: #008000;">自己创建微信群，名称自定</span>
+            chatroomName = <span style="color: #800000;">'</span><span style="color: #800000;">Money</span><span style="color: #800000;">'</span>  <span style="color: #008000;">#</span><span style="color: #008000;"> 群名</span>
+            itchat.get_chatrooms(update=<span style="color: #000000;">True)
+            chatrooms </span>= itchat.search_chatrooms(name=<span style="color: #000000;">chatroomName)
+            </span><span style="color: #0000ff;">global</span><span style="color: #000000;"> compStr0
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> print(compStr0)</span>
+            <span style="color: #0000ff;">if</span> len(chatrooms) ==<span style="color: #000000;"> 0:
+                </span><span style="color: #008000;">#</span><span style="color: #008000;"> print('没有找到群聊：' + chatroomName)</span>
+<span style="color: #000000;">                exit(0)
+            </span><span style="color: #0000ff;">else</span><span style="color: #000000;">:
+                </span><span style="color: #008000;">#</span><span style="color: #008000;">判断数据是否变化</span>
+                <span style="color: #0000ff;">if</span> (compStr1 !=<span style="color: #000000;"> compStr0):
+                    itchat.send_msg(STR, toUserName</span>=chatrooms[0][<span style="color: #800000;">'</span><span style="color: #800000;">UserName</span><span style="color: #800000;">'</span>])  <span style="color: #008000;">#</span><span style="color: #008000;"> 发送消息</span>
+                    compStr0 =<span style="color: #000000;"> compStr1
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> print(compStr0)</span>
+<span style="color: #000000;">    get_url_objcts()
+
+
+sched </span>=<span style="color: #000000;"> BlockingScheduler()
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 任务调度 每2分钟触发 时间自定</span>
+sched.add_job(main, <span style="color: #800000;">'</span><span style="color: #800000;">interval</span><span style="color: #800000;">'</span>, minutes=2, next_run_time=<span style="color: #000000;">datetime.now())
+sched.start()
+
+itchat.run()</span></pre>
+</div>
+<p>转载请注明出处 thank you!</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,94 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修20190712-01矩阵的解题思考' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>20190712-01矩阵的解题思考</center></div><div class='banquan'>原文出处:本文由博客园博主何发奋提供。<br/>
+原文连接:https://www.cnblogs.com/hyj691001/p/11178301.html</div><br>
+    <h1>01矩阵</h1>
+<h2>难度分类</h2>
+<p>中等</p>
+<h2>题目描述</h2>
+<p>给定一个由 0 和 1 组成的矩阵，找出每个元素到最近的 0 的距离。</p>
+<p>&nbsp;</p>
+<p>两个相邻元素间的距离为 1 。</p>
+<p>&nbsp;</p>
+<p>示例 1:</p>
+<p>输入:</p>
+<p>&nbsp;</p>
+<p>0 0 0</p>
+<p>0 1 0</p>
+<p>0 0 0</p>
+<p>输出:</p>
+<p>&nbsp;</p>
+<p>0 0 0</p>
+<p>0 1 0</p>
+<p>0 0 0</p>
+<p>示例 2:</p>
+<p>输入:</p>
+<p>&nbsp;</p>
+<p>0 0 0</p>
+<p>0 1 0</p>
+<p>1 1 1</p>
+<p>输出:</p>
+<p>&nbsp;</p>
+<p>0 0 0</p>
+<p>0 1 0</p>
+<p>1 2 1</p>
+<p>注意:</p>
+<p>&nbsp;</p>
+<p>给定矩阵的元素个数不超过 10000。</p>
+<p>给定矩阵中至少有一个元素是 0。</p>
+<p>矩阵中的元素只在四个方向上相邻: 上、下、左、右。</p>
+<p>题目转载于Leetcode。</p>
+<h2>算法</h2>
+<ol>
+<li>记录Q =矩阵所有的值为0的节点</li>
+<li>将值为0的节点看作已处理过的节点，记录visited = set(Q)</li>
+<li>当Q不为空的时候依次从Q的左边取节点对取到的节点做以下判断：</li>
+</ol>
+<p>a)&nbsp;&nbsp; 节点的上下左右领结点是否合法存在（即是否越界）</p>
+<p>b)&nbsp;&nbsp; 如果上下左右节点存在，判断其是否已被更新</p>
+<p>c)&nbsp;&nbsp; 如果即存在又没有被更新，则更新其节点值为当前取到的节点值+1，即任何0节点上下左右的领结点到0的距离为1，更新后将更新后的节点加入Q和Visted里面。加入Q里面是为了一层一层的更新远端节点的距离，加入Visited是为了以防后续被更新</p>
+<h2>代码</h2>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> updateMatrix(matrix):
+    matrix_length </span>=<span style="color: #000000;"> len(matrix)
+    </span><span style="color: #0000ff;">if</span> matrix_length &lt; 1<span style="color: #000000;">:
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> matrix
+    row_length </span>=<span style="color: #000000;"> len(matrix[0])
+    queue </span>=<span style="color: #000000;"> []
+    visited </span>=<span style="color: #000000;"> set()
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(matrix_length):
+        </span><span style="color: #0000ff;">for</span> j <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(row_length):
+            </span><span style="color: #0000ff;">if</span> matrix[i][j] ==<span style="color: #000000;"> 0:
+                queue.append((i, j))</span><span style="color: #008000;">#</span><span style="color: #008000;">找到所有的0结点</span>
+                visited.add((i, j))<span style="color: #008000;">#</span><span style="color: #008000;">将0节点看作已经被更新的节点visited</span>
+    <span style="color: #0000ff;">while</span><span style="color: #000000;"> queue:
+        i, j </span>=<span style="color: #000000;"> queue.pop(0)
+        </span><span style="color: #0000ff;">for</span> x, y <span style="color: #0000ff;">in</span> [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]:  <span style="color: #008000;">#</span><span style="color: #008000;"> 下上右左4个节点，0的上下左右到0的距离都为1</span>
+            <span style="color: #0000ff;">if</span> 0 &lt;= x &lt; matrix_length <span style="color: #0000ff;">and</span> 0 &lt;= y &lt; row_length <span style="color: #0000ff;">and</span> (x, y) <span style="color: #0000ff;">not</span> <span style="color: #0000ff;">in</span> visited:  <span style="color: #008000;">#</span><span style="color: #008000;"> x,y范围区间在矩阵边界值以内,且未被更新</span>
+                matrix[x][y] = matrix[i][j] + 1<span style="color: #000000;">
+                visited.add((x, y))
+                queue.append((x, y))
+    </span><span style="color: #0000ff;">return</span> matrix</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

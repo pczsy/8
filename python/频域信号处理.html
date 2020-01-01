@@ -1,0 +1,224 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修频域信号处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>频域信号处理</center></div><div class='banquan'>原文出处:本文由博客园博主chila提供。<br/>
+原文连接:https://www.cnblogs.com/chilalaa/p/11548303.html</div><br>
+    <p><span style="font-size: 16px;">代码来源于<a title="传送门之频域信号处理" href="http://bigsec.net/b52/scipydoc/frequency_process.html" target="_blank">http://bigsec.net/b52/scipydoc/frequency_process.html</a></span></p>
+<p><span style="font-size: 16px;">　　文章从6个方面来写，首先是观察频谱的特征，第二部分是加上窗函数之后的特征，第三部分是频谱平均，第四部分是比较FFT与直接卷积时间效率区别，第五部分是由于FFT对输入信号的长度有要求，因此介绍了overlap-add分段运算，最后一部分是Hilbert变换的实现。</span></p>
+<ul>
+<li><span style="font-size: 18pt;">观察信号的频谱</span></li>
+</ul>
+<p><span style="font-size: 16px;">　　数据通过FFT转换成频域信号，对频域信号进行分析，再通过IFFT转换成时域信号。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> numpy as np
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pylab as pl
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> matplotlib as mpl
+mpl.rcParams[</span><span style="color: #800000;">'</span><span style="color: #800000;">font.sans-serif</span><span style="color: #800000;">'</span>] = [<span style="color: #800000;">'</span><span style="color: #800000;">KaiTi</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+mpl.rcParams[</span><span style="color: #800000;">'</span><span style="color: #800000;">font.serif</span><span style="color: #800000;">'</span>] = [<span style="color: #800000;">'</span><span style="color: #800000;">KaiTi</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+mpl.rcParams[</span><span style="color: #800000;">'</span><span style="color: #800000;">axes.unicode_minus</span><span style="color: #800000;">'</span>]=<span style="color: #000000;">False
+sampling_rate </span>= 8000   <span style="color: #008000;">#</span><span style="color: #008000;">取样频率</span>
+fft_size = 512            <span style="color: #008000;">#</span><span style="color: #008000;">fft长度</span>
+t = np.arange(0, 1.0,  1.0/<span style="color: #000000;">sampling_rate)   
+</span><span style="color: #008000;">#</span><span style="color: #008000;">假设取样频率为fs, 取波形中的N个数据进行FFT变换。那么这N点数据包含整数个周期的波形时，FFT所计算的结果是精确的。于是能精确计算的波形的周期是: n*fs/N。</span><span style="color: #008000;">
+#</span><span style="color: #008000;">对于8kHz取样，512点FFT来说，8000/512.0 = 15.625Hz，前面的156.25Hz和234.375Hz正好是其10倍和15倍。</span><span style="color: #008000;">
+#</span><span style="color: #008000;">选取整数倍的数据，查看当fft后的数据在频谱中形成整数周期时的情况。</span>
+x = np.sin(2*np.pi*156.25*t)  + 2*np.sin(2*np.pi*234.375*<span style="color: #000000;">t)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">选取非整数倍的数据，查看当fft后的数据在频谱中没有形成非整数周期时的情况。</span>
+x = np.sin(2*np.pi*200*t)  + 2*np.sin(2*np.pi*300*<span style="color: #000000;">t)
+xs </span>= x[:fft_size]  <span style="color: #008000;">#</span><span style="color: #008000;">取数据</span>
+xf = np.fft.rfft(xs)/fft_size    <span style="color: #008000;">#</span><span style="color: #008000;">rfft：对实数信号进行FFT变换。/fft_size是为了正确显示波形能量</span>
+freqs = np.linspace(0, sampling_rate/2, fft_size/2+1) <span style="color: #008000;">#</span><span style="color: #008000;">fft_size/2+1个点，后面的是与前面的共轭</span><span style="color: #008000;">
+#</span><span style="color: #008000;">计算每个频率分量的幅值，并通过 20*np.log10() 将其转换为以db(分贝)为单位的值</span>
+xfp = 20*np.log10(np.clip(np.abs(xf), 1e-20, 1e100))  <span style="color: #008000;">#</span><span style="color: #008000;">clip将数据限制在最小值和最大值之间</span>
+pl.figure(figsize=(8,4))   <span style="color: #008000;">#</span><span style="color: #008000;">新建一个8*4英寸的图纸</span>
+pl.subplot(211)   <span style="color: #008000;">#</span><span style="color: #008000;">绘制2行1列的图纸，这个图形占据第一行</span>
+<span style="color: #000000;">pl.plot(t[:fft_size], xs)
+pl.xlabel(u</span><span style="color: #800000;">"</span><span style="color: #800000;">时间(秒)</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.title(u</span><span style="color: #800000;">"</span><span style="color: #800000;">156.25Hz和234.375Hz的波形和频谱</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.subplot(</span>212)     <span style="color: #008000;">#</span><span style="color: #008000;">绘制2行1列的图纸，这个图形占据第二行</span>
+<span style="color: #000000;">pl.plot(freqs, xfp)
+pl.xlabel(u</span><span style="color: #800000;">"</span><span style="color: #800000;">频率(Hz)</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.subplots_adjust(hspace</span>=0.4<span style="color: #000000;">)
+pl.show()<br /></span></pre>
+</div>
+<p><span style="font-size: 16px;">　　运行结果如下图所示：</span></p>
+<p><span style="font-size: 16px;">　　整数周期情况：</span></p>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理0.png" alt="" width="299" height="169" /></p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 16px;">非整数周期情况：</span></p>
+<p>　<br /><br /><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理1.png" alt="" width="284" height="162" /><span style="font-size: 16px;">如上两图可看出非整数周期情况下，第二种情况可能会发生信号泄露状况。由于FFT的假设前提是测量之外的信号是所测量信号的不断重复，如代码中那样，取8k个样例，从信号中取出的512个数据就是FFT的测量范围，也就是说每个波形周期是15.625Hz，它计算的是这512个数据一直重复的波形的频谱。显然如果512个数据包含整数个周期的话，那么得到的结果就是原始信号的频谱，而如果不是整数周期的话，得到的频谱就是如下波形的频谱，这里假设对50Hz的正弦波进行512点FFT，这种波形会发生跳变。</span></p>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理2.png" alt="" width="330" height="124" /></p>
+<ul>
+<li><span style="font-family: 黑体; font-size: 18pt;">窗函数</span></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p>　　<span style="font-size: 16px;">为了减少FFT所截取的数据段前后的跳变，可以对数据先乘以一个窗函数，使得其前后数据能平滑过渡。例如常用的hann窗函数的定义如下：</span></p>
+<div class="math">
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理3.png" alt="w(n)= 0.5\; \left(1 - \cos \left ( \frac{2 \pi n}{N-1} \right) \right)" /><span style="font-size: 16px;">hann窗的曲线如下所示：</span></p>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理4.png" alt="" width="394" height="157" /><span style="font-size: 16px;">可看到，最前和最后的值都是0，如果直接去乘的前后会出现两个0，因此可考虑将这个波形用N+1个点表示，而取前N个点，这样第N+1个点就是下一个波形的第一个点，也就是0,通过设置sym参数解决。这与调用linspace时指定endpoint=False类似，丢掉最后一个点。</span></p>
+<div class="cnblogs_code">
+<pre><code>signal.hann(8<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">array([0.        , 0.1882551 , 0.61126047, 0.95048443, 0.95048443,</span><span style="color: #008000;">
+#</span><span style="color: #008000;">       0.61126047, 0.1882551 , 0.        ])</span>
+signal.hann(8, sym=<span style="color: #000000;">0)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">array([0.        , 0.14644661, 0.5       , 0.85355339, 1.        ,</span><span style="color: #008000;">
+#</span><span style="color: #008000;">       0.85355339, 0.5       , 0.14644661])</span></pre>
+</div>
+<p>&nbsp;<span style="font-size: 16px;">将hann窗与50hz相乘，它的曲线会更加平滑。</span></p>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理5.png" alt="" width="271" height="172" /><span style="font-size: 16px;">之前的非整数周期加了hann窗之后的结果如下图所示：</span></p>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理6.png" alt="" width="362" height="204" /></p>
+<ul>
+<li><span style="font-size: 18pt;">频谱平均</span></li>
+</ul>
+<p><span style="font-size: 16px;">　　对于频谱特性不随时间变化的信号，例如引擎、压缩机等机器噪声，可以对其进行长时间的采样，然后分段进行FFT计算，最后对每个频率分量的幅值求其平均值可以准确地测量信号的频谱，测试随机数序列频谱如下所示</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> average_fft(x, fft_size):
+    n </span>= len(x) // fft_size *<span style="color: #000000;"> fft_size
+    tmp </span>= x[:n].reshape(-1, fft_size)  <span style="color: #008000;">#</span><span style="color: #008000;">将n行转成n列，转为一个二维数组</span>
+    tmp *= signal.hann(fft_size, sym=<span style="color: #000000;">0)
+    xf </span>= np.abs(np.fft.rfft(tmp)/<span style="color: #000000;">fft_size)
+    avgf </span>= np.average(xf, axis=<span style="color: #000000;">0)
+    </span><span style="color: #0000ff;">return</span> 20*<span style="color: #000000;">np.log10(avgf)
+
+x </span>= np.random.rand(100000) - 0.5<span style="color: #000000;">
+xf </span>= average_fft(x, 512<span style="color: #000000;">)
+pl.plot(xf)
+pl.show()</span></pre>
+</div>
+<p>&nbsp;<span style="font-size: 16px;">结果为</span></p>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理7.png" alt="" width="279" height="178" /><span style="font-size: 16px;">这个频谱的能量趋近于一条直线，每个窗的能量相差不大，被称为白色噪声。</span></p>
+<ul>
+<li><span style="font-size: 18pt;">&nbsp;快速卷积</span></li>
+</ul>
+<p><span style="font-size: 16px;">　　信息处理可看作是将原始信号与一个信号进行卷积，也就需要考虑运算效率。这部分主要是比较FFT和直接卷积的运算效率</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> fft_convolve(a,b):
+    n </span>= len(a)+len(b)-1<span style="color: #000000;">
+    N </span>= 2**(int(np.log2(n))+1)          <span style="color: #008000;">#</span><span style="color: #008000;">FFT的长度：大于n的最小的2的整数次幂</span>
+    A =<span style="color: #000000;"> np.fft.fft(a, N)
+    B </span>=<span style="color: #000000;"> np.fft.fft(b, N)
+    </span><span style="color: #0000ff;">return</span> np.fft.ifft(A*<span style="color: #000000;">B)[:n]
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">"</span><span style="color: #800000;">__main__</span><span style="color: #800000;">"</span><span style="color: #000000;">:
+    a </span>= np.random.rand(128<span style="color: #000000;">)
+    b </span>= np.random.rand(128<span style="color: #000000;">)
+    c </span>=<span style="color: #000000;"> np.convolve(a,b)
+    
+    </span><span style="color: #0000ff;">print</span> (np.sum(np.abs(c - fft_convolve(a,b))))</pre>
+</div>
+<p><span style="font-size: 16px;">&nbsp;结果为1.865645261656436e-12，也就是说FFT和普通卷积的结果相差很小，但速度却快很多。</span></p>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理8.png" alt="" width="360" height="180" /></p>
+<ul>
+<li><span style="font-size: 18pt;">分段运算</span></li>
+</ul>
+<p><span style="font-size: 18pt;">　　</span><span style="font-size: 18px;">对于输入信号 x 和系统向量（eg:FIR滤波器）h而言，x的长度不固定，h的长度固定。为了加快卷积效率， 我们需要x和h的长度相当，也就是说对x进行分段处理，这种分段算法被称为overlap-add运算。但是由于FFT在两个数组的分段长度相当时最为有效，因此在实时性要求很强的系统中，采用直接卷积会更好一些。</span></p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> numpy as np
+x </span>= np.random.rand(1000<span style="color: #000000;">)
+h </span>= np.random.rand(101<span style="color: #000000;">)
+y </span>=<span style="color: #000000;"> np.convolve(x, h)
+
+N </span>= 50 <span style="color: #008000;">#</span><span style="color: #008000;"> 分段大小</span>
+M = len(h) <span style="color: #008000;">#</span><span style="color: #008000;"> 滤波器长度</span>
+<span style="color: #000000;">
+output </span>=<span style="color: #000000;"> []
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">缓存初始化为0</span>
+buffer = np.zeros(M+N-1,dtype=<span style="color: #000000;">np.float64)
+
+</span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(int(len(x)/<span style="color: #000000;">N)):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">从输入信号中读取N个数据</span>
+    xslice = x[i*N:(i+1)*<span style="color: #000000;">N]
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">计算卷积</span>
+    yslice =<span style="color: #000000;"> np.convolve(xslice, h)
+    pl.cla()
+    pl.plot(yslice)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">将卷积的结果加入到缓冲中</span>
+    buffer +=<span style="color: #000000;"> yslice
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">输出缓存中的前N个数据，注意使用copy，否则输出的是buffer的一个视图</span>
+<span style="color: #000000;">    output.append( buffer[:N].copy() )
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">缓存中的数据左移动N个元素</span>
+    buffer[0:M-1] =<span style="color: #000000;"> buffer[N:]
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">后面的补0</span>
+    buffer[M-1:] =<span style="color: #000000;"> 0
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">将输出的数据组合为数组</span>
+y2 =<span style="color: #000000;"> np.hstack(output)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">计算和直接卷积的结果之间的误差</span>
+<span style="color: #0000ff;">print</span> (np.sum(np.abs( y2 - y[:len(x)] ) ))</pre>
+</div>
+<p>&nbsp;</p>
+<ul>
+<li><span style="font-size: 18pt;">Hilbert 变换</span></li>
+</ul>
+<p>　　<span style="font-size: 16px;">Hilbert变换能在振幅保持不变的情况下将输入信号的相角偏移90度，简单地说就是能将正弦波形转换为余弦波形。</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> scipy <span style="color: #0000ff;">import</span><span style="color: #000000;"> fftpack
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> numpy as np
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> matplotlib.pyplot as pl
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 产生1024点4个周期的正弦波</span>
+t = np.linspace(0, 8*np.pi, 1024, endpoint=<span style="color: #000000;">False)
+x </span>=<span style="color: #000000;"> np.sin(t)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 进行Hilbert变换</span>
+y =<span style="color: #000000;"> fftpack.hilbert(x)
+pl.plot(x, label</span>=u<span style="color: #800000;">"</span><span style="color: #800000;">原始波形</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.plot(y, label</span>=u<span style="color: #800000;">"</span><span style="color: #800000;">Hilbert转换后的波形</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.legend()
+pl.show()</span></pre>
+</div>
+<p><span style="font-size: 16px;">结果如下所示：</span></p>
+<p><br /><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理9.png" alt="" />　　<span style="font-size: 16px;">Hilbert变换后可将直流分量变为0，正频率成分偏移+90度，负频率成分偏移-90度。它也可用来进行包络检波</span>。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> numpy as np
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pylab as pl
+</span><span style="color: #0000ff;">from</span> scipy <span style="color: #0000ff;">import</span><span style="color: #000000;"> fftpack
+
+t </span>= np.arange(0, 0.3, 1/20000.0<span style="color: #000000;">)
+x </span>= np.sin(2*np.pi*1000*t) * (np.sin(2*np.pi*10*t) + np.sin(2*np.pi*7*t) + 3.0<span style="color: #000000;">)
+hx </span>=<span style="color: #000000;"> fftpack.hilbert(x)
+
+pl.plot(x, label</span>=u<span style="color: #800000;">"</span><span style="color: #800000;">载波信号</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.plot(np.sqrt(x</span>**2 + hx**2), <span style="color: #800000;">"</span><span style="color: #800000;">r</span><span style="color: #800000;">"</span>, linewidth=2, label=u<span style="color: #800000;">"</span><span style="color: #800000;">检出的包络信号</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.title(u</span><span style="color: #800000;">"</span><span style="color: #800000;">使用Hilbert变换进行包络检波</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+pl.legend()
+pl.show()</span></pre>
+</div>
+<p><img style="margin-right: auto; margin-left: auto; display: block;" src="./images/频域信号处理10.png" alt="" /></p>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

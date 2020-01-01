@@ -1,0 +1,328 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【Django入坑之路】Models操作' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【Django入坑之路】Models操作</center></div><div class='banquan'>原文出处:本文由博客园博主PythonNew_Mr.Wang提供。<br/>
+原文连接:https://www.cnblogs.com/wanghong1994/p/11595614.html</div><br>
+    <p style="color: #fff; background-color: #008eb7; -moz-border-radius: 3px; border-radius: 3px; padding: 3px; margin: 10px 0px; text-shadow: 2px 2px 3px #404040;">1：字段</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('ed1bd941-f446-472c-a90e-d741264f590e')"><img id="code_img_closed_ed1bd941-f446-472c-a90e-d741264f590e" class="code_img_closed" src="./images/【Django入坑之路】Models操作0.png" alt="" /><img id="code_img_opened_ed1bd941-f446-472c-a90e-d741264f590e" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('ed1bd941-f446-472c-a90e-d741264f590e',event)" src="./images/【Django入坑之路】Models操作1.png" alt="" />
+<div id="cnblogs_code_open_ed1bd941-f446-472c-a90e-d741264f590e" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;">  1</span> <span style="color: #000000;">AutoField(Field)
+</span><span style="color: #008080;">  2</span>         - int自增列，必须填入参数 primary_key=<span style="color: #000000;">True
+</span><span style="color: #008080;">  3</span> 
+<span style="color: #008080;">  4</span> <span style="color: #000000;">BigAutoField(AutoField)
+</span><span style="color: #008080;">  5</span>         - bigint自增列，必须填入参数 primary_key=<span style="color: #000000;">True
+</span><span style="color: #008080;">  6</span> 
+<span style="color: #008080;">  7</span> <span style="color: #000000;">        注：当model中如果没有自增列，则自动会创建一个列名为id的列
+</span><span style="color: #008080;">  8</span>         <span style="color: #0000ff;">from</span> django.db <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+</span><span style="color: #008080;">  9</span> 
+<span style="color: #008080;"> 10</span>         <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserInfo(models.Model):
+</span><span style="color: #008080;"> 11</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> 自动创建一个列名为id的且为自增的整数列</span>
+<span style="color: #008080;"> 12</span>             username = models.CharField(max_length=32<span style="color: #000000;">)
+</span><span style="color: #008080;"> 13</span> 
+<span style="color: #008080;"> 14</span>         <span style="color: #0000ff;">class</span><span style="color: #000000;"> Group(models.Model):
+</span><span style="color: #008080;"> 15</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> 自定义自增列</span>
+<span style="color: #008080;"> 16</span>             nid = models.AutoField(primary_key=<span style="color: #000000;">True)
+</span><span style="color: #008080;"> 17</span>             name = models.CharField(max_length=32<span style="color: #000000;">)
+</span><span style="color: #008080;"> 18</span> 
+<span style="color: #008080;"> 19</span> <span style="color: #000000;">SmallIntegerField(IntegerField):
+</span><span style="color: #008080;"> 20</span>         - 小整数 -32768 ～ 32767
+<span style="color: #008080;"> 21</span> 
+<span style="color: #008080;"> 22</span> <span style="color: #000000;">PositiveSmallIntegerField(PositiveIntegerRelDbTypeMixin, IntegerField)
+</span><span style="color: #008080;"> 23</span>         - 正小整数 0 ～ 32767
+<span style="color: #008080;"> 24</span> <span style="color: #000000;">    IntegerField(Field)
+</span><span style="color: #008080;"> 25</span>         - 整数列(有符号的) -2147483648 ～ 2147483647
+<span style="color: #008080;"> 26</span> 
+<span style="color: #008080;"> 27</span> <span style="color: #000000;">PositiveIntegerField(PositiveIntegerRelDbTypeMixin, IntegerField)
+</span><span style="color: #008080;"> 28</span>         - 正整数 0 ～ 2147483647
+<span style="color: #008080;"> 29</span> 
+<span style="color: #008080;"> 30</span> <span style="color: #000000;">BigIntegerField(IntegerField):
+</span><span style="color: #008080;"> 31</span>         - 长整型(有符号的) -9223372036854775808 ～ 9223372036854775807
+<span style="color: #008080;"> 32</span> 
+<span style="color: #008080;"> 33</span> <span style="color: #000000;">BooleanField(Field)
+</span><span style="color: #008080;"> 34</span>         -<span style="color: #000000;"> 布尔值类型
+</span><span style="color: #008080;"> 35</span> 
+<span style="color: #008080;"> 36</span> <span style="color: #000000;">NullBooleanField(Field):
+</span><span style="color: #008080;"> 37</span>         -<span style="color: #000000;"> 可以为空的布尔值
+</span><span style="color: #008080;"> 38</span> 
+<span style="color: #008080;"> 39</span> <span style="color: #000000;">CharField(Field)
+</span><span style="color: #008080;"> 40</span>         -<span style="color: #000000;"> 字符类型
+</span><span style="color: #008080;"> 41</span>         -<span style="color: #000000;"> 必须提供max_length参数， max_length表示字符长度
+</span><span style="color: #008080;"> 42</span> 
+<span style="color: #008080;"> 43</span> <span style="color: #000000;">TextField(Field)
+</span><span style="color: #008080;"> 44</span>         -<span style="color: #000000;"> 文本类型
+</span><span style="color: #008080;"> 45</span> 
+<span style="color: #008080;"> 46</span> <span style="color: #000000;">EmailField(CharField)：
+</span><span style="color: #008080;"> 47</span>         -<span style="color: #000000;"> 字符串类型，Django Admin以及ModelForm中提供验证机制
+</span><span style="color: #008080;"> 48</span> 
+<span style="color: #008080;"> 49</span> <span style="color: #000000;">IPAddressField(Field)
+</span><span style="color: #008080;"> 50</span>         -<span style="color: #000000;"> 字符串类型，Django Admin以及ModelForm中提供验证 IPV4 机制
+</span><span style="color: #008080;"> 51</span> 
+<span style="color: #008080;"> 52</span> <span style="color: #000000;">GenericIPAddressField(Field)
+</span><span style="color: #008080;"> 53</span>         -<span style="color: #000000;"> 字符串类型，Django Admin以及ModelForm中提供验证 Ipv4和Ipv6
+</span><span style="color: #008080;"> 54</span>         -<span style="color: #000000;"> 参数：
+</span><span style="color: #008080;"> 55</span>             protocol，用于指定Ipv4或Ipv6， <span style="color: #800000;">'</span><span style="color: #800000;">both</span><span style="color: #800000;">'</span>,<span style="color: #800000;">"</span><span style="color: #800000;">ipv4</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">ipv6</span><span style="color: #800000;">"</span>
+<span style="color: #008080;"> 56</span>             unpack_ipv4， 如果指定为True，则输入::ffff:192.0.2.1时候，可解析为192.0.2.1，开启刺功能，需要protocol=<span style="color: #800000;">"</span><span style="color: #800000;">both</span><span style="color: #800000;">"</span>
+<span style="color: #008080;"> 57</span> 
+<span style="color: #008080;"> 58</span> <span style="color: #000000;">URLField(CharField)
+</span><span style="color: #008080;"> 59</span>         -<span style="color: #000000;"> 字符串类型，Django Admin以及ModelForm中提供验证 URL
+</span><span style="color: #008080;"> 60</span> 
+<span style="color: #008080;"> 61</span> <span style="color: #000000;">SlugField(CharField)
+</span><span style="color: #008080;"> 62</span>         -<span style="color: #000000;"> 字符串类型，Django Admin以及ModelForm中提供验证支持 字母、数字、下划线、连接符（减号）
+</span><span style="color: #008080;"> 63</span> 
+<span style="color: #008080;"> 64</span> <span style="color: #000000;">CommaSeparatedIntegerField(CharField)
+</span><span style="color: #008080;"> 65</span>         -<span style="color: #000000;"> 字符串类型，格式必须为逗号分割的数字
+</span><span style="color: #008080;"> 66</span> 
+<span style="color: #008080;"> 67</span> <span style="color: #000000;">UUIDField(Field)
+</span><span style="color: #008080;"> 68</span>         -<span style="color: #000000;"> 字符串类型，Django Admin以及ModelForm中提供对UUID格式的验证
+</span><span style="color: #008080;"> 69</span> 
+<span style="color: #008080;"> 70</span> <span style="color: #000000;">FilePathField(Field)
+</span><span style="color: #008080;"> 71</span>         -<span style="color: #000000;"> 字符串，Django Admin以及ModelForm中提供读取文件夹下文件的功能
+</span><span style="color: #008080;"> 72</span>         -<span style="color: #000000;"> 参数：
+</span><span style="color: #008080;"> 73</span> <span style="color: #000000;">                path,                      文件夹路径
+</span><span style="color: #008080;"> 74</span>                 match=<span style="color: #000000;">None,                正则匹配
+</span><span style="color: #008080;"> 75</span>                 recursive=<span style="color: #000000;">False,           递归下面的文件夹
+</span><span style="color: #008080;"> 76</span>                 allow_files=<span style="color: #000000;">True,          允许文件
+</span><span style="color: #008080;"> 77</span>                 allow_folders=<span style="color: #000000;">False,       允许文件夹
+</span><span style="color: #008080;"> 78</span> 
+<span style="color: #008080;"> 79</span> <span style="color: #000000;">FileField(Field)
+</span><span style="color: #008080;"> 80</span>         -<span style="color: #000000;"> 字符串，路径保存在数据库，文件上传到指定目录
+</span><span style="color: #008080;"> 81</span>         -<span style="color: #000000;"> 参数：
+</span><span style="color: #008080;"> 82</span>             upload_to = <span style="color: #800000;">""</span><span style="color: #000000;">      上传文件的保存路径
+</span><span style="color: #008080;"> 83</span>             storage =<span style="color: #000000;"> None      存储组件，默认django.core.files.storage.FileSystemStorage
+</span><span style="color: #008080;"> 84</span> 
+<span style="color: #008080;"> 85</span> <span style="color: #000000;">ImageField(FileField)
+</span><span style="color: #008080;"> 86</span>         -<span style="color: #000000;"> 字符串，路径保存在数据库，文件上传到指定目录
+</span><span style="color: #008080;"> 87</span>         -<span style="color: #000000;"> 参数：
+</span><span style="color: #008080;"> 88</span>             upload_to = <span style="color: #800000;">""</span><span style="color: #000000;">      上传文件的保存路径
+</span><span style="color: #008080;"> 89</span>             storage =<span style="color: #000000;"> None      存储组件，默认django.core.files.storage.FileSystemStorage
+</span><span style="color: #008080;"> 90</span>             width_field=<span style="color: #000000;">None,   上传图片的高度保存的数据库字段名（字符串）
+</span><span style="color: #008080;"> 91</span>             height_field=<span style="color: #000000;">None   上传图片的宽度保存的数据库字段名（字符串）
+</span><span style="color: #008080;"> 92</span> 
+<span style="color: #008080;"> 93</span> 
+<span style="color: #008080;"> 94</span> <span style="color: #008000;">#</span><span style="color: #008000;">时间： auto_now_add 自动创建时间</span>
+<span style="color: #008080;"> 95</span>     create_time = models.DateTimeField(auto_now_add=<span style="color: #000000;">True)
+</span><span style="color: #008080;"> 96</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 数据库调用时间格式化传入前端：.strftime("%Y-%m-%d")</span>
+<span style="color: #008080;"> 97</span>     time = <span style="color: #800000;">'</span><span style="color: #800000;">表对象名字</span><span style="color: #800000;">'</span>.create_time.strftime(<span style="color: #800000;">"</span><span style="color: #800000;">%Y-%m-%d</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 98</span>  PS:格式化的时间传入前端不需要加|<span style="color: #000000;">safe ,直接填写字典key就可以
+</span><span style="color: #008080;"> 99</span> 
+<span style="color: #008080;">100</span> <span style="color: #000000;">FloatField(Field)
+</span><span style="color: #008080;">101</span>         -<span style="color: #000000;"> 浮点型
+</span><span style="color: #008080;">102</span> 
+<span style="color: #008080;">103</span> <span style="color: #000000;">DecimalField(Field)
+</span><span style="color: #008080;">104</span>         -<span style="color: #000000;"> 10进制小数
+</span><span style="color: #008080;">105</span>         -<span style="color: #000000;"> 参数：
+</span><span style="color: #008080;">106</span> <span style="color: #000000;">            max_digits，小数总长度
+</span><span style="color: #008080;">107</span> <span style="color: #000000;">            decimal_places，小数位长度
+</span><span style="color: #008080;">108</span> 
+<span style="color: #008080;">109</span> <span style="color: #000000;">BinaryField(Field)
+</span><span style="color: #008080;">110</span>         - 二进制类型</pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p style="color: #fff; background-color: #008eb7; -moz-border-radius: 3px; border-radius: 3px; padding: 3px; margin: 10px 0px; text-shadow: 2px 2px 3px #404040;">2：字段参数</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('a9badac6-5318-4053-a0c3-470daa4318f6')"><img id="code_img_closed_a9badac6-5318-4053-a0c3-470daa4318f6" class="code_img_closed" src="./images/【Django入坑之路】Models操作0.png" alt="" /><img id="code_img_opened_a9badac6-5318-4053-a0c3-470daa4318f6" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('a9badac6-5318-4053-a0c3-470daa4318f6',event)" src="./images/【Django入坑之路】Models操作1.png" alt="" />
+<div id="cnblogs_code_open_a9badac6-5318-4053-a0c3-470daa4318f6" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;">null                数据库中字段是否可以为空
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #000000;">db_column           数据库中字段的列名
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> <span style="color: #000000;">default             数据库中字段的默认值
+</span><span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span> <span style="color: #000000;">primary_key         数据库中字段是否为主键
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #000000;">db_index            数据库中字段是否可以建立索引
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> <span style="color: #000000;">unique              数据库中字段是否可以建立唯一索引
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span> <span style="color: #000000;">unique_for_date     数据库中字段【日期】部分是否可以建立唯一索引
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #000000;">unique_for_month    数据库中字段【月】部分是否可以建立唯一索引
+</span><span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span> <span style="color: #000000;">unique_for_year     数据库中字段【年】部分是否可以建立唯一索引
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span> 
+<span style="color: #008080;">20</span> <span style="color: #000000;">verbose_name        Admin中显示的字段名称
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span> <span style="color: #000000;">blank               Admin中是否允许用户输入为空
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span> <span style="color: #000000;">editable            Admin中是否可以编辑
+</span><span style="color: #008080;">25</span> 
+<span style="color: #008080;">26</span> <span style="color: #000000;">help_text           Admin中该字段的提示信息
+</span><span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span> <span style="color: #000000;">choices             Admin中显示选择框的内容，用不变动的数据放在内存中从而避免跨表操作
+</span><span style="color: #008080;">29</span>                         如：gf = models.IntegerField(choices=[(0, <span style="color: #800000;">'</span><span style="color: #800000;">何穗</span><span style="color: #800000;">'</span>),(1, <span style="color: #800000;">'</span><span style="color: #800000;">大表姐</span><span style="color: #800000;">'</span>),],default=1<span style="color: #000000;">)
+</span><span style="color: #008080;">30</span> 
+<span style="color: #008080;">31</span> <span style="color: #000000;">error_messages      自定义错误信息（字典类型），从而定制想要显示的错误信息；
+</span><span style="color: #008080;">32</span>                         字典健：null, blank, invalid, invalid_choice, unique, <span style="color: #0000ff;">and</span> 
+<span style="color: #008080;">33</span> <span style="color: #000000;">unique_for_date
+</span><span style="color: #008080;">34</span>                         如：{<span style="color: #800000;">'</span><span style="color: #800000;">null</span><span style="color: #800000;">'</span>: <span style="color: #800000;">"</span><span style="color: #800000;">不能为空.</span><span style="color: #800000;">"</span>, <span style="color: #800000;">'</span><span style="color: #800000;">invalid</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">格式错误</span><span style="color: #800000;">'</span><span style="color: #000000;">}
+</span><span style="color: #008080;">35</span> 
+<span style="color: #008080;">36</span> validators          1 <span style="color: #008000;">#</span><span style="color: #008000;">自定义正则</span>
+<span style="color: #008080;">37</span> 
+<span style="color: #008080;">38</span>  <span style="color: #0000ff;">from</span> django.core <span style="color: #0000ff;">import</span><span style="color: #000000;"> validators
+</span><span style="color: #008080;">39</span>  
+<span style="color: #008080;">40</span>      email = forms.CharField(min_length=3, max_length=32, required=<span style="color: #000000;">True,
+</span><span style="color: #008080;">41</span>                              widget=widgets.TextInput(attrs={<span style="color: #800000;">"</span><span style="color: #800000;">class</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">form_text</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">placeholder</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">请输入您的邮箱</span><span style="color: #800000;">"</span><span style="color: #000000;">}),
+</span><span style="color: #008080;">42</span>                              validators=[validators.RegexValidator(<span style="color: #800000;">'</span><span style="color: #800000;">@</span><span style="color: #800000;">'</span>, message=<span style="color: #800000;">"</span><span style="color: #800000;">邮箱格式错误</span><span style="color: #800000;">"</span>)]  <span style="color: #008000;">#</span><span style="color: #008000;">'@'用于写自定义正则表达式</span>
+<span style="color: #008080;">43</span> 
+<span style="color: #008080;">44</span>             </pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p style="color: #fff; background-color: #008eb7; -moz-border-radius: 3px; border-radius: 3px; padding: 3px; margin: 10px 0px; text-shadow: 2px 2px 3px #404040;">3：元信息</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('e945c472-59e7-44a3-87f8-c42a9f0ecdd6')"><img id="code_img_closed_e945c472-59e7-44a3-87f8-c42a9f0ecdd6" class="code_img_closed" src="./images/【Django入坑之路】Models操作0.png" alt="" /><img id="code_img_opened_e945c472-59e7-44a3-87f8-c42a9f0ecdd6" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('e945c472-59e7-44a3-87f8-c42a9f0ecdd6',event)" src="./images/【Django入坑之路】Models操作1.png" alt="" />
+<div id="cnblogs_code_open_e945c472-59e7-44a3-87f8-c42a9f0ecdd6" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserInfo(models.Model):
+</span><span style="color: #008080;"> 2</span>         nid = models.AutoField(primary_key=<span style="color: #000000;">True)
+</span><span style="color: #008080;"> 3</span>         username = models.CharField(max_length=32<span style="color: #000000;">)
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+</span><span style="color: #008080;"> 5</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> 数据库中生成的表名称 默认 app名称 + 下划线 + 类名</span>
+<span style="color: #008080;"> 6</span>             db_table = <span style="color: #800000;">"</span><span style="color: #800000;">table_name</span><span style="color: #800000;">"</span>
+<span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> 联合索引</span>
+<span style="color: #008080;"> 9</span>             index_together =<span style="color: #000000;"> [
+</span><span style="color: #008080;">10</span>                 (<span style="color: #800000;">"</span><span style="color: #800000;">pub_date</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">deadline</span><span style="color: #800000;">"</span><span style="color: #000000;">),
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">            ]
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> 联合唯一索引</span>
+<span style="color: #008080;">14</span>             unique_together = ((<span style="color: #800000;">"</span><span style="color: #800000;">driver</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">restaurant</span><span style="color: #800000;">"</span><span style="color: #000000;">),)
+</span><span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> admin中显示的表名称</span>
+<span style="color: #008080;">17</span> <span style="color: #000000;">            verbose_name
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>             <span style="color: #008000;">#</span><span style="color: #008000;"> verbose_name加s</span>
+<span style="color: #008080;">20</span>             verbose_name_plural</pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p style="color: #fff; background-color: #008eb7; -moz-border-radius: 3px; border-radius: 3px; padding: 3px; margin: 10px 0px; text-shadow: 2px 2px 3px #404040;">4：多表关系以及参数</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('c041109b-9525-4902-80fb-3b99021d18a1')"><img id="code_img_closed_c041109b-9525-4902-80fb-3b99021d18a1" class="code_img_closed" src="./images/【Django入坑之路】Models操作0.png" alt="" /><img id="code_img_opened_c041109b-9525-4902-80fb-3b99021d18a1" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('c041109b-9525-4902-80fb-3b99021d18a1',event)" src="./images/【Django入坑之路】Models操作1.png" alt="" />
+<div id="cnblogs_code_open_c041109b-9525-4902-80fb-3b99021d18a1" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;">  1</span> ForeignKey(ForeignObject) <span style="color: #008000;">#</span><span style="color: #008000;"> ForeignObject(RelatedField)</span>
+<span style="color: #008080;">  2</span>         to,                         <span style="color: #008000;">#</span><span style="color: #008000;"> 要进行关联的表名</span>
+<span style="color: #008080;">  3</span>         to_field=None,              <span style="color: #008000;">#</span><span style="color: #008000;"> 要关联的表中的字段名称</span>
+<span style="color: #008080;">  4</span>         on_delete=None,             <span style="color: #008000;">#</span><span style="color: #008000;"> 当删除关联表中的数据时，当前表与其关联的行的行为</span>
+<span style="color: #008080;">  5</span>                                         -<span style="color: #000000;"> models.CASCADE，删除关联数据，与之关联也删除
+</span><span style="color: #008080;">  6</span>                                         -<span style="color: #000000;"> models.DO_NOTHING，删除关联数据，引发错误IntegrityError
+</span><span style="color: #008080;">  7</span>                                         -<span style="color: #000000;"> models.PROTECT，删除关联数据，引发错误ProtectedError
+</span><span style="color: #008080;">  8</span>                                         -<span style="color: #000000;"> models.SET_NULL，删除关联数据，与之关联的值设置为null（前提FK字段需要设置为可空）
+</span><span style="color: #008080;">  9</span>                                         -<span style="color: #000000;"> models.SET_DEFAULT，删除关联数据，与之关联的值设置为默认值（前提FK字段需要设置默认值）
+</span><span style="color: #008080;"> 10</span>                                         -<span style="color: #000000;"> models.SET，删除关联数据，
+</span><span style="color: #008080;"> 11</span> <span style="color: #000000;">                                                      a. 与之关联的值设置为指定值，设置：models.SET(值)
+</span><span style="color: #008080;"> 12</span> <span style="color: #000000;">                                                      b. 与之关联的值设置为可执行对象的返回值，设置：models.SET(可执行对象)
+</span><span style="color: #008080;"> 13</span> 
+<span style="color: #008080;"> 14</span>                                                         <span style="color: #0000ff;">def</span><span style="color: #000000;"> func():
+</span><span style="color: #008080;"> 15</span>                                                             <span style="color: #0000ff;">return</span> 10
+<span style="color: #008080;"> 16</span> 
+<span style="color: #008080;"> 17</span>                                                         <span style="color: #0000ff;">class</span><span style="color: #000000;"> MyModel(models.Model):
+</span><span style="color: #008080;"> 18</span>                                                             user =<span style="color: #000000;"> models.ForeignKey(
+</span><span style="color: #008080;"> 19</span>                                                                 to=<span style="color: #800000;">"</span><span style="color: #800000;">User</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;"> 20</span>                                                                 to_field=<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>
+<span style="color: #008080;"> 21</span>                                                                 on_delete=<span style="color: #000000;">models.SET(func),)
+</span><span style="color: #008080;"> 22</span>         related_name=None,          <span style="color: #008000;">#</span><span style="color: #008000;"> 反向操作时，使用的字段名，用于代替 【表名_set】 如： obj.表名_set.all()</span>
+<span style="color: #008080;"> 23</span>         related_query_name=None,    <span style="color: #008000;">#</span><span style="color: #008000;"> 反向操作时，使用的连接前缀，用于替换【表名】     如： models.UserGroup.objects.filter(表名__字段名=1).values('表名__字段名')</span>
+<span style="color: #008080;"> 24</span>         limit_choices_to=None,      <span style="color: #008000;">#</span><span style="color: #008000;"> 在Admin或ModelForm中显示关联数据时，提供的条件：</span>
+<span style="color: #008080;"> 25</span>                                     <span style="color: #008000;">#</span><span style="color: #008000;"> 如：</span>
+<span style="color: #008080;"> 26</span>                                             - limit_choices_to={<span style="color: #800000;">'</span><span style="color: #800000;">nid__gt</span><span style="color: #800000;">'</span>: 5<span style="color: #000000;">}
+</span><span style="color: #008080;"> 27</span>                                             - limit_choices_to=<span style="color: #0000ff;">lambda</span> : {<span style="color: #800000;">'</span><span style="color: #800000;">nid__gt</span><span style="color: #800000;">'</span>: 5<span style="color: #000000;">}
+</span><span style="color: #008080;"> 28</span> 
+<span style="color: #008080;"> 29</span>                                             <span style="color: #0000ff;">from</span> django.db.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> Q
+</span><span style="color: #008080;"> 30</span>                                             - limit_choices_to=Q(nid__gt=10<span style="color: #000000;">)
+</span><span style="color: #008080;"> 31</span>                                             - limit_choices_to=Q(nid=8) | Q(nid__gt=10<span style="color: #000000;">)
+</span><span style="color: #008080;"> 32</span>                                             - limit_choices_to=<span style="color: #0000ff;">lambda</span> : Q(Q(nid=8) | Q(nid__gt=10)) &amp; Q(caption=<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 33</span>         db_constraint=True          <span style="color: #008000;">#</span><span style="color: #008000;"> 是否在数据库中创建外键约束</span>
+<span style="color: #008080;"> 34</span>         parent_link=False           <span style="color: #008000;">#</span><span style="color: #008000;"> 在Admin中是否显示关联数据</span>
+<span style="color: #008080;"> 35</span> 
+<span style="color: #008080;"> 36</span> 
+<span style="color: #008080;"> 37</span> <span style="color: #000000;">    OneToOneField(ForeignKey)
+</span><span style="color: #008080;"> 38</span>         to,                         <span style="color: #008000;">#</span><span style="color: #008000;"> 要进行关联的表名</span>
+<span style="color: #008080;"> 39</span>         to_field=None               <span style="color: #008000;">#</span><span style="color: #008000;"> 要关联的表中的字段名称</span>
+<span style="color: #008080;"> 40</span>         on_delete=None,             <span style="color: #008000;">#</span><span style="color: #008000;"> 当删除关联表中的数据时，当前表与其关联的行的行为</span>
+<span style="color: #008080;"> 41</span> 
+<span style="color: #008080;"> 42</span>                                     <span style="color: #008000;">#</span><span style="color: #008000;">##### 对于一对一 ######</span>
+<span style="color: #008080;"> 43</span>                                     <span style="color: #008000;">#</span><span style="color: #008000;"> 1. 一对一其实就是 一对多 + 唯一索引</span>
+<span style="color: #008080;"> 44</span>                                     <span style="color: #008000;">#</span><span style="color: #008000;"> 2.当两个类之间有继承关系时，默认会创建一个一对一字段</span>
+<span style="color: #008080;"> 45</span>                                     <span style="color: #008000;">#</span><span style="color: #008000;"> 如下会在A表中额外增加一个c_ptr_id列且唯一：</span>
+<span style="color: #008080;"> 46</span>                                             <span style="color: #0000ff;">class</span><span style="color: #000000;"> C(models.Model):
+</span><span style="color: #008080;"> 47</span>                                                 nid = models.AutoField(primary_key=<span style="color: #000000;">True)
+</span><span style="color: #008080;"> 48</span>                                                 part = models.CharField(max_length=12<span style="color: #000000;">)
+</span><span style="color: #008080;"> 49</span> 
+<span style="color: #008080;"> 50</span>                                             <span style="color: #0000ff;">class</span><span style="color: #000000;"> A(C):
+</span><span style="color: #008080;"> 51</span>                                                 id = models.AutoField(primary_key=<span style="color: #000000;">True)
+</span><span style="color: #008080;"> 52</span>                                                 code = models.CharField(max_length=1<span style="color: #000000;">)
+</span><span style="color: #008080;"> 53</span> 
+<span style="color: #008080;"> 54</span> <span style="color: #000000;">    ManyToManyField(RelatedField)
+</span><span style="color: #008080;"> 55</span>         to,                         <span style="color: #008000;">#</span><span style="color: #008000;"> 要进行关联的表名</span>
+<span style="color: #008080;"> 56</span>         related_name=None,          <span style="color: #008000;">#</span><span style="color: #008000;"> 反向操作时，使用的字段名，用于代替 【表名_set】 如： obj.表名_set.all()</span>
+<span style="color: #008080;"> 57</span>         related_query_name=None,    <span style="color: #008000;">#</span><span style="color: #008000;"> 反向操作时，使用的连接前缀，用于替换【表名】     如： models.UserGroup.objects.filter(表名__字段名=1).values('表名__字段名')</span>
+<span style="color: #008080;"> 58</span>         limit_choices_to=None,      <span style="color: #008000;">#</span><span style="color: #008000;"> 在Admin或ModelForm中显示关联数据时，提供的条件：</span>
+<span style="color: #008080;"> 59</span>                                     <span style="color: #008000;">#</span><span style="color: #008000;"> 如：</span>
+<span style="color: #008080;"> 60</span>                                             - limit_choices_to={<span style="color: #800000;">'</span><span style="color: #800000;">nid__gt</span><span style="color: #800000;">'</span>: 5<span style="color: #000000;">}
+</span><span style="color: #008080;"> 61</span>                                             - limit_choices_to=<span style="color: #0000ff;">lambda</span> : {<span style="color: #800000;">'</span><span style="color: #800000;">nid__gt</span><span style="color: #800000;">'</span>: 5<span style="color: #000000;">}
+</span><span style="color: #008080;"> 62</span> 
+<span style="color: #008080;"> 63</span>                                             <span style="color: #0000ff;">from</span> django.db.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> Q
+</span><span style="color: #008080;"> 64</span>                                             - limit_choices_to=Q(nid__gt=10<span style="color: #000000;">)
+</span><span style="color: #008080;"> 65</span>                                             - limit_choices_to=Q(nid=8) | Q(nid__gt=10<span style="color: #000000;">)
+</span><span style="color: #008080;"> 66</span>                                             - limit_choices_to=<span style="color: #0000ff;">lambda</span> : Q(Q(nid=8) | Q(nid__gt=10)) &amp; Q(caption=<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 67</span>         symmetrical=None,           <span style="color: #008000;">#</span><span style="color: #008000;"> 仅用于多对多自关联时，symmetrical用于指定内部是否创建反向操作的字段</span>
+<span style="color: #008080;"> 68</span>                                     <span style="color: #008000;">#</span><span style="color: #008000;"> 做如下操作时，不同的symmetrical会有不同的可选字段</span>
+<span style="color: #008080;"> 69</span> <span style="color: #000000;">                                        models.BB.objects.filter(...)
+</span><span style="color: #008080;"> 70</span> 
+<span style="color: #008080;"> 71</span>                                         <span style="color: #008000;">#</span><span style="color: #008000;"> 可选字段有：code, id, m1</span>
+<span style="color: #008080;"> 72</span>                                             <span style="color: #0000ff;">class</span><span style="color: #000000;"> BB(models.Model):
+</span><span style="color: #008080;"> 73</span> 
+<span style="color: #008080;"> 74</span>                                             code = models.CharField(max_length=12<span style="color: #000000;">)
+</span><span style="color: #008080;"> 75</span>                                             m1 = models.ManyToManyField(<span style="color: #800000;">'</span><span style="color: #800000;">self</span><span style="color: #800000;">'</span>,symmetrical=<span style="color: #000000;">True)
+</span><span style="color: #008080;"> 76</span> 
+<span style="color: #008080;"> 77</span>                                         <span style="color: #008000;">#</span><span style="color: #008000;"> 可选字段有: bb, code, id, m1</span>
+<span style="color: #008080;"> 78</span>                                             <span style="color: #0000ff;">class</span><span style="color: #000000;"> BB(models.Model):
+</span><span style="color: #008080;"> 79</span> 
+<span style="color: #008080;"> 80</span>                                             code = models.CharField(max_length=12<span style="color: #000000;">)
+</span><span style="color: #008080;"> 81</span>                                             m1 = models.ManyToManyField(<span style="color: #800000;">'</span><span style="color: #800000;">self</span><span style="color: #800000;">'</span>,symmetrical=<span style="color: #000000;">False)
+</span><span style="color: #008080;"> 82</span> 
+<span style="color: #008080;"> 83</span>         through=None,               <span style="color: #008000;">#</span><span style="color: #008000;"> 自定义第三张表时，使用字段用于指定关系表</span>
+<span style="color: #008080;"> 84</span>         through_fields=None,        <span style="color: #008000;">#</span><span style="color: #008000;"> 自定义第三张表时，使用字段用于指定关系表中那些字段做多对多关系表</span>
+<span style="color: #008080;"> 85</span>                                         <span style="color: #0000ff;">from</span> django.db <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+</span><span style="color: #008080;"> 86</span> 
+<span style="color: #008080;"> 87</span>                                         <span style="color: #0000ff;">class</span><span style="color: #000000;"> Person(models.Model):
+</span><span style="color: #008080;"> 88</span>                                             name = models.CharField(max_length=50<span style="color: #000000;">)
+</span><span style="color: #008080;"> 89</span> 
+<span style="color: #008080;"> 90</span>                                         <span style="color: #0000ff;">class</span><span style="color: #000000;"> Group(models.Model):
+</span><span style="color: #008080;"> 91</span>                                             name = models.CharField(max_length=128<span style="color: #000000;">)
+</span><span style="color: #008080;"> 92</span>                                             members =<span style="color: #000000;"> models.ManyToManyField(
+</span><span style="color: #008080;"> 93</span> <span style="color: #000000;">                                                Person,
+</span><span style="color: #008080;"> 94</span>                                                 through=<span style="color: #800000;">'</span><span style="color: #800000;">Membership</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+</span><span style="color: #008080;"> 95</span>                                                 through_fields=(<span style="color: #800000;">'</span><span style="color: #800000;">group</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">person</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+</span><span style="color: #008080;"> 96</span> <span style="color: #000000;">                                            )
+</span><span style="color: #008080;"> 97</span> 
+<span style="color: #008080;"> 98</span>                                         <span style="color: #0000ff;">class</span><span style="color: #000000;"> Membership(models.Model):
+</span><span style="color: #008080;"> 99</span>                                             group = models.ForeignKey(Group, on_delete=<span style="color: #000000;">models.CASCADE)
+</span><span style="color: #008080;">100</span>                                             person = models.ForeignKey(Person, on_delete=<span style="color: #000000;">models.CASCADE)
+</span><span style="color: #008080;">101</span>                                             inviter =<span style="color: #000000;"> models.ForeignKey(
+</span><span style="color: #008080;">102</span> <span style="color: #000000;">                                                Person,
+</span><span style="color: #008080;">103</span>                                                 on_delete=<span style="color: #000000;">models.CASCADE,
+</span><span style="color: #008080;">104</span>                                                 related_name=<span style="color: #800000;">"</span><span style="color: #800000;">membership_invites</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">105</span> <span style="color: #000000;">                                            )
+</span><span style="color: #008080;">106</span>                                             invite_reason = models.CharField(max_length=64<span style="color: #000000;">)
+</span><span style="color: #008080;">107</span>         db_constraint=True,         <span style="color: #008000;">#</span><span style="color: #008000;"> 是否在数据库中创建外键约束</span>
+<span style="color: #008080;">108</span>         db_table=None,              <span style="color: #008000;">#</span><span style="color: #008000;"> 默认创建第三张表时，数据库中表的名称</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

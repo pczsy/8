@@ -1,0 +1,257 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python基础知识四 小数据池，深浅拷贝，集合+菜中菜' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python基础知识四 小数据池，深浅拷贝，集合+菜中菜</center></div><div class='banquan'>原文出处:本文由博客园博主OnlyWang提供。<br/>
+原文连接:https://www.cnblogs.com/Onlywang/p/11178538.html</div><br>
+    <h2 id="四小数据池深浅拷贝集合菜中菜">四、小数据池，深浅拷贝，集合+菜中菜</h2>
+<h3 id="小数据池---缓存机制驻留机制">1小数据池 --缓存机制（驻留机制）</h3>
+<p>​ '==' 判断两边内容是否相等</p>
+<p>​ 'is' 基于内存地址进行判断是否相同</p>
+<pre><code><code>a = 10 
+b = 10
+print(a == b )
+#is 
+print(a is b)
+</code></pre>
+<p>小数据池的数字范围： -5 ~256</p>
+<pre><code><code>a = -5 
+b = -5 
+c = -5
+print(id(a))
+print(id(b))
+print(id(c))
+
+#&lt;-5不行
+a = -6 
+b = -6
+print(id(a))
+print(id(b))
+
+a = 256
+b = 256
+print(id(a))
+print(id(b))
+#&gt;256可以，但是不是小数据池，是python的代码块
+a = 257
+b = 257
+print(id(a))
+print(id(b))</code></pre>
+<h4 id="代码块python自有的属性">1.代码块：python自有的属性</h4>
+<h5 id="代码块范围3.7以下版本">1.代码块范围：（3.7以下版本）</h5>
+<p>​ 支持：一个文件，一个函数，一个类，一个模块，终端的每一行是一个代码块</p>
+<h5 id="数字">2.数字：</h5>
+<ol>
+<li>在同一代码块下，只要内容相同，就采用相同的内存地址，(-5以后就不是)，</li>
+<li>*数字在做乘法的时候范围-5 ~ 256</li>
+<li>数字在做乘法的时候不能用浮点数</li>
+</ol>
+<pre><code><code>a = -2.5 * 1
+b = -2.5 * 1
+print(id(a))
+print(id(b))</code></pre>
+<h5 id="字符串">3.字符串：</h5>
+<ol>
+<li><p>在同一代码块下，只要内容相同，就采用相同的内存地址</p></li>
+<li><p>*做乘法的时候总长度不能超过20(python4.7版本到4096)</p></li>
+<li><p>乘法的时候中文，特殊符号乘以1或0</p>
+<pre><code><code>a = &quot;alex你好&quot; *2
+b = &quot;alex你好&quot; *2
+print(id(a))
+print(id(b))</code></pre></li>
+</ol>
+<h5 id="布尔值">4.布尔值：</h5>
+<p>​ 在同一代码块下，只要内容相同，就采用相同的内存地址</p>
+<h4 id="小数据池">2.小数据池：</h4>
+<h5 id="数字-1">1.数字：</h5>
+<p>​ 范围*-5 ~256</p>
+<h5 id="字符串-1">2.字符串：</h5>
+<ol>
+<li>在同一代码块下，只要内容相同，就采用相同的内存地址</li>
+<li>做乘法的时候总长度不能超过20</li>
+<li>乘法的时候中文，特殊符号乘以0</li>
+</ol>
+<h5 id="bool">3.bool:</h5>
+<p>​ 在同一代码块下，只要内容相同，就采用相同的内存地址</p>
+<h4 id="必会">必会*：</h4>
+<p>小数据池的验证方法：必须脱离代码块才能验证(在Windows cmd下验证)</p>
+<p>python规则：先执行代码块的规则，在执行小数据池的规则 --(驻留机制)</p>
+<h3 id="深浅拷贝赋值">2.深浅拷贝，赋值</h3>
+<p>面试必问：赋值，浅拷贝，深拷贝</p>
+<pre><code><code>1.浅拷贝  -- 拷贝第一层元素内存地址,修改第一层元素的时候新拷贝的列表不进行改变
+ 2.深拷贝  -- 不可变的数据类型共用,可变数据类型开辟一个新的空间,新的空间中的元素如果是不可变类型也是共用
+3.赋值 -- 多个变量名指向同一个内存地址</code></pre>
+<pre><code><code>import copy
+v1 = &quot;alex&quot;
+v2 = copy.copy(v1)
+v3 = copy.deepcopy(v1)
+print(v1 is v2)#结果：True
+print(v1 is v3)#结果：True
+
+v1 = [1,2,3]
+v2 = copy.copy(v1)
+v3 = copy.deepcopy(v1)
+print(v1 is v2)#结果：False
+print(v1 is v3)#结果：False</code></pre>
+<h5 id="赋值">1.赋值：</h5>
+<p>​ 多个变量名指向同一个内存地址</p>
+<pre><code><code>#1.赋值
+lst = [1,2,3,[5,6,7]]
+lst1= list2 
+print(lst)
+print(lst1)
+#赋值后，一个操作，两个全变，内存地址相同
+lst1[-1].append(8)
+print(lst)
+print(lst1)
+print(id(lst),id(lst1))
+</code></pre>
+<h5 id="浅拷贝">2.浅拷贝</h5>
+<p>​ *浅拷贝的时候,只会开辟一个新的容器列表,其他元素使用的都是源列表中的元素</p>
+<p><img src="./images/python基础知识四 小数据池，深浅拷贝，集合+菜中菜0.png" /></p>
+<pre><code><code>lst = [1,2,3,[6,5,7]]
+lst1 = lst.copy()#新开辟一个空间给lst1
+print(lst)
+print(lst1)
+print(id(lst),id(lst1))#结果：46646536 46647136
+#操作1.修改第二层数据，原列表也变
+lst1[-1].append(8)
+print(lst1)#结果：[1, 2, 3, [6, 5, 7, 8]]
+print(lst)#结果：[1, 2, 3, [6, 5, 7, 8]]
+
+#操作2.修改第一层数据，原列表不变
+lst = [1,2,3,[5,6,7]]
+lst1 = lst.copy()
+lst1[3] = 567
+print(lst1)#结果：[1, 2, 3, 567]
+print(lst)#结果：[1, 2, 3, [6, 5, 7]]
+
+#操作3.修改第三层数据，原列表也变
+lst = [1,2,3,4,[5,6,7,[8,9]]]
+lst1 = lst.copy()
+lst1[-1][-1] = &quot;56&quot;
+print(lst)#结果：[1, 2, 3, 4, [5, 6, 7, &#39;56&#39;]]
+print(lst1) #结果：[1, 2, 3, 4, [5, 6, 7, &#39;56&#39;]]
+
+#操作4.注意，字典的值整个就算为第一层数据，里面的任意都不只是第一层数据
+dic = {&quot;alex&quot;:[1,2,3,[5,6]]}
+dic1 = dic.copy()
+dic[&quot;alex&quot;] = &quot;56&quot;
+print(dic)#结果：{&#39;alex&#39;: &#39;56&#39;}
+print(dic1)#结果：{&#39;alex&#39;: [1, 2, 3, [5, 6]]}
+
+dic[&quot;alex&quot;][0] = &quot;56&quot;
+print(dic)#结果：{&#39;alex&#39;: [&#39;56&#39;, 2, 3, [5, 6]]}
+print(dic1)#结果：{&#39;alex&#39;: [&#39;56&#39;, 2, 3, [5, 6]]}</code></pre>
+<h5 id="浅拷贝总结">浅拷贝总结：</h5>
+<ol>
+<li>浅拷贝只拷贝第一层元素的内存地址</li>
+<li>浅拷贝在修改第一层数据时，原数据不变</li>
+<li>浅拷贝在修改非第一层数据时，同时发生改变</li>
+</ol>
+<h3 id="深拷贝">3.深拷贝</h3>
+<h5 id="深拷贝总结">深拷贝总结：</h5>
+<p>​ 无论怎样改变新拷贝的数据，原数据都不会改变。</p>
+<p>​ 开辟一个容器空间，不可变数据类型(第一层元素)共用同一内存地址，共用值，可变数据类型(非第一层)在开辟一个新空间(新的内存地址)，但是里面的值是共用的</p>
+<pre><code><code>import copy
+lst = [1,2,3[6,5,7]]
+lst1 = copy.deepcopy(lst)
+lst1[-1].append(8)
+print(lst)
+print(lst1)
+#修改非第一层数据，原数据不变
+
+lst1[0] = 88
+print(lst)
+print(lst1)
+#修改第一层数据，原数据不变
+
+print(id(lst[0]))#结果：494255688
+print(id(lst1[0]))#结果：494255688
+#第一层是同一内存地址
+
+print(id(lst[-1]))#结果：43102336
+print(id(lst1[-1]))#结果：43321264
+#非第一层是不同的内存地址，但是非第一层内层的值内存地址相同。
+print(id(lst[-1][0]))#结果：503627400
+print(id(lst[-1][0]))#结果：503627400</code></pre>
+<h3 id="集合----set">4.集合 -- set</h3>
+<h4 id="简介">1.简介：</h4>
+<p>​ 没有值的字典，无序 - - 不支持索引，</p>
+<p>​ *天然去重</p>
+<p>​ 定义:</p>
+<pre><code><code>s = {1,&quot;alex&quot;,False,(1,2,3),12,15,1,1,2,12}#列表不可以作为元素
+#面试题：
+list1 = [1,2,1,21,21,2,1,212,1,1]
+print(list(set(list1)))</code></pre>
+<h4 id="方法">2.方法</h4>
+<h5 id="增">1.增：</h5>
+<ol>
+<li>s.add('66'):一次添加一个元素</li>
+<li>s.update(&quot;今天&quot;)：迭代添加</li>
+</ol>
+<pre><code><code>s = {1,2,3,4}
+s.add(&quot;67&quot;) #只能添加一个
+print(s)
+
+s.update(&quot;今天&quot;)#迭代添加
+print(s)</code></pre>
+<h5 id="删">2.删：</h5>
+<ol>
+<li>s.pop():随机删除</li>
+<li>s.remove(3):指定元素删除</li>
+<li>s.clear():清空</li>
+</ol>
+<pre><code><code>s = {1,2,3,4}
+s.pop()#有返回值，随机删除
+print(s)
+print(s.pop)
+
+s.remove(3)#指定元素删除
+print(s)
+
+s.clear()
+print(s)#集合 set()
+</code></pre>
+<h5 id="改">3.改：</h5>
+<p>先删再增</p>
+<h5 id="查">4.查：</h5>
+<p>​ for 循环</p>
+<pre><code><code>s = {1,2,3,4}
+for i in s:
+    print(i)</code></pre>
+<h3 id="菜中菜各种集合">菜中菜：各种集合</h3>
+<pre><code><code>s1 = {1,2,3,4,5,6,6,7}
+s2 = {5,6,7,1,9}
+print(s1 &amp; s2) #交集。结果：{1, 5, 6, 7}
+print(s1 | s2) #并集，可去重。结果：{1, 2, 3, 4, 5, 6, 7，9}
+print(s1 - s2) #差集。结果：{2, 3, 4}
+print(s1 ^ s2) #反交集。结果：{2, 3, 4, 9}
+print(s1 &gt; s2) #父集(超集)。结果：False
+print(s1 &lt; s2) #字迹。结果：False
+
+#冻结集合,很不常用，也没什么用，使此集合不可更改
+print(frozenset(s1))#结果：frozenset({1, 2, 3, 4, 5, 6, 7})
+dic = {frozenset(s1):1}
+print(dic)#结果：{frozenset({1, 2, 3, 4, 5, 6, 7}): 1}</code></pre>
+<h2 id="section"></h2>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

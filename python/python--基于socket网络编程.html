@@ -1,0 +1,109 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python--基于socket网络编程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python--基于socket网络编程</center></div><div class='banquan'>原文出处:本文由博客园博主梦想一步登天提供。<br/>
+原文连接:https://www.cnblogs.com/june-L/p/11749079.html</div><br>
+    <p><span style="font-size: 18px;">Python 提供了两个基本的 socket 模块。</span></p>
+<p><span style="font-size: 18px;">第一个是 Socket，它提供了标准的 BSD Sockets API。</span></p>
+<p><span style="font-size: 18px;"> 第二个是 SocketServer， 它提供了服务器中心类，可以简化网络服务器的开发。</span><br />   <br /><span style="font-size: 18px;">1、Scoket类型</span></p>
+<p><span style="font-size: 18px;">套接字格式：</span></p>
+<p><span style="font-size: 18px;">socket(family,type[,protocal]) 使用给定的地址族、套接字类型、协议编号（默认为0）来创建套接字。</span></p>
+<p><span style="font-size: 18px;">1.1、socket.AF_UNIX		#只能够用于单一的Unix系统进程间通信</span></p>
+<p><span style="font-size: 18px;">1.2、socket.AF_INET		#服务器之间网络通信</span></p>
+<p><span style="font-size: 18px;">1.3、socket.AF_INET6		#IPv6</span></p>
+<p><span style="font-size: 18px;">1.4、socket.SOCK_STREAM		#流式socket , for TCP</span></p>
+<p><span style="font-size: 18px;">1.5、socket.SOCK_DGRAM		#数据报式socket , for UDP</span></p>
+<p><span style="font-size: 18px;">1.6、socket.SOCK_RAW		#原始套接字，普通的套接字无法处理ICMP、IGMP等网络报文，而SOCK_RAW可以；其次，SOCK_RAW也可以处理特殊的IPv4报文；此外，利用原始套接字，可以通过IP_HDRINCL套接字选项由用户构造IP头。</span></p>
+<p><span style="font-size: 18px;">1.7、socket.SOCK_SEQPACKET		#可靠的连续数据包服务</span></p>
+<p><span style="font-size: 18px;">1.8、创建TCP Socket：	s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)</span></p>
+<p><span style="font-size: 18px;">1.9、创建UDP Socket：	s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)   </span></p>
+<p><br /><span style="font-size: 18px;">2、Socket 函数</span><br /><span style="font-size: 18px;">注意点:</span><br /><span style="font-size: 18px;">1）TCP发送数据时，已建立好TCP连接，所以不需要指定地址。UDP是面向无连接的，每次发送要指定是发给谁。</span><br /><span style="font-size: 18px;">2）服务端与客户端不能直接发送列表，元组，字典。需要字符串化repr(data)。</span></p>
+<p><br /><span style="font-size: 18px;">2.1、服务端socket函数</span></p>
+<p><span style="font-size: 18px;">s.bind(address)		#将套接字绑定到地址, 在AF_INET下,以元组（host,port）的形式表示地址.</span></p>
+<p><span style="font-size: 18px;">s.listen(backlog)		#开始监听TCP传入连接。backlog指定在拒绝连接之前，操作系统可以挂起的最大连接数量。该值至少为1，大部分应用程序设为5就可以了。</span></p>
+<p><span style="font-size: 18px;">s.accept()		#接受TCP连接并返回（conn,address）,其中conn是新的套接字对象，可以用来接收和发送数据。address是连接客户端的地址。</span></p>
+<p><span style="font-size: 18px;">&nbsp;</span></p>
+<p><span style="font-size: 18px;">2.2、客户端socket函数</span></p>
+<p><span style="font-size: 18px;">s.connect(address)		#连接到address处的套接字。一般address的格式为元组（hostname,port），如果连接出错，返回socket.error错误。</span></p>
+<p><span style="font-size: 18px;">s.connect_ex(adddress)		#功能与connect(address)相同，但是成功返回0，失败返回errno的值。</span></p>
+<p><br /><span style="font-size: 18px;">2.3、公共socket函数</span></p>
+<p><span style="font-size: 18px;">s.recv(bufsize[,flag])		#接受TCP套接字的数据。数据以字符串形式返回，bufsize指定要接收的最大数据量。flag提供有关消息的其他信息，通常可以忽略。</span></p>
+<p><span style="font-size: 18px;">s.send(string[,flag])		#发送TCP数据。将string中的数据发送到连接的套接字。返回值是要发送的字节数量，该数量可能小于string的字节大小。</span></p>
+<p><span style="font-size: 18px;">s.sendall(string[,flag])		#完整发送TCP数据。将string中的数据发送到连接的套接字，但在返回之前会尝试发送所有数据。成功返回None，失败则抛出异常。</span></p>
+<p><span style="font-size: 18px;">s.recvfrom(bufsize[.flag])		#接受UDP套接字的数据。与recv()类似，但返回值是（data,address）。其中data是包含接收数据的字符串，address是发送数据的套接字地址。</span></p>
+<p><span style="font-size: 18px;">s.sendto(string[,flag],address)		#发送UDP数据。将数据发送到套接字，address是形式为（ipaddr，port）的元组，指定远程地址。返回值是发送的字节数。</span></p>
+<p><span style="font-size: 18px;">s.close()		#关闭套接字。</span></p>
+<p><span style="font-size: 18px;">s.getpeername()		#返回连接套接字的远程地址。返回值通常是元组（ipaddr,port）。</span></p>
+<p><span style="font-size: 18px;">s.getsockname()		#返回套接字自己的地址。通常是一个元组(ipaddr,port)</span></p>
+<p><span style="font-size: 18px;">s.setsockopt(level,optname,value)		#设置给定套接字选项的值。</span></p>
+<p><span style="font-size: 18px;">s.getsockopt(level,optname[.buflen])		#返回套接字选项的值。</span></p>
+<p><span style="font-size: 18px;">s.settimeout(timeout)		#设置套接字操作的超时期，timeout是一个浮点数，单位是秒。值为None表示没有超时期。一般，超时期应该在刚创建套接字时设置，因为它们可能用于连接的操作（如connect()）</span></p>
+<p><span style="font-size: 18px;">s.gettimeout()		#返回当前超时期的值，单位是秒，如果没有设置超时期，则返回None。</span></p>
+<p><span style="font-size: 18px;">s.fileno()		#返回套接字的文件描述符。</span></p>
+<p><span style="font-size: 18px;">s.setblocking(flag)		#如果flag为0，则将套接字设为非阻塞模式，否则将套接字设为阻塞模式（默认值）。非阻塞模式下，如果调用recv()没有发现任何数据，或send()调用无法立即发送数据，那么将引起socket.error异常。</span></p>
+<p><span style="font-size: 18px;">s.makefile()		#创建一个与该套接字相关连的文件</span></p>
+<p><span style="font-size: 18px;">&nbsp;</span></p>
+<p><span style="font-size: 18px;">3、socket编程思路</span></p>
+<p><img src="./images/python--基于socket网络编程0.png" alt="" /><br /><span style="font-size: 18px;">3.1、TCP服务端：</span></p>
+<p><span style="font-size: 18px;">1 创建套接字，绑定套接字到本地IP与端口</span></p>
+<p><span style="font-size: 18px;">   # socket.socket(socket.AF_INET,socket.SOCK_STREAM) , s.bind()</span></p>
+<p><span style="font-size: 18px;">2 开始监听连接                   #s.listen()</span></p>
+<p><span style="font-size: 18px;">3 进入循环，不断接受客户端的连接请求              #s.accept()</span></p>
+<p><span style="font-size: 18px;">4 然后接收传来的数据，并发送给对方数据         #s.recv() , s.sendall()</span></p>
+<p><span style="font-size: 18px;">5 传输完毕后，关闭套接字                     #s.close()</span></p>
+<p><br /><span style="font-size: 18px;">3.2、TCP客户端:</span></p>
+<p><span style="font-size: 18px;">1 创建套接字，连接远端地址</span></p>
+<p><span style="font-size: 18px;">       # socket.socket(socket.AF_INET,socket.SOCK_STREAM) , s.connect()</span></p>
+<p><span style="font-size: 18px;">2 连接后发送数据和接收数据          # s.sendall(), s.recv()</span></p>
+<p><span style="font-size: 18px;">3 传输完毕后，关闭套接字          #s.close()</span></p>
+<p><br /><span style="font-size: 18px;">4、模拟聊天机器人实例</span></p>
+<p><span style="font-size: 18px;">4.1、socket_server.py 服务端</span></p>
+<div class="cnblogs_code">
+<pre><code>#!/usr/bin/env python<br /># -*- coding:utf-8 -*-<br />"""<br />Socket服务器端<br />"""<br />import socket<br /><br />sk = socket.socket()<br />sk.bind(('127.0.0.1', 8080,))<br />sk.listen(5)<br />#接收客户端请求<br />#连接，客户端地址信息<br />while True:<br />    conn, address = sk.accept()  #accept()阻塞<br />    conn.sendall(bytes('欢迎致电10086', encoding='utf-8'))<br />    while True:<br />        ret_byte = conn.recv(1024)<br />        ret_str = str(ret_byte, encoding='utf-8')<br />        if ret_str == 'q':<br />            break<br />        conn.sendall(bytes('工号10086回复您：' + ret_str, encoding='utf-8'))<br /><br /></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">4.2、socket_client.py 客户端</span></p>
+<div class="cnblogs_code">
+<pre><code>#!/usr/bin/env python<br /># -*- coding:utf-8 -*-<br />"""<br />socket客户端<br />"""<br />import socket<br /><br />ck = socket.socket()<br />ck.connect(('127.0.0.1', 8080))<br />ret_byte = ck.recv(1024)<br />ret_str = str(ret_byte, encoding='utf-8')<br />print(ret_str)<br />while True:<br />    inp = input("请输入内容，按q退出 \n &gt;&gt;&gt;")<br />    if inp == 'q':<br />        ck.sendall(bytes(inp, encoding='utf-8'))<br />        break<br />    else:<br />        ck.sendall(bytes(inp, encoding='utf-8'))<br />        ret_str = str(ck.recv(1024), encoding='utf-8')<br />        print(ret_str)<br /><br />ck.close()<br /><br /></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">5、基于socket实现文件上传实例</span></p>
+<p><span style="font-size: 18px;">5.1、ftp_server.py</span></p>
+<div class="cnblogs_code">
+<pre><code></pre>
+<pre><code>#!/usr/bin/env python<br /># -*- coding:utf-8 -*-<br />"""<br />模拟发送文件的服务器端<br />"""<br /><br />import socket<br /><br />sk = socket.socket()<br />sk.bind(('127.0.0.1', 8080,))  #绑定套接字到本地IP与端口<br />sk.listen(5)  #开始监听连接<br />#接收客户端请求<br />#连接，客户端地址信息<br />while True:<br />    conn, address = sk.accept()  # accept()阻塞<br />    conn.sendall(bytes('欢迎访问我的ftp', encoding='utf-8'))<br />    #先接收文件大小，然后再接收文件<br />    ret_size = str(conn.recv(1024), encoding='utf-8')<br />    conn.sendall(bytes('start', encoding='utf-8')) #给客户端发送一个确认信息，通知客户端开始发送文件，解决数据粘包的问题。<br />    total_size = int(ret_size)  #文件总大小<br />    has_recv = 0  #已经接收的文件大小<br />    f = open('new.png', 'wb')<br />    #接收文件内容，直到获取完成<br />    while True:<br />        if total_size == has_recv:<br />            break<br />        data = conn.recv(1024)<br />        f.write(data)<br />        has_recv += len(data)<br />    f.close()</pre>
+<pre><code></pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">5.2、ftp_client.py </span></p>
+<div class="cnblogs_code">
+<pre><code>#!/usr/bin/env python<br /># -*- coding:utf-8 -*-<br />"""<br />模拟发送文件的客户端<br />"""<br />import socket<br />import os<br /><br />ck = socket.socket()<br />ck.connect(('127.0.0.1', 8080))<br />ret_byte = ck.recv(1024)  #接收服务器端返回的字节数据<br />ret_str = str(ret_byte, encoding='utf-8')  #将字节数据转换成字符串<br />print(ret_str)<br />#首先向服务器发送文件的大小<br />file_size = os.stat('file1.png').st_size<br />ck.sendall(bytes(str(file_size), encoding='utf-8'))<br /><br />ck.recv(1024)  #接收一下服务器端的确认信息，再开始发送文件，解决数据粘包引起的系统异常问题<br />#发送文件<br />with open('file1.png', 'rb') as f:<br />    for line in f:<br />        ck.sendall(line)<br />ck.close()</pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">6、socketserver模块实现并发操作</span></p>
+<p><span style="font-size: 18px;"><img src="./images/python--基于socket网络编程1.png" alt="" /></span></p>
+<p><span style="font-size: 18px;">使用：</span><br /><span style="font-size: 18px;">	1、创建类，必须继承socketserver.BaseRequestHandler</span><br /><span style="font-size: 18px;">	2、定义handle方法</span><br /><span style="font-size: 18px;">	3、server_forever</span><br />	<br /><span style="font-size: 18px;">socketserver模块实现并发操作实例：</span></p>
+<div class="cnblogs_code">
+<pre><code>#!/usr/bin/env python<br /># -*- coding:utf-8 -*-<br />"""<br />socketserver模块实现并发操作<br />"""<br />import socketserver<br /><br />class MyServer(socketserver.BaseRequestHandler):<br /><br />    def handle(self):<br />        #self.request, self.client_address, self.server<br />        conn = self.request<br />        conn.sendall(bytes('欢迎致电10086', encoding='utf-8'))<br />        while True:<br />            ret_byte = conn.recv(1024)<br />            ret_str = str(ret_byte, encoding='utf-8')<br />            if ret_str == 'q':<br />                break<br />            conn.sendall(bytes('工号10086回复您：' + ret_str, encoding='utf-8'))<br /><br />if __name__ == '__main__':<br />    server = socketserver.ThreadingTCPServer(('127.0.0.1', 8080), MyServer)<br />    server.serve_forever()</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

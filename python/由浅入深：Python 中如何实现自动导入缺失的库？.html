@@ -1,0 +1,113 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修由浅入深：Python 中如何实现自动导入缺失的库？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>由浅入深：Python 中如何实现自动导入缺失的库？</center></div><div class='banquan'>原文出处:本文由博客园博主豌豆花下猫提供。<br/>
+原文连接:https://www.cnblogs.com/pythonista/p/11754417.html</div><br>
+    <p>在写 Python 项目的时候，我们可能经常会遇到导入模块失败的错误：<code>ImportError: No module named 'xxx'</code> 或者 <code>ModuleNotFoundError: No module named 'xxx'</code> 。</p>
+<p>导入失败问题，通常分为两种：一种是导入自己写的模块（即以 .py 为后缀的文件），另一种是导入三方库。本文主要讨论第二种情况，今后有机会，我们再详细讨论其它的相关话题。</p>
+<p>解决导入 Python 库失败的问题，其实关键是在运行环境中装上缺失的库（注意是否是虚拟环境），或者使用恰当的替代方案。这个问题又分为三种情况：</p>
+<h2 id="一单个模块中缺失的库">一、单个模块中缺失的库</h2>
+<p>在编写代码的时候，如果我们需要使用某个三方库（如 requests），但不确定实际运行的环境是否装了它，那么可以这样写：</p>
+<pre><code><code>try:
+    import requests
+except ImportError:
+    import os
+    os.system(&#39;pip install requests&#39;)
+    import requests</code></pre>
+<p>这样写的效果是，如果找不到 requests 库，就先安装，再导入。</p>
+<p>在某些开源项目中，我们可能还会看到如下的写法（以 json 为例）：</p>
+<pre><code><code>try:
+    import simplejson as json
+except ImportError:
+    import json</code></pre>
+<p>这样写的效果是，优先导入三方库 simplejson，如果找不到，那就使用内置的标准库 json。</p>
+<p>这种写法的好处是不需要导入额外的库，但它有个缺点，即需要保证那两个库在使用上是兼容的，如果在标准库中找不到替代的库，那就不可行了。</p>
+<p>如果真找不到兼容的标准库，也可以自己写一个模块（如 my_json.py），实现想要的东西，然后在 except 语句中再导入它。</p>
+<pre><code><code>try:
+    import simplejson as json
+except ImportError:
+    import my_json as json</code></pre>
+<h2 id="二整个项目中缺失的库">二、整个项目中缺失的库</h2>
+<p>以上的思路是针对开发中的项目，但是它有几个不足：1、在代码中对每个可能缺失的三方库都 pip install，并不可取；2、某个三方库无法被标准库或自己手写的库替代，该怎么办？3、已成型的项目，不允许做这些修改怎么办？</p>
+<p>所以这里的问题是：<strong>有一个项目，想要部署到新的机器上，它涉及很多三方库，但是机器上都没有预装，该怎么办？</strong></p>
+<p>对于一个合规的项目，按照约定，通常它会包含一个“<strong>requirements.txt</strong> ”文件，记录了该项目的所有依赖库及其所需的版本号。这是在项目发布前，使用命令<code>pip freeze &gt; requirements.txt</code> 生成的。</p>
+<p>使用命令<code>pip install -r requirements.txt</code> （在该文件所在目录执行，或在命令中写全文件的路径），就能自动把所有的依赖库给装上。</p>
+<p>但是，如果项目不合规，或者由于其它倒霉的原因，我们没有这样的文件，又该如何是好？</p>
+<p>一个笨方法就是，把项目跑起来，等它出错，遇到一个导库失败，就手动装一个，然后再跑一遍项目，遇到导库失败就装一下，如此循环……（此处省略 1 万句脏话）……</p>
+<p><img src="./images/由浅入深：Python 中如何实现自动导入缺失的库？0.png" /></p>
+<h2 id="三自动导入任意缺失的库">三、自动导入任意缺失的库</h2>
+<p><strong>有没有一种更好的可以自动导入缺失的库的方法呢？</strong></p>
+<p>在不修改原有的代码的情况下，在不需要“requirements.txt”文件的情况下，有没有办法自动导入所需要的库呢？</p>
+<p>当然有！先看看效果：</p>
+<p><img src="./images/由浅入深：Python 中如何实现自动导入缺失的库？1.png" /></p>
+<p>我们以 tornado 为例，第一步操作可看出，我们没有装过 tornado，经过第二步操作后，再次导入 tornado 时，程序会帮我们自动下载并安装好 tornado，所以不再报错。</p>
+<p>autoinstall 是我们手写的模块，代码如下：</p>
+<pre><code><code># 以下代码在 python 3.6.1 版本验证通过
+import sys
+import os
+from importlib import import_module
+
+
+class AutoInstall():
+    _loaded = set()
+
+    @classmethod
+    def find_spec(cls, name, path, target=None):
+            if path is None and name not in cls._loaded:
+                cls._loaded.add(name)
+                print(&quot;Installing&quot;, name)
+                try:
+                    result = os.system(&#39;pip install {}&#39;.format(name))
+                    if result == 0:
+                        return import_module(name)
+                except Exception as e:
+                    print(&quot;Failed&quot;, e)
+            return None
+
+sys.meta_path.append(AutoInstall)</code></pre>
+<p>这段代码中使用了<code>sys.meta_path</code> ，我们先打印一下，看看它是个什么东西？</p>
+<p><img src="./images/由浅入深：Python 中如何实现自动导入缺失的库？2.png" /></p>
+<p>Python 3 的 import 机制在查找过程中，大致顺序如下：</p>
+<ul>
+<li>在 sys.modules 中查找，它缓存了所有已导入的模块</li>
+<li>在 sys.meta_path 中查找，它支持自定义的加载器</li>
+<li>在 sys.path 中查找，它记录了一些库所在的目录名</li>
+<li>若未找到，则抛出 <code>ImportError</code> 异常</li>
+</ul>
+<p>其中要注意，sys.meta_path 在不同的 Python 版本中有所差异，比如它在 Python 2 与 Python 3 中差异很大；在较新的 Python 3 版本（3.4+）中，自定义的加载器需要实现<code>find_spec</code> 方法，而早期的版本用的则是<code>find_module</code> 。</p>
+<p><img src="./images/由浅入深：Python 中如何实现自动导入缺失的库？3.png" /></p>
+<p>以上代码是一个自定义的类库加载器 AutoInstall，可以实现自动导入三方库的目的。需要说明一下，这种方法会“劫持”所有新导入的库，破坏原有的导入方式，因此也可能出现一些奇奇怪怪的问题，敬请留意。</p>
+<p>sys.meta_path 属于 Python 探针的一种运用。探针，即<code>import hook</code>，是 Python 几乎不受人关注的机制，但它可以做很多事，例如加载网络上的库、在导入模块时对模块进行修改、自动安装缺失库、上传审计信息、延迟加载等等。</p>
+<p>限于篇幅，我们不再详细展开了。最后小结一下：</p>
+<ul>
+<li>可以用 try...except 方式，实现简单的三方库导入或者替换</li>
+<li>已知全部缺失的依赖库时（如 requirements.txt），可以手动安装</li>
+<li>利用 sys.meta_path，可以自动导入任意的缺失库</li>
+</ul>
+<p><strong>参考资料：</strong></p>
+<p><a href="https://github.com/liuchang0812/slides/tree/master/pycon2015cn" class="uri">https://github.com/liuchang0812/slides/tree/master/pycon2015cn</a></p>
+<p><a href="http://blog.konghy.cn/2016/10/25/python-import-hook/" class="uri">http://blog.konghy.cn/2016/10/25/python-import-hook/</a></p>
+<p><a href="https://docs.python.org/3/library/sys.html#sys.meta_path" class="uri">https://docs.python.org/3/library/sys.html#sys.meta_path</a></p>
+<p><img src="./images/由浅入深：Python 中如何实现自动导入缺失的库？4.png" /></p>
+<p>公众号【<strong>Python猫</strong>】， 本号连载优质的系列文章，有喵星哲学猫系列、Python进阶系列、好书推荐系列、技术写作、优质英文推荐与翻译等等，欢迎关注哦。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,1673 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring 学习，看松哥这一篇万余字干货就够了！' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring 学习，看松哥这一篇万余字干货就够了！</center></div><div class='banquan'>原文出处:本文由博客园博主江南一点雨提供。<br/>
+原文连接:https://www.cnblogs.com/lenve/p/12052826.html</div><br>
+    <h2 id="spring-简介">1. Spring 简介</h2>
+<p>我们常说的 Spring 实际上是指 Spring Framework，而 Spring Framework 只是 Spring 家族中的一个分支而已。那么 Spring 家族都有哪些东西呢？</p>
+<p><img src="./images/Spring 学习，看松哥这一篇万余字干货就够了！0.png" /></p>
+<p>Spring 是为了解决企业级应用开发的复杂性而创建的。在 Spring 之前，有一个重量级的工具叫做 EJB，使用 Spring 可以让 Java Bean 之间进行有效的解耦，而这个操作之前只有 EJB 才能完成，EJB 过于臃肿，使用很少。Spring 不仅仅局限于服务端的开发，在测试性和松耦合方面都有很好的表现。</p>
+<p>一般来说，初学者主要掌握 Spring 四个方面的功能：</p>
+<ul>
+<li>Ioc/DI</li>
+<li>AOP</li>
+<li>事务</li>
+<li>JdbcTemplate</li>
+</ul>
+<h2 id="spring-下载">2. Spring 下载</h2>
+<p>正常来说，我们在项目中添加 Maven 依赖就可以直接使用 Spring 了，如果需要单独下载 jar，下载地址如下：</p>
+<ul>
+<li>https://repo.spring.io/libs-release-local/org/springframework/spring/5.2.1.RELEASE/</li>
+</ul>
+<p>下载成功后，Spring 中的组件，大致上提供了如下功能：</p>
+<p><img src="./images/Spring 学习，看松哥这一篇万余字干货就够了！1.png" /></p>
+<h2 id="ioc">3.1 Ioc</h2>
+<h3 id="ioc-概念">3.1.1 Ioc 概念</h3>
+<p>Ioc （Inversion of Control），中文叫做控制反转。这是一个概念，也是一种思想。控制反转，实际上就是指对一个对象的控制权的反转。例如，如下代码：</p>
+<pre><code><code>public class Book {
+    private Integer id;
+    private String name;
+    private Double price;
+//省略getter/setter
+}
+public class User {
+    private Integer id;
+    private String name;
+    private Integer age;
+
+    public void doSth() {
+        Book book = new Book();
+        book.setId(1);
+        book.setName(&quot;故事新编&quot;);
+        book.setPrice((double) 20);
+    }
+}</code></pre>
+<p>在这种情况下，Book 对象的控制权在 User 对象里边，这样，Book 和 User 高度耦合，如果在其他对象中需要使用 Book 对象，得重新创建，也就是说，对象的创建、初始化、销毁等操作，统统都要开发者自己来完成。如果能够将这些操作交给容器来管理，开发者就可以极大的从对象的创建中解脱出来。</p>
+<p>使用 Spring 之后，我们可以将对象的创建、初始化、销毁等操作交给 Spring 容器来管理。就是说，在项目启动时，所有的 Bean 都将自己注册到 Spring 容器中去（如果有必要的话），然后如果其他 Bean 需要使用到这个 Bean ，则不需要自己去 new，而是直接去 Spring 容器去要。</p>
+<p>通过一个简单的例子看下这个过程。</p>
+<h3 id="ioc-初体验">3.1.2 Ioc 初体验</h3>
+<p>首先创建一个普通的 Maven 项目，然后引入 spring-context 依赖，如下：</p>
+<pre class="xml"><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+        &lt;version&gt;5.1.9.RELEASE&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+<p>接下来，在 resources 目录下创建一个 spring 的配置文件（注意，一定要先添加依赖，后创建配置文件，否则创建配置文件时，没有模板选项）：</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+&lt;/beans&gt;</code></pre>
+<p>在这个文件中，我们可以配置所有需要注册到 Spring 容器的 Bean：</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+    &lt;bean class=&quot;org.javaboy.Book&quot; id=&quot;book&quot;/&gt;
+&lt;/beans&gt;</code></pre>
+<p>class 属性表示需要注册的 bean 的全路径，id 则表示 bean 的唯一标记，也开可以 name 属性作为 bean 的标记，在超过 99% 的情况下，id 和 name 其实是一样的，特殊情况下不一样。</p>
+<p>接下来，加载这个配置文件：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+    }
+}</code></pre>
+<p>执行 main 方法，配置文件就会被自动加载，进而在 Spring 中初始化一个 Book 实例。此时，我们显式的指定 Book 类的无参构造方法，并在无参构造方法中打印日志，可以看到无参构造方法执行了，进而证明对象已经在 Spring 容器中初始化了。</p>
+<p>最后，通过 getBean 方法，可以从容器中去获取对象：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        Book book = (Book) ctx.getBean(&quot;book&quot;);
+        System.out.println(book);
+    }
+}</code></pre>
+<blockquote>
+<p>加载方式，除了ClassPathXmlApplicationContext 之外（去 classpath 下查找配置文件），另外也可以使用 FileSystemXmlApplicationContext ，FileSystemXmlApplicationContext 会从操作系统路径下去寻找配置文件。</p>
+</blockquote>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(&quot;F:\\workspace5\\workspace\\spring\\spring-ioc\\src\\main\\resources\\applicationContext.xml&quot;);
+        Book book = (Book) ctx.getBean(&quot;book&quot;);
+        System.out.println(book);
+    }
+}</code></pre>
+<h2 id="bean-的获取">3.2 Bean 的获取</h2>
+<p>在上一小节中，我们通过 ctx.getBean 方法来从 Spring 容器中获取 Bean，传入的参数是 Bean 的 name 或者 id 属性。除了这种方式之外，也可以直接通过 Class 去获取一个 Bean。</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        Book book = ctx.getBean(Book.class);
+        System.out.println(book);
+    }
+}</code></pre>
+<p>这种方式有一个很大的弊端，如果存在多个实例，这种方式就不可用，例如，xml 文件中存在两个 Bean：</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+    &lt;bean class=&quot;org.javaboy.Book&quot; id=&quot;book&quot;/&gt;
+    &lt;bean class=&quot;org.javaboy.Book&quot; id=&quot;book2&quot;/&gt;
+&lt;/beans&gt;</code></pre>
+<p>此时，如果通过 Class 去查找 Bean，会报如下错误：</p>
+<p><img src="./images/Spring 学习，看松哥这一篇万余字干货就够了！2.png" /></p>
+<p>所以，一般建议使用 name 或者 id 去获取 Bean 的实例。</p>
+<h2 id="属性的注入">3.3 属性的注入</h2>
+<p>在 XML 配置中，属性的注入存在多种方式。</p>
+<h3 id="构造方法注入">3.3.1 构造方法注入</h3>
+<p>通过 Bean 的构造方法给 Bean 的属性注入值。</p>
+<p>1.第一步首先给 Bean 添加对应的构造方法：</p>
+<pre><code><code>public class Book {
+    private Integer id;
+    private String name;
+    private Double price;
+
+    public Book() {
+        System.out.println(&quot;-------book init----------&quot;);
+    }
+
+    public Book(Integer id, String name, Double price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
+}</code></pre>
+<p>2.在 xml 文件中注入 Bean</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+    &lt;bean class=&quot;org.javaboy.Book&quot; id=&quot;book&quot;&gt;
+        &lt;constructor-arg index=&quot;0&quot; value=&quot;1&quot;/&gt;
+        &lt;constructor-arg index=&quot;1&quot; value=&quot;三国演义&quot;/&gt;
+        &lt;constructor-arg index=&quot;2&quot; value=&quot;30&quot;/&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</code></pre>
+<p>这里需要注意的是，constructor-arg 中的 index 和 Book 中的构造方法参数一一对应。写的顺序可以颠倒，但是 index 的值和 value 要一一对应。</p>
+<p>另一种构造方法中的属性注入，则是通过直接指定参数名来注入：</p>
+<pre><code><code>&lt;bean class=&quot;org.javaboy.Book&quot; id=&quot;book2&quot;&gt;
+    &lt;constructor-arg name=&quot;id&quot; value=&quot;2&quot;/&gt;
+    &lt;constructor-arg name=&quot;name&quot; value=&quot;红楼梦&quot;/&gt;
+    &lt;constructor-arg name=&quot;price&quot; value=&quot;40&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<p><strong>如果有多个构造方法，则会根据给出参数个数以及参数类型，自动匹配到对应的构造方法上，进而初始化一个对象。</strong></p>
+<h3 id="set-方法注入">3.3.2 set 方法注入</h3>
+<p>除了构造方法之外，我们也可以通过 set 方法注入值。</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.Book&quot; id=&quot;book3&quot;&gt;
+    &lt;property name=&quot;id&quot; value=&quot;3&quot;/&gt;
+    &lt;property name=&quot;name&quot; value=&quot;水浒传&quot;/&gt;
+    &lt;property name=&quot;price&quot; value=&quot;30&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<p>set 方法注入，有一个很重要的问题，就是属性名。很多人会有一种错觉，觉得属性名就是你定义的属性名，这个是不对的。在所有的框架中，凡是涉及到反射注入值的，属性名统统都不是 Bean 中定义的属性名，而是通过 Java 中的内省机制分析出来的属性名，简单说，就是根据 get/set 方法分析出来的属性名。</p>
+<h3 id="p-名称空间注入">3.3.3 p 名称空间注入</h3>
+<p>p 名称空间注入，使用的比较少，它本质上也是调用了 set 方法。</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.Book&quot; id=&quot;book4&quot; p:id=&quot;4&quot; p:bookName=&quot;西游记&quot; p:price=&quot;33&quot;&gt;&lt;/bean&gt;</code></pre>
+<h3 id="外部-bean-的注入">3.3.4 外部 Bean 的注入</h3>
+<p>有时候，我们使用一些外部 Bean，这些 Bean 可能没有构造方法，而是通过 Builder 来构造的，这个时候，就无法使用上面的方式来给它注入值了。</p>
+<p>例如在 OkHttp 的网络请求中，原生的写法如下：</p>
+<pre><code><code>public class OkHttpMain {
+    public static void main(String[] args) {
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .build();
+        Request request = new Request.Builder()
+                .get()
+                .url(&quot;http://b.hiphotos.baidu.com/image/h%3D300/sign=ad628627aacc7cd9e52d32d909032104/32fa828ba61ea8d3fcd2e9ce9e0a304e241f5803.jpg&quot;)
+                .build();
+        Call call = okHttpClient.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println(e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                FileOutputStream out = new FileOutputStream(new File(&quot;E:\\123.jpg&quot;));
+                int len;
+                byte[] buf = new byte[1024];
+                InputStream is = response.body().byteStream();
+                while ((len = is.read(buf)) != -1) {
+                    out.write(buf, 0, len);
+                }
+                out.close();
+                is.close();
+            }
+        });
+    }
+}</code></pre>
+<p>这个 Bean 有一个特点，OkHttpClient 和 Request 两个实例都不是直接 new 出来的，在调用 Builder 方法的过程中，都会给它配置一些默认的参数。这种情况，我们可以使用 静态工厂注入或者实例工厂注入来给 OkHttpClient 提供一个实例。</p>
+<p>1.静态工厂注入</p>
+<p>首先提供一个 OkHttpClient 的静态工厂：</p>
+<pre><code><code>public class OkHttpUtils {
+    private static OkHttpClient OkHttpClient;
+    public static OkHttpClient getInstance() {
+        if (OkHttpClient == null) {
+            OkHttpClient = new OkHttpClient.Builder().build();
+        }
+        return OkHttpClient;
+    }
+}</code></pre>
+<p>在 xml 文件中，配置该静态工厂：</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.OkHttpUtils&quot; factory-method=&quot;getInstance&quot; id=&quot;okHttpClient&quot;&gt;&lt;/bean&gt;</code></pre>
+<p>这个配置表示 OkHttpUtils 类中的 getInstance 是我们需要的实例，实例的名字就叫 okHttpClient。然后，在 Java 代码中，获取到这个实例，就可以直接使用了。</p>
+<pre><code><code>public class OkHttpMain {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        OkHttpClient okHttpClient = ctx.getBean(&quot;okHttpClient&quot;, OkHttpClient.class);
+        Request request = new Request.Builder()
+                .get()
+                .url(&quot;http://b.hiphotos.baidu.com/image/h%3D300/sign=ad628627aacc7cd9e52d32d909032104/32fa828ba61ea8d3fcd2e9ce9e0a304e241f5803.jpg&quot;)
+                .build();
+        Call call = okHttpClient.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.out.println(e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                FileOutputStream out = new FileOutputStream(new File(&quot;E:\\123.jpg&quot;));
+                int len;
+                byte[] buf = new byte[1024];
+                InputStream is = response.body().byteStream();
+                while ((len = is.read(buf)) != -1) {
+                    out.write(buf, 0, len);
+                }
+                out.close();
+                is.close();
+            }
+        });
+    }
+}</code></pre>
+<p>2.实例工厂注入</p>
+<p>实例工厂就是工厂方法是一个实例方法，这样，工厂类必须实例化之后才可以调用工厂方法。</p>
+<p>这次的工厂类如下：</p>
+<pre><code><code>public class OkHttpUtils {
+    private OkHttpClient OkHttpClient;
+    public OkHttpClient getInstance() {
+        if (OkHttpClient == null) {
+            OkHttpClient = new OkHttpClient.Builder().build();
+        }
+        return OkHttpClient;
+    }
+}</code></pre>
+<p>此时，在 xml 文件中，需要首先提供工厂方法的实例，然后才可以调用工厂方法：</p>
+<pre><code><code>&lt;bean class=&quot;org.javaboy.OkHttpUtils&quot; id=&quot;okHttpUtils&quot;/&gt;
+&lt;bean class=&quot;okhttp3.OkHttpClient&quot; factory-bean=&quot;okHttpUtils&quot; factory-method=&quot;getInstance&quot; id=&quot;okHttpClient&quot;&gt;&lt;/bean&gt;</code></pre>
+<p>自己写的 Bean 一般不会使用这两种方式注入，但是，如果需要引入外部 jar，外部 jar 的类的初始化，有可能需要使用这两种方式。</p>
+<h2 id="复杂属性的注入">3.4 复杂属性的注入</h2>
+<h3 id="对象注入">3.4.1 对象注入</h3>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.User&quot; id=&quot;user&quot;&gt;
+    &lt;property name=&quot;cat&quot; ref=&quot;cat&quot;/&gt;
+&lt;/bean&gt;
+&lt;bean class=&quot;org.javaboy.Cat&quot; id=&quot;cat&quot;&gt;
+    &lt;property name=&quot;name&quot; value=&quot;小白&quot;/&gt;
+    &lt;property name=&quot;color&quot; value=&quot;白色&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<p>可以通过 xml 注入对象，通过 ref 来引用一个对象。</p>
+<h3 id="数组注入">3.4.2 数组注入</h3>
+<p>数组注入和集合注入在 xml 中的配置是一样的。如下：</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.User&quot; id=&quot;user&quot;&gt;
+    &lt;property name=&quot;cat&quot; ref=&quot;cat&quot;/&gt;
+    &lt;property name=&quot;favorites&quot;&gt;
+        &lt;array&gt;
+            &lt;value&gt;足球&lt;/value&gt;
+            &lt;value&gt;篮球&lt;/value&gt;
+            &lt;value&gt;乒乓球&lt;/value&gt;
+        &lt;/array&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+&lt;bean class=&quot;org.javaboy.Cat&quot; id=&quot;cat&quot;&gt;
+    &lt;property name=&quot;name&quot; value=&quot;小白&quot;/&gt;
+    &lt;property name=&quot;color&quot; value=&quot;白色&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<p>注意，array 节点，也可以被 list 节点代替。</p>
+<p>当然，array 或者 list 节点中也可以是对象。</p>
+<pre><code><code>&lt;bean class=&quot;org.javaboy.User&quot; id=&quot;user&quot;&gt;
+    &lt;property name=&quot;cat&quot; ref=&quot;cat&quot;/&gt;
+    &lt;property name=&quot;favorites&quot;&gt;
+        &lt;list&gt;
+            &lt;value&gt;足球&lt;/value&gt;
+            &lt;value&gt;篮球&lt;/value&gt;
+            &lt;value&gt;乒乓球&lt;/value&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name=&quot;cats&quot;&gt;
+        &lt;list&gt;
+            &lt;ref bean=&quot;cat&quot;/&gt;
+            &lt;ref bean=&quot;cat2&quot;/&gt;
+            &lt;bean class=&quot;org.javaboy.Cat&quot; id=&quot;cat3&quot;&gt;
+                &lt;property name=&quot;name&quot; value=&quot;小花&quot;/&gt;
+                &lt;property name=&quot;color&quot; value=&quot;花色&quot;/&gt;
+            &lt;/bean&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+&lt;bean class=&quot;org.javaboy.Cat&quot; id=&quot;cat&quot;&gt;
+    &lt;property name=&quot;name&quot; value=&quot;小白&quot;/&gt;
+    &lt;property name=&quot;color&quot; value=&quot;白色&quot;/&gt;
+&lt;/bean&gt;
+&lt;bean class=&quot;org.javaboy.Cat&quot; id=&quot;cat2&quot;&gt;
+    &lt;property name=&quot;name&quot; value=&quot;小黑&quot;/&gt;
+    &lt;property name=&quot;color&quot; value=&quot;黑色&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<p>注意，即可以通过 ref 使用外部定义好的 Bean，也可以直接在 list 或者 array 节点中定义 bean。</p>
+<h3 id="map-注入">3.4.3 Map 注入</h3>
+<pre class="xml"><code>&lt;property name=&quot;map&quot;&gt;
+    &lt;map&gt;
+        &lt;entry key=&quot;age&quot; value=&quot;99&quot;/&gt;
+        &lt;entry key=&quot;name&quot; value=&quot;javaboy&quot;/&gt;
+    &lt;/map&gt;
+&lt;/property&gt;</code></pre>
+<h3 id="properties-注入">3.4.4 Properties 注入</h3>
+<pre class="xml"><code>&lt;property name=&quot;info&quot;&gt;
+    &lt;props&gt;
+        &lt;prop key=&quot;age&quot;&gt;99&lt;/prop&gt;
+        &lt;prop key=&quot;name&quot;&gt;javaboy&lt;/prop&gt;
+    &lt;/props&gt;
+&lt;/property&gt;</code></pre>
+<p>以上 Demo，定义的 User 如下：</p>
+<pre><code><code>public class User {
+    private Integer id;
+    private String name;
+    private Integer age;
+    private Cat cat;
+    private String[] favorites;
+    private List&lt;Cat&gt; cats;
+    private Map&lt;String,Object&gt; map;
+    private Properties info;
+
+    @Override
+    public String toString() {
+        return &quot;User{&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, age=&quot; + age +
+                &quot;, cat=&quot; + cat +
+                &quot;, favorites=&quot; + Arrays.toString(favorites) +
+                &quot;, cats=&quot; + cats +
+                &quot;, map=&quot; + map +
+                &quot;, info=&quot; + info +
+                &#39;}&#39;;
+    }
+
+    public Properties getInfo() {
+        return info;
+    }
+
+    public void setInfo(Properties info) {
+        this.info = info;
+    }
+
+    public Map&lt;String, Object&gt; getMap() {
+        return map;
+    }
+
+    public void setMap(Map&lt;String, Object&gt; map) {
+        this.map = map;
+    }
+
+    public List&lt;Cat&gt; getCats() {
+        return cats;
+    }
+
+    public void setCats(List&lt;Cat&gt; cats) {
+        this.cats = cats;
+    }
+
+    public String[] getFavorites() {
+        return favorites;
+    }
+
+    public void setFavorites(String[] favorites) {
+        this.favorites = favorites;
+    }
+
+    public User() {
+    }
+
+    public User(Integer id, String name, Integer age, Cat cat) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.cat = cat;
+    }
+
+    public Cat getCat() {
+        return cat;
+    }
+
+    public void setCat(Cat cat) {
+        this.cat = cat;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+}</code></pre>
+<h2 id="java-配置">3.5 Java 配置</h2>
+<p>在 Spring 中，想要将一个 Bean 注册到 Spring 容器中，整体上来说，有三种不同的方式。</p>
+<ul>
+<li>XML 注入，如前文所说</li>
+<li>Java 配置（通过 Java 代码将 Bean 注册到 Spring 容器中）</li>
+<li>自动化扫描</li>
+</ul>
+<p>这里我们来看 Java 配置。</p>
+<p>Java 配置这种方式在 Spring Boot 出现之前，其实很少使用，自从有了 Spring Boot，Java 配置开发被广泛使用，因为在 Spring Boot 中，不使用一行 XML 配置。</p>
+<p>例如我有如下一个 Bean：</p>
+<pre><code><code>public class SayHello {
+    public String sayHello(String name) {
+        return &quot;hello &quot; + name;
+    }
+}</code></pre>
+<p>在 Java 配置中，我们用一个 Java 配置类去代替之前的 applicationContext.xml 文件。</p>
+<pre><code><code>@Configuration
+public class JavaConfig {
+    @Bean
+    SayHello sayHello() {
+        return new SayHello();
+    }
+}</code></pre>
+<p>首先在配置类上有一个 @Configuration 注解，这个注解表示这个类不是一个普通类，而是一个配置类，它的作用相当于 applicationContext.xml。<br />
+然后，定义方法，方法返回对象，方法上添加 @Bean 注解，表示将这个方法的返回值注入的 Spring 容器中去。也就是说，@Bean 所对应的方法，就相当于 applicationContext.xml 中的 bean 节点。</p>
+<p>既然是配置类，我们需要在项目启动时加载配置类。</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(JavaConfig.class);
+        SayHello hello = ctx.getBean(SayHello.class);
+        System.out.println(hello.sayHello(&quot;javaboy&quot;));
+    }
+}</code></pre>
+<p>注意，配置的加载，是使用 AnnotationConfigApplicationContext 来实现。</p>
+<p>关于 Java 配置，这里有一个需要注意的问题:Bean 的名字是什么？</p>
+<p>Bean 的默认名称是方法名。以上面的案例为例，Bean 的名字是 sayHello。<br />
+如果开发者想自定义方法名，也是可以的，直接在 @Bean 注解中进行过配置。如下配置表示修改 Bean 的名字为 javaboy：</p>
+<pre><code><code>@Configuration
+public class JavaConfig {
+    @Bean(&quot;javaboy&quot;)
+    SayHello sayHello() {
+        return new SayHello();
+    }
+}</code></pre>
+<h2 id="自动化配置">3.6 自动化配置</h2>
+<p>在我们实际开发中，大量的使用自动配置。</p>
+<p>自动化配置既可以通过 Java 配置来实现，也可以通过 xml 配置来实现。</p>
+<h3 id="准备工作">3.6.1 准备工作</h3>
+<p>例如我有一个 UserService，我希望在自动化扫描时，这个类能够自动注册到 Spring 容器中去，那么可以给该类添加一个 @Service，作为一个标记。</p>
+<p>和 @Service 注解功能类似的注解，一共有四个：</p>
+<ul>
+<li>@Component</li>
+<li>@Repository</li>
+<li>@Service</li>
+<li>@Controller</li>
+</ul>
+<p>这四个中，另外三个都是基于 @Component 做出来的，而且从目前的源码来看，功能也是一致的，那么为什么要搞三个呢？主要是为了在不同的类上面添加时方便。</p>
+<ul>
+<li>在 Service 层上，添加注解时，使用 @Service</li>
+<li>在 Dao 层，添加注解时，使用 @Repository</li>
+<li>在 Controller 层，添加注解时，使用 @Controller</li>
+<li>在其他组件上添加注解时，使用 @Component</li>
+</ul>
+<pre><code><code>@Service
+public class UserService {
+    public List&lt;String&gt; getAllUser() {
+        List&lt;String&gt; users = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; 10; i++) {
+            users.add(&quot;javaboy:&quot; + i);
+        }
+        return users;
+    }
+}</code></pre>
+<p>添加完成后，自动化扫描有两种方式，一种就是通过 Java 代码配置自动化扫描，另一种则是通过 xml 文件来配置自动化扫描。</p>
+<h3 id="java-代码配置自动扫描">3.6.2 Java 代码配置自动扫描</h3>
+<pre><code><code>@Configuration
+@ComponentScan(basePackages = &quot;org.javaboy.javaconfig.service&quot;)
+public class JavaConfig {
+}</code></pre>
+<p>然后，在项目启动中加载配置类，在配置类中，通过 @ComponentScan 注解指定要扫描的包（如果不指定，默认情况下扫描的是配置类所在的包下载的 Bean 以及配置类所在的包下的子包下的类），然后就可以获取 UserService 的实例了：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(JavaConfig.class);
+        UserService userService = ctx.getBean(UserService.class);
+        System.out.println(userService.getAllUser());
+    }
+}</code></pre>
+<p>这里有几个问题需要注意：</p>
+<p>1.Bean 的名字叫什么？</p>
+<p>默认情况下，Bean 的名字是类名首字母小写。例如上面的 UserService，它的实例名，默认就是 userService。如果开发者想要自定义名字，就直接在 @Service 注解中添加即可。</p>
+<p>2.有几种扫描方式？</p>
+<p>上面的配置，我们是按照包的位置来扫描的。也就是说，Bean 必须放在指定的扫描位置，否则，即使你有 @Service 注解，也扫描不到。</p>
+<p>除了按照包的位置来扫描，还有另外一种方式，就是根据注解来扫描。例如如下配置：</p>
+<pre><code><code>@Configuration
+@ComponentScan(basePackages = &quot;org.javaboy.javaconfig&quot;,useDefaultFilters = true,excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION,classes = Controller.class)})
+public class JavaConfig {
+}</code></pre>
+<p>这个配置表示扫描 org.javaboy.javaconfig 下的所有 Bean，但是除了 Controller。</p>
+<h3 id="xml-配置自动化扫描">3.6.3 XML 配置自动化扫描</h3>
+<pre class="xml"><code>&lt;context:component-scan base-package=&quot;org.javaboy.javaconfig&quot;/&gt;</code></pre>
+<p>上面这行配置表示扫描 org.javaboy.javaconfig 下的所有 Bean。当然也可以按照类来扫描。</p>
+<p>XML 配置完成后，在 Java 代码中加载 XML 配置即可。</p>
+<pre><code><code>public class XMLTest {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        UserService userService = ctx.getBean(UserService.class);
+        List&lt;String&gt; list = userService.getAllUser();
+        System.out.println(list);
+    }
+}</code></pre>
+<p>也可以在 XML 配置中按照注解的类型进行扫描：</p>
+<pre class="xml"><code>&lt;context:component-scan base-package=&quot;org.javaboy.javaconfig&quot; use-default-filters=&quot;true&quot;&gt;
+    &lt;context:exclude-filter type=&quot;annotation&quot; expression=&quot;org.springframework.stereotype.Controller&quot;/&gt;
+&lt;/context:component-scan&gt;</code></pre>
+<h3 id="对象注入-1">3.6.4 对象注入</h3>
+<p>自动扫描时的对象注入有三种方式：</p>
+<ol>
+<li>@Autowired</li>
+<li>@Resources</li>
+<li>@Injected</li>
+</ol>
+<p>@Autowired 是根据类型去查找，然后赋值，这就有一个要求，这个类型只可以有一个对象，否则就会报错。@Resources 是根据名称去查找，默认情况下，定义的变量名，就是查找的名称，当然开发者也可以在 @Resources 注解中手动指定。所以，如果一个类存在多个实例，那么就应该使用 @Resources 去注入，如果非常使用 @Autowired，也是可以的，此时需要配合另外一个注解，@Qualifier，在 @Qualifier 中可以指定变量名，两个一起用（@Qualifier 和 @Autowired）就可以实现通过变量名查找到变量。</p>
+<pre><code><code>@Service
+public class UserService {
+
+    @Autowired
+    UserDao userDao;
+    public String hello() {
+        return userDao.hello();
+    }
+
+    public List&lt;String&gt; getAllUser() {
+        List&lt;String&gt; users = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; 10; i++) {
+            users.add(&quot;javaboy:&quot; + i);
+        }
+        return users;
+    }
+}</code></pre>
+<h2 id="条件注解">3.7 条件注解</h2>
+<p>条件注解就是在满足某一个条件的情况下，生效的配置。</p>
+<h3 id="条件注解-1">3.7.1 条件注解</h3>
+<p>首先在 Windows 中如何获取操作系统信息？Windows 中查看文件夹目录的命令是 dir，Linux 中查看文件夹目录的命令是 ls，我现在希望当系统运行在 Windows 上时，自动打印出 Windows 上的目录展示命令，Linux 运行时，则自动展示 Linux 上的目录展示命令。</p>
+<p>首先定义一个显示文件夹目录的接口：</p>
+<pre><code><code>public interface ShowCmd {
+    String showCmd();
+}</code></pre>
+<p>然后，分别实现 Windows 下的实例和 Linux 下的实例：</p>
+<pre><code><code>public class WinShowCmd implements ShowCmd {
+    @Override
+    public String showCmd() {
+        return &quot;dir&quot;;
+    }
+}
+public class LinuxShowCmd implements ShowCmd {
+    @Override
+    public String showCmd() {
+        return &quot;ls&quot;;
+    }
+}</code></pre>
+<p>接下来，定义两个条件，一个是 Windows 下的条件，另一个是 Linux 下的条件。</p>
+<pre><code><code>public class WindowsCondition implements Condition {
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return context.getEnvironment().getProperty(&quot;os.name&quot;).toLowerCase().contains(&quot;windows&quot;);
+    }
+}
+public class LinuxCondition implements Condition {
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return context.getEnvironment().getProperty(&quot;os.name&quot;).toLowerCase().contains(&quot;linux&quot;);
+    }
+}</code></pre>
+<p>接下来，在定义 Bean 的时候，就可以去配置条件注解了。</p>
+<pre><code><code>@Configuration
+public class JavaConfig {
+    @Bean(&quot;showCmd&quot;)
+    @Conditional(WindowsCondition.class)
+    ShowCmd winCmd() {
+        return new WinShowCmd();
+    }
+
+    @Bean(&quot;showCmd&quot;)
+    @Conditional(LinuxCondition.class)
+    ShowCmd linuxCmd() {
+        return new LinuxShowCmd();
+    }
+}</code></pre>
+<p>这里，一定要给两个 Bean 取相同的名字，这样在调用时，才可以自动匹配。然后，给每一个 Bean 加上条件注解，当条件中的 matches 方法返回 true 的时候，这个 Bean 的定义就会生效。</p>
+<pre><code><code>public class JavaMain {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(JavaConfig.class);
+        ShowCmd showCmd = (ShowCmd) ctx.getBean(&quot;showCmd&quot;);
+        System.out.println(showCmd.showCmd());
+    }
+}</code></pre>
+<p>条件注解有一个非常典型的使用场景，就是多环境切换。</p>
+<h3 id="多环境切换">3.7.2 多环境切换</h3>
+<p>开发中，如何在 开发/生产/测试 环境之间进行快速切换？Spring 中提供了 Profile 来解决这个问题，Profile 的底层就是条件注解。这个从 @Profile 注解的定义就可以看出来：</p>
+<pre><code><code>@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(ProfileCondition.class)
+public @interface Profile {
+
+    /**
+     * The set of profiles for which the annotated component should be registered.
+     */
+    String[] value();
+
+}
+class ProfileCondition implements Condition {
+
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        MultiValueMap&lt;String, Object&gt; attrs = metadata.getAllAnnotationAttributes(Profile.class.getName());
+        if (attrs != null) {
+            for (Object value : attrs.get(&quot;value&quot;)) {
+                if (context.getEnvironment().acceptsProfiles(Profiles.of((String[]) value))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
+}</code></pre>
+<p>我们定义一个 DataSource：</p>
+<pre><code><code>public class DataSource {
+    private String url;
+    private String username;
+    private String password;
+
+    @Override
+    public String toString() {
+        return &quot;DataSource{&quot; +
+                &quot;url=&#39;&quot; + url + &#39;\&#39;&#39; +
+                &quot;, username=&#39;&quot; + username + &#39;\&#39;&#39; +
+                &quot;, password=&#39;&quot; + password + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}</code></pre>
+<p>然后，在配置 Bean 时，通过 @Profile 注解指定不同的环境：</p>
+<pre><code><code>@Bean(&quot;ds&quot;)
+@Profile(&quot;dev&quot;)
+DataSource devDataSource() {
+    DataSource dataSource = new DataSource();
+    dataSource.setUrl(&quot;jdbc:mysql://127.0.0.1:3306/dev&quot;);
+    dataSource.setUsername(&quot;root&quot;);
+    dataSource.setPassword(&quot;123&quot;);
+    return dataSource;
+}
+@Bean(&quot;ds&quot;)
+@Profile(&quot;prod&quot;)
+DataSource prodDataSource() {
+    DataSource dataSource = new DataSource();
+    dataSource.setUrl(&quot;jdbc:mysql://192.158.222.33:3306/dev&quot;);
+    dataSource.setUsername(&quot;jkldasjfkl&quot;);
+    dataSource.setPassword(&quot;jfsdjflkajkld&quot;);
+    return dataSource;
+}</code></pre>
+<p>最后，在加载配置类，注意，需要先设置当前环境，然后再去加载配置类：</p>
+<pre><code><code>public class JavaMain {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        ctx.getEnvironment().setActiveProfiles(&quot;dev&quot;);
+        ctx.register(JavaConfig.class);
+        ctx.refresh();
+        DataSource ds = (DataSource) ctx.getBean(&quot;ds&quot;);
+        System.out.println(ds);
+    }
+}</code></pre>
+<p>这个是在 Java 代码中配置的。环境的切换，也可以在 XML 文件中配置，如下配置在 XML 文件中，必须放在其他节点后面。</p>
+<pre class="xml"><code>&lt;beans profile=&quot;dev&quot;&gt;
+    &lt;bean class=&quot;org.javaboy.DataSource&quot; id=&quot;dataSource&quot;&gt;
+        &lt;property name=&quot;url&quot; value=&quot;jdbc:mysql:///devdb&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;root&quot;/&gt;
+        &lt;property name=&quot;username&quot; value=&quot;root&quot;/&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;
+&lt;beans profile=&quot;prod&quot;&gt;
+    &lt;bean class=&quot;org.javaboy.DataSource&quot; id=&quot;dataSource&quot;&gt;
+        &lt;property name=&quot;url&quot; value=&quot;jdbc:mysql://111.111.111.111/devdb&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;jsdfaklfj789345fjsd&quot;/&gt;
+        &lt;property name=&quot;username&quot; value=&quot;root&quot;/&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</code></pre>
+<p>启动类中设置当前环境并加载配置：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext();
+        ctx.getEnvironment().setActiveProfiles(&quot;prod&quot;);
+        ctx.setConfigLocation(&quot;applicationContext.xml&quot;);
+        ctx.refresh();
+        DataSource dataSource = (DataSource) ctx.getBean(&quot;dataSource&quot;);
+        System.out.println(dataSource);
+    }
+}</code></pre>
+<h2 id="其他">3.8 其他</h2>
+<h3 id="bean-的作用域">3.8.1 Bean 的作用域</h3>
+<p>在 XML 配置中注册的 Bean，或者用 Java 配置注册的 Bean，如果我多次获取，获取到的对象是否是同一个？</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        User user = ctx.getBean(&quot;user&quot;, User.class);
+        User user2 = ctx.getBean(&quot;user&quot;, User.class);
+        System.out.println(user==user2);
+    }
+}</code></pre>
+<p>如上，从 Spring 容器中多次获取同一个 Bean，默认情况下，获取到的实际上是同一个实例。当然我们可以自己手动配置。</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.User&quot; id=&quot;user&quot; scope=&quot;prototype&quot; /&gt;</code></pre>
+<p>通过在 XML 节点中，设置 scope 属性，我们可以调整默认的实例个数。scope 的值为 singleton（默认），表示这个 Bean 在 Spring 容器中，是以单例的形式存在，如果 scope 的值为 prototype，表示这个 Bean 在 Spring 容器中不是单例，多次获取将拿到多个不同的实例。</p>
+<p>除了 singleton 和 prototype 之外，还有两个取值，request 和 session。这两个取值在 web 环境下有效。这是在 XML 中的配置，我们也可以在 Java 中配置。</p>
+<pre><code><code>@Configuration
+public class JavaConfig {
+    @Bean
+    @Scope(&quot;prototype&quot;)
+    SayHello sayHello() {
+        return new SayHello();
+    }
+}</code></pre>
+<p>在 Java 代码中，我们可以通过 @Scope 注解指定 Bean 的作用域。</p>
+<p>当然，在自动扫描配置中，也可以指定 Bean 的作用域。</p>
+<pre><code><code>@Repository
+@Scope(&quot;prototype&quot;)
+public class UserDao {
+    public String hello() {
+        return &quot;userdao&quot;;
+    }
+}</code></pre>
+<h3 id="id-和-name-的区别">3.8.2 id 和 name 的区别</h3>
+<p>在 XML 配置中，我们可以看到，即可以通过 id 给 Bean 指定一个唯一标识符，也可以通过 name 来指定，大部分情况下这两个作用是一样的，有一个小小区别：</p>
+<p>name 支持取多个。多个 name 之间，用 , 隔开：</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.User&quot; name=&quot;user,user1,user2,user3&quot; scope=&quot;prototype&quot;/&gt;</code></pre>
+<p>此时，通过 user、user1、user2、user3 都可以获取到当前对象：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        User user = ctx.getBean(&quot;user&quot;, User.class);
+        User user2 = ctx.getBean(&quot;user2&quot;, User.class);
+        System.out.println(user);
+        System.out.println(user2);
+    }
+}</code></pre>
+<p>而 id 不支持有多个值。如果强行用 , 隔开，它还是一个值。例如如下配置：</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.User&quot; id=&quot;user,user1,user2,user3&quot; scope=&quot;prototype&quot; /&gt;</code></pre>
+<p>这个配置表示 Bean 的名字为 <code>user,user1,user2,user3</code>，具体调用如下：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        User user = ctx.getBean(&quot;user,user1,user2,user3&quot;, User.class);
+        User user2 = ctx.getBean(&quot;user,user1,user2,user3&quot;, User.class);
+        System.out.println(user);
+        System.out.println(user2);
+    }
+}</code></pre>
+<h3 id="混合配置">3.8.3 混合配置</h3>
+<p>混合配置就是 Java 配置+XML 配置。混用的话，可以在 Java 配置中引入 XML 配置。</p>
+<pre><code><code>@Configuration
+@ImportResource(&quot;classpath:applicationContext.xml&quot;)
+public class JavaConfig {
+}</code></pre>
+<p>在 Java 配置中，通过 @ImportResource 注解可以导入一个 XML 配置。</p>
+<h2 id="aware-接口">4. Aware 接口</h2>
+<p>Aware 接口，从字面上理解就是感知捕获。单纯的一个 Bean 是没有知觉的。</p>
+<p>在 3.6.4 节的场景中，之所以 UserDao 能够注入到 UserService ，有一个前提，就是它两个都是被 Spring 容器管理的。如果直接 new 一个 UserService，这是没用的，因为 UserService 没有被 Spring 容器管理，所以也不会给它里边注入 Bean。</p>
+<p>在实际开发中，我们可能会遇到一些类，需要获取到容器的详细信息，那就可以通过 Aware 接口来实现。</p>
+<p>Aware 是一个空接口，有很多实现类：</p>
+<p><img src="./images/Spring 学习，看松哥这一篇万余字干货就够了！3.png" /></p>
+<p>这些实现的接口，有一些公共特性：</p>
+<ol>
+<li>都是以 Aware 结尾</li>
+<li>都继承自 Aware</li>
+<li>接口内均定义了一个 set 方法</li>
+</ol>
+<p>每一个子接口均提供了一个 set 方法，方法的参数就是当前 Bean 需要感知的内容，因此我们需要在 Bean 中声明相关的成员变量来接受这个参数。接收到这个参数后，就可以通过这个参数获取到容器的详细信息了。</p>
+<pre><code><code>@Component
+public class SayHello implements ApplicationContextAware {
+    private ApplicationContext applicationContext;
+    public String sayHello(String name) {
+        //判断容器中是否存在某个 Bean
+        boolean userDao = applicationContext.containsBean(&quot;userDao333&quot;);
+        System.out.println(userDao);
+        return &quot;hello &quot; + name;
+    }
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+}</code></pre>
+<h2 id="aop">5.1 Aop</h2>
+<p>Aop（Aspect Oriented Programming），面向切面编程，这是对面向对象思想的一种补充。</p>
+<p>面向切面编程，就是在程序运行时，不改变程序源码的情况下，动态的增强方法的功能，常见的使用场景非常多：</p>
+<ol>
+<li>日志</li>
+<li>事务</li>
+<li>数据库操作</li>
+<li>....</li>
+</ol>
+<p>这些操作中，无一例外，都有很多模板化的代码，而解决模板化代码，消除臃肿就是 Aop 的强项。</p>
+<p>在 Aop 中，有几个常见的概念：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">概念</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">切点</td>
+<td style="text-align: left;">要添加代码的地方，称作切点</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">通知（增强）</td>
+<td style="text-align: left;">通知就是向切点动态添加的代码</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">切面</td>
+<td style="text-align: left;">切点+通知</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">连接点</td>
+<td style="text-align: left;">切点的定义</td>
+</tr>
+</tbody>
+</table>
+<h3 id="aop-的实现">5.1.1 Aop 的实现</h3>
+<p>在 Aop 实际上集基于 Java 动态代理来实现的。</p>
+<p>Java 中的动态代理有两种实现方式：</p>
+<ul>
+<li>cglib</li>
+<li>jdk</li>
+</ul>
+<h2 id="动态代理">5.2 动态代理</h2>
+<p>基于 JDK 的动态代理。</p>
+<p>1.定义一个计算器接口：</p>
+<pre><code><code>public interface MyCalculator {
+    int add(int a, int b);
+}</code></pre>
+<p>2.定义计算机接口的实现：</p>
+<pre><code><code>public class MyCalculatorImpl implements MyCalculator {
+    public int add(int a, int b) {
+        return a+b;
+    }
+}</code></pre>
+<p>3.定义代理类</p>
+<pre><code><code>public class CalculatorProxy {
+    public static Object getInstance(final MyCalculatorImpl myCalculator) {
+        return Proxy.newProxyInstance(CalculatorProxy.class.getClassLoader(), myCalculator.getClass().getInterfaces(), new InvocationHandler() {
+            /**
+             * @param proxy 代理对象
+             * @param method 代理的方法
+             * @param args 方法的参数
+             * @return
+             * @throws Throwable
+             */
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                System.out.println(method.getName()+&quot;方法开始执行啦...&quot;);
+                Object invoke = method.invoke(myCalculator, args);
+                System.out.println(method.getName()+&quot;方法执行结束啦...&quot;);
+                return invoke;
+            }
+        });
+    }
+}</code></pre>
+<p>Proxy.newProxyInstance 方法接收三个参数，第一个是一个 classloader，第二个是代理多项实现的接口，第三个是代理对象方法的处理器，所有要额外添加的行为都在 invoke 方法中实现。</p>
+<h2 id="五种通知">5.3 五种通知</h2>
+<p>Spring 中的 Aop 的通知类型有 5 种：</p>
+<ul>
+<li>前置通知</li>
+<li>后置通知</li>
+<li>异常通知</li>
+<li>返回通知</li>
+<li>环绕通知</li>
+</ul>
+<p>具体实现，这里的案例和 5.2 中的一样，依然是给计算器的方法增强功能。</p>
+<p>首先，在项目中，引入 Spring 依赖（这次需要引入 Aop 相关的依赖）：</p>
+<pre class="xml"><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+        &lt;version&gt;5.1.9.RELEASE&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.aspectj&lt;/groupId&gt;
+        &lt;artifactId&gt;aspectjweaver&lt;/artifactId&gt;
+        &lt;version&gt;1.9.5&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.aspectj&lt;/groupId&gt;
+        &lt;artifactId&gt;aspectjrt&lt;/artifactId&gt;
+        &lt;version&gt;1.9.5&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+<p>接下来，定义切点，这里介绍两种切点的定义方式：</p>
+<ul>
+<li>使用自定义注解</li>
+<li>使用规则</li>
+</ul>
+<p>其中，使用自定义注解标记切点，是侵入式的，所以这种方式在实际开发中不推荐，仅作为了解，另一种使用规则来定义切点的方式，无侵入，一般推荐使用这种方式。</p>
+<p><strong>自定义注解</strong></p>
+<p>首先自定义一个注解：</p>
+<pre><code><code>@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Action {
+}</code></pre>
+<p>然后在需要拦截的方法上，添加该注解，在 add 方法上添加了 @Action 注解，表示该方法将会被 Aop 拦截，而其他未添加该注解的方法则不受影响。</p>
+<pre><code><code>@Component
+public class MyCalculatorImpl {
+    @Action
+    public int add(int a, int b) {
+        return a + b;
+    }
+
+    public void min(int a, int b) {
+        System.out.println(a + &quot;-&quot; + b + &quot;=&quot; + (a - b));
+    }
+}</code></pre>
+<p>接下来，定义增强（通知、Advice）：</p>
+<pre><code><code>@Component
+@Aspect//表示这是一个切面
+public class LogAspect {
+
+    /**
+     * @param joinPoint 包含了目标方法的关键信息
+     * @Before 注解表示这是一个前置通知，即在目标方法执行之前执行，注解中，需要填入切点
+     */
+    @Before(value = &quot;@annotation(Action)&quot;)
+    public void before(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法开始执行了...&quot;);
+    }
+
+    /**
+     * 后置通知
+     * @param joinPoint 包含了目标方法的所有关键信息
+     * @After 表示这是一个后置通知，即在目标方法执行之后执行
+     */
+    @After(&quot;@annotation(Action)&quot;)
+    public void after(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法执行结束了...&quot;);
+    }
+
+    /**
+     * @param joinPoint
+     * @@AfterReturning 表示这是一个返回通知，即有目标方法有返回值的时候才会触发，该注解中的 returning 属性表示目标方法返回值的变量名，这个需要和参数一一对应吗，注意：目标方法的返回值类型要和这里方法返回值参数的类型一致，否则拦截不到，如果想拦截所有（包括返回值为 void），则方法返回值参数可以为 Object
+     */
+    @AfterReturning(value = &quot;@annotation(Action)&quot;,returning = &quot;r&quot;)
+    public void returing(JoinPoint joinPoint,Integer r) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法返回：&quot;+r);
+    }
+
+    /**
+     * 异常通知
+     * @param joinPoint
+     * @param e 目标方法所抛出的异常，注意，这个参数必须是目标方法所抛出的异常或者所抛出的异常的父类，只有这样，才会捕获。如果想拦截所有，参数类型声明为 Exception
+     */
+    @AfterThrowing(value = &quot;@annotation(Action)&quot;,throwing = &quot;e&quot;)
+    public void afterThrowing(JoinPoint joinPoint,Exception e) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法抛异常了：&quot;+e.getMessage());
+    }
+
+    /**
+     * 环绕通知
+     *
+     * 环绕通知是集大成者，可以用环绕通知实现上面的四个通知，这个方法的核心有点类似于在这里通过反射执行方法
+     * @param pjp
+     * @return 注意这里的返回值类型最好是 Object ，和拦截到的方法相匹配
+     */
+    @Around(&quot;@annotation(Action)&quot;)
+    public Object around(ProceedingJoinPoint pjp) {
+        Object proceed = null;
+        try {
+            //这个相当于 method.invoke 方法，我们可以在这个方法的前后分别添加日志，就相当于是前置/后置通知
+            proceed = pjp.proceed();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return proceed;
+    }
+}</code></pre>
+<p>通知定义完成后，接下来在配置类中，开启包扫描和自动代理：</p>
+<pre><code><code>@Configuration
+@ComponentScan
+@EnableAspectJAutoProxy//开启自动代理
+public class JavaConfig {
+}</code></pre>
+<p>然后，在 Main 方法中，开启调用：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(JavaConfig.class);
+        MyCalculatorImpl myCalculator = ctx.getBean(MyCalculatorImpl.class);
+        myCalculator.add(3, 4);
+        myCalculator.min(3, 4);
+    }
+}</code></pre>
+<p>再来回顾 LogAspect 切面，我们发现，切点的定义不够灵活，之前的切点是直接写在注解里边的，这样，如果要修改切点，每个方法上都要修改，因此，我们可以将切点统一定义，然后统一调用。</p>
+<pre><code><code>@Component
+@Aspect//表示这是一个切面
+public class LogAspect {
+
+    /**
+     * 可以统一定义切点
+     */
+    @Pointcut(&quot;@annotation(Action)&quot;)
+    public void pointcut() {
+
+    }
+
+    /**
+     * @param joinPoint 包含了目标方法的关键信息
+     * @Before 注解表示这是一个前置通知，即在目标方法执行之前执行，注解中，需要填入切点
+     */
+    @Before(value = &quot;pointcut()&quot;)
+    public void before(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法开始执行了...&quot;);
+    }
+
+    /**
+     * 后置通知
+     * @param joinPoint 包含了目标方法的所有关键信息
+     * @After 表示这是一个后置通知，即在目标方法执行之后执行
+     */
+    @After(&quot;pointcut()&quot;)
+    public void after(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法执行结束了...&quot;);
+    }
+
+    /**
+     * @param joinPoint
+     * @@AfterReturning 表示这是一个返回通知，即有目标方法有返回值的时候才会触发，该注解中的 returning 属性表示目标方法返回值的变量名，这个需要和参数一一对应吗，注意：目标方法的返回值类型要和这里方法返回值参数的类型一致，否则拦截不到，如果想拦截所有（包括返回值为 void），则方法返回值参数可以为 Object
+     */
+    @AfterReturning(value = &quot;pointcut()&quot;,returning = &quot;r&quot;)
+    public void returing(JoinPoint joinPoint,Integer r) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法返回：&quot;+r);
+    }
+
+    /**
+     * 异常通知
+     * @param joinPoint
+     * @param e 目标方法所抛出的异常，注意，这个参数必须是目标方法所抛出的异常或者所抛出的异常的父类，只有这样，才会捕获。如果想拦截所有，参数类型声明为 Exception
+     */
+    @AfterThrowing(value = &quot;pointcut()&quot;,throwing = &quot;e&quot;)
+    public void afterThrowing(JoinPoint joinPoint,Exception e) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法抛异常了：&quot;+e.getMessage());
+    }
+
+    /**
+     * 环绕通知
+     *
+     * 环绕通知是集大成者，可以用环绕通知实现上面的四个通知，这个方法的核心有点类似于在这里通过反射执行方法
+     * @param pjp
+     * @return 注意这里的返回值类型最好是 Object ，和拦截到的方法相匹配
+     */
+    @Around(&quot;pointcut()&quot;)
+    public Object around(ProceedingJoinPoint pjp) {
+        Object proceed = null;
+        try {
+            //这个相当于 method.invoke 方法，我们可以在这个方法的前后分别添加日志，就相当于是前置/后置通知
+            proceed = pjp.proceed();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return proceed;
+    }
+}</code></pre>
+<p>但是，大家也注意到，使用注解是侵入式的，我们还可以继续优化，改为非侵入式的。重新定义切点，新切点的定义就不在需要 @Action 注解了，要拦截的目标方法上也不用添加 @Action 注解。下面这种方式是更为通用的拦截方式：</p>
+<pre><code><code>@Component
+@Aspect//表示这是一个切面
+public class LogAspect {
+
+    /**
+     * 可以统一定义切点
+     */
+    @Pointcut(&quot;@annotation(Action)&quot;)
+    public void pointcut2() {
+
+    }
+    /**
+     * 可以统一定义切点
+     * 第一个 * 表示要拦截的目标方法返回值任意（也可以明确指定返回值类型
+     * 第二个 * 表示包中的任意类（也可以明确指定类
+     * 第三个 * 表示类中的任意方法
+     * 最后面的两个点表示方法参数任意，个数任意，类型任意
+     */
+    @Pointcut(&quot;execution(* org.javaboy.aop.commons.*.*(..))&quot;)
+    public void pointcut() {
+
+    }
+
+    /**
+     * @param joinPoint 包含了目标方法的关键信息
+     * @Before 注解表示这是一个前置通知，即在目标方法执行之前执行，注解中，需要填入切点
+     */
+    @Before(value = &quot;pointcut()&quot;)
+    public void before(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法开始执行了...&quot;);
+    }
+
+    /**
+     * 后置通知
+     * @param joinPoint 包含了目标方法的所有关键信息
+     * @After 表示这是一个后置通知，即在目标方法执行之后执行
+     */
+    @After(&quot;pointcut()&quot;)
+    public void after(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法执行结束了...&quot;);
+    }
+
+    /**
+     * @param joinPoint
+     * @@AfterReturning 表示这是一个返回通知，即有目标方法有返回值的时候才会触发，该注解中的 returning 属性表示目标方法返回值的变量名，这个需要和参数一一对应吗，注意：目标方法的返回值类型要和这里方法返回值参数的类型一致，否则拦截不到，如果想拦截所有（包括返回值为 void），则方法返回值参数可以为 Object
+     */
+    @AfterReturning(value = &quot;pointcut()&quot;,returning = &quot;r&quot;)
+    public void returing(JoinPoint joinPoint,Integer r) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法返回：&quot;+r);
+    }
+
+    /**
+     * 异常通知
+     * @param joinPoint
+     * @param e 目标方法所抛出的异常，注意，这个参数必须是目标方法所抛出的异常或者所抛出的异常的父类，只有这样，才会捕获。如果想拦截所有，参数类型声明为 Exception
+     */
+    @AfterThrowing(value = &quot;pointcut()&quot;,throwing = &quot;e&quot;)
+    public void afterThrowing(JoinPoint joinPoint,Exception e) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法抛异常了：&quot;+e.getMessage());
+    }
+
+    /**
+     * 环绕通知
+     *
+     * 环绕通知是集大成者，可以用环绕通知实现上面的四个通知，这个方法的核心有点类似于在这里通过反射执行方法
+     * @param pjp
+     * @return 注意这里的返回值类型最好是 Object ，和拦截到的方法相匹配
+     */
+    @Around(&quot;pointcut()&quot;)
+    public Object around(ProceedingJoinPoint pjp) {
+        Object proceed = null;
+        try {
+            //这个相当于 method.invoke 方法，我们可以在这个方法的前后分别添加日志，就相当于是前置/后置通知
+            proceed = pjp.proceed();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return proceed;
+    }
+}</code></pre>
+<h2 id="xml-配置-aop">5.4 XML 配置 Aop</h2>
+<pre class="xml"><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+    &lt;version&gt;5.1.9.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.aspectj&lt;/groupId&gt;
+    &lt;artifactId&gt;aspectjweaver&lt;/artifactId&gt;
+    &lt;version&gt;1.9.5&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.aspectj&lt;/groupId&gt;
+    &lt;artifactId&gt;aspectjrt&lt;/artifactId&gt;
+    &lt;version&gt;1.9.5&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<p>接下来，定义通知/增强，但是单纯定义自己的行为即可，不再需要注解：</p>
+<pre><code><code>public class LogAspect {
+
+    public void before(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法开始执行了...&quot;);
+    }
+    
+    public void after(JoinPoint joinPoint) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法执行结束了...&quot;);
+    }
+
+    public void returing(JoinPoint joinPoint,Integer r) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法返回：&quot;+r);
+    }
+    
+    public void afterThrowing(JoinPoint joinPoint,Exception e) {
+        Signature signature = joinPoint.getSignature();
+        String name = signature.getName();
+        System.out.println(name + &quot;方法抛异常了：&quot;+e.getMessage());
+    }
+    
+    public Object around(ProceedingJoinPoint pjp) {
+        Object proceed = null;
+        try {
+            //这个相当于 method.invoke 方法，我们可以在这个方法的前后分别添加日志，就相当于是前置/后置通知
+            proceed = pjp.proceed();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return proceed;
+    }
+}</code></pre>
+<p>接下来在 spring 中配置 Aop：</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.javaboy.aop.LogAspect&quot; id=&quot;logAspect&quot;/&gt;
+&lt;aop:config&gt;
+    &lt;aop:pointcut id=&quot;pc1&quot; expression=&quot;execution(* org.javaboy.aop.commons.*.*(..))&quot;/&gt;
+    &lt;aop:aspect ref=&quot;logAspect&quot;&gt;
+        &lt;aop:before method=&quot;before&quot; pointcut-ref=&quot;pc1&quot;/&gt;
+        &lt;aop:after method=&quot;after&quot; pointcut-ref=&quot;pc1&quot;/&gt;
+        &lt;aop:after-returning method=&quot;returing&quot; pointcut-ref=&quot;pc1&quot; returning=&quot;r&quot;/&gt;
+        &lt;aop:after-throwing method=&quot;afterThrowing&quot; pointcut-ref=&quot;pc1&quot; throwing=&quot;e&quot;/&gt;
+        &lt;aop:around method=&quot;around&quot; pointcut-ref=&quot;pc1&quot;/&gt;
+    &lt;/aop:aspect&gt;
+&lt;/aop:config&gt;</code></pre>
+<p>最后，在 Main 方法中加载配置文件：</p>
+<pre><code><code>public class Main {
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        MyCalculatorImpl myCalculator = ctx.getBean(MyCalculatorImpl.class);
+        myCalculator.add(3, 4);
+        myCalculator.min(5, 6);
+    }
+}</code></pre>
+<h2 id="jdbctemplate">6. JdbcTemplate</h2>
+<p>JdbcTemplate 是 Spring 利用 Aop 思想封装的 JDBC 操作工具。</p>
+<h3 id="准备">6.1 准备</h3>
+<p>创建一个新项目，添加如下依赖：</p>
+<pre class="xml"><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-jdbc&lt;/artifactId&gt;
+        &lt;version&gt;5.1.9.RELEASE&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+        &lt;version&gt;5.1.9.RELEASE&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;mysql&lt;/groupId&gt;
+        &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+        &lt;version&gt;8.0.17&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+<p>准备数据库：</p>
+<pre class="sql"><code>CREATE DATABASE /*!32312 IF NOT EXISTS*/`test01` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION=&#39;N&#39; */;
+
+USE `test01`;
+
+/*Table structure for table `user` */
+
+DROP TABLE IF EXISTS `user`;
+
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;</code></pre>
+<p>准备一个实体类：</p>
+<pre><code><code>public class User {
+    private Integer id;
+    private String username;
+    private String address;
+
+    @Override
+    public String toString() {
+        return &quot;User{&quot; +
+                &quot;id=&quot; + id +
+                &quot;, username=&#39;&quot; + username + &#39;\&#39;&#39; +
+                &quot;, address=&#39;&quot; + address + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+}</code></pre>
+<h3 id="java-配置-1">6.2 Java 配置</h3>
+<p>提供一个配置类，在配置类中配置 JdbcTemplate：</p>
+<pre><code><code>@Configuration
+public class JdbcConfig {
+    @Bean
+    DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(&quot;com.mysql.cj.jdbc.Driver&quot;);
+        dataSource.setUsername(&quot;root&quot;);
+        dataSource.setPassword(&quot;123&quot;);
+        dataSource.setUrl(&quot;jdbc:mysql:///test01&quot;);
+        return dataSource;
+    }
+    @Bean
+    JdbcTemplate jdbcTemplate() {
+        return new JdbcTemplate(dataSource());
+    }
+}</code></pre>
+<p>这里，提供两个 Bean，一个是 DataSource 的 Bean，另一个是 JdbcTemplate 的 Bean，JdbcTemplate 的配置非常容易，只需要 new 一个 Bean 出来，然后配置一下 DataSource 就i可以。</p>
+<pre><code><code>public class Main {
+
+    private JdbcTemplate jdbcTemplate;
+
+    @Before
+    public void before() {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(JdbcConfig.class);
+        jdbcTemplate = ctx.getBean(JdbcTemplate.class);
+    }
+
+    @Test
+    public void insert() {
+        jdbcTemplate.update(&quot;insert into user (username,address) values (?,?);&quot;, &quot;javaboy&quot;, &quot;www.javaboy.org&quot;);
+    }
+    @Test
+    public void update() {
+        jdbcTemplate.update(&quot;update user set username=? where id=?&quot;, &quot;javaboy123&quot;, 1);
+
+    }
+    @Test
+    public void delete() {
+        jdbcTemplate.update(&quot;delete from user where id=?&quot;, 2);
+    }
+
+    @Test
+    public void select() {
+        User user = jdbcTemplate.queryForObject(&quot;select * from user where id=?&quot;, new BeanPropertyRowMapper&lt;User&gt;(User.class), 1);
+        System.out.println(user);
+    }
+}</code></pre>
+<p>在查询时，如果使用了 BeanPropertyRowMapper，要求查出来的字段必须和 Bean 的属性名一一对应。如果不一样，则不要使用 BeanPropertyRowMapper，此时需要自定义 RowMapper 或者给查询的字段取别名。</p>
+<ol>
+<li>给查询出来的列取别名：</li>
+</ol>
+<pre><code><code>@Test
+public void select2() {
+    User user = jdbcTemplate.queryForObject(&quot;select id,username as name,address from user where id=?&quot;, new BeanPropertyRowMapper&lt;User&gt;(User.class), 1);
+    System.out.println(user);
+}</code></pre>
+<p>2.自定义 RowMapper</p>
+<pre><code><code>@Test
+public void select3() {
+    User user = jdbcTemplate.queryForObject(&quot;select * from user where id=?&quot;, new RowMapper&lt;User&gt;() {
+        public User mapRow(ResultSet resultSet, int i) throws SQLException {
+            int id = resultSet.getInt(&quot;id&quot;);
+            String username = resultSet.getString(&quot;username&quot;);
+            String address = resultSet.getString(&quot;address&quot;);
+            User u = new User();
+            u.setId(id);
+            u.setName(username);
+            u.setAddress(address);
+            return u;
+        }
+    }, 1);
+    System.out.println(user);
+}</code></pre>
+<p>查询多条记录，方式如下：</p>
+<pre><code><code>@Test
+public void select4() {
+    List&lt;User&gt; list = jdbcTemplate.query(&quot;select * from user&quot;, new BeanPropertyRowMapper&lt;&gt;(User.class));
+    System.out.println(list);
+}</code></pre>
+<h3 id="xml-配置">6.3 XML 配置</h3>
+<p>以上配置，也可以通过 XML 文件来实现。通过 XML 文件实现只是提供 JdbcTemplate 实例，剩下的代码还是 Java 代码，就是 JdbcConfig 被 XML 文件代替而已。</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.springframework.jdbc.datasource.DriverManagerDataSource&quot; id=&quot;dataSource&quot;&gt;
+    &lt;property name=&quot;username&quot; value=&quot;root&quot;/&gt;
+    &lt;property name=&quot;password&quot; value=&quot;123&quot;/&gt;
+    &lt;property name=&quot;url&quot; value=&quot;jdbc:mysql:///test01?serverTimezone=Asia/Shanghai&quot;/&gt;
+    &lt;property name=&quot;driverClassName&quot; value=&quot;com.mysql.cj.jdbc.Driver&quot;/&gt;
+&lt;/bean&gt;
+&lt;bean class=&quot;org.springframework.jdbc.core.JdbcTemplate&quot; id=&quot;jdbcTemplate&quot;&gt;
+    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<p>配置完成后，加载该配置文件，并启动：</p>
+<pre><code><code>public class Main {
+
+    private JdbcTemplate jdbcTemplate;
+
+    @Before
+    public void before() {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        jdbcTemplate = ctx.getBean(JdbcTemplate.class);
+    }
+
+    @Test
+    public void insert() {
+        jdbcTemplate.update(&quot;insert into user (username,address) values (?,?);&quot;, &quot;javaboy&quot;, &quot;www.javaboy.org&quot;);
+    }
+    @Test
+    public void update() {
+        jdbcTemplate.update(&quot;update user set username=? where id=?&quot;, &quot;javaboy123&quot;, 1);
+
+    }
+    @Test
+    public void delete() {
+        jdbcTemplate.update(&quot;delete from user where id=?&quot;, 2);
+    }
+
+    @Test
+    public void select() {
+        User user = jdbcTemplate.queryForObject(&quot;select * from user where id=?&quot;, new BeanPropertyRowMapper&lt;User&gt;(User.class), 1);
+        System.out.println(user);
+    }
+    @Test
+    public void select4() {
+        List&lt;User&gt; list = jdbcTemplate.query(&quot;select * from user&quot;, new BeanPropertyRowMapper&lt;&gt;(User.class));
+        System.out.println(list);
+    }
+
+    @Test
+    public void select2() {
+        User user = jdbcTemplate.queryForObject(&quot;select id,username as name,address from user where id=?&quot;, new BeanPropertyRowMapper&lt;User&gt;(User.class), 1);
+        System.out.println(user);
+    }
+
+    @Test
+    public void select3() {
+        User user = jdbcTemplate.queryForObject(&quot;select * from user where id=?&quot;, new RowMapper&lt;User&gt;() {
+            public User mapRow(ResultSet resultSet, int i) throws SQLException {
+                int id = resultSet.getInt(&quot;id&quot;);
+                String username = resultSet.getString(&quot;username&quot;);
+                String address = resultSet.getString(&quot;address&quot;);
+                User u = new User();
+                u.setId(id);
+                u.setName(username);
+                u.setAddress(address);
+                return u;
+            }
+        }, 1);
+        System.out.println(user);
+    }
+
+}</code></pre>
+<h2 id="事务">7. 事务</h2>
+<p>Spring 中的事务主要是利用 Aop 思想，简化事务的配置，可以通过 Java 配置也可以通过 XML 配置。</p>
+<p>准备工作：</p>
+<p>我们通过一个转账操作来看下 Spring 中的事务配置。</p>
+<p>首先准备 SQL：</p>
+<pre class="sql"><code>CREATE DATABASE /*!32312 IF NOT EXISTS*/`test01` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION=&#39;N&#39; */;
+
+USE `test01`;
+
+/*Table structure for table `account` */
+
+DROP TABLE IF EXISTS `account`;
+
+CREATE TABLE `account` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `money` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/*Data for the table `account` */
+
+insert  into `account`(`id`,`username`,`money`) values (1,&#39;zhangsan&#39;,1000),(2,&#39;lisi&#39;,1000);</code></pre>
+<p>然后配置 JdbcTemplate ，JdbcTemplate 的配置和第 6 小节一致。</p>
+<p>然后，提供转账操作的方法：</p>
+<pre><code><code>@Repository
+public class UserDao {
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    public void addMoney(String username, Integer money) {
+        jdbcTemplate.update(&quot;update account set money=money+? where username=?&quot;, money, username);
+    }
+
+    public void minMoney(String username, Integer money) {
+        jdbcTemplate.update(&quot;update account set money=money-? where username=?&quot;, money, username);
+    }
+}
+@Service
+public class UserService {
+    @Autowired
+    UserDao userDao;
+    public void updateMoney() {
+        userDao.addMoney(&quot;zhangsan&quot;, 200);
+        int i = 1 / 0;
+        userDao.minMoney(&quot;lisi&quot;, 200);
+    }
+}</code></pre>
+<p>最后，在 XML 文件中，开启自动化扫描：</p>
+<pre class="xml"><code>&lt;context:component-scan base-package=&quot;org.javaboy&quot;/&gt;
+&lt;bean class=&quot;org.springframework.jdbc.datasource.DriverManagerDataSource&quot; id=&quot;dataSource&quot;&gt;
+    &lt;property name=&quot;username&quot; value=&quot;root&quot;/&gt;
+    &lt;property name=&quot;password&quot; value=&quot;123&quot;/&gt;
+    &lt;property name=&quot;url&quot; value=&quot;jdbc:mysql:///test01?serverTimezone=Asia/Shanghai&quot;/&gt;
+    &lt;property name=&quot;driverClassName&quot; value=&quot;com.mysql.cj.jdbc.Driver&quot;/&gt;
+&lt;/bean&gt;
+&lt;bean class=&quot;org.springframework.jdbc.core.JdbcTemplate&quot; id=&quot;jdbcTemplate&quot;&gt;
+    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<h3 id="xml-配置-1">7.1 XML 配置</h3>
+<p>XML 中配置事务一共分为三个步骤：</p>
+<p>1.配置 TransactionManager</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.springframework.jdbc.datasource.DataSourceTransactionManager&quot; id=&quot;transactionManager&quot;&gt;
+    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
+&lt;/bean&gt;</code></pre>
+<p>2.配置事务要处理的方法</p>
+<pre class="xml"><code>&lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt;
+    &lt;tx:attributes&gt;
+        &lt;tx:method name=&quot;update*&quot;/&gt;
+        &lt;tx:method name=&quot;insert*&quot;/&gt;
+        &lt;tx:method name=&quot;add*&quot;/&gt;
+        &lt;tx:method name=&quot;delete*&quot;/&gt;
+    &lt;/tx:attributes&gt;
+&lt;/tx:advice&gt;</code></pre>
+<p><strong>注意，一旦配置了方法名称规则之后，service 中的方法一定要按照这里的名称规则来，否则事务配置不会生效</strong></p>
+<p>3.配置 Aop</p>
+<pre class="xml"><code>&lt;aop:config&gt;
+    &lt;aop:pointcut id=&quot;pc1&quot; expression=&quot;execution(* org.javaboy.service.*.*(..))&quot;/&gt;
+    &lt;aop:advisor advice-ref=&quot;txAdvice&quot; pointcut-ref=&quot;pc1&quot;/&gt;
+&lt;/aop:config&gt;</code></pre>
+<p>4.测试</p>
+<pre><code><code>@Before
+public void before() {
+    ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+    jdbcTemplate = ctx.getBean(JdbcTemplate.class);
+    userService = ctx.getBean(UserService.class);
+}
+@Test
+public void test1() {
+    userService.updateMoney();
+}</code></pre>
+<h3 id="java-配置-2">7.2 Java 配置</h3>
+<p>如果要开启 Java 注解配置，在 XML 配置中添加如下配置：</p>
+<pre class="xml"><code>&lt;tx:annotation-driven transaction-manager=&quot;transactionManager&quot; /&gt;</code></pre>
+<p>这行配置，可以代替下面两个配置：</p>
+<pre class="xml"><code>&lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt;
+    &lt;tx:attributes&gt;
+        &lt;tx:method name=&quot;update*&quot;/&gt;
+        &lt;tx:method name=&quot;insert*&quot;/&gt;
+        &lt;tx:method name=&quot;add*&quot;/&gt;
+        &lt;tx:method name=&quot;delete*&quot;/&gt;
+    &lt;/tx:attributes&gt;
+&lt;/tx:advice&gt;
+&lt;aop:config&gt;
+    &lt;aop:pointcut id=&quot;pc1&quot; expression=&quot;execution(* org.javaboy.service.*.*(..))&quot;/&gt;
+    &lt;aop:advisor advice-ref=&quot;txAdvice&quot; pointcut-ref=&quot;pc1&quot;/&gt;
+&lt;/aop:config&gt;</code></pre>
+<p>然后，在需要添加事务的方法上，添加 @Transactional 注解，表示该方法开启事务，当然，这个注解也可以放在类上，表示这个类中的所有方法都开启事务。</p>
+<pre><code><code>@Service
+public class UserService {
+    @Autowired
+    UserDao userDao;
+    @Transactional
+    public void updateMoney() {
+        userDao.addMoney(&quot;zhangsan&quot;, 200);
+        int i = 1 / 0;
+        userDao.minMoney(&quot;lisi&quot;, 200);
+    }
+}</code></pre>
+<h3 id="关注微信公众号江南一点雨回复-spring获取本文电子版或者访问-httpspring.javaboy.org-查看本文电子书">关注微信公众号【江南一点雨】，回复 spring，获取本文电子版，或者访问 http://spring.javaboy.org 查看本文电子书。</h3>
+<p><img src="./images/Spring 学习，看松哥这一篇万余字干货就够了！4.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

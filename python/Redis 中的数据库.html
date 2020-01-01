@@ -1,0 +1,124 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis 中的数据库' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis 中的数据库</center></div><div class='banquan'>原文出处:本文由博客园博主Single_Yam提供。<br/>
+原文连接:https://www.cnblogs.com/yangming1996/p/12023865.html</div><br>
+    <p>前面我们花了很多的时间介绍了 redis 中基本的数据结构，及其内部的实现情况，这些都是非常基础的东西，可能不经意间你就会用到他们，希望你花点时间了解一下。</p>
+<p>接下来，我们将走近 redis 数据库，学习各种操作 redis 的命令，并介绍它的一些实现策略以及集群配置等等内容。</p>
+<h3 id="一redis-中的数据库">一、redis 中的数据库</h3>
+<p>server.h/redisServer 结构中有一个字段，db 字段：</p>
+<pre><code><code>redisDb *db;</code></pre>
+<p>db 被定义成一个 redisDb 数组，其中 redisDb 的定义如下：</p>
+<pre><code><code>typedef struct redisDb {
+    dict *dict;                 
+    dict *expires;              
+    dict *blocking_keys;        
+    dict *ready_keys;          
+    dict *watched_keys;         
+    int id;                    
+    long long avg_ttl;      
+} redisDb;</code></pre>
+<p>我们经常说 redis 具有十六个数据库，可以切换不通的数据库做数据隔离，这里你就可以将一个 redisDb 实例理解为一个数据库，而 db 指针则可以访问 redis 预定义的所有数据库。</p>
+<p>其中，dict 是一个字典结构，用于实际存储数据，expires 也是一个字典结构，它存储的是数据库中所有设置过期时间的键值对，保存他们的过期时间，是一个 UNIX 时间戳。</p>
+<p>blocking_keys 存储了被阻塞的键集合，ready_keys 存储的是可以解除阻塞的键集合，watched_keys 存储的是正在被 watch 命令监控的键的集合，id 记录的是当前数据库的一个编号，avg_ttl 收集了所有键剩余存活时间的一个平均值。这一部分的几个字段的值这里不做详细的解释，没有基本的知识储备，不容易理解的，后面我们还会遇到的。</p>
+<p>server.h/redisServer 结构中还有一个字段，dbnum 字段：</p>
+<pre><code><code>int dbnum;  /* Total number of configured DBs */</code></pre>
+<p>与此同时，redis.conf 配置文件中，默认有这么一项配置。</p>
+<p><img src="./images/Redis 中的数据库0.png" alt="image" /></p>
+<p>所以，我们启动 redis-server 的时候，会根据配置文件中给定的配置默认创建 16 个数据库。</p>
+<p><strong>1、select 命令</strong></p>
+<p>select 命令用于我们切换数据库，例如：</p>
+<p><img src="./images/Redis 中的数据库1.png" alt="image" /></p>
+<p>默认连接上 redis-server 的客户端使用 0 号数据库，鉴于 redis 并没有提供给客户端查询当前使用数据库编号的命令，所以建议执行 redis 命令之前，尤其是修改、添加命令，先执行下切换数据库的命令。</p>
+<p><strong>2、set 命令</strong></p>
+<p>set 命令其实无需过多介绍，它向数据库中添加一个键值对，大部分情况下，键会是一个字符串对象，而值可取我们 redis 的五大对象之一。</p>
+<p>因为 redisDb 底层是字典结构，键不允许重复，故而 set 命令同样适用于更新操作。</p>
+<p><strong>3、del 命令</strong></p>
+<p>del 命令用于删除数据库中一个键值对，标准语法如下：</p>
+<pre><code><code>del [KEY]</code></pre>
+<p>例如：</p>
+<p><img src="./images/Redis 中的数据库2.png" alt="image" /></p>
+<p><strong>4、get 命令</strong></p>
+<p>get 命令用于获取一个键值对的值，标准语法是：</p>
+<pre><code><code>get [KEY]</code></pre>
+<p>具体事例就不再演示了，get 命令对应于 set 命令，只能获取由 set 命令添加的字符串对象键值对，而例如一些集合对象，或列表对象需要用类似于 sadd、zadd 等命令进行数据库的添加，自然 get 命令也是无法得到这些键值对对象值的。</p>
+<p><strong>5、其他命令</strong></p>
+<p>第一个我们介绍 dbsize 命令，它返回当前数据库有多少键值对，基本语法格式如下：</p>
+<pre><code><code>dbsize</code></pre>
+<p>第二个我们要介绍的是 flushdb 命令，它用于清空当前数据库，这是一个非常危险的命令，谨慎使用，基本语法格式如下：</p>
+<pre><code><code>flushdb</code></pre>
+<p><img src="./images/Redis 中的数据库3.png" alt="image" /></p>
+<p>第三个我们要介绍一个 kyes 命令，它会返回数据库中所有符合匹配规则的键的集合，这个规则起初我以为是正则表达式，几番操作后发现匹配不上，查阅资料貌似不是正则，并且仅有以下三种规则：</p>
+<ol>
+<li>?：用于匹配单个字符</li>
+<li>*：用于匹配零个或者多个字符</li>
+<li>[]：可以用来指定模式的选择区间</li>
+</ol>
+<p>正则表达式中的问号，用于匹配前一个字符出现零次或一次，即要么出现要么不出现，而我们这里的 keys 模式，问号具有不同的意义。</p>
+<p><img src="./images/Redis 中的数据库4.png" alt="image" /></p>
+<p>不过 keys 命令这种遍历整个数据库的命令是非常耗 CPU 的，可能会导致 redis 性能下降，不做推荐使用。</p>
+<p>最后还有一个简单的命令就是 exists，它用于判断给定的 key 是否存在，返回 0 说明不存在，返回 1 说明存在。</p>
+<h3 id="二过期键">二、过期键</h3>
+<p>有的时候我们希望给某些键一个过期时间，即希望它存活一段时间就失效，我们 redis 为我们提供了这样的机制。</p>
+<p><strong>1、expire</strong></p>
+<p>expire 用于设定某个键的过期时间，单位是秒，基本语法格式如下：</p>
+<pre><code><code>expire [key] [time]</code></pre>
+<p><img src="./images/Redis 中的数据库5.png" alt="image" /></p>
+<p>可以看到，五秒后 redis 为我们删除了键 hello。与之对应的有一个命令 pexpire，他会将我们传入的 time 参数解析为毫秒，例如 「pexpire hello 5」会将键通过五毫秒之后删除。</p>
+<p><strong>2、expireat</strong></p>
+<p>expireat 用于设定某个键在某个具体 Unix 时间戳过期，单位秒，基本语法如下：</p>
+<pre><code><code>expireat [key] [time]</code></pre>
+<p><img src="./images/Redis 中的数据库6.png" alt="image" /></p>
+<p>过期键会在我们指定 Unix 时间戳别删除。当然它也有一个对应毫秒单位的命令，pexpireat ，他会解析命令参数时间戳为毫秒，也就是你需要传入的时间戳不再是秒单位的，而是毫秒单位的时间戳。</p>
+<p><strong>3、ttl 和 pttl</strong></p>
+<p>这两个命令用于查看某个过期键还剩余多少时间，基本语法格式如下：</p>
+<pre><code><code>ttl/pttl [key]</code></pre>
+<p><img src="./images/Redis 中的数据库7.png" alt="image" /></p>
+<p>ttl 命令输出的单位是秒，pttl 输出的单位是毫秒，仅此区别。</p>
+<p><strong>4、persist</strong></p>
+<p>persist 用于移除某个过期键的过期时间，也就是让这个键成为永久有效键。基本语法格式如下：</p>
+<pre><code><code>persist [key]</code></pre>
+<p><img src="./images/Redis 中的数据库8.png" alt="image" /></p>
+<p>以上就是 redis 中过期键相关的命令，之前也说过，redisDb 数据结构中有一个 expires 字典，它存储的就是库中所有过期键以及他们生存截止时间。</p>
+<p><strong>那么，你可能会好奇了，redis 只记录了某个过期键的截止有效时间，那么什么时候删除这些过期键呢？</strong></p>
+<h3 id="三过期键删除策略">三、过期键删除策略</h3>
+<p>因为 redis 通过 expires 字典记录所有的过期键以及他们的过期时间（一个 Unix时间戳），那么我们只需要比对当前系统时间戳 Unix 是否大于键的过期时间戳即可判断键是否过期。</p>
+<p>我们直接介绍 redis 使用的两种删除策略，定期删除和惰性删除。</p>
+<ol>
+<li>定期删除：redis 每间隔一段时间进行一次小规模，有限时长的删除过期键操作。</li>
+<li>惰性删除：redis 每次读取某个键的时候，会先判断这个键是否过期，如果过期，执行删除操作。</li>
+</ol>
+<p>这两个策略，每一个都有缺点，定期删除需要每间隔一段时间触发一次删除，所以需要用户对系统的业务量、请求峰谷点有熟悉的的了解，才能配置合适的频率，否则过于高频会平白增加 CPU 压力，过于低频会导致内存中过多无用内存占用，降低系统性能。</p>
+<p>而惰性删除缺点非常直接，如果某些键过期了，且程序永远不会访问这些键，那么 redis 就永远不会释放这些键占用的内存，进而导致内存泄漏。</p>
+<p>redis 中同时使用了这两种删除策略，一方面，每次读取键的时候会调用方法 db.c/expireIfNeeded 判断当前键是否过期，如果过期则删除并返回 nil。另一方面，redis 中有一个定期的时间事件函数，server.c/serverCron，每次执行都会收集与更新一些与服务器状态相关的信息，比如更新服务器时间、计算对象空转时长，管理客户端连接资源的释放等等。</p>
+<p>其中也会执行一个 expire.c/activeExpireCycle 函数，默认配置了一千微妙内返回，activeExpireCycle 会在时间内选定数据库，随机的处理这些过期键，并给予删除。</p>
+<p>所以，其实上 redis 通过这两种策略的结合，定期删除保证不存在某些过期键永远得不到删除以进而引发内存泄漏，惰性删除使得 redis 不用集中大量时间处理这些过期键以引起 CPU 负载过大。</p>
+<p>下一节，我们讲 redis 如何做持久化存储，毕竟数据放在内存，一旦服务器宕机、断点，所有数据都会丢失，所以我们也需要将数据备份磁盘。下节见~</p>
+<hr />
+<p><strong><center>关注公众不迷路，一个爱分享的程序员。</center></strong><br />
+<strong><center>公众号回复「1024」加作者微信一起探讨学习！</center></strong><br />
+<strong><center>每篇文章用到的所有案例代码素材都会上传我个人 github</center></strong><br />
+<strong><center><a href="https://github.com/SingleYam/overview_java" class="uri">https://github.com/SingleYam/overview_java</a></center></strong><br />
+<strong><center>欢迎来踩！</center></strong></p>
+<p><img src="./images/Redis 中的数据库9.png" alt="YangAM 公众号" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

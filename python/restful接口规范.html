@@ -1,0 +1,132 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修restful接口规范' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>restful接口规范</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11448845.html</div><br>
+    <h1 id="自我总结">0902自我总结</h1>
+<h2 id="restful接口规范">restful接口规范</h2>
+<ul>
+<li><p>1.一般都采用安全协议(接口都是操作数据的):https</p>
+<pre><code><code>http协议
+  应用层协议
+  请求与响应规范：首行 - 头 - 体
+  特点：无状态、无连接、请求永远是客户端到服务器端、ssl
+而
+https协议
+相对于http协议多了个ssl安全套接层
+#https比http传输速度要蛮
+#https比http数据更加安全</code></pre></li>
+<li><p>2.体现接口的关键字</p>
+<p><code>https://api.xxx.com/books/</code></p></li>
+<li><p>3.接口操作的数据称之为资源：采用资源名称的复数</p>
+<p><code>https://api.xxx.com/books/</code></p></li>
+<li>4.接口链接中不出现操作资源的动词，通过请求方式来决定操作资源的动作
+<ul>
+<li><code>get</code>|<code>post</code>:<code>https://api.xxx.com/books/</code>
+<ul>
+<li>get：获取所有 | post：增加一个</li>
+</ul></li>
+<li><code>get</code>|<code>put</code>|<code>patch</code>|<code>delet</code>:<code>https://api.xxx.com/books/(?P&lt;pk&gt;)/</code>
+<ul>
+<li>get：获取一个 | put：整体修改一个(patch：局部修改一个) | delet：删除一个</li>
+</ul></li>
+</ul></li>
+<li>5.资源数据有多版本时，接口可以做版本控制
+<ul>
+<li><code>https://api.xxx.com/books/v1/</code></li>
+<li><code>https://api.xxx.com/v2/books/</code></li>
+</ul></li>
+<li><p>6.资源响应的限制条件：筛选、排序、限制...</p>
+<p><code>https://api.xxx.com/books/?publish=1&amp;ordering=-price&amp;limit=3</code></p></li>
+<li><p>7.响应状态码</p></li>
+</ul>
+<pre><code><code>    网络状态码：2xx | 3xx | 4xx | 5xx
+    数据状态码(自己合前端商量约定的)：0 | 1 | 2
+    {
+        &#39;status&#39;: 1,  
+    }
+    -- SUCCESS(0, &quot;查询成功&quot;)
+    -- NODATA(1, &quot;非正确，无数据，显示基本信息&quot;)
+    -- FEAILED(2, &quot;查询失败&quot;)</code></pre>
+<p>常见的网络状态码</p>
+<table>
+<thead>
+<tr class="header">
+<th>状态码</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>200</td>
+<td>获取或修改成功</td>
+</tr>
+<tr class="even">
+<td>201</td>
+<td>新增成功</td>
+</tr>
+<tr class="odd">
+<td>204</td>
+<td>删除成功</td>
+</tr>
+<tr class="even">
+<td>404</td>
+<td>资源不存在</td>
+</tr>
+<tr class="odd">
+<td>400</td>
+<td>客户请求有误</td>
+</tr>
+<tr class="even">
+<td>500</td>
+<td>服务器错误</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>8.响应结果的信息描述：</p>
+<pre><code><code>  {
+      &#39;status&#39;: 1,      #状态码
+      &#39;msg&#39;: &#39;login failed&#39;  #内容
+  }</code></pre></li>
+<li>9.响应的结果:
+<ul>
+<li>get所有：所有资源</li>
+<li>get一个：一个资源</li>
+<li>post、put、patch：新增、修改的资源</li>
+<li>delete：不做任何返回<code>实际开发中最好返回消息</code></li>
+</ul></li>
+<li><p>10.响应结果中有二次资源(用户头像：图片链接，用户详情：详情接口)要表明请求二次资源的接口</p>
+<pre><code><code>  {
+      &#39;status&#39;: 1,      #数据状态码
+      &#39;msg&#39;: &#39;login failed&#39;  #内容
+        &#39;results&#39;:[               #二次资源
+            {
+                name:&#39;xxxxx&#39;
+                price:&#39;xxxx&#39;
+                img:&#39;path&#39;
+            }
+        ]
+  }</code></pre></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

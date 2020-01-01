@@ -1,0 +1,185 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python装饰器(Decorators )' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python装饰器(Decorators )</center></div><div class='banquan'>原文出处:本文由博客园博主Leohahah提供。<br/>
+原文连接:https://www.cnblogs.com/leohahah/p/11724884.html</div><br>
+    <p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;"><a href="http://book.pythontips.com/en/latest/decorators.html"><span data-wiz-span="data-wiz-span">http://book.pythontips.com/en/latest/decorators.html</span></a></span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">在《Built-in Functions(3.6)》和《Python上下文管理器》两篇笔记中，已经有了装饰器初步的示例，本篇结合一个高露洁大学牛人的博客来系统的解释下python中装饰器的作用。</span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;"><strong>一、首先提出一个统一的概念</strong></span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">Decorators are functions which modify the functionality of other functions. They help to make our code shorter and more Pythonic.<br /></span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">装饰器（也可以叫修饰器）的作用就是改变其他函数的运作方式，这可以使得代码更加简洁和Pythonic。</span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span"><strong>二、接下来一步一步的接近decorator</strong></span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span"><span data-wiz-span="data-wiz-span"><span data-wiz-span="data-wiz-span">首先，函数是可以返回函数的，示例如下：</span></span></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;">def hi(name="Leo"):
+    def greet():
+        return "恭喜！"
+
+    def welcome():
+        return "欢迎！"
+
+    if name == "Leo":
+        return greet
+    else:
+        return welcome
+
+a = hi()
+print(a)
+# &lt;function greet at 0x7f2143c01500&gt;
+# 这说明这里的a就是greet()，因为默认name="Leo"，而return是不带括号的greet，这会返回一个函数而不是函数执行后的结果
+
+print(a())
+# 恭喜！
+# 如果像上边那样print(a)那么得到的只是一个greet()函数，但如果是print(a())那么函数就会被执行，因此返回的是greet() return的内容
+</span></pre>
+</div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;">&nbsp;然后，函数当然也可以作为其他函数的参数：</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;">def hi():
+    return "hi Leo!"
+
+def doSomethingBeforeHi(func):
+    print("执行"+func.__name__+"()之前先打个666")
+    print(func())
+
+doSomethingBeforeHi(hi)
+# 执行hi()之前先打个666
+# hi Leo!
+</span></pre>
+</div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">到这里再次提出一个概念就可以很好被理解了，即：Python中所有的东西都可以看做一个object。无论是自定义函数还是基础的数据类型亦或是自定义的class或者实例，万物皆对象（很熟悉吧）。这些对象可以被作为输入也可以被返回。</span></p>
+<div><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">而装饰器的核心也就是上边提出的：为了使代码更加简洁。因为把所有功能写在一个函数里会显得很臃肿，因此把一部分通用功能先写出来，作为另一个函数的前置，这可以使得代码更加轻便同时也可以对这些函数复用。</span></div>
+<div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span"><strong>三、好，接下来可以写一个decorator了</strong></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;"># coding=utf-8
+def decorator(func):
+    def doSomethingBeforeFunc():
+        print("办正事之前先来点其他的。")
+        func()
+    return doSomethingBeforeFunc
+
+def func():
+    print("真正要做的事在这里。")
+
+func=decorator(func)
+func()
+# 办正事之前先来点其他的。
+# 真正要做的事在这里。
+</span></pre>
+</div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">我们可以看到func函数本来只是想打印一句话&ldquo;真正要做的事在这里&rdquo;，但是由于经过了decorator()的处理其行为发生了变化多打印了一句，这是因为decorator将func作为输入参数，并return了一个封装了func的函数，这个封装好的函数不仅包含了func()的功能还包含了print("办正事之前先来点其他的。")的功能，因此执行func=decorator(func)后func就不是原来的func了，实际上是doSomethingBeforeFunc()。</span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">而常见的装饰器的调用方式并非上述func=decorator(func)，而是使用@符号。</span></p>
+<div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;">以下写法为，在定义func之前使用@decorator 调用装饰器，相当于在定义func之后执行了func=decorator(func)：</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;"># coding=utf-8
+def decorator(func):
+    def doSomethingBeforeFunc():
+        print("办正事之前先来点其他的。")
+        func()
+    return doSomethingBeforeFunc
+@decorator 
+def func():
+    print("真正要做的事在这里。")
+
+func()
+# 办正事之前先来点其他的。
+# 真正要做的事在这里。
+</span></pre>
+</div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">这段代码与上面的代码的作用是一模一样的，只不过下边的写法更为常见，更Pythonic（更对新手不友好）。</span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;"><strong>四、上述代码的一个BUG</strong></span></p>
+<div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-size: 13px;">如果我们对上述代码中使用了decorator后的func打印__name__会如何？很容易猜到得到的肯定是doSomethingBeforeFunc这个名字，这一般不是我们想要的</span>。</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;"># coding=utf-8
+from functools import wraps
+def decorator(func):
+    @wraps(func)
+    def doSomethingBeforeFunc():
+        print("办正事之前先来点其他的。")
+        func()
+    return doSomethingBeforeFunc
+
+@decorator
+def func():
+    print("真正要做的事在这里。")
+
+func()
+print(func.__name__)
+# 办正事之前先来点其他的。
+# 真正要做的事在这里。
+# func
+</span></pre>
+</div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">通过引入functools的wraps方法，可以解决__name__的显示问题。至于wraps是通过什么样的机制实现的，源码实在是太绕了就不去看了。简单来说就是wraps可以让我们获取func()被修饰器修饰之前的各种内置属性。</span></p>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span"><strong>五、Decorator的经典使用场景</strong></span></p>
+<div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span"><span data-wiz-span="data-wiz-span">在Python中装饰器一个很经典的使用场景是Django里常见的需要密码验证的时候，举个例子：</span></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;"># coding=utf-8
+from functools import wraps
+def require_login(func):
+    @wraps(func)
+    def new_func(*args, **kwargs):
+        auth = request.authorization
+        if not auth or check_auth(auth.username, auth.password):
+            authenticate()
+        return func(*args, **kwargs)
+    return new_func
+
+@require_login
+def func():
+    print("浏览页面中...")
+</span></pre>
+</div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;">上述只是一段伪代码示例，django中可以直接调用相关的模块：</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;">from django.contrib.auth.decorators import login_required
+</span></pre>
+</div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span"><strong>六、不仅仅是decorator函数，还可以是decorator类</strong></span></p>
+<div>
+<p><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 13px;" data-wiz-span="data-wiz-span">之前的示例全都是修饰器函数，实际上修饰器还可以是类。只要类可以像函数那样被调用就可以了：</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-family: tahoma, arial, helvetica, sans-serif;"># coding=utf-8
+class Decorator(object):
+    def __init__(self , func):
+        self.func = func
+    def __call__(self, *args, **kwargs):  # 只要重写类的__call__方法就可以将类当做函数调用
+        print("嘿！孙贼！")
+        return self.func(*args, **kwargs)
+
+@Decorator
+def Charge():
+    print("正在向法爷冲锋！！！")
+
+Charge()
+</span></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

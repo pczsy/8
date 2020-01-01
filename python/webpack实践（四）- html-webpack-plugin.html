@@ -1,0 +1,455 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修webpack实践（四）- html-webpack-plugin' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>webpack实践（四）- html-webpack-plugin</center></div><div class='banquan'>原文出处:本文由博客园博主小土豆biubiubiu提供。<br/>
+原文连接:https://www.cnblogs.com/HouJiao/p/12077252.html</div><br>
+    <p><span style="font-family: verdana, geneva; color: #000000;">webpack系列博客中代码均在github上：<a href="https://github.com/JEmbrace/webpack-practice"><span style="color: #000000;">https://github.com/JEmbrace/webpack-practice</span></a></span></p>
+<p><span style="text-decoration: underline;"><span style="font-family: verdana, geneva; color: #000000; text-decoration: underline;"><a href="https://www.cnblogs.com/HouJiao/p/11962152.html" target="_blank"><span style="color: #000000; text-decoration: underline;">《</span></a><a href="https://www.cnblogs.com/HouJiao/p/11962152.html" target="_blank"><span style="color: #000000; text-decoration: underline;">webpack实践（一）- 先入个门</span></a><a href="https://www.cnblogs.com/HouJiao/p/11962152.html" target="_blank"><span style="color: #000000; text-decoration: underline;">》</span></a></span></span></p>
+<p><span style="text-decoration: underline;"><span style="font-family: verdana, geneva; color: #000000;"><a href="https://www.cnblogs.com/HouJiao/p/12069492.html" target="_blank"><span style="color: #000000; text-decoration: underline;">《webpack实践（二）- webpack配置文件》</span></a></span></span></p>
+<p><span style="text-decoration: underline;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000; text-decoration: underline;"><a href="https://www.cnblogs.com/HouJiao/p/12072292.html" target="_blank"><span style="text-decoration: underline;"><span style="font-family: verdana, geneva; color: #000000; text-decoration: underline;">《webpack实践（三）- html-webpack-plugin》</span></span></a></span></span></span></p>
+<p><span style="text-decoration: underline;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000; text-decoration: underline;"><span style="text-decoration: underline;"><span style="font-family: verdana, geneva; color: #000000; text-decoration: underline;"><a href="https://www.cnblogs.com/HouJiao/p/12077252.html" target="_blank"><span style="text-decoration: underline;"><span style="font-family: verdana, geneva; color: #000000; text-decoration: underline;">《webpack实践（四）- html-webpack-plugin》</span></span></a></span></span></span></span></span></p>
+<p>&nbsp;</p>
+<h1><span style="font-family: verdana, geneva;">一.前言</span></h1>
+<p><span style="font-family: verdana, geneva;">　　在上一篇 <a href="https://www.cnblogs.com/HouJiao/p/12072292.html" target="_blank">《<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">webpack实践（三）- html-webpack-plugin</span></span></span>》</a></span><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">文章中，我们简单的使用了一下html-webpack-pluin这个插件：创建实例并传入template选项，并且演示了插件生成一个新模板并将打包后的脚本<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">自动</span></span></span>引入到模板文件中和插件使用原有模板<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">并将打包后的脚本<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">自动</span></span></span></span></span></span>引入到模板文件中这两个功能</span></span></span>。</span></span></span></p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　那对于html-webpack-plugin这个插件来说，除了前面演示过的template配置项之外，它还有很多可配置的选项。</span></span></span></p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　接下来我们就来研究一下html-webpack-plugin这个插件其他可选的配置项。</span></span></span></p>
+<h1><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">二.title</span></span></span></h1>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　title配置项可用于生成html的标题，基本语法:&nbsp;&nbsp;&nbsp; title:{String}<br /></span></span></span></p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　<span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>　　使用webpack打包后的结果文件dist/index.html</p>
+<p>　　<img src="./images/webpack实践（四）- html-webpack-plugin0.png" alt="" /></p>
+<p>&nbsp;　　我们发现打包后的结果文件并没有生成相应的title,那实际上要想模板文件正常显示配置的title这里有两种办法：</p>
+<p>　　第一种就是不使用我们自己编写的index.html模板，即不配置template选项，让html-webpack-plugin帮我们生成一个模板文件</p>
+<p>　　我们将webpack.config.js中的template选项注释掉</p>
+<p>　　<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> template: './index.html'</span>
+<span style="color: #000000;">    })
+  ]
+};</span></pre>
+</div>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　</span></span></span>重新打包查看dist/index.html 结果：</p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　<img src="./images/webpack实践（四）- html-webpack-plugin1.png" alt="" /></span></span></span></p>
+<p>　　可以看到title已经成功显示。</p>
+<p>　　那第二种就是当我们需要使用我们自己的模板，即有template配置选项的时候。那么这个时候我们就需要在模板中使用<span><span> &lt;％= htmlWebpackPlugin.options.title％&gt;这样的语法去获取title并且展示到模板中。</span></span></p>
+<p><span><span>　　我们先将刚刚注释的template放开</span></span></p>
+<p><span><span>　　<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p>　　然后在修改根目录下我们的模板文件index.html</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="utf-8"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span><span style="background-color: #ffff00; color: #000000;">&lt;%</span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> htmlWebpackPlugin.options.title </span><span style="background-color: #ffff00; color: #000000;">%&gt;</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>webpack实践（四）- html-webpack-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>　　打包查看dist/index.html结果文件</p>
+<p>　　<img src="./images/webpack实践（四）- html-webpack-plugin2.png" alt="" /></p>
+<p>&nbsp;　　可以看到，这次使用了我们自己的模板，并且将title成功的应用到了打包后的结果模板中。</p>
+<h1><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">三.filename<br /></span></span></span></h1>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　filename表示的是我们最终打包后的模板文件名，基本语法：&nbsp;&nbsp; filename:{String}<br /></span></span></span></p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　前面的配置中，我们没有指定filename，生成后的模板名都是index.html，也可知当该参数缺省时，生成的模板文件名默认为index.html。</span></span></span></p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　接着，我们加入这个配置项</span></span></span></p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;">　　<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">,
+      filename: </span>'resultIndex.html'<span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p>　　打包查看生成的目录和文件</p>
+<p>　　<span style="background-color: #ff99cc; color: #ffffff;">备注：本次的打包结果不会覆盖上次的结果，因此为了看清楚本次结果，最好将上次打包后的dist目录删除。</span></p>
+<p>　　<img src="./images/webpack实践（四）- html-webpack-plugin3.png" alt="" /></p>
+<p>&nbsp;　&nbsp; 可以看到打包后的结果文件已经和fielname的配置一致。</p>
+<p>　　那么filename的值还可以是一个路径</p>
+<p>　　<span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">,
+      filename: </span>'template/resultIndex.html'<span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p>　　打包后的结果</p>
+<p>　　<img src="./images/webpack实践（四）- html-webpack-plugin4.png" alt="" /></p>
+<h1>四.inject</h1>
+<p>　　inject配置项用于指定打包后的javascript资源引入位置，基本语法：&nbsp;&nbsp; inject:{Boolean|String}。其中Boolean有两个值可配置：true和false；String类型也有两个值可选：&lsquo;body&rsquo;和&lsquo;head&rsquo;。对于Boolean类型的true值和String类型的body值，会指定将打包后的javascript资源引入位置放到body元素的底部；而false指定模板不引入javascript资源；head则指定将资源引入位置放到head元素中。</p>
+<p>　　那么接下来我们将inject的值分别配置为true、false、body和head这四个值。</p>
+<p><span style="font-size: 16px;"><strong>1.inject:true</strong></span></p>
+<p><strong><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="color: #808080;">　　</span></span></span></span></span></span></span></strong><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">,
+      filename: </span>'template/resultIndex.html'<span style="color: #000000;">,
+      inject: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p><strong>　　　　结果文件</strong></p>
+<p><strong>　　　　</strong><span style="text-decoration: underline;"><span style="color: #808080; text-decoration: underline;">dist/template/resultIndex.html</span></span></p>
+<p><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;"><img src="./images/webpack实践（四）- html-webpack-plugin5.png" alt="" /></span></span></span></span></span></span></span></p>
+<p><span style="font-size: 16px;"><strong>2.inject:false</strong></span></p>
+<p><strong>　　</strong><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">,
+      filename: </span>'template/resultIndex.html'<span style="color: #000000;">,
+      inject: </span><span style="color: #0000ff;">false</span><span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p><strong>　　<strong>结果文件</strong></strong></p>
+<p><strong>　　</strong><span style="text-decoration: underline;"><span style="color: #808080; text-decoration: underline;">dist/template/resultIndex.html</span></span></p>
+<p><span style="color: #808080;">　　</span><span style="text-decoration: underline;"><span style="color: #808080; text-decoration: underline;"><img src="./images/webpack实践（四）- html-webpack-plugin6.png" alt="" /></span></span></p>
+<p><span style="font-size: 16px;"><strong>3.inject:body</strong></span></p>
+<p><strong><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="color: #808080;">　　</span></span></span></span></span></span></span></span></strong><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">,
+      filename: </span>'template/resultIndex.html'<span style="color: #000000;">,
+      inject: </span>'body'<span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p><strong>　　<strong>结果文件</strong></strong></p>
+<p><strong>　　</strong><span style="text-decoration: underline;"><span style="color: #808080; text-decoration: underline;">dist/template/resultIndex.html</span></span></p>
+<p><span style="color: #808080;">　　<img src="./images/webpack实践（四）- html-webpack-plugin7.png" alt="" /></span></p>
+<p><span style="font-size: 16px;"><strong>4.inject:head</strong></span></p>
+<p><strong><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="color: #808080;">　　</span></span></span></span></span></span></span></span></strong><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="font-family: verdana, geneva;"><span style="font-family: verdana, geneva; color: #000000;"><span style="color: #000000;"><span style="text-decoration: underline; color: #808080;">webpack.config.js</span></span></span></span></span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 第一步：引入</span>
+<span style="color: #0000ff;">var</span> htmlWepackPlugin = require('html-webpack-plugin'<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">var</span> path = require('path'<span style="color: #000000;">);
+module.exports </span>=<span style="color: #000000;"> {
+  mode: </span>'development'<span style="color: #000000;">,
+  entry: {
+    main: </span>'./index.js'<span style="color: #000000;">
+  },
+  output: {
+    path: path.resolve(__dirname,</span>'dist'<span style="color: #000000;">),
+    filename: </span>'index.bundle.js'<span style="color: #000000;">
+  },
+  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二步：创建html-webpack-plugin的实例，配置到plugins选项中</span>
+<span style="color: #000000;">  plugins:[
+    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> htmlWepackPlugin({
+      </span><span style="color: #008000;">//</span><span style="color: #008000;"> title配置项可用于生成html的标题</span>
+      title: 'webpack实践（四）- html-webpack-plugin'<span style="color: #000000;">,
+      template: </span>'./index.html'<span style="color: #000000;">,
+      filename: </span>'template/resultIndex.html'<span style="color: #000000;">,
+      inject: </span>'head'<span style="color: #000000;">
+    })
+  ]
+};</span></pre>
+</div>
+<p>　　<strong><strong>结果文件</strong></strong></p>
+<p><strong>　　</strong><span style="text-decoration: underline;"><span style="color: #808080; text-decoration: underline;">dist/template/resultIndex.html</span></span></p>
+<p><strong>　　<img src="./images/webpack实践（四）- html-webpack-plugin8.png" alt="" /></strong></p>
+<h1>&nbsp;五.<strong>minify</strong></h1>
+<p><strong>　　</strong>minify的作用就是对打包后的html进行压缩配置，基本语法为：minify:{Boolean|Object}<strong><br /></strong></p>
+<p>　　minify的默认值为Boolean类型的false值，表示不对html结果进行压缩；</p>
+<p>　　对于Object类型的，minify也有很多可选的配置项。</p>
+<p><strong><span style="font-size: 16px;">1.caseSensitive</span></strong></p>
+<p>　　是否以区分大小写的方式处理自定义HTML标签的属性，默认值为fasle，表示不区分大小写（不区分大小写即源文件中的包含大小写的属性会被转化为小写）。</p>
+<p>　　<strong>设置minify.caseSensitive为fasle</strong></p>
+<p><strong>　　　　</strong>webpack.config.js</p>
+<p>　　　　<img src="./images/webpack实践（四）- html-webpack-plugin9.png" alt="" /></p>
+<p>&nbsp;　　　&nbsp; 源文件和打包后的结果文件对比</p>
+<p>　　　　<img src="./images/webpack实践（四）- html-webpack-plugin10.png" alt="" /></p>
+<p>　　　　可以看到，当minify设置为false的时候，不管是自定义标签的属性，还是HTML原有的标签属性，都会全部转化为小写（这里的结果和官方文档的说法有些出入）</p>
+<p>　　<strong>设置minify.caseSensitive为true</strong></p>
+<p><strong>　　　　</strong>webpack.config.js</p>
+<p>　　　　<img src="./images/webpack实践（四）- html-webpack-plugin11.png" alt="" /></p>
+<p>　　　　源文件和打包后的结果文件对比</p>
+<p>　　　　<img src="./images/webpack实践（四）- html-webpack-plugin12.png" alt="" /></p>
+<p>　　　　minify设置为true即表示区分大小写，因此可看到源文件中大写的属性在结果文件中保持不变。</p>
+<p><strong><span style="font-size: 16px;">2.minifyCSS</span></strong></p>
+<p>　　minifyCSS表示是否压缩html中的样式，其中样式包括style标签内部的样式和写在元素上的样式。其默认值为false，表示不对这些样式做额外处理，这里不演示值为false的配置。</p>
+<p>　　<strong>webpack.config.js</strong></p>
+<p>　　<img src="./images/webpack实践（四）- html-webpack-plugin13.png" alt="" /></p>
+<p>　　<strong>源文件和打包后的结果文件对比</strong></p>
+<p>　　<img src="./images/webpack实践（四）- html-webpack-plugin14.png" alt="" /></p>
+<p>3.minifyJS</p>
+<p>　　压缩html中的JavaScript代码。</p>
+<p>　　<strong>webpack.config.js</strong></p>
+<p>　　　　<img src="./images/webpack实践（四）- html-webpack-plugin15.png" alt="" /></p>
+<p>　　<strong>源模板文件</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="utf-8"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span><span style="background-color: #ffff00; color: #000000;">&lt;%</span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> htmlWebpackPlugin.options.title </span><span style="background-color: #ffff00; color: #000000;">%&gt;</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>webpack实践（四）- html-webpack-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text/javascript"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> h1Ele </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> document.getElementsByTagName(</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">h1</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">)[</span><span style="background-color: #f5f5f5; color: #000000;">0</span><span style="background-color: #f5f5f5; color: #000000;">];
+            </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> innerHTML </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> h1Ele.innerHTML;
+            console.log(innerHTML);
+        </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>　　<strong>打包后的模板文件</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="utf-8"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>webpack实践（四）- html-webpack-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text/javascript"</span><span style="color: #ff0000;"> src</span><span style="color: #0000ff;">="../index.bundle.js"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>webpack实践（四）- html-webpack-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text/javascript"</span><span style="color: #0000ff;">&gt;</span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> h1Ele</span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;">document.getElementsByTagName(</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">h1</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">)[</span><span style="background-color: #f5f5f5; color: #000000;">0</span><span style="background-color: #f5f5f5; color: #000000;">],innerHTML</span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;">h1Ele.innerHTML;console.log(innerHTML)</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>　　可以看到minifyJS对JavaScript代码不仅进行了空格、换行和最后一行代码分号的进行了删除，同时在变量的定义也和源代码有些差异。</p>
+<p><strong><span style="font-size: 16px;">4.removeComments</span></strong></p>
+<p>　　这个从字面意思就能看出来是删除HTML模板中的注释代码，默认值为false，表示不删除注释。</p>
+<p>　　而且当该项配置设置为true时，仅删除html代码中的注释，不删除style和javascript代码片段中的注释。</p>
+<p>　　<strong>webpack.config.js</strong></p>
+<p><strong>　　<img src="./images/webpack实践（四）- html-webpack-plugin16.png" alt="" /></strong></p>
+<p>&nbsp;　&nbsp; <strong>源文件</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="utf-8"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span><span style="background-color: #ffff00; color: #000000;">&lt;%</span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> htmlWebpackPlugin.options.title </span><span style="background-color: #ffff00; color: #000000;">%&gt;</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">style</span><span style="color: #0000ff;">&gt;</span>
+            <span style="background-color: #f5f5f5; color: #008000;">/*</span><span style="background-color: #f5f5f5; color: #008000;"> 写点样式 </span><span style="background-color: #f5f5f5; color: #008000;">*/</span><span style="background-color: #f5f5f5; color: #800000;">
+            h1</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">
+                font-size</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 12px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">
+                color</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> #ccc</span><span style="background-color: #f5f5f5; color: #000000;">;</span>
+            <span style="background-color: #f5f5f5; color: #000000;">}</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">style</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 这里是h1标签 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>webpack实践（四）- html-webpack-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text/javascript"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="background-color: #f5f5f5; color: #008000;">//</span><span style="background-color: #f5f5f5; color: #008000;"> 获取h1元素，并打印h1元素的innerHTML</span>
+            <span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> h1Ele </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> document.getElementsByTagName(</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">h1</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">)[</span><span style="background-color: #f5f5f5; color: #000000;">0</span><span style="background-color: #f5f5f5; color: #000000;">];
+            </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> innerHTML </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> h1Ele.innerHTML;
+            console.log(innerHTML);
+        </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p><strong>　　打包后的结果文件</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="utf-8"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>webpack实践（四）- html-webpack-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">style</span><span style="color: #0000ff;">&gt;</span>
+            <span style="background-color: #f5f5f5; color: #008000;">/*</span><span style="background-color: #f5f5f5; color: #008000;"> 写点样式 </span><span style="background-color: #f5f5f5; color: #008000;">*/</span><span style="background-color: #f5f5f5; color: #800000;">
+            h1</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">
+                font-size</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 12px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">
+                color</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> #ccc</span><span style="background-color: #f5f5f5; color: #000000;">;</span>
+            <span style="background-color: #f5f5f5; color: #000000;">}</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">style</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text/javascript"</span><span style="color: #ff0000;"> src</span><span style="color: #0000ff;">="../index.bundle.js"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+        
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>webpack实践（四）- html-webpack-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text/javascript"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="background-color: #f5f5f5; color: #008000;">//</span><span style="background-color: #f5f5f5; color: #008000;"> 获取h1元素，并打印h1元素的innerHTML</span>
+            <span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> h1Ele </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> document.getElementsByTagName(</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">h1</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">)[</span><span style="background-color: #f5f5f5; color: #000000;">0</span><span style="background-color: #f5f5f5; color: #000000;">];
+            </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> innerHTML </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> h1Ele.innerHTML;
+            console.log(innerHTML);
+        </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">html</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>　　从源文件中可以看到，我们给html代码中、style和javascript代码中均添加了注释，而打包后的结果文件中只有html中的注释被移除。</p>
+<h1>六.总结</h1>
+<p>　　本篇文章总结了html-webpack-plugins插件中常用的一些可选配置项，分别为：title、filename、inject和minify。</p>
+<p>　　而实际上还有一些常见的可选配置项没有列出来，后续若能在实际需求中用到，在继续补充。</p>
+<p>&nbsp;</p>
+<hr />
+<p style="text-align: center;"><img src="./images/webpack实践（四）- html-webpack-plugin17.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　　　　</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

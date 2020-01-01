@@ -1,0 +1,211 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot执行延时任务-DelayQueue的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot执行延时任务-DelayQueue的使用</center></div><div class='banquan'>原文出处:本文由博客园博主依天照海提供。<br/>
+原文连接:https://www.cnblogs.com/ieinstein/p/12028459.html</div><br>
+    <p><span style="font-size: 14px;"><strong>DelayQueue简介</strong></span></p>
+<p>在很多场景我们需要用到延时任务，比如给客户异步转账操作超时后发通知告知用户，还有客户下单后多长时间内没支付则取消订单等等，这些都可以使用延时任务来实现。</p>
+<p>jdk中DelayQueue可以实现上述需求，顾名思义DelayQueue就是延时队列。</p>
+<blockquote>
+<p>DelayQueue提供了在指定时间才能获取队列元素的功能，队列头元素是最接近过期的元素。</p>
+<p>没有过期元素的话，使用poll()方法会返回null值，超时判定是通过getDelay(TimeUnit.NANOSECONDS)方法的返回值小于等于0来判断。</p>
+<p>延时队列不能存放空元素。</p>
+<p>一般使用take()方法阻塞等待，有过期元素时继续。</p>
+</blockquote>
+<p><span style="font-size: 14px;"><strong>队列元素说明</strong></span></p>
+<p>DelayQueue&lt;E extends Delayed&gt;的队列元素需要实现Delayed接口，该接口类定义如下:</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span> Delayed <span style="color: #0000ff;">extends</span> Comparable&lt;Delayed&gt;<span style="color: #000000;"> {
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * Returns the remaining delay associated with this object, in the
+     * given time unit.
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> unit the time unit
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> the remaining delay; zero or negative values indicate
+     * that the delay has already elapsed
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">long</span><span style="color: #000000;"> getDelay(TimeUnit unit);
+}</span></pre>
+</div>
+<p>所以DelayQueue的元素需要实现getDelay方法和Comparable接口的compareTo方法，getDelay方法来判定元素是否过期，compareTo方法来确定先后顺序。</p>
+<p><span style="font-size: 14px;"><strong>springboot中实例运用</strong></span></p>
+<p>DelayTask就是队列中的元素</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Date;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.Delayed;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeUnit;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> DelayTask <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Delayed {
+    </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">private</span><span style="color: #000000;"> TaskBase data;
+    </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">long</span><span style="color: #000000;"> expire;
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 构造延时任务
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> data      业务数据
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> expire    任务延时时间（ms）
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> DelayTask(TaskBase data, <span style="color: #0000ff;">long</span><span style="color: #000000;"> expire) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">();
+        </span><span style="color: #0000ff;">this</span>.data =<span style="color: #000000;"> data;
+        </span><span style="color: #0000ff;">this</span>.expire = expire +<span style="color: #000000;"> System.currentTimeMillis();
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> TaskBase getData() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">long</span><span style="color: #000000;"> getExpire() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> expire;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> equals(Object obj) {
+        </span><span style="color: #0000ff;">if</span> (obj <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> DelayTask) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">.data.getIdentifier().equals(((DelayTask) obj).getData().getIdentifier());
+        }
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> "{" + "data:" + data.toString() + "," + "expire:" + <span style="color: #0000ff;">new</span> Date(expire) + "}"<span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">long</span><span style="color: #000000;"> getDelay(TimeUnit unit) {
+        </span><span style="color: #0000ff;">return</span> unit.convert(<span style="color: #0000ff;">this</span>.expire -<span style="color: #000000;"> System.currentTimeMillis(), unit);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> compareTo(Delayed o) {
+        </span><span style="color: #0000ff;">long</span> delta = getDelay(TimeUnit.NANOSECONDS) -<span style="color: #000000;"> o.getDelay(TimeUnit.NANOSECONDS);
+        </span><span style="color: #0000ff;">return</span> (<span style="color: #0000ff;">int</span><span style="color: #000000;">) delta;
+    }
+}</span></pre>
+</div>
+<pre><code><span>TaskBase类是用户自定义的业务数据基类，其中有一个</span>identifier字段来标识任务的id，方便进行索引</pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.alibaba.fastjson.JSON;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TaskBase {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String identifier;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> TaskBase(String identifier) {
+        </span><span style="color: #0000ff;">this</span>.identifier =<span style="color: #000000;"> identifier;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getIdentifier() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> identifier;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setIdentifier(String identifier) {
+        </span><span style="color: #0000ff;">this</span>.identifier =<span style="color: #000000;"> identifier;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> JSON.toJSONString(<span style="color: #0000ff;">this</span><span style="color: #000000;">);
+    }
+}</span></pre>
+</div>
+<p>定义一个延时任务管理类DelayQueueManager，通过@Component注解加入到spring中管理，在需要使用的地方通过@Autowire注入</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.alibaba.fastjson.JSON;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.LoggerFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Value;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.CommandLineRunner;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.text.SimpleDateFormat;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Date;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.DelayQueue;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.Executors;
+
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> DelayQueueManager <span style="color: #0000ff;">implements</span><span style="color: #000000;"> CommandLineRunner {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Logger logger = LoggerFactory.getLogger(DelayQueueManager.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+    </span><span style="color: #0000ff;">private</span> DelayQueue&lt;DelayTask&gt; delayQueue = <span style="color: #0000ff;">new</span> DelayQueue&lt;&gt;<span style="color: #000000;">();
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 加入到延时队列中
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> task
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> put(DelayTask task) {
+        logger.info(</span>"加入延时任务：{}"<span style="color: #000000;">, task);
+        delayQueue.put(task);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 取消延时任务
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> task
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> remove(DelayTask task) {
+        logger.info(</span>"取消延时任务：{}"<span style="color: #000000;">, task);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> delayQueue.remove(task);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 取消延时任务
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> taskid
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> remove(String taskid) {
+        </span><span style="color: #0000ff;">return</span> remove(<span style="color: #0000ff;">new</span> DelayTask(<span style="color: #0000ff;">new</span> TaskBase(taskid), 0<span style="color: #000000;">));
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> run(String... args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        logger.info(</span>"初始化延时队列"<span style="color: #000000;">);
+        Executors.newSingleThreadExecutor().execute(</span><span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">this</span><span style="color: #000000;">::excuteThread));
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 延时任务执行线程
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> excuteThread() {
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                DelayTask task </span>=<span style="color: #000000;"> delayQueue.take();
+                processTask(task);
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+            }
+        }
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 内部执行延时任务
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> task
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> processTask(DelayTask task) {
+        logger.info(</span>"执行延时任务：{}"<span style="color: #000000;">, task);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">根据task中的data自定义数据来处理相关逻辑，例 if (task.getData() instanceof XXX) {}</span>
+<span style="color: #000000;">    }
+}</span></pre>
+</div>
+<p>DelayQueueManager实现了CommandLineRunner接口，在springboot启动完成后就会自动调用run方法。</p>
+<pre><code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

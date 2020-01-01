@@ -1,0 +1,158 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修TestNG系列（二）TestNG注解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>TestNG系列（二）TestNG注解</center></div><div class='banquan'>原文出处:本文由博客园博主大风北吹提供。<br/>
+原文连接:https://www.cnblogs.com/yogouo/p/11946902.html</div><br>
+    <p><strong>前言</strong></p>
+<p>TetsNG提供了很多注解，允许测试人员灵活地组织测试用例</p>
+<p><strong>一、@Test</strong></p>
+<p>@Tets是TestNG的核心注解，被注解的方法，表示为一个测试方法。</p>
+<p><strong>description属性</strong></p>
+<div class="cnblogs_code">
+<pre><code>@Test(description = "yuhao"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> case1(){
+    System.out.println(</span>"case1方法"<span style="color: #000000;">);
+}</span></pre>
+</div>
+<p>在测试报告中体现出来</p>
+<p><img src="./images/TestNG系列（二）TestNG注解0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong>enabled属性</strong></p>
+<p>设置为false时，被注解的方法将不会执行</p>
+<p><strong>groups属性</strong></p>
+<p>对测试方法进行分组，可在类级别或方法级别添加组，类级别分组，表示类里面的所有方法都属于该分组。分组在XML中的调用与普通方法不同，在说XML时会详细介绍。</p>
+<div class="cnblogs_code">
+<pre><code>@Test(groups = "yuhao"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> case1(){
+    System.out.println(</span>"case1方法"<span style="color: #000000;">);
+}</span></pre>
+</div>
+<p><strong>dependsOnMethods属性</strong></p>
+<p>测试方法case1依赖于case2，case2先于case1执行。如果case2失败了则case1也不执行，这叫硬依赖。</p>
+<div class="cnblogs_code">
+<pre><code>@Test(dependsOnMethods = {"case2"<span style="color: #000000;">})
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> case1(){
+    System.out.println(</span>"case1方法"<span style="color: #000000;">);
+}
+    
+@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> case2(){
+    System.out.println(</span>"case1方法"<span style="color: #000000;">);
+}</span></pre>
+</div>
+<p><strong><strong>dependsOnGroups属性</strong></strong></p>
+<p>&nbsp;</p>
+<p>类似于dependsOnMethods一个用方法名做依赖，一个使用组名做依赖。</p>
+<p><strong>invocationCount属性</strong></p>
+<p>方法执行次数</p>
+<div class="cnblogs_code">
+<pre><code>@Test(invocationCount = 5<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> case1(){
+    System.out.println(</span>"case1方法"<span style="color: #000000;">);
+}</span></pre>
+</div>
+<p><strong>threadPoolSize属性</strong></p>
+<p>线程池的内线程的个数</p>
+<p><strong>timeOut属性</strong></p>
+<p>超时时间-毫秒</p>
+<p><strong>alwaysRun属性</strong></p>
+<p>在添加依赖关系时，加上alwaysRun=&ldquo;true&rdquo;的属性，无论依赖是否成功，此方法都会继续执行。</p>
+<p>&nbsp;</p>
+<p><strong>二、@Before</strong></p>
+<p>@BeforeClass，被注解的方法在此类所有测试方法前执行</p>
+<p>@BeforeMethod，被注解的方法在每个@Tets方法前执行</p>
+<p>@BeforeSuite，被注解的方法在当前Suite中方法执行前执行</p>
+<p>@BeforeTest，被注解的方法在每个@Test方法前执行</p>
+<p>@BeforeGropu，被注解的方法在指定组内方法执行前执行</p>
+<p><strong>三、@After</strong></p>
+<p>@AfterClass，被注解的方法在此类所有测试方法后执行</p>
+<p>@AfterMethod，被注解的方法在每个@Tets方法后执行</p>
+<p>@AfterSuite，被注解的方法在当前Suite中方法执行后执行</p>
+<p>@AfterTest，被注解的方法在每个@Test方法后执行</p>
+<p>@AfterGropu，被注解的方法在指定组内方法执行后执行</p>
+<p><strong>四、@Lgnore</strong></p>
+<p>被此方法注解的方法在测试时都将被忽略执行</p>
+<p><strong>五、@Listeners</strong></p>
+<p>定义一个测试类的监听器，只能添加到测试类上，不能添加的具体方法。</p>
+<p><strong>六、@Parameters</strong></p>
+<p>此注解用来传递参数，可以传递单个、多个、默认值</p>
+<p><strong>传递单个参数</strong></p>
+<p>测试用例</p>
+<div class="cnblogs_code">
+<pre><code>@Parameters({ "user"<span style="color: #000000;"> })
+@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> testcase1(String user) {
+  System.out.println(<span style="color: #000000;">user);
+}</span></pre>
+</div>
+<p>XML文件</p>
+<div class="cnblogs_code">
+<pre><code>&lt;suite name="Suite" parallel="false"&gt;
+  &lt;parameter name="user"  value="yogouo"/&gt;
+  &lt;test name="autotest"&gt;
+    &lt;classes&gt;
+      &lt;<span style="color: #0000ff;">class</span> name="com.TetsNG.testcase"/&gt;
+    &lt;/classes&gt;
+  &lt;/test&gt; 
+&lt;/suite&gt;</pre>
+</div>
+<p><strong>传递多个参数</strong></p>
+<p>测试用例</p>
+<div class="cnblogs_code">
+<pre><code>@Parameters({ "user","data"<span style="color: #000000;"> })
+@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> testcase1(String user,String data) {
+  System.out.println(user+data);
+}</span></pre>
+</div>
+<p>XML文件</p>
+<div class="cnblogs_code">
+<pre><code>&lt;suite name="Suite" parallel="false"&gt;
+  &lt;parameter name="user"  value="yogouo"/&gt;<br />　&lt;parameter name="data"  value="2019-12-09"&gt;
+  &lt;test name="autotest"&gt;
+    &lt;classes&gt;
+      &lt;<span style="color: #0000ff;">class</span> name="com.TetsNG.testcase"/&gt;
+    &lt;/classes&gt;
+  &lt;/test&gt; 
+&lt;/suite&gt;</pre>
+</div>
+<p><strong>默认值</strong></p>
+<p>测试用例</p>
+<div class="cnblogs_code">
+<pre><code>@Parameters({ "user"<span style="color: #000000;"> })
+@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> testcase1(@Optional("yogouo") String user) {
+  System.out.println(user);
+}</span></pre>
+</div>
+<p>XML文件</p>
+<div class="cnblogs_code">
+<pre><code>&lt;suite name="Suite" parallel="false"&gt;
+  &lt;test name="autotest"&gt;
+    &lt;classes&gt;
+      &lt;<span style="color: #0000ff;">class</span> name="com.TetsNG.testcase"/&gt;
+    &lt;/classes&gt;
+  &lt;/test&gt; 
+&lt;/suite&gt;</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

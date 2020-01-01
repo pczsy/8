@@ -1,0 +1,125 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python之装饰器笔记' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python之装饰器笔记</center></div><div class='banquan'>原文出处:本文由博客园博主yg_staring提供。<br/>
+原文连接:https://www.cnblogs.com/yang901112/p/11342951.html</div><br>
+    <p>概述：</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;用于管理和增强函数和类行为的代码</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;提供一种在函数或类定义中插入自动运行代码的机制</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;特点 &nbsp;更明确的语法、更高的代码可维护性、更好的一致性</p>
+<p>&nbsp;</p>
+<p>编写</p>
+<p>&nbsp; &nbsp; &nbsp; 函数基础： 将函数赋给变量、将函数作为参数传递、函数嵌套及跨域访问</p>
+<p>&nbsp; &nbsp; &nbsp; 函数定义装饰器&nbsp;通用性更好</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #800000;">"""</span><span style="color: #800000;">函数定义装饰器</span><span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 2</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 通用性更好</span>
+<span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 参数化装饰器</span>
+<span style="color: #008080;"> 5</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> tags(tag):
+</span><span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> tag_decorator(func):
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">def</span> wrapper(*args, **<span style="color: #000000;">kwargs):
+</span><span style="color: #008080;"> 8</span>             <span style="color: #0000ff;">return</span> f<span style="color: #800000;">'</span><span style="color: #800000;">&lt;{tag}&gt;{func(*args, **kwargs)}&lt;/{tag}&gt;</span><span style="color: #800000;">'</span>
+<span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> tag_decorator
+</span><span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> p_decorator(func):
+</span><span style="color: #008080;">13</span>     <span style="color: #0000ff;">def</span> wrapper(*args, **<span style="color: #000000;">kwargs):
+</span><span style="color: #008080;">14</span>         <span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">&lt;p&gt;</span><span style="color: #800000;">'</span>+func(*args, **kwargs)+<span style="color: #800000;">'</span><span style="color: #800000;">&lt;/p&gt;</span><span style="color: #800000;">'</span>
+<span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+</span><span style="color: #008080;">17</span> 
+<span style="color: #008080;">18</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> div_decorator(func):
+</span><span style="color: #008080;">19</span>     <span style="color: #0000ff;">def</span> wrapper(*args, **<span style="color: #000000;">kwargs):
+</span><span style="color: #008080;">20</span>         <span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">&lt;div&gt;{}&lt;/div&gt;</span><span style="color: #800000;">'</span>.format(func(*args, **<span style="color: #000000;">kwargs))
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> wrapper
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student:
+</span><span style="color: #008080;">25</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, name):
+</span><span style="color: #008080;">26</span>         self.name =<span style="color: #000000;"> name
+</span><span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span> <span style="color: #000000;">    @p_decorator
+</span><span style="color: #008080;">29</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_name(self):
+</span><span style="color: #008080;">30</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> self.name.upper()
+</span><span style="color: #008080;">31</span> 
+<span style="color: #008080;">32</span> @tags(<span style="color: #800000;">'</span><span style="color: #800000;">p</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">33</span> <span style="color: #008000;">#</span><span style="color: #008000;"> @p_decorator</span>
+<span style="color: #008080;">34</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_text():
+</span><span style="color: #008080;">35</span>     <span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">欢迎学习优品课堂课程</span><span style="color: #800000;">'</span>
+<span style="color: #008080;">36</span> 
+<span style="color: #008080;">37</span> @tags(<span style="color: #800000;">'</span><span style="color: #800000;">div</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">38</span> @tags(<span style="color: #800000;">'</span><span style="color: #800000;">p</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">39</span> <span style="color: #008000;">#</span><span style="color: #008000;"> @div_decorator</span>
+<span style="color: #008080;">40</span> <span style="color: #008000;">#</span><span style="color: #008000;"> @p_decorator</span>
+<span style="color: #008080;">41</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_upper_text(text):
+</span><span style="color: #008080;">42</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> text.upper()
+</span><span style="color: #008080;">43</span> 
+<span style="color: #008080;">44</span> <span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+</span><span style="color: #008080;">45</span>     <span style="color: #0000ff;">print</span><span style="color: #000000;">(get_text())
+</span><span style="color: #008080;">46</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> &lt; p &gt; 欢迎学习优品课堂课程 &lt; / p &gt;</span>
+<span style="color: #008080;">47</span>     <span style="color: #0000ff;">print</span>(get_upper_text(<span style="color: #800000;">'</span><span style="color: #800000;">www.codeclassroom.com</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008080;">48</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> &lt; div &gt; &lt; p &gt; WWW.CODECLASSROOM.COM &lt; / p &gt; &lt; / div &gt;</span>
+<span style="color: #008080;">49</span>     s = Student(<span style="color: #800000;">'</span><span style="color: #800000;">Mike</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">50</span>     <span style="color: #0000ff;">print</span><span style="color: #000000;">(s.get_name())
+</span><span style="color: #008080;">51</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> &lt; p &gt; MIKE &lt; / p &gt;</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp; &nbsp; &nbsp; 类定义装饰器</p>
+<p>&nbsp; &nbsp; &nbsp; 装饰器参数</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #800000;">"""</span><span style="color: #800000;">类定义装饰器</span><span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> P:
+</span><span style="color: #008080;"> 5</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, func):
+</span><span style="color: #008080;"> 6</span>         self.func =<span style="color: #000000;"> func
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__call__</span>(self, *args, **<span style="color: #000000;">kwargs):
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">&lt;p&gt;</span><span style="color: #800000;">'</span> + self.func(*args, **kwargs) + <span style="color: #800000;">'</span><span style="color: #800000;">&lt;/p&gt;</span><span style="color: #800000;">'</span>
+<span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student:
+</span><span style="color: #008080;">12</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, name):
+</span><span style="color: #008080;">13</span>         self.name =<span style="color: #000000;"> name
+</span><span style="color: #008080;">14</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> @P 会出现错误</span>
+<span style="color: #008080;">15</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_name(self):
+</span><span style="color: #008080;">16</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> self.name.upper()
+</span><span style="color: #008080;">17</span> 
+<span style="color: #008080;">18</span> <span style="color: #000000;">@P
+</span><span style="color: #008080;">19</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_text():
+</span><span style="color: #008080;">20</span>     <span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">欢迎学习优品课堂课程</span><span style="color: #800000;">'</span>
+<span style="color: #008080;">21</span> <span style="color: #000000;">@P
+</span><span style="color: #008080;">22</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_upper_text(text):
+</span><span style="color: #008080;">23</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> text.upper()
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span> 
+<span style="color: #008080;">26</span> <span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+</span><span style="color: #008080;">27</span>     <span style="color: #0000ff;">print</span><span style="color: #000000;">(get_text())
+</span><span style="color: #008080;">28</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> &lt; p &gt; 欢迎学习优品课堂课程 &lt; / p &gt;</span>
+<span style="color: #008080;">29</span>     <span style="color: #0000ff;">print</span>(get_upper_text(<span style="color: #800000;">'</span><span style="color: #800000;">www.codeclassroom.com</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+</span><span style="color: #008080;">30</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> &lt; p &gt; WWW.CODECLASSROOM.COM &lt; / p &gt;</span>
+<span style="color: #008080;">31</span>     s = Student(<span style="color: #800000;">'</span><span style="color: #800000;">John</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">32</span>     <span style="color: #0000ff;">print</span><span style="color: #000000;">(s.get_name())
+</span><span style="color: #008080;">33</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> JOHN</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

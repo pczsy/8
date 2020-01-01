@@ -1,0 +1,1141 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修特征降维三种方式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>特征降维三种方式</center></div><div class='banquan'>原文出处:本文由博客园博主何同学提供。<br/>
+原文连接:https://www.cnblogs.com/henabo/p/11603034.html</div><br>
+    <p>降维实际上就是降低特征的个数，最终的结果就是特征和特征之间不相关。</p>
+<p>降维：降维是指在某些限定条件下，降低随机变量（特征）个数，得到一组&ldquo;不相关&rdquo;主变量的过程</p>
+<h2 id="降维的两种方式：">降维的两种方式：</h2>
+<h4 id="1、特征选择">1、特征选择</h4>
+<h4 id="2、主成分分析（可以理解为一种特征提取的方式）">2、主成分分析（可以理解为一种特征提取的方式）</h4>
+<h3 id="一、特征选择">一、特征选择</h3>
+<pre><code><code>定义：数据中包含冗余或相关变量（或称为特征、属性、指标等），旨在从原有特征中找出主要特征</code></pre>
+<h4 id="特征选择的2中方法（过滤式-+-嵌入式）">特征选择的2中方法（过滤式 + 嵌入式）</h4>
+<pre><code><code>Filter（过滤式）：主要探究特征本身特点、特征与特征和目标值之间关联。
+
+    方差选择法：低方差特征过滤.例如鸟类是否可以飞作为特征值是不合适的，此时的方差为0
+
+    相关系数：目的是去除冗余，确定特征与特征之间的相关性
+
+Embedded（嵌入式）：算法自动选择特征（特征与目标值之间的关联）
+
+    决策树：信息熵、信息增益
+
+    正则化：L1、L2
+
+    深度学习：卷积等</code></pre>
+<h4 id="模块">模块</h4>
+<pre><code><code>sklearn.feature_selection</code></pre>
+<h4 id="一、降维方式一：特征选择&mdash;&mdash;过滤式&mdash;&mdash;低方差过滤">一、降维方式一：特征选择&mdash;&mdash;过滤式&mdash;&mdash;低方差过滤</h4>
+<h4 id="低方差特征过滤">低方差特征过滤</h4>
+<pre><code><code>删除低方差的一些特征，从方差的大小来考虑方式的角度。
+
+特征方差小：某个特征大多样本的值比较相近
+
+特征方差大：某个特征很多样本的值有比较有差别</code></pre>
+<h4 id="API">API</h4>
+<pre><code><code>sklearn.feature_selection.VarianceThreshold( threshold = 0.0 )
+
+    删除所有低方差特征
+
+    Variance.fit_transform(X)
+
+        X:numpy array格式的数据 [n_samples, n_features]
+
+        返回：训练集差异低于 threshold的特征将被删除。默认值是保留所有非零方差特征，即删除所有样本中具有相同值的特征。</code></pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">删除低方差特征Demo</span>
+
+<span style="color: #0000ff;">from</span> sklearn.datasets <span style="color: #0000ff;">import</span><span style="color: #000000;"> load_iris
+</span><span style="color: #0000ff;">from</span> sklearn.feature_selection <span style="color: #0000ff;">import</span><span style="color: #000000;"> VarianceThreshold
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pandas as pd
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> variance_demo():
+    iris </span>=<span style="color: #000000;"> load_iris()
+    data </span>= pd.DataFrame(iris.data, columns =<span style="color: #000000;"> iris.feature_names)
+    data_new </span>= data.iloc[:, :4<span style="color: #000000;">].values
+    
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_new:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_new)
+    
+    transfer </span>= VarianceThreshold(threshold = 0.5<span style="color: #000000;">)
+    
+    data_variance_value </span>=<span style="color: #000000;"> transfer.fit_transform(data_new)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_variance_value:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_variance_value)
+    
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    variance_demo()
+
+
+
+
+
+输出结果：
+data_new:
+ [[</span>5.1 3.5 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.  1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>4.6 3.1 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.6 1.4 0.2<span style="color: #000000;">]
+ [</span>5.4 3.9 1.7 0.4<span style="color: #000000;">]
+ [</span>4.6 3.4 1.4 0.3<span style="color: #000000;">]
+ [</span>5.  3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>4.4 2.9 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.4 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>4.8 3.4 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.1<span style="color: #000000;">]
+ [</span>4.3 3.  1.1 0.1<span style="color: #000000;">]
+ [</span>5.8 4.  1.2 0.2<span style="color: #000000;">]
+ [</span>5.7 4.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.4 3.9 1.3 0.4<span style="color: #000000;">]
+ [</span>5.1 3.5 1.4 0.3<span style="color: #000000;">]
+ [</span>5.7 3.8 1.7 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.5 0.3<span style="color: #000000;">]
+ [</span>5.4 3.4 1.7 0.2<span style="color: #000000;">]
+ [</span>5.1 3.7 1.5 0.4<span style="color: #000000;">]
+ [</span>4.6 3.6 1.  0.2<span style="color: #000000;">]
+ [</span>5.1 3.3 1.7 0.5<span style="color: #000000;">]
+ [</span>4.8 3.4 1.9 0.2<span style="color: #000000;">]
+ [</span>5.  3.  1.6 0.2<span style="color: #000000;">]
+ [</span>5.  3.4 1.6 0.4<span style="color: #000000;">]
+ [</span>5.2 3.5 1.5 0.2<span style="color: #000000;">]
+ [</span>5.2 3.4 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.1 1.6 0.2<span style="color: #000000;">]
+ [</span>5.4 3.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.2 4.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.5 4.2 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.  3.2 1.2 0.2<span style="color: #000000;">]
+ [</span>5.5 3.5 1.3 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>4.4 3.  1.3 0.2<span style="color: #000000;">]
+ [</span>5.1 3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.3 0.3<span style="color: #000000;">]
+ [</span>4.5 2.3 1.3 0.3<span style="color: #000000;">]
+ [</span>4.4 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.6 0.6<span style="color: #000000;">]
+ [</span>5.1 3.8 1.9 0.4<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.6 0.2<span style="color: #000000;">]
+ [</span>4.6 3.2 1.4 0.2<span style="color: #000000;">]
+ [</span>5.3 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.3 1.4 0.2<span style="color: #000000;">]
+ [</span>7.  3.2 4.7 1.4<span style="color: #000000;">]
+ [</span>6.4 3.2 4.5 1.5<span style="color: #000000;">]
+ [</span>6.9 3.1 4.9 1.5<span style="color: #000000;">]
+ [</span>5.5 2.3 4.  1.3<span style="color: #000000;">]
+ [</span>6.5 2.8 4.6 1.5<span style="color: #000000;">]
+ [</span>5.7 2.8 4.5 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 4.7 1.6<span style="color: #000000;">]
+ [</span>4.9 2.4 3.3 1<span style="color: #000000;">. ]
+ [</span>6.6 2.9 4.6 1.3<span style="color: #000000;">]
+ [</span>5.2 2.7 3.9 1.4<span style="color: #000000;">]
+ [</span>5.  2.  3.5 1<span style="color: #000000;">. ]
+ [</span>5.9 3.  4.2 1.5<span style="color: #000000;">]
+ [</span>6.  2.2 4.  1<span style="color: #000000;">. ]
+ [</span>6.1 2.9 4.7 1.4<span style="color: #000000;">]
+ [</span>5.6 2.9 3.6 1.3<span style="color: #000000;">]
+ [</span>6.7 3.1 4.4 1.4<span style="color: #000000;">]
+ [</span>5.6 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>5.8 2.7 4.1 1<span style="color: #000000;">. ]
+ [</span>6.2 2.2 4.5 1.5<span style="color: #000000;">]
+ [</span>5.6 2.5 3.9 1.1<span style="color: #000000;">]
+ [</span>5.9 3.2 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 2.8 4.  1.3<span style="color: #000000;">]
+ [</span>6.3 2.5 4.9 1.5<span style="color: #000000;">]
+ [</span>6.1 2.8 4.7 1.2<span style="color: #000000;">]
+ [</span>6.4 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>6.6 3.  4.4 1.4<span style="color: #000000;">]
+ [</span>6.8 2.8 4.8 1.4<span style="color: #000000;">]
+ [</span>6.7 3.  5.  1.7<span style="color: #000000;">]
+ [</span>6.  2.9 4.5 1.5<span style="color: #000000;">]
+ [</span>5.7 2.6 3.5 1<span style="color: #000000;">. ]
+ [</span>5.5 2.4 3.8 1.1<span style="color: #000000;">]
+ [</span>5.5 2.4 3.7 1<span style="color: #000000;">. ]
+ [</span>5.8 2.7 3.9 1.2<span style="color: #000000;">]
+ [</span>6.  2.7 5.1 1.6<span style="color: #000000;">]
+ [</span>5.4 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>6.  3.4 4.5 1.6<span style="color: #000000;">]
+ [</span>6.7 3.1 4.7 1.5<span style="color: #000000;">]
+ [</span>6.3 2.3 4.4 1.3<span style="color: #000000;">]
+ [</span>5.6 3.  4.1 1.3<span style="color: #000000;">]
+ [</span>5.5 2.5 4.  1.3<span style="color: #000000;">]
+ [</span>5.5 2.6 4.4 1.2<span style="color: #000000;">]
+ [</span>6.1 3.  4.6 1.4<span style="color: #000000;">]
+ [</span>5.8 2.6 4.  1.2<span style="color: #000000;">]
+ [</span>5.  2.3 3.3 1<span style="color: #000000;">. ]
+ [</span>5.6 2.7 4.2 1.3<span style="color: #000000;">]
+ [</span>5.7 3.  4.2 1.2<span style="color: #000000;">]
+ [</span>5.7 2.9 4.2 1.3<span style="color: #000000;">]
+ [</span>6.2 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>5.1 2.5 3.  1.1<span style="color: #000000;">]
+ [</span>5.7 2.8 4.1 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 6.  2.5<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>7.1 3.  5.9 2.1<span style="color: #000000;">]
+ [</span>6.3 2.9 5.6 1.8<span style="color: #000000;">]
+ [</span>6.5 3.  5.8 2.2<span style="color: #000000;">]
+ [</span>7.6 3.  6.6 2.1<span style="color: #000000;">]
+ [</span>4.9 2.5 4.5 1.7<span style="color: #000000;">]
+ [</span>7.3 2.9 6.3 1.8<span style="color: #000000;">]
+ [</span>6.7 2.5 5.8 1.8<span style="color: #000000;">]
+ [</span>7.2 3.6 6.1 2.5<span style="color: #000000;">]
+ [</span>6.5 3.2 5.1 2<span style="color: #000000;">. ]
+ [</span>6.4 2.7 5.3 1.9<span style="color: #000000;">]
+ [</span>6.8 3.  5.5 2.1<span style="color: #000000;">]
+ [</span>5.7 2.5 5.  2<span style="color: #000000;">. ]
+ [</span>5.8 2.8 5.1 2.4<span style="color: #000000;">]
+ [</span>6.4 3.2 5.3 2.3<span style="color: #000000;">]
+ [</span>6.5 3.  5.5 1.8<span style="color: #000000;">]
+ [</span>7.7 3.8 6.7 2.2<span style="color: #000000;">]
+ [</span>7.7 2.6 6.9 2.3<span style="color: #000000;">]
+ [</span>6.  2.2 5.  1.5<span style="color: #000000;">]
+ [</span>6.9 3.2 5.7 2.3<span style="color: #000000;">]
+ [</span>5.6 2.8 4.9 2<span style="color: #000000;">. ]
+ [</span>7.7 2.8 6.7 2<span style="color: #000000;">. ]
+ [</span>6.3 2.7 4.9 1.8<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.1<span style="color: #000000;">]
+ [</span>7.2 3.2 6.  1.8<span style="color: #000000;">]
+ [</span>6.2 2.8 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 3.  4.9 1.8<span style="color: #000000;">]
+ [</span>6.4 2.8 5.6 2.1<span style="color: #000000;">]
+ [</span>7.2 3.  5.8 1.6<span style="color: #000000;">]
+ [</span>7.4 2.8 6.1 1.9<span style="color: #000000;">]
+ [</span>7.9 3.8 6.4 2<span style="color: #000000;">. ]
+ [</span>6.4 2.8 5.6 2.2<span style="color: #000000;">]
+ [</span>6.3 2.8 5.1 1.5<span style="color: #000000;">]
+ [</span>6.1 2.6 5.6 1.4<span style="color: #000000;">]
+ [</span>7.7 3.  6.1 2.3<span style="color: #000000;">]
+ [</span>6.3 3.4 5.6 2.4<span style="color: #000000;">]
+ [</span>6.4 3.1 5.5 1.8<span style="color: #000000;">]
+ [</span>6.  3.  4.8 1.8<span style="color: #000000;">]
+ [</span>6.9 3.1 5.4 2.1<span style="color: #000000;">]
+ [</span>6.7 3.1 5.6 2.4<span style="color: #000000;">]
+ [</span>6.9 3.1 5.1 2.3<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>6.8 3.2 5.9 2.3<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.5<span style="color: #000000;">]
+ [</span>6.7 3.  5.2 2.3<span style="color: #000000;">]
+ [</span>6.3 2.5 5.  1.9<span style="color: #000000;">]
+ [</span>6.5 3.  5.2 2<span style="color: #000000;">. ]
+ [</span>6.2 3.4 5.4 2.3<span style="color: #000000;">]
+ [</span>5.9 3.  5.1 1.8<span style="color: #000000;">]]
+data_variance_value:
+ [[</span>5.1 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 1.3 0.2<span style="color: #000000;">]
+ [</span>4.6 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  1.4 0.2<span style="color: #000000;">]
+ [</span>5.4 1.7 0.4<span style="color: #000000;">]
+ [</span>4.6 1.4 0.3<span style="color: #000000;">]
+ [</span>5.  1.5 0.2<span style="color: #000000;">]
+ [</span>4.4 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 1.5 0.1<span style="color: #000000;">]
+ [</span>5.4 1.5 0.2<span style="color: #000000;">]
+ [</span>4.8 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 1.4 0.1<span style="color: #000000;">]
+ [</span>4.3 1.1 0.1<span style="color: #000000;">]
+ [</span>5.8 1.2 0.2<span style="color: #000000;">]
+ [</span>5.7 1.5 0.4<span style="color: #000000;">]
+ [</span>5.4 1.3 0.4<span style="color: #000000;">]
+ [</span>5.1 1.4 0.3<span style="color: #000000;">]
+ [</span>5.7 1.7 0.3<span style="color: #000000;">]
+ [</span>5.1 1.5 0.3<span style="color: #000000;">]
+ [</span>5.4 1.7 0.2<span style="color: #000000;">]
+ [</span>5.1 1.5 0.4<span style="color: #000000;">]
+ [</span>4.6 1.  0.2<span style="color: #000000;">]
+ [</span>5.1 1.7 0.5<span style="color: #000000;">]
+ [</span>4.8 1.9 0.2<span style="color: #000000;">]
+ [</span>5.  1.6 0.2<span style="color: #000000;">]
+ [</span>5.  1.6 0.4<span style="color: #000000;">]
+ [</span>5.2 1.5 0.2<span style="color: #000000;">]
+ [</span>5.2 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 1.6 0.2<span style="color: #000000;">]
+ [</span>5.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.2 1.5 0.1<span style="color: #000000;">]
+ [</span>5.5 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 1.5 0.1<span style="color: #000000;">]
+ [</span>5.  1.2 0.2<span style="color: #000000;">]
+ [</span>5.5 1.3 0.2<span style="color: #000000;">]
+ [</span>4.9 1.5 0.1<span style="color: #000000;">]
+ [</span>4.4 1.3 0.2<span style="color: #000000;">]
+ [</span>5.1 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  1.3 0.3<span style="color: #000000;">]
+ [</span>4.5 1.3 0.3<span style="color: #000000;">]
+ [</span>4.4 1.3 0.2<span style="color: #000000;">]
+ [</span>5.  1.6 0.6<span style="color: #000000;">]
+ [</span>5.1 1.9 0.4<span style="color: #000000;">]
+ [</span>4.8 1.4 0.3<span style="color: #000000;">]
+ [</span>5.1 1.6 0.2<span style="color: #000000;">]
+ [</span>4.6 1.4 0.2<span style="color: #000000;">]
+ [</span>5.3 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  1.4 0.2<span style="color: #000000;">]
+ [</span>7.  4.7 1.4<span style="color: #000000;">]
+ [</span>6.4 4.5 1.5<span style="color: #000000;">]
+ [</span>6.9 4.9 1.5<span style="color: #000000;">]
+ [</span>5.5 4.  1.3<span style="color: #000000;">]
+ [</span>6.5 4.6 1.5<span style="color: #000000;">]
+ [</span>5.7 4.5 1.3<span style="color: #000000;">]
+ [</span>6.3 4.7 1.6<span style="color: #000000;">]
+ [</span>4.9 3.3 1<span style="color: #000000;">. ]
+ [</span>6.6 4.6 1.3<span style="color: #000000;">]
+ [</span>5.2 3.9 1.4<span style="color: #000000;">]
+ [</span>5.  3.5 1<span style="color: #000000;">. ]
+ [</span>5.9 4.2 1.5<span style="color: #000000;">]
+ [</span>6.  4.  1<span style="color: #000000;">. ]
+ [</span>6.1 4.7 1.4<span style="color: #000000;">]
+ [</span>5.6 3.6 1.3<span style="color: #000000;">]
+ [</span>6.7 4.4 1.4<span style="color: #000000;">]
+ [</span>5.6 4.5 1.5<span style="color: #000000;">]
+ [</span>5.8 4.1 1<span style="color: #000000;">. ]
+ [</span>6.2 4.5 1.5<span style="color: #000000;">]
+ [</span>5.6 3.9 1.1<span style="color: #000000;">]
+ [</span>5.9 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 4.  1.3<span style="color: #000000;">]
+ [</span>6.3 4.9 1.5<span style="color: #000000;">]
+ [</span>6.1 4.7 1.2<span style="color: #000000;">]
+ [</span>6.4 4.3 1.3<span style="color: #000000;">]
+ [</span>6.6 4.4 1.4<span style="color: #000000;">]
+ [</span>6.8 4.8 1.4<span style="color: #000000;">]
+ [</span>6.7 5.  1.7<span style="color: #000000;">]
+ [</span>6.  4.5 1.5<span style="color: #000000;">]
+ [</span>5.7 3.5 1<span style="color: #000000;">. ]
+ [</span>5.5 3.8 1.1<span style="color: #000000;">]
+ [</span>5.5 3.7 1<span style="color: #000000;">. ]
+ [</span>5.8 3.9 1.2<span style="color: #000000;">]
+ [</span>6.  5.1 1.6<span style="color: #000000;">]
+ [</span>5.4 4.5 1.5<span style="color: #000000;">]
+ [</span>6.  4.5 1.6<span style="color: #000000;">]
+ [</span>6.7 4.7 1.5<span style="color: #000000;">]
+ [</span>6.3 4.4 1.3<span style="color: #000000;">]
+ [</span>5.6 4.1 1.3<span style="color: #000000;">]
+ [</span>5.5 4.  1.3<span style="color: #000000;">]
+ [</span>5.5 4.4 1.2<span style="color: #000000;">]
+ [</span>6.1 4.6 1.4<span style="color: #000000;">]
+ [</span>5.8 4.  1.2<span style="color: #000000;">]
+ [</span>5.  3.3 1<span style="color: #000000;">. ]
+ [</span>5.6 4.2 1.3<span style="color: #000000;">]
+ [</span>5.7 4.2 1.2<span style="color: #000000;">]
+ [</span>5.7 4.2 1.3<span style="color: #000000;">]
+ [</span>6.2 4.3 1.3<span style="color: #000000;">]
+ [</span>5.1 3.  1.1<span style="color: #000000;">]
+ [</span>5.7 4.1 1.3<span style="color: #000000;">]
+ [</span>6.3 6.  2.5<span style="color: #000000;">]
+ [</span>5.8 5.1 1.9<span style="color: #000000;">]
+ [</span>7.1 5.9 2.1<span style="color: #000000;">]
+ [</span>6.3 5.6 1.8<span style="color: #000000;">]
+ [</span>6.5 5.8 2.2<span style="color: #000000;">]
+ [</span>7.6 6.6 2.1<span style="color: #000000;">]
+ [</span>4.9 4.5 1.7<span style="color: #000000;">]
+ [</span>7.3 6.3 1.8<span style="color: #000000;">]
+ [</span>6.7 5.8 1.8<span style="color: #000000;">]
+ [</span>7.2 6.1 2.5<span style="color: #000000;">]
+ [</span>6.5 5.1 2<span style="color: #000000;">. ]
+ [</span>6.4 5.3 1.9<span style="color: #000000;">]
+ [</span>6.8 5.5 2.1<span style="color: #000000;">]
+ [</span>5.7 5.  2<span style="color: #000000;">. ]
+ [</span>5.8 5.1 2.4<span style="color: #000000;">]
+ [</span>6.4 5.3 2.3<span style="color: #000000;">]
+ [</span>6.5 5.5 1.8<span style="color: #000000;">]
+ [</span>7.7 6.7 2.2<span style="color: #000000;">]
+ [</span>7.7 6.9 2.3<span style="color: #000000;">]
+ [</span>6.  5.  1.5<span style="color: #000000;">]
+ [</span>6.9 5.7 2.3<span style="color: #000000;">]
+ [</span>5.6 4.9 2<span style="color: #000000;">. ]
+ [</span>7.7 6.7 2<span style="color: #000000;">. ]
+ [</span>6.3 4.9 1.8<span style="color: #000000;">]
+ [</span>6.7 5.7 2.1<span style="color: #000000;">]
+ [</span>7.2 6.  1.8<span style="color: #000000;">]
+ [</span>6.2 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 4.9 1.8<span style="color: #000000;">]
+ [</span>6.4 5.6 2.1<span style="color: #000000;">]
+ [</span>7.2 5.8 1.6<span style="color: #000000;">]
+ [</span>7.4 6.1 1.9<span style="color: #000000;">]
+ [</span>7.9 6.4 2<span style="color: #000000;">. ]
+ [</span>6.4 5.6 2.2<span style="color: #000000;">]
+ [</span>6.3 5.1 1.5<span style="color: #000000;">]
+ [</span>6.1 5.6 1.4<span style="color: #000000;">]
+ [</span>7.7 6.1 2.3<span style="color: #000000;">]
+ [</span>6.3 5.6 2.4<span style="color: #000000;">]
+ [</span>6.4 5.5 1.8<span style="color: #000000;">]
+ [</span>6.  4.8 1.8<span style="color: #000000;">]
+ [</span>6.9 5.4 2.1<span style="color: #000000;">]
+ [</span>6.7 5.6 2.4<span style="color: #000000;">]
+ [</span>6.9 5.1 2.3<span style="color: #000000;">]
+ [</span>5.8 5.1 1.9<span style="color: #000000;">]
+ [</span>6.8 5.9 2.3<span style="color: #000000;">]
+ [</span>6.7 5.7 2.5<span style="color: #000000;">]
+ [</span>6.7 5.2 2.3<span style="color: #000000;">]
+ [</span>6.3 5.  1.9<span style="color: #000000;">]
+ [</span>6.5 5.2 2<span style="color: #000000;">. ]
+ [</span>6.2 5.4 2.3<span style="color: #000000;">]
+ [</span>5.9 5.1 1.8]]</pre>
+</div>
+<h4 id="降维方式二：特征选择&mdash;&mdash;过滤式&mdash;&mdash;相关系数">降维方式二：特征选择&mdash;&mdash;过滤式&mdash;&mdash;相关系数</h4>
+<pre><code><code>皮尔森相关系数
+    反映变量之间相关关系密切程度的统计指标
+
+公式：（在此不列出来了，可以在网上百度一下，了解一下即可）
+
+相关系数的值介于-1与+1之间，即-1&le;r&le;+1。其性质如下：
+
+    当r&gt;0时，表示两变量正相关，r&lt;0时，两变量为负相关
+
+    当r=|1|时，表示两变量为完全相关，当r=0时，表示狼变量无相关关系
+
+    当0&lt;|r|&lt;1时，表示两变量存在一定程度的相关，|r|越接近1，两变量间线性关系越密切；|r|越接近于0，表示两变量的线性相关越弱
+
+    一般可按三级划分：|r|&lt;0.4为低度相关；0.4&le;|r|&lt;0.7为显著相关；0.7&le;|r|&lt;1为高度线性相关</code></pre>
+<h4 id="API">API</h4>
+<pre><code><code>from scipy.stats import pearsonr</code></pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">过滤低方差特征 + 计算相关系数DEMO</span><span style="color: #008000;">
+#</span><span style="color: #008000;">皮尔森相关系数，计算特征与目标变量之间的相关度</span>
+<span style="color: #0000ff;">from</span> scipy.stats <span style="color: #0000ff;">import</span><span style="color: #000000;"> pearsonr
+</span><span style="color: #0000ff;">from</span> sklearn.datasets <span style="color: #0000ff;">import</span><span style="color: #000000;"> load_iris
+</span><span style="color: #0000ff;">from</span> sklearn.feature_selection <span style="color: #0000ff;">import</span><span style="color: #000000;"> VarianceThreshold
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pandas as pd
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> variance_demo():
+    iris </span>=<span style="color: #000000;"> load_iris()
+    data </span>= pd.DataFrame(iris.data, columns = [<span style="color: #800000;">'</span><span style="color: #800000;">sepal length</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">sepal width</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">petal length</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">petal width</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    data_new </span>= data.iloc[:, :4<span style="color: #000000;">].values
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_new:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_new)
+    
+    transfer </span>= VarianceThreshold(threshold = 0.5<span style="color: #000000;">)
+    
+    data_variance_value </span>=<span style="color: #000000;"> transfer.fit_transform(data_new)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_variance_value:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_variance_value)
+    
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">计算两个变量之间的相关系数</span>
+    r1 = pearsonr(data[<span style="color: #800000;">'</span><span style="color: #800000;">sepal length</span><span style="color: #800000;">'</span>], data[<span style="color: #800000;">'</span><span style="color: #800000;">petal length</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">sepal length与petal length的相关系数：\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, r1)
+    
+    r2 </span>= pearsonr(data[<span style="color: #800000;">'</span><span style="color: #800000;">petal length</span><span style="color: #800000;">'</span>], data[<span style="color: #800000;">'</span><span style="color: #800000;">petal width</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">petal length与petal width的相关系数：\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, r2)
+    
+    </span><span style="color: #0000ff;">import</span><span style="color: #000000;"> matplotlib.pyplot as plt
+    plt.scatter(data[</span><span style="color: #800000;">'</span><span style="color: #800000;">petal length</span><span style="color: #800000;">'</span>], data[<span style="color: #800000;">'</span><span style="color: #800000;">petal width</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    plt.show()
+    
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    variance_demo()
+    
+
+
+
+
+输出结果：
+data_new:
+ [[</span>5.1 3.5 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.  1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>4.6 3.1 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.6 1.4 0.2<span style="color: #000000;">]
+ [</span>5.4 3.9 1.7 0.4<span style="color: #000000;">]
+ [</span>4.6 3.4 1.4 0.3<span style="color: #000000;">]
+ [</span>5.  3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>4.4 2.9 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.4 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>4.8 3.4 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.1<span style="color: #000000;">]
+ [</span>4.3 3.  1.1 0.1<span style="color: #000000;">]
+ [</span>5.8 4.  1.2 0.2<span style="color: #000000;">]
+ [</span>5.7 4.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.4 3.9 1.3 0.4<span style="color: #000000;">]
+ [</span>5.1 3.5 1.4 0.3<span style="color: #000000;">]
+ [</span>5.7 3.8 1.7 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.5 0.3<span style="color: #000000;">]
+ [</span>5.4 3.4 1.7 0.2<span style="color: #000000;">]
+ [</span>5.1 3.7 1.5 0.4<span style="color: #000000;">]
+ [</span>4.6 3.6 1.  0.2<span style="color: #000000;">]
+ [</span>5.1 3.3 1.7 0.5<span style="color: #000000;">]
+ [</span>4.8 3.4 1.9 0.2<span style="color: #000000;">]
+ [</span>5.  3.  1.6 0.2<span style="color: #000000;">]
+ [</span>5.  3.4 1.6 0.4<span style="color: #000000;">]
+ [</span>5.2 3.5 1.5 0.2<span style="color: #000000;">]
+ [</span>5.2 3.4 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.1 1.6 0.2<span style="color: #000000;">]
+ [</span>5.4 3.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.2 4.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.5 4.2 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.  3.2 1.2 0.2<span style="color: #000000;">]
+ [</span>5.5 3.5 1.3 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>4.4 3.  1.3 0.2<span style="color: #000000;">]
+ [</span>5.1 3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.3 0.3<span style="color: #000000;">]
+ [</span>4.5 2.3 1.3 0.3<span style="color: #000000;">]
+ [</span>4.4 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.6 0.6<span style="color: #000000;">]
+ [</span>5.1 3.8 1.9 0.4<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.6 0.2<span style="color: #000000;">]
+ [</span>4.6 3.2 1.4 0.2<span style="color: #000000;">]
+ [</span>5.3 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.3 1.4 0.2<span style="color: #000000;">]
+ [</span>7.  3.2 4.7 1.4<span style="color: #000000;">]
+ [</span>6.4 3.2 4.5 1.5<span style="color: #000000;">]
+ [</span>6.9 3.1 4.9 1.5<span style="color: #000000;">]
+ [</span>5.5 2.3 4.  1.3<span style="color: #000000;">]
+ [</span>6.5 2.8 4.6 1.5<span style="color: #000000;">]
+ [</span>5.7 2.8 4.5 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 4.7 1.6<span style="color: #000000;">]
+ [</span>4.9 2.4 3.3 1<span style="color: #000000;">. ]
+ [</span>6.6 2.9 4.6 1.3<span style="color: #000000;">]
+ [</span>5.2 2.7 3.9 1.4<span style="color: #000000;">]
+ [</span>5.  2.  3.5 1<span style="color: #000000;">. ]
+ [</span>5.9 3.  4.2 1.5<span style="color: #000000;">]
+ [</span>6.  2.2 4.  1<span style="color: #000000;">. ]
+ [</span>6.1 2.9 4.7 1.4<span style="color: #000000;">]
+ [</span>5.6 2.9 3.6 1.3<span style="color: #000000;">]
+ [</span>6.7 3.1 4.4 1.4<span style="color: #000000;">]
+ [</span>5.6 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>5.8 2.7 4.1 1<span style="color: #000000;">. ]
+ [</span>6.2 2.2 4.5 1.5<span style="color: #000000;">]
+ [</span>5.6 2.5 3.9 1.1<span style="color: #000000;">]
+ [</span>5.9 3.2 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 2.8 4.  1.3<span style="color: #000000;">]
+ [</span>6.3 2.5 4.9 1.5<span style="color: #000000;">]
+ [</span>6.1 2.8 4.7 1.2<span style="color: #000000;">]
+ [</span>6.4 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>6.6 3.  4.4 1.4<span style="color: #000000;">]
+ [</span>6.8 2.8 4.8 1.4<span style="color: #000000;">]
+ [</span>6.7 3.  5.  1.7<span style="color: #000000;">]
+ [</span>6.  2.9 4.5 1.5<span style="color: #000000;">]
+ [</span>5.7 2.6 3.5 1<span style="color: #000000;">. ]
+ [</span>5.5 2.4 3.8 1.1<span style="color: #000000;">]
+ [</span>5.5 2.4 3.7 1<span style="color: #000000;">. ]
+ [</span>5.8 2.7 3.9 1.2<span style="color: #000000;">]
+ [</span>6.  2.7 5.1 1.6<span style="color: #000000;">]
+ [</span>5.4 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>6.  3.4 4.5 1.6<span style="color: #000000;">]
+ [</span>6.7 3.1 4.7 1.5<span style="color: #000000;">]
+ [</span>6.3 2.3 4.4 1.3<span style="color: #000000;">]
+ [</span>5.6 3.  4.1 1.3<span style="color: #000000;">]
+ [</span>5.5 2.5 4.  1.3<span style="color: #000000;">]
+ [</span>5.5 2.6 4.4 1.2<span style="color: #000000;">]
+ [</span>6.1 3.  4.6 1.4<span style="color: #000000;">]
+ [</span>5.8 2.6 4.  1.2<span style="color: #000000;">]
+ [</span>5.  2.3 3.3 1<span style="color: #000000;">. ]
+ [</span>5.6 2.7 4.2 1.3<span style="color: #000000;">]
+ [</span>5.7 3.  4.2 1.2<span style="color: #000000;">]
+ [</span>5.7 2.9 4.2 1.3<span style="color: #000000;">]
+ [</span>6.2 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>5.1 2.5 3.  1.1<span style="color: #000000;">]
+ [</span>5.7 2.8 4.1 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 6.  2.5<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>7.1 3.  5.9 2.1<span style="color: #000000;">]
+ [</span>6.3 2.9 5.6 1.8<span style="color: #000000;">]
+ [</span>6.5 3.  5.8 2.2<span style="color: #000000;">]
+ [</span>7.6 3.  6.6 2.1<span style="color: #000000;">]
+ [</span>4.9 2.5 4.5 1.7<span style="color: #000000;">]
+ [</span>7.3 2.9 6.3 1.8<span style="color: #000000;">]
+ [</span>6.7 2.5 5.8 1.8<span style="color: #000000;">]
+ [</span>7.2 3.6 6.1 2.5<span style="color: #000000;">]
+ [</span>6.5 3.2 5.1 2<span style="color: #000000;">. ]
+ [</span>6.4 2.7 5.3 1.9<span style="color: #000000;">]
+ [</span>6.8 3.  5.5 2.1<span style="color: #000000;">]
+ [</span>5.7 2.5 5.  2<span style="color: #000000;">. ]
+ [</span>5.8 2.8 5.1 2.4<span style="color: #000000;">]
+ [</span>6.4 3.2 5.3 2.3<span style="color: #000000;">]
+ [</span>6.5 3.  5.5 1.8<span style="color: #000000;">]
+ [</span>7.7 3.8 6.7 2.2<span style="color: #000000;">]
+ [</span>7.7 2.6 6.9 2.3<span style="color: #000000;">]
+ [</span>6.  2.2 5.  1.5<span style="color: #000000;">]
+ [</span>6.9 3.2 5.7 2.3<span style="color: #000000;">]
+ [</span>5.6 2.8 4.9 2<span style="color: #000000;">. ]
+ [</span>7.7 2.8 6.7 2<span style="color: #000000;">. ]
+ [</span>6.3 2.7 4.9 1.8<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.1<span style="color: #000000;">]
+ [</span>7.2 3.2 6.  1.8<span style="color: #000000;">]
+ [</span>6.2 2.8 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 3.  4.9 1.8<span style="color: #000000;">]
+ [</span>6.4 2.8 5.6 2.1<span style="color: #000000;">]
+ [</span>7.2 3.  5.8 1.6<span style="color: #000000;">]
+ [</span>7.4 2.8 6.1 1.9<span style="color: #000000;">]
+ [</span>7.9 3.8 6.4 2<span style="color: #000000;">. ]
+ [</span>6.4 2.8 5.6 2.2<span style="color: #000000;">]
+ [</span>6.3 2.8 5.1 1.5<span style="color: #000000;">]
+ [</span>6.1 2.6 5.6 1.4<span style="color: #000000;">]
+ [</span>7.7 3.  6.1 2.3<span style="color: #000000;">]
+ [</span>6.3 3.4 5.6 2.4<span style="color: #000000;">]
+ [</span>6.4 3.1 5.5 1.8<span style="color: #000000;">]
+ [</span>6.  3.  4.8 1.8<span style="color: #000000;">]
+ [</span>6.9 3.1 5.4 2.1<span style="color: #000000;">]
+ [</span>6.7 3.1 5.6 2.4<span style="color: #000000;">]
+ [</span>6.9 3.1 5.1 2.3<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>6.8 3.2 5.9 2.3<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.5<span style="color: #000000;">]
+ [</span>6.7 3.  5.2 2.3<span style="color: #000000;">]
+ [</span>6.3 2.5 5.  1.9<span style="color: #000000;">]
+ [</span>6.5 3.  5.2 2<span style="color: #000000;">. ]
+ [</span>6.2 3.4 5.4 2.3<span style="color: #000000;">]
+ [</span>5.9 3.  5.1 1.8<span style="color: #000000;">]]
+data_variance_value:
+ [[</span>5.1 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 1.3 0.2<span style="color: #000000;">]
+ [</span>4.6 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  1.4 0.2<span style="color: #000000;">]
+ [</span>5.4 1.7 0.4<span style="color: #000000;">]
+ [</span>4.6 1.4 0.3<span style="color: #000000;">]
+ [</span>5.  1.5 0.2<span style="color: #000000;">]
+ [</span>4.4 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 1.5 0.1<span style="color: #000000;">]
+ [</span>5.4 1.5 0.2<span style="color: #000000;">]
+ [</span>4.8 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 1.4 0.1<span style="color: #000000;">]
+ [</span>4.3 1.1 0.1<span style="color: #000000;">]
+ [</span>5.8 1.2 0.2<span style="color: #000000;">]
+ [</span>5.7 1.5 0.4<span style="color: #000000;">]
+ [</span>5.4 1.3 0.4<span style="color: #000000;">]
+ [</span>5.1 1.4 0.3<span style="color: #000000;">]
+ [</span>5.7 1.7 0.3<span style="color: #000000;">]
+ [</span>5.1 1.5 0.3<span style="color: #000000;">]
+ [</span>5.4 1.7 0.2<span style="color: #000000;">]
+ [</span>5.1 1.5 0.4<span style="color: #000000;">]
+ [</span>4.6 1.  0.2<span style="color: #000000;">]
+ [</span>5.1 1.7 0.5<span style="color: #000000;">]
+ [</span>4.8 1.9 0.2<span style="color: #000000;">]
+ [</span>5.  1.6 0.2<span style="color: #000000;">]
+ [</span>5.  1.6 0.4<span style="color: #000000;">]
+ [</span>5.2 1.5 0.2<span style="color: #000000;">]
+ [</span>5.2 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 1.6 0.2<span style="color: #000000;">]
+ [</span>5.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.2 1.5 0.1<span style="color: #000000;">]
+ [</span>5.5 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 1.5 0.1<span style="color: #000000;">]
+ [</span>5.  1.2 0.2<span style="color: #000000;">]
+ [</span>5.5 1.3 0.2<span style="color: #000000;">]
+ [</span>4.9 1.5 0.1<span style="color: #000000;">]
+ [</span>4.4 1.3 0.2<span style="color: #000000;">]
+ [</span>5.1 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  1.3 0.3<span style="color: #000000;">]
+ [</span>4.5 1.3 0.3<span style="color: #000000;">]
+ [</span>4.4 1.3 0.2<span style="color: #000000;">]
+ [</span>5.  1.6 0.6<span style="color: #000000;">]
+ [</span>5.1 1.9 0.4<span style="color: #000000;">]
+ [</span>4.8 1.4 0.3<span style="color: #000000;">]
+ [</span>5.1 1.6 0.2<span style="color: #000000;">]
+ [</span>4.6 1.4 0.2<span style="color: #000000;">]
+ [</span>5.3 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  1.4 0.2<span style="color: #000000;">]
+ [</span>7.  4.7 1.4<span style="color: #000000;">]
+ [</span>6.4 4.5 1.5<span style="color: #000000;">]
+ [</span>6.9 4.9 1.5<span style="color: #000000;">]
+ [</span>5.5 4.  1.3<span style="color: #000000;">]
+ [</span>6.5 4.6 1.5<span style="color: #000000;">]
+ [</span>5.7 4.5 1.3<span style="color: #000000;">]
+ [</span>6.3 4.7 1.6<span style="color: #000000;">]
+ [</span>4.9 3.3 1<span style="color: #000000;">. ]
+ [</span>6.6 4.6 1.3<span style="color: #000000;">]
+ [</span>5.2 3.9 1.4<span style="color: #000000;">]
+ [</span>5.  3.5 1<span style="color: #000000;">. ]
+ [</span>5.9 4.2 1.5<span style="color: #000000;">]
+ [</span>6.  4.  1<span style="color: #000000;">. ]
+ [</span>6.1 4.7 1.4<span style="color: #000000;">]
+ [</span>5.6 3.6 1.3<span style="color: #000000;">]
+ [</span>6.7 4.4 1.4<span style="color: #000000;">]
+ [</span>5.6 4.5 1.5<span style="color: #000000;">]
+ [</span>5.8 4.1 1<span style="color: #000000;">. ]
+ [</span>6.2 4.5 1.5<span style="color: #000000;">]
+ [</span>5.6 3.9 1.1<span style="color: #000000;">]
+ [</span>5.9 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 4.  1.3<span style="color: #000000;">]
+ [</span>6.3 4.9 1.5<span style="color: #000000;">]
+ [</span>6.1 4.7 1.2<span style="color: #000000;">]
+ [</span>6.4 4.3 1.3<span style="color: #000000;">]
+ [</span>6.6 4.4 1.4<span style="color: #000000;">]
+ [</span>6.8 4.8 1.4<span style="color: #000000;">]
+ [</span>6.7 5.  1.7<span style="color: #000000;">]
+ [</span>6.  4.5 1.5<span style="color: #000000;">]
+ [</span>5.7 3.5 1<span style="color: #000000;">. ]
+ [</span>5.5 3.8 1.1<span style="color: #000000;">]
+ [</span>5.5 3.7 1<span style="color: #000000;">. ]
+ [</span>5.8 3.9 1.2<span style="color: #000000;">]
+ [</span>6.  5.1 1.6<span style="color: #000000;">]
+ [</span>5.4 4.5 1.5<span style="color: #000000;">]
+ [</span>6.  4.5 1.6<span style="color: #000000;">]
+ [</span>6.7 4.7 1.5<span style="color: #000000;">]
+ [</span>6.3 4.4 1.3<span style="color: #000000;">]
+ [</span>5.6 4.1 1.3<span style="color: #000000;">]
+ [</span>5.5 4.  1.3<span style="color: #000000;">]
+ [</span>5.5 4.4 1.2<span style="color: #000000;">]
+ [</span>6.1 4.6 1.4<span style="color: #000000;">]
+ [</span>5.8 4.  1.2<span style="color: #000000;">]
+ [</span>5.  3.3 1<span style="color: #000000;">. ]
+ [</span>5.6 4.2 1.3<span style="color: #000000;">]
+ [</span>5.7 4.2 1.2<span style="color: #000000;">]
+ [</span>5.7 4.2 1.3<span style="color: #000000;">]
+ [</span>6.2 4.3 1.3<span style="color: #000000;">]
+ [</span>5.1 3.  1.1<span style="color: #000000;">]
+ [</span>5.7 4.1 1.3<span style="color: #000000;">]
+ [</span>6.3 6.  2.5<span style="color: #000000;">]
+ [</span>5.8 5.1 1.9<span style="color: #000000;">]
+ [</span>7.1 5.9 2.1<span style="color: #000000;">]
+ [</span>6.3 5.6 1.8<span style="color: #000000;">]
+ [</span>6.5 5.8 2.2<span style="color: #000000;">]
+ [</span>7.6 6.6 2.1<span style="color: #000000;">]
+ [</span>4.9 4.5 1.7<span style="color: #000000;">]
+ [</span>7.3 6.3 1.8<span style="color: #000000;">]
+ [</span>6.7 5.8 1.8<span style="color: #000000;">]
+ [</span>7.2 6.1 2.5<span style="color: #000000;">]
+ [</span>6.5 5.1 2<span style="color: #000000;">. ]
+ [</span>6.4 5.3 1.9<span style="color: #000000;">]
+ [</span>6.8 5.5 2.1<span style="color: #000000;">]
+ [</span>5.7 5.  2<span style="color: #000000;">. ]
+ [</span>5.8 5.1 2.4<span style="color: #000000;">]
+ [</span>6.4 5.3 2.3<span style="color: #000000;">]
+ [</span>6.5 5.5 1.8<span style="color: #000000;">]
+ [</span>7.7 6.7 2.2<span style="color: #000000;">]
+ [</span>7.7 6.9 2.3<span style="color: #000000;">]
+ [</span>6.  5.  1.5<span style="color: #000000;">]
+ [</span>6.9 5.7 2.3<span style="color: #000000;">]
+ [</span>5.6 4.9 2<span style="color: #000000;">. ]
+ [</span>7.7 6.7 2<span style="color: #000000;">. ]
+ [</span>6.3 4.9 1.8<span style="color: #000000;">]
+ [</span>6.7 5.7 2.1<span style="color: #000000;">]
+ [</span>7.2 6.  1.8<span style="color: #000000;">]
+ [</span>6.2 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 4.9 1.8<span style="color: #000000;">]
+ [</span>6.4 5.6 2.1<span style="color: #000000;">]
+ [</span>7.2 5.8 1.6<span style="color: #000000;">]
+ [</span>7.4 6.1 1.9<span style="color: #000000;">]
+ [</span>7.9 6.4 2<span style="color: #000000;">. ]
+ [</span>6.4 5.6 2.2<span style="color: #000000;">]
+ [</span>6.3 5.1 1.5<span style="color: #000000;">]
+ [</span>6.1 5.6 1.4<span style="color: #000000;">]
+ [</span>7.7 6.1 2.3<span style="color: #000000;">]
+ [</span>6.3 5.6 2.4<span style="color: #000000;">]
+ [</span>6.4 5.5 1.8<span style="color: #000000;">]
+ [</span>6.  4.8 1.8<span style="color: #000000;">]
+ [</span>6.9 5.4 2.1<span style="color: #000000;">]
+ [</span>6.7 5.6 2.4<span style="color: #000000;">]
+ [</span>6.9 5.1 2.3<span style="color: #000000;">]
+ [</span>5.8 5.1 1.9<span style="color: #000000;">]
+ [</span>6.8 5.9 2.3<span style="color: #000000;">]
+ [</span>6.7 5.7 2.5<span style="color: #000000;">]
+ [</span>6.7 5.2 2.3<span style="color: #000000;">]
+ [</span>6.3 5.  1.9<span style="color: #000000;">]
+ [</span>6.5 5.2 2<span style="color: #000000;">. ]
+ [</span>6.2 5.4 2.3<span style="color: #000000;">]
+ [</span>5.9 5.1 1.8<span style="color: #000000;">]]
+sepal length与petal length的相关系数：
+ (</span>0.8717541573048712, 1.0384540627941809e-47<span style="color: #000000;">)
+petal length与petal width的相关系数：
+ (</span>0.9627570970509662, 5.776660988495158e-86)<br /><br /></pre>
+<img src="./images/特征降维三种方式0.png" alt="" />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</div>
+<div class="cell text_cell unselected rendered">
+<div class="inner_cell">
+<div class="text_cell_render rendered_html">
+<h4 id="特征与特征之间相关性很高，可以采取">特征与特征之间相关性很高，可以采取</h4>
+<pre><code><code>1）选取其中一个
+2）加权求和
+3）主成分分析</code></pre>
+</div>
+</div>
+</div>
+<div class="cell text_cell unselected rendered">
+<div class="prompt input_prompt">&nbsp;</div>
+<div class="inner_cell">
+<div class="text_cell_render rendered_html">
+<h4 id="特征选择注意点！">特征选择注意点！</h4>
+<pre><code><code>在所有特征选择方法，方差，SelectKBest+各种统计量（卡方过滤、F检验、互信息法），嵌入法和包装法，都有接口get_support，该接口有参数indices，get_support(indices=False)，参数为false的时候可以用来确定原特征矩阵中有哪些特征被选择出来，返回布尔值True或者False，如果设定indices=True，就可以确定被选择出来的特征在原特征矩阵中所在的位置的索引。
+
+X_train_columns = X_train.columns
+selector = VarianceThreshold(0.005071)
+X_fsvar = selector.fit_transform(X_train)
+X_fsvar.columns = X_train_columns[selector.get_support(indices=True)]</code></pre>
+</div>
+</div>
+</div>
+<pre><code></pre>
+<h4 id="降维方式三：主成分分析（PCA）">降维方式三：主成分分析（PCA）</h4>
+<pre><code><code>定义：高维数据转化为地位数据的过程，在此过程中可能会舍弃原有数据、创造新的变量
+
+作用：是数据维数的压缩，尽可能降低原数据的维数（复杂度），损失少量信息
+
+应用：回归分析或者据类分析当中</code></pre>
+<h4 id="API">API</h4>
+<pre><code><code>sklearn.decomposition.PCA(n_components = None)
+    将数据分解为较低维数空间
+
+    n_components:
+        小数：表示包留百分之多少的信息
+
+        整数：减少到多少特征
+
+    PCA.fit_transform(X)
+
+        X:numpy array格式的数据[n_samples, n_features]
+
+        返回：转换后指定维度的array</code></pre>
+<pre><code></pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> sklearn.decomposition <span style="color: #0000ff;">import</span><span style="color: #000000;"> PCA
+</span><span style="color: #0000ff;">from</span> sklearn.datasets <span style="color: #0000ff;">import</span><span style="color: #000000;"> load_iris
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> pandas as pd
+
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> pca_demo():
+    iris </span>=<span style="color: #000000;"> load_iris()
+    data </span>= pd.DataFrame(iris.data, columns =<span style="color: #000000;"> iris.feature_names)
+    data_array </span>= data.iloc[:, :4<span style="color: #000000;">].values
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_array:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_array)
+    
+    transfer </span>= PCA(n_components = 2<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">ransfer = PCA(n_components = 0.95)</span>
+<span style="color: #000000;">    
+    data_pca_value </span>=<span style="color: #000000;"> transfer.fit_transform(data_array)
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">data_pca_value:\n</span><span style="color: #800000;">"</span><span style="color: #000000;">, data_pca_value)
+    
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    pca_demo()
+
+
+
+
+输出结果：
+data_array:
+ [[</span>5.1 3.5 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.  1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>4.6 3.1 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.6 1.4 0.2<span style="color: #000000;">]
+ [</span>5.4 3.9 1.7 0.4<span style="color: #000000;">]
+ [</span>4.6 3.4 1.4 0.3<span style="color: #000000;">]
+ [</span>5.  3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>4.4 2.9 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.4 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>4.8 3.4 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.1<span style="color: #000000;">]
+ [</span>4.3 3.  1.1 0.1<span style="color: #000000;">]
+ [</span>5.8 4.  1.2 0.2<span style="color: #000000;">]
+ [</span>5.7 4.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.4 3.9 1.3 0.4<span style="color: #000000;">]
+ [</span>5.1 3.5 1.4 0.3<span style="color: #000000;">]
+ [</span>5.7 3.8 1.7 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.5 0.3<span style="color: #000000;">]
+ [</span>5.4 3.4 1.7 0.2<span style="color: #000000;">]
+ [</span>5.1 3.7 1.5 0.4<span style="color: #000000;">]
+ [</span>4.6 3.6 1.  0.2<span style="color: #000000;">]
+ [</span>5.1 3.3 1.7 0.5<span style="color: #000000;">]
+ [</span>4.8 3.4 1.9 0.2<span style="color: #000000;">]
+ [</span>5.  3.  1.6 0.2<span style="color: #000000;">]
+ [</span>5.  3.4 1.6 0.4<span style="color: #000000;">]
+ [</span>5.2 3.5 1.5 0.2<span style="color: #000000;">]
+ [</span>5.2 3.4 1.4 0.2<span style="color: #000000;">]
+ [</span>4.7 3.2 1.6 0.2<span style="color: #000000;">]
+ [</span>4.8 3.1 1.6 0.2<span style="color: #000000;">]
+ [</span>5.4 3.4 1.5 0.4<span style="color: #000000;">]
+ [</span>5.2 4.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.5 4.2 1.4 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>5.  3.2 1.2 0.2<span style="color: #000000;">]
+ [</span>5.5 3.5 1.3 0.2<span style="color: #000000;">]
+ [</span>4.9 3.1 1.5 0.1<span style="color: #000000;">]
+ [</span>4.4 3.  1.3 0.2<span style="color: #000000;">]
+ [</span>5.1 3.4 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.3 0.3<span style="color: #000000;">]
+ [</span>4.5 2.3 1.3 0.3<span style="color: #000000;">]
+ [</span>4.4 3.2 1.3 0.2<span style="color: #000000;">]
+ [</span>5.  3.5 1.6 0.6<span style="color: #000000;">]
+ [</span>5.1 3.8 1.9 0.4<span style="color: #000000;">]
+ [</span>4.8 3.  1.4 0.3<span style="color: #000000;">]
+ [</span>5.1 3.8 1.6 0.2<span style="color: #000000;">]
+ [</span>4.6 3.2 1.4 0.2<span style="color: #000000;">]
+ [</span>5.3 3.7 1.5 0.2<span style="color: #000000;">]
+ [</span>5.  3.3 1.4 0.2<span style="color: #000000;">]
+ [</span>7.  3.2 4.7 1.4<span style="color: #000000;">]
+ [</span>6.4 3.2 4.5 1.5<span style="color: #000000;">]
+ [</span>6.9 3.1 4.9 1.5<span style="color: #000000;">]
+ [</span>5.5 2.3 4.  1.3<span style="color: #000000;">]
+ [</span>6.5 2.8 4.6 1.5<span style="color: #000000;">]
+ [</span>5.7 2.8 4.5 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 4.7 1.6<span style="color: #000000;">]
+ [</span>4.9 2.4 3.3 1<span style="color: #000000;">. ]
+ [</span>6.6 2.9 4.6 1.3<span style="color: #000000;">]
+ [</span>5.2 2.7 3.9 1.4<span style="color: #000000;">]
+ [</span>5.  2.  3.5 1<span style="color: #000000;">. ]
+ [</span>5.9 3.  4.2 1.5<span style="color: #000000;">]
+ [</span>6.  2.2 4.  1<span style="color: #000000;">. ]
+ [</span>6.1 2.9 4.7 1.4<span style="color: #000000;">]
+ [</span>5.6 2.9 3.6 1.3<span style="color: #000000;">]
+ [</span>6.7 3.1 4.4 1.4<span style="color: #000000;">]
+ [</span>5.6 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>5.8 2.7 4.1 1<span style="color: #000000;">. ]
+ [</span>6.2 2.2 4.5 1.5<span style="color: #000000;">]
+ [</span>5.6 2.5 3.9 1.1<span style="color: #000000;">]
+ [</span>5.9 3.2 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 2.8 4.  1.3<span style="color: #000000;">]
+ [</span>6.3 2.5 4.9 1.5<span style="color: #000000;">]
+ [</span>6.1 2.8 4.7 1.2<span style="color: #000000;">]
+ [</span>6.4 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>6.6 3.  4.4 1.4<span style="color: #000000;">]
+ [</span>6.8 2.8 4.8 1.4<span style="color: #000000;">]
+ [</span>6.7 3.  5.  1.7<span style="color: #000000;">]
+ [</span>6.  2.9 4.5 1.5<span style="color: #000000;">]
+ [</span>5.7 2.6 3.5 1<span style="color: #000000;">. ]
+ [</span>5.5 2.4 3.8 1.1<span style="color: #000000;">]
+ [</span>5.5 2.4 3.7 1<span style="color: #000000;">. ]
+ [</span>5.8 2.7 3.9 1.2<span style="color: #000000;">]
+ [</span>6.  2.7 5.1 1.6<span style="color: #000000;">]
+ [</span>5.4 3.  4.5 1.5<span style="color: #000000;">]
+ [</span>6.  3.4 4.5 1.6<span style="color: #000000;">]
+ [</span>6.7 3.1 4.7 1.5<span style="color: #000000;">]
+ [</span>6.3 2.3 4.4 1.3<span style="color: #000000;">]
+ [</span>5.6 3.  4.1 1.3<span style="color: #000000;">]
+ [</span>5.5 2.5 4.  1.3<span style="color: #000000;">]
+ [</span>5.5 2.6 4.4 1.2<span style="color: #000000;">]
+ [</span>6.1 3.  4.6 1.4<span style="color: #000000;">]
+ [</span>5.8 2.6 4.  1.2<span style="color: #000000;">]
+ [</span>5.  2.3 3.3 1<span style="color: #000000;">. ]
+ [</span>5.6 2.7 4.2 1.3<span style="color: #000000;">]
+ [</span>5.7 3.  4.2 1.2<span style="color: #000000;">]
+ [</span>5.7 2.9 4.2 1.3<span style="color: #000000;">]
+ [</span>6.2 2.9 4.3 1.3<span style="color: #000000;">]
+ [</span>5.1 2.5 3.  1.1<span style="color: #000000;">]
+ [</span>5.7 2.8 4.1 1.3<span style="color: #000000;">]
+ [</span>6.3 3.3 6.  2.5<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>7.1 3.  5.9 2.1<span style="color: #000000;">]
+ [</span>6.3 2.9 5.6 1.8<span style="color: #000000;">]
+ [</span>6.5 3.  5.8 2.2<span style="color: #000000;">]
+ [</span>7.6 3.  6.6 2.1<span style="color: #000000;">]
+ [</span>4.9 2.5 4.5 1.7<span style="color: #000000;">]
+ [</span>7.3 2.9 6.3 1.8<span style="color: #000000;">]
+ [</span>6.7 2.5 5.8 1.8<span style="color: #000000;">]
+ [</span>7.2 3.6 6.1 2.5<span style="color: #000000;">]
+ [</span>6.5 3.2 5.1 2<span style="color: #000000;">. ]
+ [</span>6.4 2.7 5.3 1.9<span style="color: #000000;">]
+ [</span>6.8 3.  5.5 2.1<span style="color: #000000;">]
+ [</span>5.7 2.5 5.  2<span style="color: #000000;">. ]
+ [</span>5.8 2.8 5.1 2.4<span style="color: #000000;">]
+ [</span>6.4 3.2 5.3 2.3<span style="color: #000000;">]
+ [</span>6.5 3.  5.5 1.8<span style="color: #000000;">]
+ [</span>7.7 3.8 6.7 2.2<span style="color: #000000;">]
+ [</span>7.7 2.6 6.9 2.3<span style="color: #000000;">]
+ [</span>6.  2.2 5.  1.5<span style="color: #000000;">]
+ [</span>6.9 3.2 5.7 2.3<span style="color: #000000;">]
+ [</span>5.6 2.8 4.9 2<span style="color: #000000;">. ]
+ [</span>7.7 2.8 6.7 2<span style="color: #000000;">. ]
+ [</span>6.3 2.7 4.9 1.8<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.1<span style="color: #000000;">]
+ [</span>7.2 3.2 6.  1.8<span style="color: #000000;">]
+ [</span>6.2 2.8 4.8 1.8<span style="color: #000000;">]
+ [</span>6.1 3.  4.9 1.8<span style="color: #000000;">]
+ [</span>6.4 2.8 5.6 2.1<span style="color: #000000;">]
+ [</span>7.2 3.  5.8 1.6<span style="color: #000000;">]
+ [</span>7.4 2.8 6.1 1.9<span style="color: #000000;">]
+ [</span>7.9 3.8 6.4 2<span style="color: #000000;">. ]
+ [</span>6.4 2.8 5.6 2.2<span style="color: #000000;">]
+ [</span>6.3 2.8 5.1 1.5<span style="color: #000000;">]
+ [</span>6.1 2.6 5.6 1.4<span style="color: #000000;">]
+ [</span>7.7 3.  6.1 2.3<span style="color: #000000;">]
+ [</span>6.3 3.4 5.6 2.4<span style="color: #000000;">]
+ [</span>6.4 3.1 5.5 1.8<span style="color: #000000;">]
+ [</span>6.  3.  4.8 1.8<span style="color: #000000;">]
+ [</span>6.9 3.1 5.4 2.1<span style="color: #000000;">]
+ [</span>6.7 3.1 5.6 2.4<span style="color: #000000;">]
+ [</span>6.9 3.1 5.1 2.3<span style="color: #000000;">]
+ [</span>5.8 2.7 5.1 1.9<span style="color: #000000;">]
+ [</span>6.8 3.2 5.9 2.3<span style="color: #000000;">]
+ [</span>6.7 3.3 5.7 2.5<span style="color: #000000;">]
+ [</span>6.7 3.  5.2 2.3<span style="color: #000000;">]
+ [</span>6.3 2.5 5.  1.9<span style="color: #000000;">]
+ [</span>6.5 3.  5.2 2<span style="color: #000000;">. ]
+ [</span>6.2 3.4 5.4 2.3<span style="color: #000000;">]
+ [</span>5.9 3.  5.1 1.8<span style="color: #000000;">]]
+data_pca_value:
+ [[</span>-2.68420713  0.32660731<span style="color: #000000;">]
+ [</span>-2.71539062 -0.16955685<span style="color: #000000;">]
+ [</span>-2.88981954 -0.13734561<span style="color: #000000;">]
+ [</span>-2.7464372  -0.31112432<span style="color: #000000;">]
+ [</span>-2.72859298  0.33392456<span style="color: #000000;">]
+ [</span>-2.27989736  0.74778271<span style="color: #000000;">]
+ [</span>-2.82089068 -0.08210451<span style="color: #000000;">]
+ [</span>-2.62648199  0.17040535<span style="color: #000000;">]
+ [</span>-2.88795857 -0.57079803<span style="color: #000000;">]
+ [</span>-2.67384469 -0.1066917<span style="color: #000000;"> ]
+ [</span>-2.50652679  0.65193501<span style="color: #000000;">]
+ [</span>-2.61314272  0.02152063<span style="color: #000000;">]
+ [</span>-2.78743398 -0.22774019<span style="color: #000000;">]
+ [</span>-3.22520045 -0.50327991<span style="color: #000000;">]
+ [</span>-2.64354322  1.1861949<span style="color: #000000;"> ]
+ [</span>-2.38386932  1.34475434<span style="color: #000000;">]
+ [</span>-2.6225262   0.81808967<span style="color: #000000;">]
+ [</span>-2.64832273  0.31913667<span style="color: #000000;">]
+ [</span>-2.19907796  0.87924409<span style="color: #000000;">]
+ [</span>-2.58734619  0.52047364<span style="color: #000000;">]
+ [</span>-2.3105317   0.39786782<span style="color: #000000;">]
+ [</span>-2.54323491  0.44003175<span style="color: #000000;">]
+ [</span>-3.21585769  0.14161557<span style="color: #000000;">]
+ [</span>-2.30312854  0.10552268<span style="color: #000000;">]
+ [</span>-2.35617109 -0.03120959<span style="color: #000000;">]
+ [</span>-2.50791723 -0.13905634<span style="color: #000000;">]
+ [</span>-2.469056    0.13788731<span style="color: #000000;">]
+ [</span>-2.56239095  0.37468456<span style="color: #000000;">]
+ [</span>-2.63982127  0.31929007<span style="color: #000000;">]
+ [</span>-2.63284791 -0.19007583<span style="color: #000000;">]
+ [</span>-2.58846205 -0.19739308<span style="color: #000000;">]
+ [</span>-2.41007734  0.41808001<span style="color: #000000;">]
+ [</span>-2.64763667  0.81998263<span style="color: #000000;">]
+ [</span>-2.59715948  1.10002193<span style="color: #000000;">]
+ [</span>-2.67384469 -0.1066917<span style="color: #000000;"> ]
+ [</span>-2.86699985  0.0771931<span style="color: #000000;"> ]
+ [</span>-2.62522846  0.60680001<span style="color: #000000;">]
+ [</span>-2.67384469 -0.1066917<span style="color: #000000;"> ]
+ [</span>-2.98184266 -0.48025005<span style="color: #000000;">]
+ [</span>-2.59032303  0.23605934<span style="color: #000000;">]
+ [</span>-2.77013891  0.27105942<span style="color: #000000;">]
+ [</span>-2.85221108 -0.93286537<span style="color: #000000;">]
+ [</span>-2.99829644 -0.33430757<span style="color: #000000;">]
+ [</span>-2.4055141   0.19591726<span style="color: #000000;">]
+ [</span>-2.20883295  0.44269603<span style="color: #000000;">]
+ [</span>-2.71566519 -0.24268148<span style="color: #000000;">]
+ [</span>-2.53757337  0.51036755<span style="color: #000000;">]
+ [</span>-2.8403213  -0.22057634<span style="color: #000000;">]
+ [</span>-2.54268576  0.58628103<span style="color: #000000;">]
+ [</span>-2.70391231  0.11501085<span style="color: #000000;">]
+ [ </span>1.28479459  0.68543919<span style="color: #000000;">]
+ [ </span>0.93241075  0.31919809<span style="color: #000000;">]
+ [ </span>1.46406132  0.50418983<span style="color: #000000;">]
+ [ </span>0.18096721 -0.82560394<span style="color: #000000;">]
+ [ </span>1.08713449  0.07539039<span style="color: #000000;">]
+ [ </span>0.64043675 -0.41732348<span style="color: #000000;">]
+ [ </span>1.09522371  0.28389121<span style="color: #000000;">]
+ [</span>-0.75146714 -1.00110751<span style="color: #000000;">]
+ [ </span>1.04329778  0.22895691<span style="color: #000000;">]
+ [</span>-0.01019007 -0.72057487<span style="color: #000000;">]
+ [</span>-0.5110862  -1.26249195<span style="color: #000000;">]
+ [ </span>0.51109806 -0.10228411<span style="color: #000000;">]
+ [ </span>0.26233576 -0.5478933<span style="color: #000000;"> ]
+ [ </span>0.98404455 -0.12436042<span style="color: #000000;">]
+ [</span>-0.174864   -0.25181557<span style="color: #000000;">]
+ [ </span>0.92757294  0.46823621<span style="color: #000000;">]
+ [ </span>0.65959279 -0.35197629<span style="color: #000000;">]
+ [ </span>0.23454059 -0.33192183<span style="color: #000000;">]
+ [ </span>0.94236171 -0.54182226<span style="color: #000000;">]
+ [ </span>0.0432464  -0.58148945<span style="color: #000000;">]
+ [ </span>1.11624072 -0.08421401<span style="color: #000000;">]
+ [ </span>0.35678657 -0.06682383<span style="color: #000000;">]
+ [ </span>1.29646885 -0.32756152<span style="color: #000000;">]
+ [ </span>0.92050265 -0.18239036<span style="color: #000000;">]
+ [ </span>0.71400821  0.15037915<span style="color: #000000;">]
+ [ </span>0.89964086  0.32961098<span style="color: #000000;">]
+ [ </span>1.33104142  0.24466952<span style="color: #000000;">]
+ [ </span>1.55739627  0.26739258<span style="color: #000000;">]
+ [ </span>0.81245555 -0.16233157<span style="color: #000000;">]
+ [</span>-0.30733476 -0.36508661<span style="color: #000000;">]
+ [</span>-0.07034289 -0.70253793<span style="color: #000000;">]
+ [</span>-0.19188449 -0.67749054<span style="color: #000000;">]
+ [ </span>0.13499495 -0.31170964<span style="color: #000000;">]
+ [ </span>1.37873698 -0.42120514<span style="color: #000000;">]
+ [ </span>0.58727485 -0.48328427<span style="color: #000000;">]
+ [ </span>0.8072055   0.19505396<span style="color: #000000;">]
+ [ </span>1.22042897  0.40803534<span style="color: #000000;">]
+ [ </span>0.81286779 -0.370679<span style="color: #000000;">  ]
+ [ </span>0.24519516 -0.26672804<span style="color: #000000;">]
+ [ </span>0.16451343 -0.67966147<span style="color: #000000;">]
+ [ </span>0.46303099 -0.66952655<span style="color: #000000;">]
+ [ </span>0.89016045 -0.03381244<span style="color: #000000;">]
+ [ </span>0.22887905 -0.40225762<span style="color: #000000;">]
+ [</span>-0.70708128 -1.00842476<span style="color: #000000;">]
+ [ </span>0.35553304 -0.50321849<span style="color: #000000;">]
+ [ </span>0.33112695 -0.21118014<span style="color: #000000;">]
+ [ </span>0.37523823 -0.29162202<span style="color: #000000;">]
+ [ </span>0.64169028  0.01907118<span style="color: #000000;">]
+ [</span>-0.90846333 -0.75156873<span style="color: #000000;">]
+ [ </span>0.29780791 -0.34701652<span style="color: #000000;">]
+ [ </span>2.53172698 -0.01184224<span style="color: #000000;">]
+ [ </span>1.41407223 -0.57492506<span style="color: #000000;">]
+ [ </span>2.61648461  0.34193529<span style="color: #000000;">]
+ [ </span>1.97081495 -0.18112569<span style="color: #000000;">]
+ [ </span>2.34975798 -0.04188255<span style="color: #000000;">]
+ [ </span>3.39687992  0.54716805<span style="color: #000000;">]
+ [ </span>0.51938325 -1.19135169<span style="color: #000000;">]
+ [ </span>2.9320051   0.35237701<span style="color: #000000;">]
+ [ </span>2.31967279 -0.24554817<span style="color: #000000;">]
+ [ </span>2.91813423  0.78038063<span style="color: #000000;">]
+ [ </span>1.66193495  0.2420384<span style="color: #000000;"> ]
+ [ </span>1.80234045 -0.21615461<span style="color: #000000;">]
+ [ </span>2.16537886  0.21528028<span style="color: #000000;">]
+ [ </span>1.34459422 -0.77641543<span style="color: #000000;">]
+ [ </span>1.5852673  -0.53930705<span style="color: #000000;">]
+ [ </span>1.90474358  0.11881899<span style="color: #000000;">]
+ [ </span>1.94924878  0.04073026<span style="color: #000000;">]
+ [ </span>3.48876538  1.17154454<span style="color: #000000;">]
+ [ </span>3.79468686  0.25326557<span style="color: #000000;">]
+ [ </span>1.29832982 -0.76101394<span style="color: #000000;">]
+ [ </span>2.42816726  0.37678197<span style="color: #000000;">]
+ [ </span>1.19809737 -0.60557896<span style="color: #000000;">]
+ [ </span>3.49926548  0.45677347<span style="color: #000000;">]
+ [ </span>1.38766825 -0.20403099<span style="color: #000000;">]
+ [ </span>2.27585365  0.33338653<span style="color: #000000;">]
+ [ </span>2.61419383  0.55836695<span style="color: #000000;">]
+ [ </span>1.25762518 -0.179137<span style="color: #000000;">  ]
+ [ </span>1.29066965 -0.11642525<span style="color: #000000;">]
+ [ </span>2.12285398 -0.21085488<span style="color: #000000;">]
+ [ </span>2.3875644   0.46251925<span style="color: #000000;">]
+ [ </span>2.84096093  0.37274259<span style="color: #000000;">]
+ [ </span>3.2323429   1.37052404<span style="color: #000000;">]
+ [ </span>2.15873837 -0.21832553<span style="color: #000000;">]
+ [ </span>1.4431026  -0.14380129<span style="color: #000000;">]
+ [ </span>1.77964011 -0.50146479<span style="color: #000000;">]
+ [ </span>3.07652162  0.68576444<span style="color: #000000;">]
+ [ </span>2.14498686  0.13890661<span style="color: #000000;">]
+ [ </span>1.90486293  0.04804751<span style="color: #000000;">]
+ [ </span>1.16885347 -0.1645025<span style="color: #000000;"> ]
+ [ </span>2.10765373  0.37148225<span style="color: #000000;">]
+ [ </span>2.31430339  0.18260885<span style="color: #000000;">]
+ [ </span>1.92245088  0.40927118<span style="color: #000000;">]
+ [ </span>1.41407223 -0.57492506<span style="color: #000000;">]
+ [ </span>2.56332271  0.2759745<span style="color: #000000;"> ]
+ [ </span>2.41939122  0.30350394<span style="color: #000000;">]
+ [ </span>1.94401705  0.18741522<span style="color: #000000;">]
+ [ </span>1.52566363 -0.37502085<span style="color: #000000;">]
+ [ </span>1.76404594  0.07851919<span style="color: #000000;">]
+ [ </span>1.90162908  0.11587675<span style="color: #000000;">]
+ [ </span>1.38966613 -0.28288671]]</pre>
+</div>
+<p>&nbsp;</p>
+<pre><code><br /><br /><br />参考链接：<a href="https://www.cnblogs.com/ftl1012/p/10498480.html">https://www.cnblogs.com/ftl1012/p/10498480.html</a></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

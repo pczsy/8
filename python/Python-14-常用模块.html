@@ -1,0 +1,822 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python-14-常用模块' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python-14-常用模块</center></div><div class='banquan'>原文出处:本文由博客园博主lsf123456提供。<br/>
+原文连接:https://www.cnblogs.com/lsf123456/p/11181384.html</div><br>
+    <h1><span style="font-size: 18pt;">一、time&amp;datatime</span></h1>
+<p><span style="font-size: 16px;">在Python中，通常有这几种方式来表示时间：</span></p>
+<ul>
+<li><span style="font-size: 15px;">时间戳(timestamp) ：通常来说，时间戳表示的是从1970年1月1日00:00:00开始按秒计算的偏移量。我们运行&ldquo;type(time.time())&rdquo;，返回的是float类型。</span></li>
+<li><span style="font-size: 15px;">格式化的时间字符串</span></li>
+<li><span style="font-size: 15px;">元组(struct_time) &nbsp; ：struct_time元组共有9个元素共九个元素:(年，月，日，时，分，秒，一年中第几周，一年中第几天，夏令时)</span></li>
+</ul>
+<h2><span style="font-size: 14pt;">1. time模块</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>import time
+ 
+# 1 time() :返回当前时间的时间戳
+time.time()  #1473525444.037215
+ 
+#----------------------------------------------------------
+ 
+# 2 localtime([secs])
+# 将一个时间戳转换为当前时区的struct_time。secs参数未提供，则以当前时间为准。
+time.localtime() #time.struct_time(tm_year=2016, tm_mon=9, tm_mday=11, tm_hour=0,
+# tm_min=38, tm_sec=39, tm_wday=6, tm_yday=255, tm_isdst=0)
+time.localtime(1473525444.037215)
+ 
+#----------------------------------------------------------
+ 
+# 3 gmtime([secs]) 和localtime()方法类似，gmtime()方法是将一个时间戳转换为UTC时区（0时区）的struct_time。
+ 
+#----------------------------------------------------------
+ 
+# 4 mktime(t) : 将一个struct_time转化为时间戳。
+print(time.mktime(time.localtime()))#1473525749.0
+ 
+#----------------------------------------------------------
+ 
+# 5 asctime([t]) : 把一个表示时间的元组或者struct_time表示为这种形式：'Sun Jun 20 23:21:05 1993'。
+# 如果没有参数，将会将time.localtime()作为参数传入。
+print(time.asctime())#Sun Sep 11 00:43:43 2016
+ 
+#----------------------------------------------------------
+ 
+# 6 ctime([secs]) : 把一个时间戳（按秒计算的浮点数）转化为time.asctime()的形式。如果参数未给或者为
+# None的时候，将会默认time.time()为参数。它的作用相当于time.asctime(time.localtime(secs))。
+print(time.ctime())  # Sun Sep 11 00:46:38 2016
+ 
+print(time.ctime(time.time()))  # Sun Sep 11 00:46:38 2016
+ 
+# 7 strftime(format[, t]) : 把一个代表时间的元组或者struct_time（如由time.localtime()和
+# time.gmtime()返回）转化为格式化的时间字符串。如果t未指定，将传入time.localtime()。如果元组中任何一个
+# 元素越界，ValueError的错误将会被抛出。
+print(time.strftime("%Y-%m-%d %X", time.localtime()))#2016-09-11 00:49:56
+ 
+# 8 time.strptime(string[, format])
+# 把一个格式化时间字符串转化为struct_time。实际上它和strftime()是逆操作。
+print(time.strptime('2011-05-05 16:37:06', '%Y-%m-%d %X'))
+ 
+#time.struct_time(tm_year=2011, tm_mon=5, tm_mday=5, tm_hour=16, tm_min=37, tm_sec=6,
+#  tm_wday=3, tm_yday=125, tm_isdst=-1)
+ 
+#在这个函数中，format默认为："%a %b %d %H:%M:%S %Y"。
+ 
+ 
+# 9 sleep(secs)
+# 线程推迟指定的时间运行，单位为秒。
+ 
+# 10 clock()
+# 这个需要注意，在不同的系统上含义不同。在UNIX系统上，它返回的是&ldquo;进程时间&rdquo;，它是用秒表示的浮点数（时间戳）。
+# 而在WINDOWS中，第一次调用，返回的是进程运行的实际时间。而第二次之后的调用是自第一次调用以后到现在的运行
+# 时间，即两次时间差。
+</pre>
+</div>
+<p>&nbsp;<img src="./images/Python-14-常用模块0.png" alt="" width="613" height="334" /></p>
+<p><img src="./images/Python-14-常用模块1.png" alt="" width="619" height="321" /></p>
+<h2><span style="font-size: 14pt;">2. datetime模块</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>#时间加减
+import datetime
+
+# print(datetime.datetime.now()) #返回 2016-08-19 12:47:03.941925
+#print(datetime.date.fromtimestamp(time.time()) )  # 时间戳直接转成日期格式 2016-08-19
+# print(datetime.datetime.now() )
+# print(datetime.datetime.now() + datetime.timedelta(3)) #当前时间+3天
+# print(datetime.datetime.now() + datetime.timedelta(-3)) #当前时间-3天
+# print(datetime.datetime.now() + datetime.timedelta(hours=3)) #当前时间+3小时
+# print(datetime.datetime.now() + datetime.timedelta(minutes=30)) #当前时间+30分
+
+
+#
+# c_time  = datetime.datetime.now()
+# print(c_time.replace(minute=3,hour=2)) #时间替换
+
+datetime模块
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">二、random模块</span></h1>
+<div class="cnblogs_Highlighter">
+<pre><code>import random
+ 
+print(random.random())#(0,1)----float
+ 
+print(random.randint(1,3))  #[1,3]
+ 
+print(random.randrange(1,3)) #[1,3)
+ 
+print(random.choice([1,'23',[4,5]]))#23
+ 
+print(random.sample([1,'23',[4,5]],2))#[[4, 5], '23']
+ 
+print(random.uniform(1,3))#1.927109612082716
+ 
+ 
+item=[1,3,5,7,9]
+random.shuffle(item)
+print(item)
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">&nbsp;三、os模块</span></h1>
+<div class="cnblogs_Highlighter">
+<pre><code>os.getcwd() 获取当前工作目录，即当前python脚本工作的目录路径
+os.chdir("dirname")  改变当前脚本工作目录；相当于shell下cd
+os.curdir  返回当前目录: ('.')
+os.pardir  获取当前目录的父目录字符串名：('..')
+os.makedirs('dirname1/dirname2')    可生成多层递归目录
+os.removedirs('dirname1')    若目录为空，则删除，并递归到上一级目录，如若也为空，则删除，依此类推
+os.mkdir('dirname')    生成单级目录；相当于shell中mkdir dirname
+os.rmdir('dirname')    删除单级空目录，若目录不为空则无法删除，报错；相当于shell中rmdir dirname
+os.listdir('dirname')    列出指定目录下的所有文件和子目录，包括隐藏文件，并以列表方式打印
+os.remove()  删除一个文件
+os.rename("oldname","newname")  重命名文件/目录
+os.stat('path/filename')  获取文件/目录信息
+os.sep    输出操作系统特定的路径分隔符，win下为"\\",Linux下为"/"
+os.linesep    输出当前平台使用的行终止符，win下为"\r\n",Linux下为"\n"
+os.pathsep    输出用于分割文件路径的字符串 win下为;,Linux下为:
+os.name    输出字符串指示当前使用平台。win-&gt;'nt'; Linux-&gt;'posix'
+os.system("bash command")  运行shell命令，直接显示
+os.environ  获取系统环境变量
+os.path.abspath(path)  返回path规范化的绝对路径
+os.path.split(path)  将path分割成目录和文件名二元组返回
+os.path.dirname(path)  返回path的目录。其实就是os.path.split(path)的第一个元素
+os.path.basename(path)  返回path最后的文件名。如何path以／或\结尾，那么就会返回空值。即os.path.split(path)的第二个元素
+os.path.exists(path)  如果path存在，返回True；如果path不存在，返回False
+os.path.isabs(path)  如果path是绝对路径，返回True
+os.path.isfile(path)  如果path是一个存在的文件，返回True。否则返回False
+os.path.isdir(path)  如果path是一个存在的目录，则返回True。否则返回False
+os.path.join(path1[, path2[, ...]])  将多个路径组合后返回，第一个绝对路径之前的参数将被忽略
+os.path.getatime(path)  返回path所指向的文件或者目录的最后存取时间
+os.path.getmtime(path)  返回path所指向的文件或者目录的最后修改时间
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code>os路径处理
+#方式一：推荐使用
+import os
+#具体应用
+import os,sys
+possible_topdir = os.path.normpath(os.path.join(
+    os.path.abspath(__file__),
+    os.pardir, #上一级
+    os.pardir,
+    os.pardir
+))
+sys.path.insert(0,possible_topdir)
+
+
+#方式二：不推荐使用
+os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">四、sys模块</span></h1>
+<div class="cnblogs_Highlighter">
+<pre><code>sys.argv           命令行参数List，第一个元素是程序本身路径
+sys.exit(n)        退出程序，正常退出时exit(0)
+sys.version        获取Python解释程序的版本信息
+sys.maxint         最大的Int值
+sys.path           返回模块的搜索路径，初始化时使用PYTHONPATH环境变量的值
+sys.platform       返回操作系统平台名称
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code># 进度条
+
+import sys,time
+for i in range(10):
+    sys.stdout.write('#')
+    time.sleep(1)
+    sys.stdout.flush()
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">&nbsp;五、json&amp;pickle</span></h1>
+<p><span style="font-size: 16px;">用eval内置方法可以将一个字符串转成python对象，不过，eval方法是有局限性的，对于普通的数据类型，json.loads和eval都能用，但遇到特殊类型的时候，eval就不管用了,所以eval的重点还是通常用来执行一个字符串表达式，并返回表达式的值。</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>import json
+x="[null,true,false,1]"
+print(eval(x)) #报错，无法解析null类型，而json就可以
+print(json.loads(x)) 
+</pre>
+</div>
+<h2><span style="font-size: 14pt;">1. 什么是序列化？</span></h2>
+<p><span style="font-size: 16px;">我们把对象(变量)从内存中变成可存储或传输的过程称之为序列化，在Python中叫pickling，在其他语言中也被称之为serialization，marshalling，flattening等等，都是一个意思。</span></p>
+<p><span style="font-size: 16px;">序列化之后，就可以把序列化后的内容写入磁盘，或者通过网络传输到别的机器上。</span></p>
+<p><span style="font-size: 16px;">反过来，把变量内容从序列化的对象重新读到内存里称之为反序列化，即unpickling。</span></p>
+<h2><span style="font-size: 14pt;">2. json模块</span></h2>
+<p><span style="font-size: 16px;">如果我们要在不同的编程语言之间传递对象，就必须把对象序列化为标准格式，比如XML，但更好的方法是序列化为JSON，因为JSON表示出来就是一个字符串，可以被所有语言读取，也可以方便地存储到磁盘或者通过网络传输。JSON不仅是标准格式，并且比XML更快，而且可以直接在Web页面中读取，非常方便。</span></p>
+<p><span style="font-size: 16px;">JSON表示的对象就是标准的JavaScript语言的对象，JSON和Python内置的数据类型对应如下：</span></p>
+<p><img src="./images/Python-14-常用模块2.png" alt="" width="586" height="190" /></p>
+<div class="cnblogs_Highlighter">
+<pre><code>#----------------------------序列化
+import json
+ 
+dic={'name':'alvin','age':23,'sex':'male'}
+print(type(dic))#&lt;class 'dict'&gt;
+ 
+j=json.dumps(dic)
+print(type(j))#&lt;class 'str'&gt;
+ 
+ 
+f=open('序列化对象','w')
+f.write(j)  # 等价于json.dump(dic,f)
+f.close()
+#-----------------------------反序列化
+import json
+f=open('序列化对象')
+data=json.loads(f.read())#  等价于data=json.load(f)
+</pre>
+</div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('dbc94c44-c3e9-4409-bff1-0405a3e46211')"><img id="code_img_closed_dbc94c44-c3e9-4409-bff1-0405a3e46211" class="code_img_closed" src="./images/Python-14-常用模块3.png" alt="" /><img id="code_img_opened_dbc94c44-c3e9-4409-bff1-0405a3e46211" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('dbc94c44-c3e9-4409-bff1-0405a3e46211',event)" src="./images/Python-14-常用模块4.png" alt="" />
+<div id="cnblogs_code_open_dbc94c44-c3e9-4409-bff1-0405a3e46211" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+</span><span style="color: #008000;">#</span><span style="color: #008000;">dct="{'1':111}"#json 不认单引号</span><span style="color: #008000;">
+#</span><span style="color: #008000;">dct=str({"1":111})#报错,因为生成的数据还是单引号:{'one': 1}</span>
+<span style="color: #000000;">
+dct</span>=<span style="color: #800000;">'</span><span style="color: #800000;">{"1":"111"}</span><span style="color: #800000;">'</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(json.loads(dct))
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">conclusion:</span><span style="color: #008000;">
+#</span><span style="color: #008000;">        无论数据是怎样创建的，只要满足json格式，就可以json.loads出来,不一定非要dumps的数据才能loads</span></pre>
+</div>
+<span class="cnblogs_code_collapse">注意</span></div>
+<h2><span style="font-size: 14pt;">3. pickle模块</span></h2>
+<p><span style="font-size: 16px;">pickle模块的用法与json相同，但转化的不是字符串类型，而是bytes类型。</span></p>
+<p><span style="font-size: 16px;">Pickle的问题和所有其他编程语言特有的序列化问题一样，就是它只能用于Python，并且可能不同版本的Python彼此都不兼容，因此，只能用Pickle保存那些不重要的数据，不能成功地反序列化也没关系。</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>import pickle
+
+dic = {'name': 'alvin', 'age': 23, 'sex': 'male'}
+print(type(dic))  # &lt;class 'dict'&gt;
+j = pickle.dumps(dic)
+print(type(j))  # &lt;class 'bytes'&gt;
+f = open('序列化对象_pickle', 'wb')  # 注意是w是写入str,wb是写入bytes,j是'bytes'
+f.write(j)  # 等价于pickle.dump(dic,f)
+f.close()
+
+# -------------------------反序列化
+f = open('序列化对象_pickle', 'rb')
+data = pickle.loads(f.read())  # 等价于data=pickle.load(f)
+print(data['age'])
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">六、shelve模块</span></h1>
+<p><span style="font-size: 16px;">shelve模块比pickle模块简单，只有一个open函数，返回类似字典的对象，可读可写;key必须为字符串，而值可以是python所支持的数据类型</span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>import shelve
+
+f = shelve.open(r'shelve.txt')  # 将一个字典放入文本 f = {}
+f['stu1'] = 'Tom'
+f['stu2'] = {'name': 'gangdan', 'age': 53}
+f['school_info'] = {'website': 'http://www.pypy.org', 'city': 'beijing'}
+
+print(f['stu1'])
+print(f['stu2']['name'])
+f.close()
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">七、xml模块</span></h1>
+<p><span style="font-size: 16px;">xml是实现不同语言或程序之间进行数据交换的协议，跟json差不多，但json使用起来更简单，不过，古时候，在json还没诞生的黑暗年代，大家只能选择用xml，至今很多传统公司如金融行业的很多系统的接口还主要是xml。</span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('c5be924e-bd95-436e-9dc3-3259d5e1c353')"><img id="code_img_closed_c5be924e-bd95-436e-9dc3-3259d5e1c353" class="code_img_closed" src="./images/Python-14-常用模块3.png" alt="" /><img id="code_img_opened_c5be924e-bd95-436e-9dc3-3259d5e1c353" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('c5be924e-bd95-436e-9dc3-3259d5e1c353',event)" src="./images/Python-14-常用模块4.png" alt="" />
+<div id="cnblogs_code_open_c5be924e-bd95-436e-9dc3-3259d5e1c353" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> xml.etree.ElementTree as ET
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> tree = ET.parse(<span style="color: #800000;">"</span><span style="color: #800000;">xml</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 4</span> root =<span style="color: #000000;"> tree.getroot()
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #008000;">#</span><span style="color: #008000;"> xml遍历</span>
+<span style="color: #008080;"> 7</span> <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> root:
+</span><span style="color: #008080;"> 8</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> print(i.tag)</span>
+<span style="color: #008080;"> 9</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> print(i.attrib)</span>
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">for</span> j <span style="color: #0000ff;">in</span><span style="color: #000000;"> i:
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">print</span>(j.tag)  <span style="color: #008000;">#</span><span style="color: #008000;"> 标签</span>
+<span style="color: #008080;">12</span>         <span style="color: #0000ff;">print</span>(j.attrib)  <span style="color: #008000;">#</span><span style="color: #008000;"> 属性</span>
+<span style="color: #008080;">13</span>         <span style="color: #0000ff;">print</span>(j.text)  <span style="color: #008000;">#</span><span style="color: #008000;"> 文本</span>
+<span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 只遍历year节点</span>
+<span style="color: #008080;">16</span> <span style="color: #0000ff;">for</span> node <span style="color: #0000ff;">in</span> root.iter(<span style="color: #800000;">'</span><span style="color: #800000;">year</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+</span><span style="color: #008080;">17</span>     <span style="color: #0000ff;">print</span><span style="color: #000000;">(node.tag, node.text)
+</span><span style="color: #008080;">18</span> <span style="color: #008000;">#</span><span style="color: #008000;"> year 2008</span>
+<span style="color: #008080;">19</span> <span style="color: #008000;">#</span><span style="color: #008000;"> year 2011</span>
+<span style="color: #008080;">20</span> <span style="color: #008000;">#</span><span style="color: #008000;"> year 2011</span>
+<span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 修改</span>
+<span style="color: #008080;">23</span> <span style="color: #0000ff;">for</span> node <span style="color: #0000ff;">in</span> root.iter(<span style="color: #800000;">'</span><span style="color: #800000;">year</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+</span><span style="color: #008080;">24</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> 修改文本</span>
+<span style="color: #008080;">25</span>     new_year = int(node.text) + 1
+<span style="color: #008080;">26</span>     node.text =<span style="color: #000000;"> str(new_year)
+</span><span style="color: #008080;">27</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> 修改属性</span>
+<span style="color: #008080;">28</span>     node.set(<span style="color: #800000;">'</span><span style="color: #800000;">updated</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">yes</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">29</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 写入修改</span>
+<span style="color: #008080;">30</span> tree.write(<span style="color: #800000;">'</span><span style="color: #800000;">new.xml</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">31</span> 
+<span style="color: #008080;">32</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 在country内添加（append）节点year2</span>
+<span style="color: #008080;">33</span> <span style="color: #0000ff;">for</span> country <span style="color: #0000ff;">in</span> root.findall(<span style="color: #800000;">'</span><span style="color: #800000;">country</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+</span><span style="color: #008080;">34</span>     <span style="color: #0000ff;">for</span> year <span style="color: #0000ff;">in</span> country.findall(<span style="color: #800000;">'</span><span style="color: #800000;">year</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+</span><span style="color: #008080;">35</span>         <span style="color: #0000ff;">if</span> int(year.text) &gt; 2000<span style="color: #000000;">:
+</span><span style="color: #008080;">36</span>             year2 = ET.Element(<span style="color: #800000;">'</span><span style="color: #800000;">year2</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">37</span>             year2.text = <span style="color: #800000;">'</span><span style="color: #800000;">新年</span><span style="color: #800000;">'</span>
+<span style="color: #008080;">38</span>             year2.attrib = {<span style="color: #800000;">'</span><span style="color: #800000;">update</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">yes</span><span style="color: #800000;">'</span><span style="color: #000000;">}
+</span><span style="color: #008080;">39</span>             country.append(year2)  <span style="color: #008000;">#</span><span style="color: #008000;"> 往country节点下添加子节点</span>
+<span style="color: #008080;">40</span> 
+<span style="color: #008080;">41</span> tree.write(<span style="color: #800000;">'</span><span style="color: #800000;">a.xml.swap</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">42</span> 
+<span style="color: #008080;">43</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 删除</span>
+<span style="color: #008080;">44</span> <span style="color: #0000ff;">for</span> country <span style="color: #0000ff;">in</span> root.findall(<span style="color: #800000;">'</span><span style="color: #800000;">country</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+</span><span style="color: #008080;">45</span>     rank = int(country.find(<span style="color: #800000;">'</span><span style="color: #800000;">rank</span><span style="color: #800000;">'</span><span style="color: #000000;">).text)
+</span><span style="color: #008080;">46</span>     <span style="color: #0000ff;">if</span> rank &gt; 50<span style="color: #000000;">:
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">        root.remove(country)
+</span><span style="color: #008080;">48</span> tree.write(<span style="color: #800000;">'</span><span style="color: #800000;">new.xml</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<span class="cnblogs_code_collapse">常用操作</span></div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('924f5c5d-153f-411f-ab85-80385e9b3bdf')"><img id="code_img_closed_924f5c5d-153f-411f-ab85-80385e9b3bdf" class="code_img_closed" src="./images/Python-14-常用模块3.png" alt="" /><img id="code_img_opened_924f5c5d-153f-411f-ab85-80385e9b3bdf" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('924f5c5d-153f-411f-ab85-80385e9b3bdf',event)" src="./images/Python-14-常用模块4.png" alt="" />
+<div id="cnblogs_code_open_924f5c5d-153f-411f-ab85-80385e9b3bdf" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">#</span><span style="color: #008000;"> 创建xml文件</span>
+<span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> xml.etree.ElementTree as ET
+</span><span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> new_xml = ET.Element(<span style="color: #800000;">"</span><span style="color: #800000;">namelist</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 5</span> name = ET.SubElement(new_xml, <span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span>, attrib={<span style="color: #800000;">"</span><span style="color: #800000;">enrolled</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">yes</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+</span><span style="color: #008080;"> 6</span> age = ET.SubElement(name, <span style="color: #800000;">"</span><span style="color: #800000;">age</span><span style="color: #800000;">"</span>, attrib={<span style="color: #800000;">"</span><span style="color: #800000;">checked</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">no</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+</span><span style="color: #008080;"> 7</span> sex = ET.SubElement(name, <span style="color: #800000;">"</span><span style="color: #800000;">sex</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 8</span> sex.text = <span style="color: #800000;">'</span><span style="color: #800000;">33</span><span style="color: #800000;">'</span>
+<span style="color: #008080;"> 9</span> name2 = ET.SubElement(new_xml, <span style="color: #800000;">"</span><span style="color: #800000;">name</span><span style="color: #800000;">"</span>, attrib={<span style="color: #800000;">"</span><span style="color: #800000;">enrolled</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">no</span><span style="color: #800000;">"</span><span style="color: #000000;">})
+</span><span style="color: #008080;">10</span> age = ET.SubElement(name2, <span style="color: #800000;">"</span><span style="color: #800000;">age</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;">11</span> age.text = <span style="color: #800000;">'</span><span style="color: #800000;">19</span><span style="color: #800000;">'</span>
+<span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span> et = ET.ElementTree(new_xml)  <span style="color: #008000;">#</span><span style="color: #008000;"> 生成文档对象</span>
+<span style="color: #008080;">14</span> et.write(<span style="color: #800000;">"</span><span style="color: #800000;">test.xml</span><span style="color: #800000;">"</span>, encoding=<span style="color: #800000;">"</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">"</span>, xml_declaration=<span style="color: #000000;">True)
+</span><span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span> ET.dump(new_xml)  <span style="color: #008000;">#</span><span style="color: #008000;"> 打印生成的格式</span></pre>
+</div>
+<span class="cnblogs_code_collapse">创建xml</span></div>
+<h1><span style="font-size: 18pt;">八、re模块</span></h1>
+<h2><span style="font-size: 14pt;">1. 什么是正则表达式</span></h2>
+<p><span style="font-size: 16px;">正则就是用一些具有特殊含义的符号组合到一起（称为正则表达式）来描述字符或者字符串的方法。或者说：正则就是用来描述一类事物的规则。（在Python中）它内嵌在Python中，并通过 re 模块实现。正则表达式模式被编译成一系列的字节码，然后由用 C 编写的匹配引擎执行。</span></p>
+<h2><span style="font-size: 14pt;">2. 字符匹配</span></h2>
+<ul>
+<li>
+<p><span style="font-size: 15px;">普通字符：大多数字符和字母都会和自身匹配</span></p>
+</li>
+<li>
+<p><span style="font-size: 15px;">元字符：. ^ $ * + ? { } [ ] | ( ) \</span></p>
+</li>
+</ul>
+<p><span style="font-size: 15px;"><img src="./images/Python-14-常用模块9.png" alt="" width="609" height="669" /></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>import re
+
+# \w与\W
+print(re.findall('\w', 'hello egon 123'))  # ['h', 'e', 'l', 'l', 'o', 'e', 'g', 'o', 'n', '1', '2', '3']
+print(re.findall('\W', 'hello egon 123'))  # [' ', ' ']
+
+# \s与\S
+print(re.findall('\s', 'hello  egon  123'))  # [' ', ' ', ' ', ' ']
+print(re.findall('\S', 'hello  egon  123'))  # ['h', 'e', 'l', 'l', 'o', 'e', 'g', 'o', 'n', '1', '2', '3']
+# \n \t都是空,都可以被\s匹配
+print(re.findall('\s', 'hello \n egon \t 123'))  # [' ', '\n', ' ', ' ', '\t', ' ']
+
+# \n与\t
+print(re.findall(r'\n', 'hello egon \n123'))  # ['\n']
+print(re.findall(r'\t', 'hello egon\t123'))  # ['\n']
+
+# \d与\D
+print(re.findall('\d', 'hello egon 123'))  # ['1', '2', '3']
+print(re.findall('\D', 'hello egon 123'))  # ['h', 'e', 'l', 'l', 'o', ' ', 'e', 'g', 'o', 'n', ' ']
+
+# \A与\Z
+print(re.findall('\Ahe', 'hello egon 123'))  # ['he'],\A==&gt;^
+print(re.findall('123\Z', 'hello egon 123'))  # ['he'],\Z==&gt;$
+
+# ^与$
+print(re.findall('^h', 'hello egon 123'))  # ['h']
+print(re.findall('3$', 'hello egon 123'))  # ['3']
+
+# .
+print(re.findall('a.b', 'a1b'))  # ['a1b']
+print(re.findall('a.b', 'a1b a*b a b aaab'))  # ['a1b', 'a*b', 'a b', 'aab']
+print(re.findall('a.b', 'a\nb'))  # []
+print(re.findall('a.b', 'a\nb', re.S))  # ['a\nb']
+print(re.findall('a.b', 'a\nb', re.DOTALL))  # ['a\nb']同上一条意思一样
+
+# 重复匹配：| * | ? | .* | .*? | + | {n,m} |
+
+# *  
+print(re.findall('ab*', 'bbbbbbb'))  # []
+print(re.findall('ab*', 'a'))  # ['a']
+print(re.findall('ab*', 'abbbb'))  # ['abbbb']
+
+# ?
+print(re.findall('ab?', 'a'))  # ['a']
+print(re.findall('ab?', 'abbb'))  # ['ab']
+# 匹配所有包含小数在内的数字
+print(re.findall('\d+\.?\d*', "asdfasdf123as1.13dfa12adsf1asdf3"))  # ['123', '1.13', '12', '1', '3']
+
+# .*默认为贪婪匹配
+print(re.findall('a.*b', 'a1b22222222b'))  # ['a1b22222222b']
+
+# .*?为非贪婪匹配：推荐使用
+print(re.findall('a.*?b', 'a1b22222222b'))  # ['a1b']
+
+# +
+print(re.findall('ab+', 'a'))  # []
+print(re.findall('ab+', 'abbb'))  # ['abbb']
+
+# {n,m}
+print(re.findall('ab{2}', 'abbb'))  # ['abb']
+print(re.findall('ab{2,4}', 'abbb'))  # ['abb']
+print(re.findall('ab{1,}', 'abbb'))  # 'ab{1,}' ===&gt; 'ab+'
+print(re.findall('ab{0,}', 'abbb'))  # 'ab{0,}' ===&gt; 'ab*'
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code>#字符集[]
+ret=re.findall('a[bc]d','acd')
+print(ret)#['acd']
+ 
+ret=re.findall('[a-z]','acd')
+print(ret)#['a', 'c', 'd']
+ 
+ret=re.findall('[.*+]','a.cd+')
+print(ret)#['.', '+']
+ 
+#在字符集里有功能的符号: - ^ \
+ 
+ret=re.findall('[1-9]','45dha3')
+print(ret)#['4', '5', '3']
+ 
+ret=re.findall('[^ab]','45bdha3')
+print(ret)#['4', '5', 'd', 'h', '3']
+ 
+ret=re.findall('[\d]','45bdha3')
+print(ret)#['4', '5', '3']
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code># \# print(re.findall('a\\c','a\c')) #对于正则来说a\\c确实可以匹配到a\c,但是在python解释器读取a\\c时，会发生转义，然后交给re去执行，所以抛出异常
+print(re.findall(r'a\\c', 'a\c'))  # r代表告诉解释器使用rawstring，即原生字符串，把我们正则内的所有符号都当普通字符处理，不要转义
+print(re.findall('a\\\\c', 'a\c'))  # 同上面的意思一样，和上面的结果一样都是['a\\c']
+
+# ():分组
+print(re.findall('ab+', 'ababab123'))  # ['ab', 'ab', 'ab']
+print(re.findall('(ab)+123', 'ababab123'))  # ['ab']，匹配到末尾的ab123中的ab
+print(re.findall('(?:ab)+123', 'ababab123'))  # findall的结果不是匹配的全部内容，而是组内的内容,?:可以让结果为匹配的全部内容
+print(re.findall('href="(.*?)"', '&lt;a href="http://www.baidu.com"&gt;点击&lt;/a&gt;'))  # ['http://www.baidu.com']
+print(re.findall('href="(?:.*?)"', '&lt;a href="http://www.baidu.com"&gt;点击&lt;/a&gt;'))  # ['href="http://www.baidu.com"']
+
+# |
+print(re.findall('compan(?:y|ies)', 'Too many companies have gone bankrupt, and the next one is my company'))
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code>import re
+
+print(re.findall("&lt;(?P&lt;tag_name&gt;\w+)&gt;\w+&lt;/(?P=tag_name)&gt;", "&lt;h1&gt;hello&lt;/h1&gt;"))
+print(re.search("&lt;(?P&lt;tag_name&gt;\w+)&gt;\w+&lt;/(?P=tag_name)&gt;", "&lt;h1&gt;hello&lt;/h1&gt;"))
+print(re.search("&lt;(?P&lt;tag_name&gt;\w+)&gt;\w+&lt;/(?P=tag_name)&gt;", "&lt;h1&gt;hello&lt;/h1&gt;").group('tag_name'))
+print(re.search(r"&lt;(\w+)&gt;\w+&lt;/\1&gt;", "&lt;h1&gt;hello&lt;/h1&gt;"))
+# ['h1']
+# &lt;re.Match object; span=(0, 14), match='&lt;h1&gt;hello&lt;/h1&gt;'&gt;
+# h1
+# &lt;re.Match object; span=(0, 14), match='&lt;h1&gt;hello&lt;/h1&gt;'&gt;
+</pre>
+</div>
+<div class="cnblogs_Highlighter">
+<pre><code>#匹配出所有的整数
+import re
+
+#ret=re.findall(r"\d+{0}]","1-2*(60+(-40.35/5)-(-4*3))")
+ret=re.findall(r"-?\d+\.\d*|(-?\d+)","1-2*(60+(-40.35/5)-(-4*3))")
+ret.remove("")
+
+print(ret)
+</pre>
+</div>
+<h2><span style="font-size: 14pt;">3. 常用方法</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>import re
+#1
+re.findall('a','alvin yuan')    #返回所有满足匹配条件的结果,放在列表里
+#2
+re.search('a','alvin yuan').group()  #函数会在字符串内查找模式匹配,只到找到第一个匹配然后返回一个包含匹配信息的对象,该对象可以
+                                     # 通过调用group()方法得到匹配的字符串,如果字符串没有匹配，则返回None。
+ 
+#3
+re.match('a','abc').group()     #同search,不过尽在字符串开始处进行匹配
+ 
+#4
+ret=re.split('[ab]','abcd')     #先按'a'分割得到''和'bcd',在对''和'bcd'分别按'b'分割
+print(ret)#['', '', 'cd']
+ 
+#5
+ret=re.sub('\d','abc','alvin5yuan6',1)
+print(ret)#alvinabcyuan6
+ret=re.subn('\d','abc','alvin5yuan6')
+print(ret)#('alvinabcyuanabc', 2)
+ 
+#6
+obj=re.compile('\d{3}')
+ret=obj.search('abc123eeee')
+print(ret.group())#123
+1
+2
+3
+4
+5
+6
+	
+import re
+ret=re.finditer('\d','ds3sy4784a')
+print(ret)        #&lt;callable_iterator object at 0x10195f940&gt;
+ 
+print(next(ret).group())
+print(next(ret).group())
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">九、logging模块</span></h1>
+<h2><span style="font-size: 14pt;">1. 日志级别</span></h2>
+<p><span style="color: #000000; font-size: 16px;">CRITICAL = 50 #FATAL = CRITICAL </span></p>
+<p><span style="color: #000000; font-size: 16px;">ERROR = 40 </span></p>
+<p><span style="color: #000000; font-size: 16px;">WARNING = 30 #WARN = WARNING </span></p>
+<p><span style="color: #000000; font-size: 16px;">INFO = 20 </span></p>
+<p><span style="color: #000000; font-size: 16px;">DEBUG = 10 </span></p>
+<p><span style="color: #000000; font-size: 16px;">NOTSET = 0 #不设置</span></p>
+<p><span style="font-size: 16px;">默认只会打印出warning以上级别的信息</span></p>
+<h2><span style="font-size: 14pt;">2. 基础配置</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>import logging
+
+logging.basicConfig(  # 基础设置
+    level=logging.DEBUG,  # 设置rootlogger的日志级别
+    filename='logger.log',  # 用指定的文件名创建FiledHandler，这样日志会被存储在指定的文件中
+    filemode='w',  # 文件打开方式，在指定了filename时使用这个参数，默认值为&ldquo;a&rdquo;还可指定为&ldquo;w&rdquo;。
+    format='%(asctime)s %(filename)s [%(lineno)d] %(message)s'  # 指定handler使用的日志显示格式。
+    # stream：用指定的stream创建StreamHandler。可以指定输出到sys.stderr,sys.stdout或者文件，默认为sys.stderr。
+    # 若同时列出了filename和stream两个参数，则stream参数会被忽略。
+)
+logging.debug('kjhk')
+logging.error('nhdvh')
+
+# format格式
+# %(name)s：Logger的名字，并非用户名，详细查看
+# %(levelno)s：数字形式的日志级别
+# %(levelname)s：文本形式的日志级别
+# %(pathname)s：调用日志输出函数的模块的完整路径名，可能没有
+# %(filename)s：调用日志输出函数的模块的文件名
+# %(module)s：调用日志输出函数的模块名
+# %(funcName)s：调用日志输出函数的函数名
+# %(lineno)d：调用日志输出函数的语句所在的代码行
+# %(created)f：当前时间，用UNIX标准的表示时间的浮点数表示
+# %(relativeCreated)d：输出日志信息时的，自Logger创建以来的毫秒数
+# %(asctime)s：字符串形式的当前时间。默认格式是 &ldquo;2003-07-08 16:49:45,896&rdquo;。逗号后面的是毫秒
+# %(thread)d：线程ID。可能没有
+# %(threadName)s：线程名。可能没有
+# %(process)d：进程ID。可能没有
+# %(message)s：用户输出的消息
+</pre>
+</div>
+<h2><span style="font-size: 14pt;">3. logging模块的Formatter，Handler，Logger，Filter对象</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>def log():
+    # logger对象：负责产生日志，然后交给Filter过滤，然后交给不同的Handler输出
+    logger = logging.getLogger('mylogger')
+    # Filter对象：不常用，略
+    # Handler对象：接收logger传来的日志，然后控制输出
+    fh = logging.FileHandler('log_test')  # 打印到文件
+    ch = logging.StreamHandler()  # 打印到终端
+    # Formatter对象：日志格式
+    fm = logging.Formatter('%(asctime)s %(filename)s [%(lineno)d] %(message)s', datefmt='%Y-%m-%d %H:%M:%S %p')
+    # 为Handler对象绑定格式
+    fh.setFormatter(fm)
+    ch.setFormatter(fm)
+    # 将Handler添加给logger并设置日志级别
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    logger.setLevel('DEBUG')
+    return logger
+
+
+# 测试
+logger = log()
+logger.info('hello')
+logging.debug('kjhk')
+logging.error('nhdvh')
+logging.warning('sg')
+logging.critical('sv')
+</pre>
+</div>
+<h1><span style="font-size: 14pt;">4. logger的继承</span></h1>
+<div class="cnblogs_Highlighter">
+<pre><code>import logging
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s -%(module)s:  %(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S %p', )
+
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+
+logger1 = logging.getLogger('root')
+logger2 = logging.getLogger('root.child1')
+logger3 = logging.getLogger('root.child1.child2')
+
+logger1.addHandler(ch)
+logger2.addHandler(ch)
+logger3.addHandler(ch)
+logger1.setLevel(10)
+logger2.setLevel(10)
+logger3.setLevel(10)
+
+logger1.debug('log1 debug')
+logger2.debug('log2 debug')
+logger3.debug('log3 debug')
+'''
+2017-07-28 22:22:05 PM - root - DEBUG -test:  log1 debug
+2017-07-28 22:22:05 PM - root.child1 - DEBUG -test:  log2 debug
+2017-07-28 22:22:05 PM - root.child1 - DEBUG -test:  log2 debug
+2017-07-28 22:22:05 PM - root.child1.child2 - DEBUG -test:  log3 debug
+2017-07-28 22:22:05 PM - root.child1.child2 - DEBUG -test:  log3 debug
+2017-07-28 22:22:05 PM - root.child1.child2 - DEBUG -test:  log3 debug
+'''
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">十、configparser模块</span></h1>
+<p><span style="font-size: 16px;">configparser模块在python中用来读取配置文件，配置文件的格式跟windows下的ini配置文件相似，可以包含一个或多个节(section), 每个节可以有多个参数（键=值）。</span></p>
+<h2><span style="font-size: 14pt;">1. 配置文件样式</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code># 注释1
+; 注释2
+
+[section1]
+k1 = v1
+k2:v2
+user=egon
+age=18
+is_admin=true
+salary=31
+
+[section2]
+k1 = v1</pre>
+</div>
+<h2><span style="font-size: 14pt;">2. 创建</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>import configparser
+  
+config = configparser.ConfigParser()
+config["DEFAULT"] = {'ServerAliveInterval': '45',
+                      'Compression': 'yes',
+                     'CompressionLevel': '9'}
+  
+config['bitbucket.org'] = {}
+config['bitbucket.org']['User'] = 'hg'
+config['topsecret.server.com'] = {}
+topsecret = config['topsecret.server.com']
+topsecret['Host Port'] = '50022'     # mutates the parser
+topsecret['ForwardX11'] = 'no'  # same here
+config['DEFAULT']['ForwardX11'] = 'yes'
+with open('example.ini', 'w') as configfile:
+   config.write(configfile)
+</pre>
+</div>
+<h2><span style="font-size: 14pt;">3. 读取</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>import configparser
+
+config = configparser.ConfigParser()
+config.read('confile')
+
+# 查看所有的标题
+res = config.sections()  # ['section1', 'section2']
+print(res)
+
+# 查看标题section1下所有key=value的key
+options = config.options('section1')
+print(options)  # ['k1', 'k2', 'user', 'age', 'is_admin', 'salary']
+
+# 查看标题section1下所有key=value的(key,value)格式
+item_list = config.items('section1')
+print(item_list)  # [('k1', 'v1'), ('k2', 'v2'), ('user', 'egon'), ('age', '18'), ('is_admin', 'true'), ('salary', '31')]
+
+# 查看标题section1下user的值=&gt;字符串格式
+val = config.get('section1', 'user')
+print(val)  # egon
+
+# 查看标题section1下age的值=&gt;整数格式
+val1 = config.getint('section1', 'age')
+print(val1)  # 18
+
+# 查看标题section1下is_admin的值=&gt;布尔值格式
+val2 = config.getboolean('section1', 'is_admin')
+print(val2)  # True
+
+# 查看标题section1下salary的值=&gt;浮点型格式
+val3 = config.getfloat('section1', 'salary')
+print(val3)  # 31.0
+</pre>
+</div>
+<h2><span style="font-size: 14pt;">4. 修改</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>import configparser
+
+config = configparser.ConfigParser()
+config.read('confile', encoding='utf-8')
+
+# 删除整个标题section2
+config.remove_section('section2')
+
+# 删除标题section1下的某个k1和k2
+config.remove_option('section1', 'k1')
+config.remove_option('section1', 'k2')
+
+# 判断是否存在某个标题
+print(config.has_section('section1'))
+
+# 判断标题section1下是否有user
+print(config.has_option('section1', 'user'))
+
+# 添加一个标题
+config.add_section('egon')
+
+# 在标题egon下添加name=egon,age=18的配置
+config.set('egon', 'name', 'egon')
+config.set('egon', 'age', 18)  # 报错,必须是字符串
+
+# 最后将修改的内容写入文件,完成最终的修改
+config.write(open('confile', 'w'))
+
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">十一、hashlib模块</span></h1>
+<h2><span style="font-size: 14pt;">1. 什么是hash</span></h2>
+<p><span style="color: #000000; font-size: 16px;">hash是一种算法（3.x里代替了md5模块和sha模块，主要提供 SHA1, SHA224, SHA256, SHA384, SHA512 ，MD5 算法），该算法接受传入的内容，经过运算得到一串hash值。</span></p>
+<h2><span style="color: #000000; font-size: 14pt;">2. hash值的特点</span></h2>
+<ul>
+<li><span style="color: #000000; font-size: 15px;">只要传入的内容一样，得到的hash值必然一样=====&gt;要用明文传输密码文件完整性校验</span></li>
+<li><span style="color: #000000; font-size: 15px;">不能由hash值返解成内容=======》把密码做成hash值，不应该在网络传输明文密码</span></li>
+<li><span style="color: #000000; font-size: 15px;">只要使用的hash算法不变，无论校验的内容有多大，得到的hash值长度是固定的</span></li>
+</ul>
+<h2><span style="font-size: 14pt;">3. 使用<br /></span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code>import hashlib
+
+ha = hashlib.sha256()
+ha.update('hello'.encode('utf-8'))
+print(ha.hexdigest())
+
+m = hashlib.sha256('sb'.encode('utf-8'))
+m.update('hello'.encode('utf-8'))
+print(ha.hexdigest())
+</pre>
+</div>
+<h1><span style="font-size: 18pt;">十二、subprocess模块</span></h1>
+<div class="cnblogs_Highlighter">
+<pre><code>import  subprocess
+
+'''
+sh-3.2# ls /Users/egon/Desktop |grep txt$
+mysql.txt
+tt.txt
+事物.txt
+'''
+
+res1=subprocess.Popen('ls /Users/jieli/Desktop',shell=True,stdout=subprocess.PIPE)
+res=subprocess.Popen('grep txt$',shell=True,stdin=res1.stdout,
+                 stdout=subprocess.PIPE)
+
+print(res.stdout.read().decode('utf-8'))
+
+
+#等同于上面,但是上面的优势在于,一个数据流可以和另外一个数据流交互,可以通过爬虫得到结果然后交给grep
+res1=subprocess.Popen('ls /Users/jieli/Desktop |grep txt$',shell=True,stdout=subprocess.PIPE)
+print(res1.stdout.read().decode('utf-8'))
+
+
+#windows下:
+# dir | findstr 'test*'
+# dir | findstr 'txt$'
+import subprocess
+res1=subprocess.Popen(r'dir C:\Users\Administrator\PycharmProjects\test\函数备课',shell=True,stdout=subprocess.PIPE)
+res=subprocess.Popen('findstr test*',shell=True,stdin=res1.stdout,
+                 stdout=subprocess.PIPE)
+
+print(res.stdout.read().decode('gbk')) #subprocess使用当前系统默认编码，得到结果为bytes类型，在windows下需要用gbk解码
+</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

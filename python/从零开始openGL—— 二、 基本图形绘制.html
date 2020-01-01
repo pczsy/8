@@ -1,0 +1,564 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修从零开始openGL—— 二、 基本图形绘制' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>从零开始openGL—— 二、 基本图形绘制</center></div><div class='banquan'>原文出处:本文由博客园博主ITryagain提供。<br/>
+原文连接:https://www.cnblogs.com/csu-lmw/p/11759527.html</div><br>
+    <h1>前言</h1>
+<p>这是从零开始openGL系列文章的第二篇，在<a href="https://www.cnblogs.com/csu-lmw/p/11587594.html" target="_blank">上篇文章</a>中介绍了基本的环境配置，这篇文章将介绍如何绘制基本图形（圆、三角形、立方体、圆柱、圆锥）。</p>
+<h1>基本框架</h1>
+<p>下面这里我先给出opengl的3D绘图的基本框架</p>
+<div class="cnblogs_code">
+<pre><code>#include &lt;windows.h&gt;<span style="color: #000000;">
+#include </span>&lt;<span style="color: #0000ff;">string</span>.h&gt;<span style="color: #000000;">
+#include </span>&lt;stdlib.h&gt;<span style="color: #000000;">
+#include </span>&lt;gl\glui.h&gt;<span style="color: #000000;">
+#include </span>&lt;math.h&gt;<span style="color: #000000;">
+#include </span><span style="color: #800000;">"</span><span style="color: #800000;">common.h</span><span style="color: #800000;">"</span>
+
+<span style="color: #0000ff;">int</span> g_xform_mode =<span style="color: #000000;"> TRANSFORM_NONE;
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;">   g_main_window;
+</span><span style="color: #0000ff;">double</span><span style="color: #000000;"> g_windows_width, g_windows_height;
+
+CObj g_obj;
+</span><span style="color: #008000;">//</span><span style="color: #008000;">the lighting</span>
+<span style="color: #0000ff;">static</span> GLfloat g_light0_ambient[] =  {<span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>};<span style="color: #008000;">//</span><span style="color: #008000;">环境光</span>
+<span style="color: #0000ff;">static</span> GLfloat g_light0_diffuse[] =  {<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>};<span style="color: #008000;">//</span><span style="color: #008000;">散射光</span>
+<span style="color: #0000ff;">static</span> GLfloat g_light0_specular[] = {<span style="color: #800080;">1.0f</span>,<span style="color: #800080;">1.0f</span>,<span style="color: #800080;">1.0f</span>,<span style="color: #800080;">1.0f</span>}; <span style="color: #008000;">//</span><span style="color: #008000;">镜面光</span>
+<span style="color: #0000ff;">static</span> GLfloat g_light0_position[] = {<span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">100.0f</span>, <span style="color: #800080;">0.0f</span>};<span style="color: #008000;">//</span><span style="color: #008000;">光源的位置。第4个参数为1，表示点光源；第4个参数量为0，表示平行光束{0.0f, 0.0f, 10.0f, 0.0f}</span>
+
+<span style="color: #0000ff;">static</span> GLfloat g_material[] = {<span style="color: #800080;">0.96f</span>, <span style="color: #800080;">0.8f</span>, <span style="color: #800080;">0.69f</span>, <span style="color: #800080;">1.0f</span>};<span style="color: #008000;">//</span><span style="color: #008000;">材质</span>
+<span style="color: #0000ff;">static</span> GLfloat g_rquad = <span style="color: #800080;">0</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">static</span> GLfloat g_rquad_x = <span style="color: #800080;">0</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">static</span> GLfloat g_rquad_y = <span style="color: #800080;">0</span><span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">float</span> g_x_offset   = <span style="color: #800080;">0.0</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">float</span> g_y_offset   = <span style="color: #800080;">0.0</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">float</span> g_z_offset   = <span style="color: #800080;">0.0</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">float</span> g_scale_size = <span style="color: #800080;">1</span><span style="color: #000000;">; 
+</span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span>  g_press_x; <span style="color: #008000;">//</span><span style="color: #008000;">鼠标按下时的x坐标</span>
+<span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span>  g_press_y; <span style="color: #008000;">//</span><span style="color: #008000;">鼠标按下时的y坐标</span>
+
+<span style="color: #0000ff;">const</span> <span style="color: #0000ff;">int</span> n = <span style="color: #800080;">1000</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">const</span> GLfloat R = <span style="color: #800080;">0.5f</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">const</span> GLfloat Pi = <span style="color: #800080;">3.1415926536f</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">int</span> g_view_type =<span style="color: #000000;"> VIEW_FLAT;
+</span><span style="color: #0000ff;">int</span> g_draw_content =<span style="color: #000000;"> SHAPE_TRIANGLE;
+
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawTriangle() 
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制三角形</span>
+<span style="color: #000000;">    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);</span><span style="color: #000000;">
+    
+    glBegin(GL_TRIANGLES);
+        glNormal3f(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>);  <span style="color: #008000;">//</span><span style="color: #008000;">指定面法向</span>
+        glVertex3f( <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>);                    <span style="color: #008000;">//</span><span style="color: #008000;"> 上顶点</span>
+        glVertex3f(-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>);                    <span style="color: #008000;">//</span><span style="color: #008000;"> 左下</span>
+        glVertex3f( <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>);                    <span style="color: #008000;">//</span><span style="color: #008000;"> 右下</span>
+<span style="color: #000000;">    glEnd();
+    glFlush();
+}
+
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawCube() 
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制立方体</span>
+<span style="color: #000000;">    glBegin(GL_QUADS);  
+        glNormal3f( </span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>);  <span style="color: #008000;">//</span><span style="color: #008000;">指定面法向</span>
+        glVertex3f( <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,<span style="color: #800080;">1.0f</span>);   <span style="color: #008000;">//</span><span style="color: #008000;">列举面顶点数据，逆时针顺序</span>
+        glVertex3f(-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">前----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">后----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">上----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">0.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">下----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">右----------------------------  </span>
+        glNormal3f(-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">左----------------------------*/  </span>
+<span style="color: #000000;">    glEnd();  
+    glFlush();
+}
+
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawCircle() 
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制圆</span><span style="color: #000000;">
+    glBegin(GL_POLYGON);
+        glNormal3f(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; n; ++<span style="color: #000000;">i) {
+            glVertex2f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * i), R*sin(<span style="color: #800080;">2</span> * Pi / n *<span style="color: #000000;"> i));
+        }
+    glEnd();
+}
+
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawCylinder()
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制圆柱</span>
+<span style="color: #000000;">
+}
+
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawTorus()
+{
+
+}</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> myInit()
+{
+    glClearColor(</span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>);<span style="color: #008000;">//</span><span style="color: #008000;">用白色清屏</span>
+<span style="color: #000000;">
+    glLightfv(GL_LIGHT0, GL_AMBIENT, g_light0_ambient);</span><span style="color: #008000;">//</span><span style="color: #008000;">设置场景的环境光</span>
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, g_light0_diffuse);<span style="color: #008000;">//</span><span style="color: #008000;">设置场景的散射光</span>
+    glLightfv(GL_LIGHT0, GL_POSITION, g_light0_position);<span style="color: #008000;">//</span><span style="color: #008000;">设置场景的位置</span>
+<span style="color: #000000;">
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, g_material);</span><span style="color: #008000;">//</span><span style="color: #008000;">指定用于光照计算的当前材质属性</span>
+<span style="color: #000000;">    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_LIGHTING);</span><span style="color: #008000;">//</span><span style="color: #008000;">开启灯光</span>
+    glEnable(GL_LIGHT0);<span style="color: #008000;">//</span><span style="color: #008000;">开启光照0</span>
+<span style="color: #000000;">
+    glShadeModel(GL_SMOOTH); </span><span style="color: #008000;">//</span><span style="color: #008000;">设置着色模式为光滑着色</span>
+    glEnable(GL_DEPTH_TEST);<span style="color: #008000;">//</span><span style="color: #008000;">启用深度测试</span>
+<span style="color: #000000;">
+    glMatrixMode(GL_MODELVIEW); </span><span style="color: #008000;">//</span><span style="color: #008000;">指定当前矩阵为模型视景矩阵</span>
+    glLoadIdentity(); <span style="color: #008000;">//</span><span style="color: #008000;">将当前的用户坐标系的原点移到了屏幕中心：类似于一个复位操作</span>
+    gluLookAt(<span style="color: #800080;">0.0</span>, <span style="color: #800080;">0.0</span>, <span style="color: #800080;">8.0</span>, <span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>, <span style="color: #800080;">0</span>, <span style="color: #800080;">1.0</span>, <span style="color: #800080;">0</span>);<span style="color: #008000;">//</span><span style="color: #008000;">该函数定义一个视图矩阵，并与当前矩阵相乘.
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">第一组eyex, eyey,eyez 相机在世界坐标的位置;第二组centerx,centery,centerz 相机镜头对准的物体在世界坐标的位置;第三组upx,upy,upz 相机向上的方向在世界坐标中的方向</span>
+<span style="color: #000000;">}</span><span style="color: #0000ff;">void</span> myGlutDisplay() <span style="color: #008000;">//</span><span style="color: #008000;">绘图函数， 操作系统在必要时刻就会对窗体进行重新绘制操作</span>
+<span style="color: #000000;">{
+    glClear( GL_COLOR_BUFFER_BIT </span>| GL_DEPTH_BUFFER_BIT ); <span style="color: #008000;">//</span><span style="color: #008000;">清除颜色缓冲以及深度缓冲</span>
+    glEnable(GL_NORMALIZE); <span style="color: #008000;">//</span><span style="color: #008000;">打开法线向量归一化，确保了法线的长度为1</span>
+<span style="color: #000000;">    
+    glMatrixMode(GL_MODELVIEW);</span><span style="color: #008000;">//</span><span style="color: #008000;">模型视图矩阵</span>
+    glPushMatrix(); <span style="color: #008000;">//</span><span style="color: #008000;">压入当前矩阵堆栈</span>
+
+
+    <span style="color: #0000ff;">if</span> (g_draw_content ==<span style="color: #000000;"> SHAPE_MODEL)
+    {</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制模型</span>
+<span style="color: #000000;">        
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (g_draw_content == SHAPE_TRIANGLE)  <span style="color: #008000;">//</span><span style="color: #008000;">画三角形</span>
+<span style="color: #000000;">    {
+        glLoadIdentity();
+        glTranslatef(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, -<span style="color: #800080;">6.0f</span><span style="color: #000000;">);  
+        DrawTriangle();
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(g_draw_content == SHAPE_CUBE)  <span style="color: #008000;">//</span><span style="color: #008000;">画立方体</span>
+<span style="color: #000000;">    {
+        glLoadIdentity();
+        glTranslatef(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, -<span style="color: #800080;">6.0f</span><span style="color: #000000;">);  
+        glRotatef(g_rquad, g_rquad, g_rquad, </span><span style="color: #800080;">1.0f</span>);    <span style="color: #008000;">//</span><span style="color: #008000;"> 在XYZ轴上旋转立方体</span>
+<span style="color: #000000;">        DrawCube();
+        g_rquad</span>+=<span style="color: #800080;">0.2f</span>;<span style="color: #008000;">//</span><span style="color: #008000;"> 增加旋转变量</span>
+<span style="color: #000000;">    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (g_draw_content == SHAPE_CIRCLE) <span style="color: #008000;">//</span><span style="color: #008000;"> 画圆</span>
+<span style="color: #000000;">    {
+        glLoadIdentity();
+        glTranslatef(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, -<span style="color: #800080;">6.0f</span><span style="color: #000000;">);  
+        DrawCircle();
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (g_draw_content ==<span style="color: #000000;"> SHAPE_CYLINDER)  
+    {</span><span style="color: #008000;">//</span><span style="color: #008000;">TODO: 添加画圆柱的代码</span>
+<span style="color: #000000;">
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (g_draw_content ==<span style="color: #000000;"> SHAPE_TORUS) 
+    {</span><span style="color: #008000;">//</span><span style="color: #008000;">TODO：添加画圆环的代码</span>
+<span style="color: #000000;">
+    }
+    glPopMatrix();
+    glutSwapBuffers(); </span><span style="color: #008000;">//</span><span style="color: #008000;">双缓冲</span>
+<span style="color: #000000;">}
+
+</span><span style="color: #0000ff;">void</span> myGlutReshape(<span style="color: #0000ff;">int</span> x,<span style="color: #0000ff;">int</span> y) <span style="color: #008000;">//</span><span style="color: #008000;">当改变窗口大小时的回调函数</span>
+<span style="color: #000000;">{
+    </span><span style="color: #0000ff;">if</span> (y == <span style="color: #800080;">0</span><span style="color: #000000;">)
+    {
+        y </span>= <span style="color: #800080;">1</span><span style="color: #000000;">;
+    }
+    
+    g_windows_width </span>=<span style="color: #000000;"> x;
+    g_windows_height </span>=<span style="color: #000000;"> y;
+    </span><span style="color: #0000ff;">double</span> xy_aspect = (<span style="color: #0000ff;">float</span>)x / (<span style="color: #0000ff;">float</span><span style="color: #000000;">)y;
+    GLUI_Master.auto_set_viewport(); </span><span style="color: #008000;">//</span><span style="color: #008000;">自动设置视口大小</span>
+<span style="color: #000000;">
+    glMatrixMode( GL_PROJECTION );</span><span style="color: #008000;">//</span><span style="color: #008000;">当前矩阵为投影矩阵</span>
+<span style="color: #000000;">    glLoadIdentity();
+    gluPerspective(</span><span style="color: #800080;">60.0</span>, xy_aspect, <span style="color: #800080;">0.01</span>, <span style="color: #800080;">1000.0</span>);<span style="color: #008000;">//</span><span style="color: #008000;">视景体</span>
+<span style="color: #000000;">
+    glutPostRedisplay(); </span><span style="color: #008000;">//</span><span style="color: #008000;">标记当前窗口需要重新绘制</span>
+<span style="color: #000000;">}
+
+</span><span style="color: #0000ff;">void</span> myGlutKeyboard(unsigned <span style="color: #0000ff;">char</span> Key, <span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span><span style="color: #000000;"> y)
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">键盘时间回调函数</span>
+<span style="color: #000000;">
+}
+
+</span><span style="color: #0000ff;">void</span> myGlutMouse(<span style="color: #0000ff;">int</span> button, <span style="color: #0000ff;">int</span> state, <span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span><span style="color: #000000;"> y)
+{
+    </span><span style="color: #0000ff;">if</span> (state == GLUT_DOWN) <span style="color: #008000;">//</span><span style="color: #008000;">鼠标的状态为按下</span>
+<span style="color: #000000;">    {
+        g_press_x </span>=<span style="color: #000000;"> x;
+        g_press_y </span>=<span style="color: #000000;"> y; 
+        </span><span style="color: #0000ff;">if</span> (button ==<span style="color: #000000;"> GLUT_LEFT_BUTTON) 
+        {</span><span style="color: #008000;">//</span><span style="color: #008000;">按下鼠标的左键表示对模型进行旋转操作</span>
+            g_xform_mode =<span style="color: #000000;"> TRANSFORM_ROTATE;
+        }
+        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (button ==<span style="color: #000000;"> GLUT_RIGHT_BUTTON)
+        {</span><span style="color: #008000;">//</span><span style="color: #008000;">按下鼠标的右键表示对模型进行平移操作</span>
+            g_xform_mode =<span style="color: #000000;"> TRANSFORM_TRANSLATE; 
+        }
+        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (button ==<span style="color: #000000;"> GLUT_MIDDLE_BUTTON)
+        {</span><span style="color: #008000;">//</span><span style="color: #008000;">按下鼠标的滑轮表示按下鼠标的右键表示对模型进行缩放操作</span>
+            g_xform_mode =<span style="color: #000000;"> TRANSFORM_SCALE; 
+        }
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (state ==<span style="color: #000000;"> GLUT_UP)  
+    {</span><span style="color: #008000;">//</span><span style="color: #008000;">如果没有按鼠标，则不对模型进行任何操作</span>
+        g_xform_mode =<span style="color: #000000;"> TRANSFORM_NONE; 
+    }
+}
+
+</span><span style="color: #0000ff;">void</span> myGlutMotion(<span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span> y) <span style="color: #008000;">//</span><span style="color: #008000;">处理当鼠标键摁下时,鼠标拖动的事件</span>
+<span style="color: #000000;">{
+    </span><span style="color: #0000ff;">if</span> (g_xform_mode == TRANSFORM_ROTATE) <span style="color: #008000;">//</span><span style="color: #008000;">旋转</span>
+    {<span style="color: #008000;">//</span><span style="color: #008000;">TODO:添加鼠标移动控制模型旋转参数的代码</span>
+<span style="color: #000000;">
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(g_xform_mode == TRANSFORM_SCALE) <span style="color: #008000;">//</span><span style="color: #008000;">缩放</span>
+    {<span style="color: #008000;">//</span><span style="color: #008000;">TODO:添加鼠标移动控制模型缩放参数的代码</span>
+<span style="color: #000000;">
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(g_xform_mode == TRANSFORM_TRANSLATE) <span style="color: #008000;">//</span><span style="color: #008000;">平移</span>
+    {<span style="color: #008000;">//</span><span style="color: #008000;">TODO:添加鼠标移动控制模型平移参数的代码</span>
+<span style="color: #000000;">
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> force the redraw function</span>
+<span style="color: #000000;">    glutPostRedisplay(); 
+}
+
+</span><span style="color: #0000ff;">void</span> myGlutIdle(<span style="color: #0000ff;">void</span>) <span style="color: #008000;">//</span><span style="color: #008000;">空闲回调函数</span>
+<span style="color: #000000;">{
+    </span><span style="color: #0000ff;">if</span> ( glutGetWindow() !=<span style="color: #000000;"> g_main_window ) 
+        glutSetWindow(g_main_window);  
+
+    glutPostRedisplay();
+}
+
+</span><span style="color: #0000ff;">void</span> glui_control(<span style="color: #0000ff;">int</span> control ) <span style="color: #008000;">//</span><span style="color: #008000;">处理控件的返回值</span>
+<span style="color: #000000;">{
+    </span><span style="color: #0000ff;">switch</span><span style="color: #000000;">(control)
+    {
+    </span><span style="color: #0000ff;">case</span> CRTL_LOAD:<span style="color: #008000;">//</span><span style="color: #008000;">选择&ldquo;open&rdquo;控件</span>
+<span style="color: #000000;">        loadObjFile();
+        g_draw_content </span>=<span style="color: #000000;"> SHAPE_MODEL;
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">case</span> CRTL_CHANGE:<span style="color: #008000;">//</span><span style="color: #008000;">选择Type面板</span>
+        <span style="color: #0000ff;">if</span> (g_view_type ==<span style="color: #000000;"> VIEW_POINT)  
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置两面均为顶点绘制方式</span>
+<span style="color: #000000;">        }
+        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (g_view_type ==<span style="color: #000000;"> VIEW_WIRE)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置两面均为线段绘制方式</span>
+<span style="color: #000000;">        }
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置两面为填充方式</span>
+<span style="color: #000000;">        }    
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> CRTL_TRIANGLE:
+        g_draw_content </span>=<span style="color: #000000;"> SHAPE_TRIANGLE;
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> CRTL_CUBE:
+        g_draw_content </span>=<span style="color: #000000;"> SHAPE_CUBE;
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> CRTL_CIRCLE:
+        g_draw_content </span>=<span style="color: #000000;"> SHAPE_CIRCLE;
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> CRTL_CYLINDER:
+        g_draw_content </span>=<span style="color: #000000;"> SHAPE_CYLINDER;
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> CRTL_CONE:
+        g_draw_content </span>=<span style="color: #000000;"> SHAPE_TORUS;
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> CRTL_MODEL:
+        g_draw_content </span>=<span style="color: #000000;"> SHAPE_MODEL;
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">default</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    }
+}
+
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> myGlui()
+{
+    GLUI_Master.set_glutDisplayFunc( myGlutDisplay ); </span><span style="color: #008000;">//</span><span style="color: #008000;">注册渲染事件回调函数， 系统在需要对窗体进行重新绘制操作时调用</span>
+    GLUI_Master.set_glutReshapeFunc( myGlutReshape );  <span style="color: #008000;">//</span><span style="color: #008000;">注册窗口大小改变事件回调函数</span>
+    GLUI_Master.set_glutKeyboardFunc( myGlutKeyboard );<span style="color: #008000;">//</span><span style="color: #008000;">注册键盘输入事件回调函数</span>
+    glutMotionFunc( myGlutMotion);<span style="color: #008000;">//</span><span style="color: #008000;">注册鼠标移动事件回调函数</span>
+    GLUI_Master.set_glutMouseFunc( myGlutMouse );<span style="color: #008000;">//</span><span style="color: #008000;">注册鼠标点击事件回调函数</span>
+    GLUI_Master.set_glutIdleFunc(myGlutIdle); <span style="color: #008000;">//</span><span style="color: #008000;">为GLUI注册一个标准的GLUT空闲回调函数，当系统处于空闲时,就会调用该注册的函数
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">GLUI</span>
+    GLUI *glui = GLUI_Master.create_glui_subwindow( g_main_window, GLUI_SUBWINDOW_RIGHT); <span style="color: #008000;">//</span><span style="color: #008000;">新建子窗体，位于主窗体的右部 </span>
+    <span style="color: #0000ff;">new</span> GLUI_StaticText(glui, <span style="color: #800000;">"</span><span style="color: #800000;">GLUI</span><span style="color: #800000;">"</span> ); <span style="color: #008000;">//</span><span style="color: #008000;">在GLUI下新建一个静态文本框，输出内容为&ldquo;GLUI&rdquo;</span>
+    <span style="color: #0000ff;">new</span> GLUI_Separator(glui); <span style="color: #008000;">//</span><span style="color: #008000;">新建分隔符</span>
+    <span style="color: #0000ff;">new</span> GLUI_Button(glui,<span style="color: #800000;">"</span><span style="color: #800000;">Open</span><span style="color: #800000;">"</span>, CRTL_LOAD, glui_control); <span style="color: #008000;">//</span><span style="color: #008000;">新建按钮控件，参数分别为：所属窗体、名字、ID、回调函数，当按钮被触发时,它会被调用.</span>
+    <span style="color: #0000ff;">new</span> GLUI_Button(glui, <span style="color: #800000;">"</span><span style="color: #800000;">Quit</span><span style="color: #800000;">"</span>, <span style="color: #800080;">0</span>,(GLUI_Update_CB)exit );<span style="color: #008000;">//</span><span style="color: #008000;">新建退出按钮，当按钮被触发时,退出程序</span>
+<span style="color: #000000;">
+    GLUI_Panel </span>*type_panel = glui-&gt;add_panel(<span style="color: #800000;">"</span><span style="color: #800000;">Type</span><span style="color: #800000;">"</span> ); <span style="color: #008000;">//</span><span style="color: #008000;">在子窗体glui中新建面板，名字为&ldquo;Type&rdquo;</span>
+    GLUI_RadioGroup *radio = glui-&gt;add_radiogroup_to_panel(type_panel, &amp;g_view_type, CRTL_CHANGE, glui_control); <span style="color: #008000;">//</span><span style="color: #008000;">在Type面板中添加一组单选按钮</span>
+    glui-&gt;add_radiobutton_to_group(radio, <span style="color: #800000;">"</span><span style="color: #800000;">points</span><span style="color: #800000;">"</span><span style="color: #000000;">); 
+    glui</span>-&gt;add_radiobutton_to_group(radio, <span style="color: #800000;">"</span><span style="color: #800000;">wire</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+    glui</span>-&gt;add_radiobutton_to_group(radio, <span style="color: #800000;">"</span><span style="color: #800000;">flat</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+
+    GLUI_Panel </span>*draw_panel = glui-&gt;add_panel(<span style="color: #800000;">"</span><span style="color: #800000;">Draw</span><span style="color: #800000;">"</span> ); <span style="color: #008000;">//</span><span style="color: #008000;">在子窗体glui中新建面板，名字为&ldquo;Draw&rdquo;</span>
+    <span style="color: #0000ff;">new</span> GLUI_Button(draw_panel,<span style="color: #800000;">"</span><span style="color: #800000;">Triangle</span><span style="color: #800000;">"</span><span style="color: #000000;">,CRTL_TRIANGLE,glui_control);
+    </span><span style="color: #0000ff;">new</span> GLUI_Button(draw_panel,<span style="color: #800000;">"</span><span style="color: #800000;">Cube</span><span style="color: #800000;">"</span><span style="color: #000000;">,CRTL_CUBE,glui_control);
+    </span><span style="color: #0000ff;">new</span> GLUI_Button(draw_panel,<span style="color: #800000;">"</span><span style="color: #800000;">Circle</span><span style="color: #800000;">"</span><span style="color: #000000;">,CRTL_CIRCLE,glui_control);
+    </span><span style="color: #0000ff;">new</span> GLUI_Button(draw_panel,<span style="color: #800000;">"</span><span style="color: #800000;">Cylinder</span><span style="color: #800000;">"</span><span style="color: #000000;">,CRTL_CYLINDER,glui_control);
+    </span><span style="color: #0000ff;">new</span> GLUI_Button(draw_panel,<span style="color: #800000;">"</span><span style="color: #800000;">Torus</span><span style="color: #800000;">"</span><span style="color: #000000;">,CRTL_CONE,glui_control);
+    </span><span style="color: #0000ff;">new</span> GLUI_Button(draw_panel,<span style="color: #800000;">"</span><span style="color: #800000;">Model</span><span style="color: #800000;">"</span><span style="color: #000000;">,CRTL_MODEL,glui_control);
+
+    glui</span>-&gt;set_main_gfx_window(g_main_window ); <span style="color: #008000;">//</span><span style="color: #008000;">将子窗体glui与主窗体main_window绑定，当窗体glui中的控件的值发生过改变，则该glui窗口被重绘</span>
+<span style="color: #000000;">    GLUI_Master.set_glutIdleFunc( myGlutIdle ); 
+}
+
+</span><span style="color: #0000ff;">int</span> main(<span style="color: #0000ff;">int</span> argc, <span style="color: #0000ff;">char</span>* argv[]) <span style="color: #008000;">//</span><span style="color: #008000;">程序入口</span>
+<span style="color: #000000;">{
+    </span><span style="color: #008000;">/*</span><span style="color: #008000;">**************************************</span><span style="color: #008000;">*/</span>
+    <span style="color: #008000;">/*</span><span style="color: #008000;">   Initialize GLUT and create window  </span><span style="color: #008000;">*/</span>
+    <span style="color: #008000;">/*</span><span style="color: #008000;">**************************************</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+
+    freopen(</span><span style="color: #800000;">"</span><span style="color: #800000;">log.txt</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">w</span><span style="color: #800000;">"</span>, stdout);<span style="color: #008000;">//</span><span style="color: #008000;">重定位，将输出放入log.txt文件中</span>
+    glutInit(&amp;argc, argv);<span style="color: #008000;">//</span><span style="color: #008000;">初始化glut</span>
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);<span style="color: #008000;">//</span><span style="color: #008000;">初始化渲染模式</span>
+    glutInitWindowPosition(<span style="color: #800080;">200</span>, <span style="color: #800080;">200</span>); <span style="color: #008000;">//</span><span style="color: #008000;">初始化窗口位置</span>
+    glutInitWindowSize(<span style="color: #800080;">800</span>, <span style="color: #800080;">600</span>); <span style="color: #008000;">//</span><span style="color: #008000;">初始化窗口大小</span>
+<span style="color: #000000;">
+    g_main_window </span>= glutCreateWindow(<span style="color: #800000;">"</span><span style="color: #800000;">Model Viewer</span><span style="color: #800000;">"</span>); <span style="color: #008000;">//</span><span style="color: #008000;">创建主窗体Model Viewer</span>
+<span style="color: #000000;">
+    myGlui();
+    myInit();
+
+    glutMainLoop();</span><span style="color: #008000;">//</span><span style="color: #008000;">进入glut消息循环</span>
+
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> EXIT_SUCCESS;
+}</span></pre>
+</div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('24761262-f33b-411b-a7a1-649e67473dd6')"><img id="code_img_closed_24761262-f33b-411b-a7a1-649e67473dd6" class="code_img_closed" src="./images/从零开始openGL—— 二、 基本图形绘制0.png" alt="" /><img id="code_img_opened_24761262-f33b-411b-a7a1-649e67473dd6" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('24761262-f33b-411b-a7a1-649e67473dd6',event)" src="./images/从零开始openGL—— 二、 基本图形绘制1.png" alt="" />
+<div id="cnblogs_code_open_24761262-f33b-411b-a7a1-649e67473dd6" class="cnblogs_code_hide">
+<pre><code><span style="color: #000000;">#ifndef COMMON
+</span><span style="color: #0000ff;">#define</span> COMMON
+
+<span style="color: #0000ff;">#define</span> VIEW_POINT            0x00
+<span style="color: #0000ff;">#define</span> VIEW_WIRE            0x01
+<span style="color: #0000ff;">#define</span> VIEW_FLAT            0x02
+
+<span style="color: #0000ff;">#define</span> CRTL_LOAD            0x00
+<span style="color: #0000ff;">#define</span> CRTL_CHANGE            0x01
+<span style="color: #0000ff;">#define</span> CRTL_TRIANGLE        0x02
+<span style="color: #0000ff;">#define</span> CRTL_CUBE            0x03
+<span style="color: #0000ff;">#define</span> CRTL_CIRCLE            0x04
+<span style="color: #0000ff;">#define</span> CRTL_CYLINDER        0x05
+<span style="color: #0000ff;">#define</span> CRTL_CONE            0x06
+<span style="color: #0000ff;">#define</span> CRTL_MODEL            0x07
+
+<span style="color: #0000ff;">#define</span> SHAPE_TRIANGLE        0x00
+<span style="color: #0000ff;">#define</span> SHAPE_CUBE            0x01
+<span style="color: #0000ff;">#define</span> SHAPE_CIRCLE        0x02
+<span style="color: #0000ff;">#define</span> SHAPE_CYLINDER        0x03
+<span style="color: #0000ff;">#define</span> SHAPE_TORUS            0x04
+<span style="color: #0000ff;">#define</span> SHAPE_MODEL            0x05
+
+<span style="color: #0000ff;">#define</span> TRANSFORM_NONE      0x51 
+<span style="color: #0000ff;">#define</span> TRANSFORM_ROTATE    0x52
+<span style="color: #0000ff;">#define</span> TRANSFORM_SCALE     0x53 
+<span style="color: #0000ff;">#define</span> TRANSFORM_TRANSLATE 0x54
+
+<span style="color: #0000ff;">#endif</span> </pre>
+</div>
+<span class="cnblogs_code_collapse">common.h</span></div>
+<p>运行这段代码可以得到如下所示的结果</p>
+<p><img src="./images/从零开始openGL—— 二、 基本图形绘制2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h1>&nbsp;图形绘制</h1>
+<p>在上面那段代码中，已经给出了三角形、圆、正方体的绘制代码，下面还将介绍圆柱与圆环的绘制</p>
+<h2>圆</h2>
+<p>在opengl中并不能直接绘制圆，那么，此时想到了极限的方法，如果把圆分割成很多个扇形，这个扇形的角度足够小的话，那么曲线自然可以看作直线。有了这个思路，代码就很好写了。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawCircle() 
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制圆</span><span style="color: #000000;">
+    glBegin(GL_POLYGON);
+        glNormal3f(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; n; ++<span style="color: #000000;">i) {</span><span style="color: #000000;">
+            glVertex2f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * i), R*sin(<span style="color: #800080;">2</span> * Pi / n *<span style="color: #000000;"> i));
+        }
+    glEnd();
+}</span></pre>
+</div>
+<h2>三角形</h2>
+<p>三角形的绘制就十分的简单了，确定三个顶点，然后连线</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawTriangle() 
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制三角形</span>
+<span style="color: #000000;">    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBegin(GL_TRIANGLES);
+        glNormal3f(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>);  <span style="color: #008000;">//</span><span style="color: #008000;">指定面法向</span>
+        glVertex3f( <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>);                    <span style="color: #008000;">//</span><span style="color: #008000;"> 上顶点</span>
+        glVertex3f(-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>);                    <span style="color: #008000;">//</span><span style="color: #008000;"> 左下</span>
+        glVertex3f( <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>);                    <span style="color: #008000;">//</span><span style="color: #008000;"> 右下</span>
+<span style="color: #000000;">    glEnd();
+    glFlush();
+}</span></pre>
+</div>
+<h2>立方体</h2>
+<p>原理同三角形，确定八个顶点坐标，然后连线，不过这里要注意的是立方体为3D图形，要展示光照效果的话需要在绘制的时候确定各个面的法向量。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawCube() 
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制立方体</span>
+<span style="color: #000000;">    glBegin(GL_QUADS);  
+        glNormal3f( </span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>);  <span style="color: #008000;">//</span><span style="color: #008000;">指定面法向</span>
+        glVertex3f( <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,<span style="color: #800080;">1.0f</span>);   <span style="color: #008000;">//</span><span style="color: #008000;">列举面顶点数据，逆时针顺序</span>
+        glVertex3f(-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">前----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">后----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">上----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">0.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">下----------------------------  </span>
+        glNormal3f( <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f( </span><span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">右----------------------------  </span>
+        glNormal3f(-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">); 
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span><span style="color: #000000;">);
+        glVertex3f(</span>-<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">1.0f</span>,-<span style="color: #800080;">1.0f</span><span style="color: #000000;">);  
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">左----------------------------*/  </span>
+<span style="color: #000000;">    glEnd();  
+    glFlush();
+}</span></pre>
+</div>
+<h2>圆柱</h2>
+<p>对于圆柱的绘制，思想同圆十分相似，就是分割。不过需要注意的是上下两个圆面和一个侧面需要分开来绘制。这里需要思考的是这个侧面该如何绘制呢？想象以下，把圆柱侧面展开，我们得到的是一个矩形，那分割成小片段的话也就是矩形了，即绘制无数个矩形，然后拼接形成侧面。</p>
+<p><strong><em>注：绘制时注意法向量的选取</em></strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawCylinder()
+{</span><span style="color: #008000;">//</span><span style="color: #008000;">绘制圆柱
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);</span><span style="color: #000000;">
+    glBegin(GL_POLYGON);
+    glNormal3f(</span><span style="color: #800080;">0.0f</span>, <span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">1</span>; i &lt; n; i++<span style="color: #000000;">) {
+        glVertex3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * i), <span style="color: #800080;">1.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n *<span style="color: #000000;"> i));
+    }
+    glEnd();
+    glBegin(GL_POLYGON);
+    glNormal3f(</span><span style="color: #800080;">0.0f</span>, -<span style="color: #800080;">1.0f</span>, <span style="color: #800080;">0.0f</span><span style="color: #000000;">);</span>
+    <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">1</span>; i &lt; n; i++<span style="color: #000000;">) {
+        glVertex3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * i), <span style="color: #800080;">0.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n *<span style="color: #000000;"> i));
+    }
+    glEnd();
+    glBegin(GL_QUADS);
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">1</span>; i &lt;= n; i++<span style="color: #000000;">)
+    {
+        glNormal3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * i), <span style="color: #800080;">0.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n *<span style="color: #000000;"> i));
+        glVertex3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * i), <span style="color: #800080;">1.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n *<span style="color: #000000;"> i));
+        glVertex3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * i), <span style="color: #800080;">0.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n *<span style="color: #000000;"> i));
+        glNormal3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * (i + <span style="color: #800080;">1</span>)), <span style="color: #800080;">0.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n * (i + <span style="color: #800080;">1</span><span style="color: #000000;">)));
+        glVertex3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * (i + <span style="color: #800080;">1</span>)), <span style="color: #800080;">0.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n * (i + <span style="color: #800080;">1</span><span style="color: #000000;">)));
+        glVertex3f(R</span>*cos(<span style="color: #800080;">2</span> * Pi / n * (i + <span style="color: #800080;">1</span>)), <span style="color: #800080;">1.0f</span>, R*sin(<span style="color: #800080;">2</span> * Pi / n * (i + <span style="color: #800080;">1</span><span style="color: #000000;">)));
+    }
+    glEnd();
+}</span></pre>
+</div>
+<h2>圆环</h2>
+<p>圆环的绘制稍微有些麻烦，先来看看下面这个圆环的线图</p>
+<p><img src="./images/从零开始openGL—— 二、 基本图形绘制3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>这里的难点就是各点的坐标表示，首先我们需要做的是把圆环压缩成一个圆面</p>
+<p><img src="./images/从零开始openGL—— 二、 基本图形绘制4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;压缩之后的表示为 R+r*cos(&theta;)，然后再把压缩完后的点映射到x y轴上</p>
+<p><img src="./images/从零开始openGL—— 二、 基本图形绘制5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>X轴：(R+r*cos(&theta;))*cos&alpha;</p>
+<p>Y轴：(R+r*cos(&theta;))*sin&alpha;</p>
+<p>Z轴：r*sin(&theta;)</p>
+<p>这样，我们的圆环就可以实现了</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span><span style="color: #000000;"> DrawTorus()
+{
+    </span><span style="color: #0000ff;">int</span> num = n / <span style="color: #800080;">50</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; num; i++<span style="color: #000000;">)
+    {    
+        glBegin(GL_QUAD_STRIP);
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = <span style="color: #800080;">0</span>; j &lt;= num; j++<span style="color: #000000;">)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> k = <span style="color: #800080;">1</span>; k &gt;= <span style="color: #800080;">0</span>; k--<span style="color: #000000;">)
+            {
+                </span><span style="color: #0000ff;">double</span> s = (i + k) % num + <span style="color: #800080;">0.5</span><span style="color: #000000;">;
+                </span><span style="color: #0000ff;">double</span> t = j %<span style="color: #000000;"> num;
+                glNormal3f(cos(</span><span style="color: #800080;">2</span> * Pi / num * s) * cos(<span style="color: #800080;">2</span> * Pi / num * t), cos(<span style="color: #800080;">2</span> * Pi / num * s)*sin(<span style="color: #800080;">2</span> * Pi / num * t), sin(<span style="color: #800080;">2</span> * Pi / num *<span style="color: #000000;"> s));
+                glVertex3f((</span><span style="color: #800080;">1</span> + R*cos(<span style="color: #800080;">2</span> * Pi / num * s))*cos(<span style="color: #800080;">2</span> * Pi / num * t), (<span style="color: #800080;">1</span> + R*cos(<span style="color: #800080;">2</span> * Pi / num * s))*sin(<span style="color: #800080;">2</span> * Pi / num * t), R*sin(<span style="color: #800080;">2</span> * Pi / num *<span style="color: #000000;"> s));
+            }
+        }
+        glEnd();
+    }
+}</span></pre>
+</div>
+<h1>小节</h1>
+<p>以上介绍了如何使用opengl绘制基本图形，下篇文章中将介绍如何使用opengl加载绘制模型，以及鼠标交互的实现。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

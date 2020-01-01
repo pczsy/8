@@ -1,0 +1,73 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python使用jieba分词' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python使用jieba分词</center></div><div class='banquan'>原文出处:本文由博客园博主落日峡谷提供。<br/>
+原文连接:https://www.cnblogs.com/qi-yuan-008/p/11689530.html</div><br>
+    <div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*- coding: utf-8 -*-</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Spyder (python 3.7)</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> pandas as pd
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> jieba</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> jieba.analyse as anls
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:  
+    data </span>= pd.read_excel(r<span style="color: #800000;">'</span><span style="color: #800000;">空气指数评论.xlsx</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> content为excel的列名</span>
+    opinion_content = data[<span style="color: #800000;">'</span><span style="color: #800000;">content</span><span style="color: #800000;">'</span><span style="color: #000000;">].dropna().values
+    all_word </span>= <span style="color: #800000;">''</span>
+    <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> opinion_content: <span style="color: #008000;">#</span><span style="color: #008000;">形成整个字符串</span>
+        all_word = all_word +<span style="color: #800000;">'</span><span style="color: #800000;">,</span><span style="color: #800000;">'</span>+<span style="color: #000000;"> str(i)
+    all_word </span>= all_word.strip()  <span style="color: #008000;">#</span><span style="color: #008000;">去掉字符串的空格</span>
+    all_word_upper = all_word.upper() <span style="color: #008000;">#</span><span style="color: #008000;">大写</span>
+
+　　<span style="color: #008000;">#</span><span style="color: #008000;">加载词典 #jieba.load_userdict(r"D:\Python_workspace\aaaa.txt")</span>
+  
+　　<span style="color: #008000;">#</span><span style="color: #008000;">如果有不想被切分开的词，例如王者荣耀，和平精英等，可以进行参数设置：tune=True</span><span style="color: #008000;">
+　　# jieba.analyse 是基于tf-idf算法的关键词抽取</span>
+    segment=[<span style="color: #800000;">'</span><span style="color: #800000;">王者荣耀</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">和平精英</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    </span><span style="color: #0000ff;">for</span> ii <span style="color: #0000ff;">in</span><span style="color: #000000;"> segment:
+        jieba.suggest_freq(ii, tune</span>=<span style="color: #000000;">True)
+    
+    anls.set_stop_words(</span><span style="color: #800000;">"</span><span style="color: #800000;">111.txt</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#加载</span><span style="color: #008000;">停用词文档，网上可以下载或者自己创建</span>
+    tags = anls.extract_tags(all_word_upper, topK=None, withWeight=<span style="color: #000000;">True)
+    </span><span style="color: #0000ff;">for</span> x, w <span style="color: #0000ff;">in</span><span style="color: #000000;"> tags:
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">%s %s</span><span style="color: #800000;">'</span> %<span style="color: #000000;"> (x, w))
+        
+    </span><span style="color: #0000ff;">for</span> v, n <span style="color: #0000ff;">in</span><span style="color: #000000;"> tags:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">权重n是小数，乘了十万成为整数，可以按需求设置不同值</span>
+        out_words= v + <span style="color: #800000;">'</span><span style="color: #800000;">\t</span><span style="color: #800000;">'</span> + str(int(n * 100000<span style="color: #000000;">))
+        </span><span style="color: #008000;">#注意</span><span style="color: #008000;">'a+'为追加写入，因此如果重新运行程序，则需要先删除上次生成的文件，结果保存在当前目录下，可以更改目录</span>
+        with open(<span style="color: #800000;">'</span><span style="color: #800000;">.\cut_words_content.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">a+</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)as f:
+            f.write(out_words</span>+<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>附加：另一种jieba分词写法：</p>
+<div class="cnblogs_code">
+<pre><code> sentence_seged = [seg <span style="color: #0000ff;">for</span> seg <span style="color: #0000ff;">in</span> jieba.cut(all_word) <span style="color: #0000ff;">if</span> len(seg) &gt;=<span style="color: #000000;"> char_len]
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> all_word为整个要分词的字符串，该方式没有利用到权重，是单纯的分词</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 返回的是分词后的列表</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 分词长度最少大于char_len</span></pre>
+</div>
+<p>参考jieba中文分词：<a href="https://github.com/fxsjy/jieba">https://github.com/fxsjy/jieba</a></p>
+<p>##欢迎讨论</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

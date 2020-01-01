@@ -1,0 +1,421 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python-day12(正式学习)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python-day12(正式学习)</center></div><div class='banquan'>原文出处:本文由博客园博主wind叶提供。<br/>
+原文连接:https://www.cnblogs.com/leaf-wind/p/11329120.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#可变长参数">可变长参数</a><ul>
+        <li><a href="#可变长形参之">可变长形参之*</a></li>
+        <li><a href="#可变长实参之">可变长实参之*</a></li>
+        <li><a href="#可变长形参之-1">可变长形参之**</a></li>
+        <li><a href="#可变长实参之-1">可变长实参之**</a></li>
+        <li><a href="#可变长参数应用">可变长参数应用</a></li>
+        <li><a href="#命名关键字形参">命名关键字形参</a></li>
+        </ul></li>
+        <li><a href="#函数对象">函数对象</a><ul>
+        <li><a href="#四大功能">四大功能</a><ul>
+        <li><a href="#引用">引用</a></li>
+        <li><a href="#当作参数传给一个函数">当作参数传给一个函数</a></li>
+        <li><a href="#可以当作函数的返回值">可以当作函数的返回值</a></li>
+        <li><a href="#可以当作容器类型的元素">可以当作容器类型的元素</a></li>
+        </ul></li>
+        </ul></li>
+        <li><a href="#函数的嵌套">函数的嵌套</a><ul>
+        <li><a href="#函数的嵌套定义">函数的嵌套定义</a></li>
+        <li><a href="#函数的嵌套调用">函数的嵌套调用</a></li>
+        </ul></li>
+        <li><a href="#名称空间和作用域">名称空间和作用域</a><ul>
+        <li><a href="#名称空间">名称空间</a><ul>
+        <li><a href="#内置名称空间">内置名称空间</a></li>
+        <li><a href="#全局名称空间">全局名称空间</a></li>
+        <li><a href="#局部名称空间">局部名称空间</a></li>
+        <li><a href="#加载顺序">加载顺序</a></li>
+        <li><a href="#查找顺序">查找顺序</a></li>
+        </ul></li>
+        <li><a href="#作用域">作用域</a><ul>
+        <li><a href="#全局作用域">全局作用域</a></li>
+        <li><a href="#局部作用域">局部作用域</a></li>
+        <li><a href="#注意点">注意点</a></li>
+        <li><a href="#函数对象作用域应用">函数对象+作用域应用</a></li>
+        </ul></li>
+        <li><a href="#补充">补充</a><ul>
+        <li><a href="#global关键字">global关键字</a></li>
+        <li><a href="#nonlocal关键字">nonlocal关键字</a></li>
+        </ul></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="可变长参数">可变长参数</h1>
+<h2 id="可变长形参之">可变长形参之*</h2>
+<p>形参中的<em>会将溢出的位置实参全部接收，然后存储元组的形式，然后把元组赋值给</em>后的参数。需要注意的是：*后的参数名约定俗成为args。</p>
+<pre><code><code>def sum_self(*args):
+    res = 0
+    for num in args:
+        res += num
+    return res
+
+
+res = sum_self(1, 2, 3, 4)
+print(res)</code></pre>
+<p>10</p>
+<h2 id="可变长实参之">可变长实参之*</h2>
+<p>实参中的<em>，</em>会将<em>后参数的值循环取出，打散成位置实参。以后但凡碰到实参中带</em>的，它就是位置实参，应该马上打散成位置实参去看。</p>
+<pre><code><code>def func(x, y, z, *args):
+    print(x, y, z, args)
+
+
+func(1, *(1, 2), 3, 4)</code></pre>
+<pre><code><code>1 1 2 (3, 4)</code></pre>
+<h2 id="可变长形参之-1">可变长形参之**</h2>
+<p>形参中的<strong>会将溢出的关键字实参全部接收，然后存储字典的形式，然后把字典赋值给</strong>后的参数。需要注意的是：**后的参数名约定俗成为kwargs。</p>
+<pre><code><code>def func(**kwargw):
+    print(kwargw)
+
+
+func(a=5)</code></pre>
+<p>{'a':5}</p>
+<h2 id="可变长实参之-1">可变长实参之**</h2>
+<p>实参中的<strong>，</strong>会将<strong>后参数的值循环取出，打散成关键字实参。以后但凡碰到实参中带</strong>的，它就是关键字实参，应该马上打散成关键字实参去看。</p>
+<pre><code><code>def func(x, y, z, **kwargs):
+    print(x, y, z, kwargs)
+
+
+func(1, 3, 4, **{&#39;a&#39;: 1, &#39;b&#39;: 2})</code></pre>
+<pre><code><code>1 3 4 {&#39;a&#39;: 1, &#39;b&#39;: 2}</code></pre>
+<h2 id="可变长参数应用">可变长参数应用</h2>
+<pre><code><code>def index(name, age, sex):
+    print(f&quot;name: {name}, age: {age}, sex: {sex}&quot;)
+
+
+def wrapper(*args, **kwargs):
+    print(f&quot;args: {args}&quot;)
+    print(f&quot;kwargs: {kwargs}&quot;)
+    index(*args, **kwargs)
+
+
+wrapper(name=&#39;nick&#39;, sex=&#39;male&#39;, age=19)</code></pre>
+<pre><code><code>args: ()
+kwargs: {&#39;name&#39;: &#39;nick&#39;, &#39;sex&#39;: &#39;male&#39;, &#39;age&#39;: 19}
+name: nick, age: 19, sex: male</code></pre>
+<h2 id="命名关键字形参">命名关键字形参</h2>
+<pre><code><code>def register(x, y, **kwargs):
+    if &#39;name&#39; not in kwargs or &#39;age&#39; not in kwargs:
+        print(&#39;用户名和年龄必须使用关键字的形式传值&#39;)
+        return
+    print(kwargs[&#39;name&#39;])
+    print(kwargs[&#39;age&#39;])
+
+
+register(1, 2, name=&#39;nick&#39;, age=19)</code></pre>
+<p>nick</p>
+<p>19</p>
+<p>命名关键字形参：在函数定义阶段，*后面的参数都是命名关键字参数。</p>
+<p>特点：在传值时，必须按照key=value的方式传值，并且key必须命名关键字参数的指定的参数名。</p>
+<pre><code><code>def register(x, y, *, name, gender=&#39;male&#39;, age):
+    print(x)
+    print(age)
+
+
+register(1, 2, x=&#39;nick&#39;, age=19)  # TypeError: register() got multiple values for argument &#39;x&#39;</code></pre>
+<h1 id="函数对象">函数对象</h1>
+<h2 id="四大功能">四大功能</h2>
+<h3 id="引用">引用</h3>
+<pre><code><code>x = &#39;hello nick&#39;
+y = x
+
+f = func
+print(f)</code></pre>
+<pre><code><code>&lt;function func at 0x10af72f28&gt;</code></pre>
+<h3 id="当作参数传给一个函数">当作参数传给一个函数</h3>
+<pre><code><code>len(x)
+
+
+def foo(m):
+    m()
+
+
+foo(func)</code></pre>
+<pre><code><code>from func</code></pre>
+<h3 id="可以当作函数的返回值">可以当作函数的返回值</h3>
+<pre><code><code>def foo(x):
+    return x
+
+
+res = foo(func)
+print(res)
+res()</code></pre>
+<pre><code><code>&lt;function func at 0x10af72f28&gt;
+from func</code></pre>
+<h3 id="可以当作容器类型的元素">可以当作容器类型的元素</h3>
+<pre><code><code>l = [x]
+
+function_list = [func]
+function_list[0]()</code></pre>
+<pre><code><code>from func</code></pre>
+<h1 id="函数的嵌套">函数的嵌套</h1>
+<h2 id="函数的嵌套定义">函数的嵌套定义</h2>
+<pre><code><code>def f1():
+    def f2():
+        print(&#39;from f2&#39;)
+    f2()
+
+
+f2()  # NameError: name &#39;f2&#39; is not defined</code></pre>
+<pre><code><code>def f1():
+    def f2():
+        print(&#39;from f2&#39;)
+    f2()
+
+
+f1()</code></pre>
+<p>from f2</p>
+<p>现在有一个需求，通过给一个函数传参即可求得某个圆的面积或者圆的周长。也就是说把一堆工具丢进工具箱内，之后想要获得某个工具，直接从工具箱中获取就行了</p>
+<pre><code><code>from math import pi
+
+
+def circle(radius, action=&#39;area&#39;):
+    def area():
+        return pi * (radius**2)
+
+    def perimeter():
+        return 2*pi*radius
+    if action == &#39;area&#39;:
+        return area()
+    else:
+        return perimeter()
+
+
+print(f&quot;circle(10): {circle(10)}&quot;)
+print(f&quot;circle(10,action=&#39;perimeter&#39;): {circle(10,action=&#39;perimeter&#39;)}&quot;)</code></pre>
+<pre><code><code>circle(10): 314.1592653589793
+circle(10,action=&#39;perimeter&#39;): 62.83185307179586</code></pre>
+<h2 id="函数的嵌套调用">函数的嵌套调用</h2>
+<pre><code><code>def max2(x, y):
+    if x &gt; y:
+        return x
+    else:
+        return y
+
+
+def max4(a, b, c, d):
+    res1 = max2(a, b)
+    res2 = max2(res1, c)
+    res3 = max2(res2, d)
+    return res3
+
+
+print(max4(1, 2, 3, 4))</code></pre>
+<p>4</p>
+<h1 id="名称空间和作用域">名称空间和作用域</h1>
+<h2 id="名称空间">名称空间</h2>
+<p>名称空间（name spaces）：在<a href="https://www.cnblogs.com/nickchen121/p/10731690.html">内存管理</a>那一章节时，我们曾说到变量的创建其实就是在内存中开辟了一个新的空间。但是我们一直在回避变量名的存储，其实在内存中有一块内存存储变量名与变量间的绑定关系的空间，而这个空间称为名称空间。</p>
+<h3 id="内置名称空间">内置名称空间</h3>
+<p>内置名称空间：存放Pyhton解释器自带的名字，如<code>int、float、len</code></p>
+<p>生命周期：在解释器启动时生效，在解释器关闭时失效</p>
+<h3 id="全局名称空间">全局名称空间</h3>
+<p>全局名称空间：除了内置和局部的名字之外，其余都存放在全局名称空间，如下面代码中的<code>x、func、l、z</code></p>
+<p>生命周期：在文件执行时生效，在文件执行结束后失效</p>
+<pre><code><code>x = 1
+
+
+def func():
+    pass
+
+
+l = [1, 2]
+
+if 3 &gt; 2:
+    if 4 &gt; 3:
+        z = 3</code></pre>
+<h3 id="局部名称空间">局部名称空间</h3>
+<p>局部名称空间：用于存放函数调用期间函数体产生的名字，如下面代码的<code>f2</code></p>
+<p>生命周期：在文件执行时函数调用期间时生效，在函数执行结束后失效</p>
+<pre><code><code>def f1():
+    def f2():
+        print(&#39;from f2&#39;)
+    f2()
+
+f1() </code></pre>
+<h3 id="加载顺序">加载顺序</h3>
+<p>由于.py文件是由Python解释器打开的，因此一定是在Python解释器中的内置名称空间加载结束后，文件才开始打开，这个时候才会产生全局名称空间，但文件内有某一个函数被调用的时候，才会开始产生局部名称空间，因此名称空间的加载顺序为：内置--》全局--》局部。</p>
+<h3 id="查找顺序">查找顺序</h3>
+<p>由于名称空间是用来存放变量名与值之间的绑定关系的，所以但凡要查找名字，一定是从三者之一找到，查找顺序为：<br />
+从当前的所在位置开始查找，如果当前所在的位置为局部名称空间，则查找顺序为：局部--》全局--》内置。</p>
+<pre><code><code>x = 1
+y = 2
+len = 100
+
+
+def func():
+    y = 3
+    len = 1000
+    print(f&quot;y: {y}&quot;)
+    print(f&quot;len: {len}&quot;)
+    # print(a)  # NameError: name &#39;a&#39; is not defined
+
+
+func()</code></pre>
+<p>y:3</p>
+<p>len:1000</p>
+<pre><code><code>x = 1
+
+
+def func():
+    print(x)
+
+
+x = 10
+func()</code></pre>
+<p>10</p>
+<h2 id="作用域">作用域</h2>
+<p>域指的是区域，作用域即作用的区域</p>
+<h3 id="全局作用域">全局作用域</h3>
+<pre><code><code># 全局作用域
+x = 1
+
+
+def bar():
+    print(x)
+
+
+bar()</code></pre>
+<p>1</p>
+<h3 id="局部作用域">局部作用域</h3>
+<p>局部作用域：局部有小，临时存储，只包含局部名称空间。</p>
+<pre><code><code># 局部作用域
+def f1():
+    def f2():
+        def f3():
+            print(x)
+        x = 2
+        f3()
+    f2()
+
+
+f1()</code></pre>
+<p>2</p>
+<h3 id="注意点">注意点</h3>
+<p>需要注意的是：作用域关系在函数定义阶段就固定死了，与函数的调用无关。</p>
+<pre><code><code># 作用域注意点
+x = 1
+
+
+def f1():  # 定义阶段x=1
+    print(x)
+
+
+def f2():
+    x = 2
+    f1()
+
+
+f2()</code></pre>
+<p>1</p>
+<h3 id="函数对象作用域应用">函数对象+作用域应用</h3>
+<pre><code><code># 作用域应用
+def f1():
+    def inner():
+        print(&#39;from inner&#39;)
+    return inner
+
+
+f = f1()  # 把局部定义的函数放在全局之中
+
+
+def bar():
+    f()
+
+
+bar()</code></pre>
+<p>from inner</p>
+<h2 id="补充">补充</h2>
+<h3 id="global关键字">global关键字</h3>
+<p>修改全局作用域中的变量</p>
+<pre><code><code>x = 1
+
+
+def f1():
+    x = 2
+
+    def f2():
+        #         global x  # 修改全局
+        x = 3
+    f2()
+
+
+f1()
+print(x)</code></pre>
+<p>1</p>
+<pre><code><code>x = 1
+
+
+def f1():
+    x = 2
+
+    def f2():
+        global x  # 修改全局
+        x = 3
+    f2()
+
+
+f1()
+print(x)</code></pre>
+<p>3</p>
+<h3 id="nonlocal关键字">nonlocal关键字</h3>
+<p>修改局部域中的变量</p>
+<pre><code><code>x = 1
+
+
+def f1():
+    x = 2
+
+    def f2():
+        #         nonlocal x
+        x = 3
+
+    f2()
+    print(x)
+
+
+f1()</code></pre>
+<p>2</p>
+<pre class="c"><code>x = 1
+
+
+def f1():
+    x = 2
+
+    def f2():
+        nonlocal x
+        x = 3
+
+    f2()
+    print(x)
+
+
+f1()</code></pre>
+<p>3</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

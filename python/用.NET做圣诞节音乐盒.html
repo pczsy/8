@@ -1,0 +1,192 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修用.NET做圣诞节音乐盒' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>用.NET做圣诞节音乐盒</center></div><div class='banquan'>原文出处:本文由博客园博主.NET骚操作提供。<br/>
+原文连接:https://www.cnblogs.com/sdflysha/p/20191225-merry-christmas-by-dotnet.html</div><br>
+    <h1 id="用.net做圣诞节音乐盒">用.NET做圣诞节音乐盒</h1>
+<p>我曾经用这个程序送给我女朋友（现老婆）😊……首先来看一下最终运行效果：<br />
+<img src="./images/用.NET做圣诞节音乐盒0.png" /></p>
+<p>（当然还有一首《We wish you Merry Christmas》的八音盒<code>BGM</code>，但由于<code>gif</code>的关系，你们<strong>可能</strong>听不到。）</p>
+<h1 id="雪花是怎么做的">雪花是怎么做的？</h1>
+<p>首先本文将着重讲解代码，因此所有的资源都将在运行时下载，雪的的资源是从“码云”下载的，地址如下：https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/icon1.ico</p>
+<p>其显示效果如下：<br />
+<img src="./images/用.NET做圣诞节音乐盒1.png" /></p>
+<p>那么是怎么让其旋转起来的呢？我写了一个<code>Snow</code>类，用来表示雪花：</p>
+<pre><code><code>class Snow
+{
+    readonly static string _snow = LoadUrlAsTempFile(&quot;https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/icon1.ico&quot;);
+    
+    public Guid Id { get; set; } = Guid.NewGuid();
+    
+    public float Direction { get; set; }
+
+    public float RotationAngle { get; set;}
+
+    public float Scale { get; set; }
+
+    public float Speed { get; set; }
+
+    public float AngularSpeed { get; set;}
+
+    public float X { get; set;}
+    
+    public float Y { get; set;}
+    
+    public bool IsOffScreen 
+        =&gt; X &lt; -50 || X &gt; RenderWindow.Width + 50 || Y &gt; RenderWindow.Height + 50;
+    
+    public RenderWindow RenderWindow { get; set; }
+}</code></pre>
+<p>注意它存储了雪花的坐标<code>X</code>、<code>Y</code>、放大比例<code>Scale</code>、注意我并没有使用矢量类型<code>Vector2</code>，因此速度描述拆分成了角速度<code>AngularSpeed</code>、线速度<code>Speed</code>、当前的旋转角<code>RotationAngle</code>和运行方向<code>Direction</code>几个变量。另外还有一个帮助属性<code>IsOffScreen</code>用于判断雪花是否仍然在屏幕上。</p>
+<p>雪花运行时，我通过一个<code>Update</code>函数来控制这些属性的变化：</p>
+<pre><code><code>public void Update(RenderTimer timer)
+{
+    var dt = (float)timer.DurationSinceLastFrame.TotalSeconds;
+    X += (float)(Speed * Math.Sin(Direction) * dt);
+    Y += (float)(Speed * Math.Cos(Direction) * dt);
+    RotationAngle += AngularSpeed * dt;
+}</code></pre>
+<p>然后通过一个矩阵变换，即可完成雪花的平衡、缩放和旋转：</p>
+<pre><code><code>public void Draw(BitmapManager bmp, RenderTarget ctx)
+{
+    ctx.Transform = 
+        Matrix3x2.Translation(-24, -24) * 
+        Matrix3x2.Rotation(RotationAngle) * 
+        Matrix3x2.Scaling(Scale) * 
+        Matrix3x2.Translation(X, Y);
+    ctx.DrawBitmap(bmp[_snow], 1.0f, BitmapInterpolationMode.Linear);
+}</code></pre>
+<p>注意第一个<code>-24</code>，指的是先平衡到雪花的中心间<code>(-24, -24)</code>，然后再依次旋转、缩放和平移。</p>
+<p>最后，还需要一个函数，用于随机在屏幕上生成不同大小、不同方向、不同线速度、不同角速度的雪花：</p>
+<pre><code><code>static Random r = new Random();
+public static Snow CreateRandom(RenderWindow renderWindow)
+{
+    return new Snow
+    {
+        Direction = r.NextFloat(-30, 30) * (float)Math.PI / 180, 
+        Scale = r.NextFloat(0.5f, 1.2f), 
+        Speed = r.NextFloat(80, 100), 
+        AngularSpeed = r.NextFloat(-120, 120) * (float)Math.PI / 180, 
+        X = r.NextFloat(50, renderWindow.Width - 50), 
+        Y = -50, 
+        RenderWindow = renderWindow, 
+    };
+}</code></pre>
+<h1 id="音乐是怎么播放的">音乐是怎么播放的？</h1>
+<p>音乐也是从“码云”上下载的，当初搞<code>C++</code>版的时间为了节省资源文件，音乐部分我做成了一个代码文件，该文件地址如下：<a href="https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/music.cpp" class="uri">https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/music.cpp</a></p>
+<p>它的本质是一个<code>.mid</code>文件。解析一个<code>C++</code>文件可能很复杂，但细一看，会发现这个<code>C++</code>文件很有规律：<br />
+<img src="./images/用.NET做圣诞节音乐盒2.png" /></p>
+<p>除了第一行那个声明外，里面的资源都是一个个的字节字面量，因此可以使用<code>C#</code>的<code>LINQ</code>和<code>定则表达式</code>不费吹灰之力即可将其解析出来：</p>
+<pre><code><code>static string GetMusicPath()
+{
+    var url = &quot;https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/music.cpp&quot;;
+    $&quot;Loading {url}...&quot;.Dump();
+
+    var musicBytes = Util.Cache(() =&gt;
+    {
+        var resp = httpClient.GetAsync(url).Result;
+        var content = resp.Content.ReadAsStringAsync().Result;
+        return Regex.Matches(content, @&quot;0x([\dA-F]{2})&quot;)
+            .Cast&lt;Match&gt;()
+            .Select(x =&gt; byte.Parse(x.Groups[1].Value, NumberStyles.HexNumber))
+            .ToArray();
+    }, url);
+    
+    var path = Path.GetTempPath() + &quot;merry-christmas.mid&quot;;
+    File.WriteAllBytes(path, musicBytes);
+    return path;
+}</code></pre>
+<p>最后通过<code>Windows API</code>的<code>mciSendString</code>函数，将其播放：</p>
+<pre><code><code>[DllImport(&quot;winmm.dll&quot;)]
+private static extern long mciSendString(string Cmd, StringBuilder StrReturn, int ReturnLength, IntPtr HwndCallback);
+
+// ...
+void Initialize()
+{
+    _musicPath = GetMusicPath();
+    $&quot;open music: {_musicPath}...&quot;.Dump();
+    mciSendString($&quot;open {_musicPath} type sequencer alias music&quot;, null, 0, Handle);
+}</code></pre>
+<p>注意通过<code>mciSendString</code>播放的音乐在播放完成后，并不像<code>.NET API</code>返回一个<code>Task</code>这样方便，而是通过发送一个<code>MM_MCINOTIFY</code>的窗体事件，因此需要多花几行代码搞定循环播放这件事：</p>
+<pre><code><code>void PlayMusic()
+{
+    $&quot;play music: {_musicPath}...&quot;.Dump();
+    mciSendString($&quot;play music from 0 notify&quot;, null, 0, Handle);
+}
+
+protected override void WndProc(ref Message m)
+{
+    base.WndProc(ref m);
+    
+    const int MM_MCINOTIFY = 953;
+    if (m.Msg == MM_MCINOTIFY)
+    {
+        PlayMusic();
+    }
+}</code></pre>
+<h1 id="最后循环播放的圣诞彩灯">最后，循环播放的圣诞彩灯</h1>
+<p>以防没人注意到，我先来个特写（注意那三个灯是旋转播放的）：<br />
+<img src="./images/用.NET做圣诞节音乐盒3.png" /></p>
+<p>这实际上是由三张图片组成：</p>
+<pre><code><code>readonly string[] _mcs = new[]
+{
+    &quot;https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/design/mc1.png&quot;,
+    &quot;https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/design/mc2.png&quot;,
+    &quot;https://gitee.com/sdcb/lovegl/raw/master/lovegl2014/design/mc3.png&quot;,
+}.Select(x =&gt; LoadUrlAsTempFile(x)).ToArray();
+
+int _mcIndex = 0;
+public string CurrentMc =&gt; _mcs[_mcIndex];</code></pre>
+<p>要定期循环播放，我定义了一个<code>Timer</code>，定时<code>500</code>毫秒，然后修改当前显示的图片索引即可：</p>
+<pre><code><code>readonly System.Windows.Forms.Timer _timer;
+
+public MerryChristmas()
+{
+    // ...
+
+    _timer = new System.Windows.Forms.Timer() { Interval = 500, Enabled = true };
+    _timer.Tick += (o, args) =&gt;
+    {
+        _mcIndex = (_mcIndex + 1) % _mcs.Length;
+    };
+}</code></pre>
+<p>然后渲染时，显示为“当前”的那张图片：</p>
+<pre><code><code>protected override void OnDraw(DeviceContext ctx)
+{
+    ctx.Clear(Color.Transparent);
+    ctx.DrawBitmap(XResource.Bitmaps[CurrentMc], 1.0f, InterpolationMode.Linear);
+}</code></pre>
+<p>至于为何它也能拖拽，因为我取了个巧，这里我创建了两个窗口，让这个整个窗口显示<code>Merry Christmas</code>的图片，然后使之可以拖拽即可：</p>
+<pre><code><code>DragMoveEnabled = true;</code></pre>
+<h1 id="总结">总结</h1>
+<p>其实这并不是我的发明，这个早在我上大学时<code>Windows XP</code>时代就看到过，我的大学室友都觉得它很炫酷，于是我进行了很久很久的探索。</p>
+<p>最开始的时候，我使用<code>WPF</code>对其进行了“仿制”，通过<code>WPF</code>中的<code>AllowsTransparency = true</code>来达到屏幕透明的效果。但其性能低下，<code>CPU</code>使用率往往徘徊在<code>13%</code>左右（单核<code>100%</code>）。</p>
+<p>后来我了解到<code>Direct2D</code>以及<code>UpdateLayeredWindowIndirect</code>方法，所以我立即用<code>C++</code>再对这个程序进行了重制。<code>CPU</code>使用率降低至<code>0%</code>。<code>C++</code>代码已在<strong>5年前</strong>开源在“码云”（这个也是我当年送给我女朋友的版本）：<a href="https://gitee.com/sdcb/lovegl/" class="uri">https://gitee.com/sdcb/lovegl/</a></p>
+<p>再后来……直到最近，<code>.NET</code>革命再次爆发，我又拿起了最拿手的<code>C#</code>，基于我做的<code>FlysEngine</code>再次对其进行了重制。这次重制的原则是对新手友好，因此代码尽可能简短，一个文件搞定，不要用项目，因此所有资源文件都是运行时从“码云”下载。</p>
+<p>说了这么多，我也曾对这个最早的、别人写的这个程序进行了一定的研究，我发现他并没有使用<code>Direct2D</code>，而是用的最简单的<code>GDI</code>和多窗口模式，每个雪花都是一个窗口。然后它的定时器时间设得比较长，因此雪花旋转并不像我的这样平滑，因此他的那个程序也能在保持<code>CPU</code>使用率相对较低的同时确保用户体验。</p>
+<p><strong>福利</strong>：所有这些可运行、完整的代码，都可以在我的<code>Github</code>博客数据上进行下载：<a href="https://github.com/sdcb/blog-data/tree/master/2019/20191225-merry-christmas-by-dotnet" class="uri">https://github.com/sdcb/blog-data/tree/master/2019/20191225-merry-christmas-by-dotnet</a></p>
+<p>应很多朋友建议，我把该程序编译了一个二进制版本，各位可以自行下载运行（没有病毒）：链接: <a href="https://pan.baidu.com/s/15J6o1FLaWSUGEVrEsb0YXw" class="uri">https://pan.baidu.com/s/15J6o1FLaWSUGEVrEsb0YXw</a> 提取码: 6mpr</p>
+<p>喜欢的朋友 请关注我的微信公众号：【DotNet骚操作】</p>
+<p><img src="./images/用.NET做圣诞节音乐盒4.png" alt="DotNet骚操作" /></p>
+<p>最后，祝大家圣诞节快乐！😊</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

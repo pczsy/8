@@ -1,0 +1,170 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修新手向，十分钟快速创建 Spring Cloud 项目' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>新手向，十分钟快速创建 Spring Cloud 项目</center></div><div class='banquan'>原文出处:本文由博客园博主邴越提供。<br/>
+原文连接:https://www.cnblogs.com/binyue/p/12079356.html</div><br>
+    <p>一般来说，Intelij IDEA 可以通过 Maven Archetype 来快速生成Maven项目，其实 IDEA 集成了 Spring 官方提供的 Spring Initializr，可以非常方便的创建 Maven 项目，而且能自动生成启动类和单元测试代码。</p>
+<p>下面我们学习如何快速搭建一个 Spring Cloud 工程，示例使用 Spring Boot 2.2.2 版本，使用少量的代码，可以在半小时内完成项目的搭建。</p>
+<p>本文为新手向教程，帮助大家快速入门 Spring Cloud 开发，也作为「跟我学 Spring Cloud Alibaba」系列的补充文章，文章会在公众号「架构进化论」进行首发更新，欢迎关注。</p>
+<h2 id="toc_1">一、创建一个新工程</h2>
+<p>1.创建一个新工程，选择maven，点击下一步</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目0.png" alt="" width="874" height="490" /></p>
+<p>2.填写项目相关的信息，进到下一步</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目1.png" alt="" width="878" height="440" /></p>
+<p>3.填写项目名和项目位置，命名为 spring cloud demo，点击 finish</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目2.png" alt="" width="876" height="391" /></p>
+<p>4.这样我们就创建好了一个普通项目，该项目是作为一个Parent project存在的，可以直接删除src文件</p>
+<p>&nbsp;</p>
+<h2 id="toc_2">二、添加 EurekaServer 子项目</h2>
+<p>1.在项目上右键--&gt;new--&gt;module--&gt;Spring Initializr--&gt;next</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目3.png" alt="" width="877" height="426" />&nbsp;</p>
+<p>&nbsp;</p>
+<p>2.填写项目相关信息，这里命名为 eureka-server，进入下一步</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目4.png" alt="" width="887" height="492" /></p>
+<p>&nbsp;</p>
+<p>3.选择Cloud Discovery--&gt;Eureka Server，下一步</p>
+<p>&nbsp;<img src="./images/新手向，十分钟快速创建 Spring Cloud 项目5.png" alt="" width="877" height="479" /></p>
+<p>&nbsp;</p>
+<p>4.填写项目名和项目位置等，完成</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目6.png" alt="" width="887" height="344" /></p>
+<p>&nbsp;</p>
+<p>5.IDEA会自动生成Application类，添加@EnableEurekaServer，该注解表明标注类是一个Eureka Server</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目7.png" alt="" width="1051" height="346" /></p>
+<p>&nbsp;</p>
+<p>6.修改配置，切换启动端口，默认生成的项目配置文件是 application.properties，这里我替换成application.yml</p>
+<div class="cnblogs_Highlighter">
+<pre><code># 服务注册中心 (单节点)
+server:
+  port: 8761
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    fetch-registry: false # 表示是否从Eureka Server获取注册信息,默认为true.因为这是一个单点的Eureka Server,不需要同步其他的Eureka Server节点的数据,这里设置为false
+    register-with-eureka: false # 表示是否将自己注册到Eureka Server,默认为true.由于当前应用就是Eureka Server,故而设置为false.
+    service-url:
+      # 设置与Eureka Server的地址,查询服务和注册服务都需要依赖这个地址.默认是http://localhost:8761/eureka/;多个地址可使用','风格.
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+</pre>
+</div>
+<p>　　</p>
+<p>eureka的配置信息可以查看 org.springframework.cloud.netflix.eureka. EurekaClientConfigBean ，参考源码了解含义。</p>
+<p>&nbsp;</p>
+<p>7.启动项目，在浏览器中输入<a href="http://localhost:8761/">http://localhost:8761/</a><span class="Apple-converted-space">&nbsp;，访问Eureka控制台，服务正常启动</span></p>
+<p><span class="Apple-converted-space"><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目8.png" alt="" width="1052" height="423" /></span></p>
+<p>&nbsp;</p>
+<p>8.如果启动报错，配置文件未生效，检查下 target 目录下是否正确引用了 application.yml 文件。</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目9.png" alt="" width="569" height="398" /></p>
+<h3>&nbsp;</h3>
+<h3 id="toc_3">三、添加 EurekaProducer 服务生产者</h3>
+<p>1.按照同样的方式，创建一个项目，这里我们创建一个Spring Boot风格的服务，</p>
+<p>创建时需要勾选 Spring Cloud Discover--&gt; Eureka Discover Client 和 Spring Web 的依赖。</p>
+<p>&nbsp;<img src="./images/新手向，十分钟快速创建 Spring Cloud 项目10.png" alt="" width="910" height="437" /></p>
+<p>2.在application启动类中加入注解@EnableEurekaClient，表明自己属于一个生产者。这里为了方便测试，直接使用@RestController获取返回值。</p>
+<p>&nbsp;<img src="./images/新手向，十分钟快速创建 Spring Cloud 项目11.png" alt="" width="1083" height="319" /></p>
+<p>&nbsp;</p>
+<p>3.修改配置，注册到Eureka Server。</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目12.png" alt="" width="594" height="174" /></p>
+<div class="cnblogs_Highlighter">
+<pre><code>server:
+  port: 8765
+
+spring:
+  application:
+    name: eureka-producer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka # 指定服务注册中心
+</pre>
+</div>
+<p>　　</p>
+<p>4.启动应用，刷新Eureka控制台，可以看到服务已经注册到Eureka上</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目13.png" alt="" width="1086" height="575" /></p>
+<p>&nbsp;</p>
+<p>5.如果启动有问题，检查是否缺少Spring Boot web的依赖包，可以尝试添加如下配置：</p>
+<div class="cnblogs_Highlighter">
+<pre><code> &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+</pre>
+</div>
+<p>　　</p>
+<h3 id="toc_4">四、创建 Eureka Consumer 服务消费者</h3>
+<p>1.通过 Spring Initializr，创建一个 Eureka Discovery Client 模块，同时要勾选加入Spring Web依赖。</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目14.png" alt="" width="974" height="507" /></p>
+<p>&nbsp;</p>
+<p>2.修改原有配置，指定服务注册中心，这里还是使用yml文件。</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目15.png" alt="" width="596" height="160" /></p>
+<div class="cnblogs_Highlighter">
+<pre><code>server:
+  port: 8763
+
+spring:
+  application:
+    name: eureka-consumer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka # 指定服务注册中心
+</pre>
+</div>
+<p>　　</p>
+<p>2.在启动类中添加@EnableDiscoveryClient表明标注类是消费者，加入restTemplate来消费相关的服务。</p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目16.png" alt="" width="944" height="441" /></p>
+<div class="cnblogs_Highlighter">
+<pre><code>@SpringBootApplication
+@EnableDiscoveryClient
+public class EurekaClientApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(EurekaClientApplication.class, args);
+    }
+
+    @Bean
+    @LoadBalanced
+    RestTemplate restTemplate()
+    {
+        return new RestTemplate();
+    }
+
+}
+</pre>
+</div>
+<p>　　</p>
+<p>3.创建controller层，消费远程服务</p>
+<div class="cnblogs_Highlighter">
+<pre><code>import org.springframework.beans.factory.annotation.Autowired;<br />import org.springframework.web.bind.annotation.RequestMapping;<br />import org.springframework.web.bind.annotation.RequestParam;<br />import org.springframework.web.bind.annotation.RestController;<br />import org.springframework.web.client.RestTemplate;<br /><br />@RestController<br />public class DemoController {<br /><br />    @Autowired<br />    RestTemplate restTemplate;<br /><br />    @RequestMapping("greet")<br />    public String sayHello(@RequestParam String name){<br /><br />        return restTemplate.getForObject("http://EUREKA-PRODUCER/sayHello?param=" + name, String.class);<br />    }<br /><br />}</pre>
+</div>
+<p>　　</p>
+<p>4.配置完毕以后，启动服务消费者，刷新Eureka控制台，可以看到消费者已经注册。&nbsp;<img src="./images/新手向，十分钟快速创建 Spring Cloud 项目17.png" alt="" width="1017" height="350" /></p>
+<p>&nbsp;</p>
+<p>5.打开浏览器输入localhost:{server.port}/path 进行服务调用，</p>
+<p>这里我用<span class="Apple-converted-space">&nbsp;<a href="http://localhost:8763/greet?name=eureka">http://localhost:8763/greet?name=eureka</a><span class="Apple-converted-space">&nbsp;，可以看到请求正确返回，正确调用了服务提供者。</span></span></p>
+<p><img src="./images/新手向，十分钟快速创建 Spring Cloud 项目18.png" alt="" width="949" height="197" /></p>
+<h2 id="toc_5">五、总结</h2>
+<p>本文通过IDEA的插件，快速创建了一个基于Eureka进行服务发现的Spring Cloud工程实例。<br />除了集成插件，也可以直接访问<span class="Apple-converted-space">&nbsp;<a href="http://start.spring.io">http://start.spring.io</a><span class="Apple-converted-space">&nbsp;，通过引导，在脚手架中创建自己的项目，导入到开发工具中，感兴趣的同学可以去试下。</span></span></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

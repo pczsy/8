@@ -1,0 +1,136 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python学习之旅：用Python制作一个打字训练小工具' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python学习之旅：用Python制作一个打字训练小工具</center></div><div class='banquan'>原文出处:本文由博客园博主TM0831提供。<br/>
+原文连接:https://www.cnblogs.com/TM0831/p/11481198.html</div><br>
+    <h2>一、写在前面</h2>
+<p>　　说道程序员，你会想到什么呢？有人认为程序员象征着高薪，有人认为程序员都是死肥宅，还有人想到的则是996和 ICU。</p>
+<p>　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具0.png" alt="" /></p>
+<p>　　别人眼中的程序员：飞快的敲击键盘、酷炫的切换屏幕、各种看不懂的字符代码。</p>
+<p>　　然而现实中的程序员呢？对于很多程序员来说，没有百度和 Google 解决不了的问题，也没有 ctrl + c 和 ctrl + v 实现不了的功能。</p>
+<p>&nbsp;　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具1.png" alt="" /></p>
+<p>　　那么身为一个程序员，要怎么让自己看起来更加&ldquo;专业&rdquo;呢？答案就是加快自己的打字速度了，敲的代码可能是错的，但这个13却是必须装的！</p>
+<p>　　然而还是有不少人打字不那么快的，可能就需要训练下了，但是既然身为程序员，为何不自己写一个训练打字的小工具出来呢？</p>
+<p>&nbsp;</p>
+<h2>二、基本思路</h2>
+<p>　　使用 PyQT5 开发 GUI，实现显示句子并让用户输入，然后将输入的内容和给出的句子进行比对，同时记录所用的时间，最后将正确率输出来。为了能够持续打字输入，还需要做一个&ldquo;下一句&rdquo;的功能。在实现了这两个基本的功能后，一个简单的打字训练小工具就做出来了。</p>
+<p>&nbsp;</p>
+<h2>三、界面设计</h2>
+<h3>1.环境配置</h3>
+<p>　　PyQT5 的开发环境配置在上一篇博客中已经说过了，因而这里不再赘述，如果不清楚的可以点<a href="https://www.cnblogs.com/TM0831/p/11488892.html" target="_blank">这里</a>查看。</p>
+<h3>2.界面设计</h3>
+<p>&nbsp;　　要进行界面设计，得先打开 QtDesigner，然后新建项目，选择 Widget：</p>
+<p>&nbsp;　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具2.png" alt="" /></p>
+<p>&nbsp;　　然后就往里面拖控件就好了，这还是很方便的，主要用的控件包括 Label、Text Edit、Push Button等，双击控件之后可以在右侧修改控件的各种属性。最终设计出的界面如下：</p>
+<p>&nbsp;　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具3.png" alt="" /></p>
+<h3>3.生成 Python 代码</h3>
+<p>　　在设计完界面之后，将生成的结果保存下来，会得到一个 .ui 为后缀的文件。这个文件我们还是无法直接使用的，需要转变成 Python 代码才行。此时就需要使用 pyuic5 命令了，不懂的可以点<a href="https://www.cnblogs.com/TM0831/p/11488892.html" target="_blank">这里</a>查看我的上篇博客。</p>
+<p>&nbsp;</p>
+<h2>四、槽函数</h2>
+<h3>&nbsp;1.槽函数简介</h3>
+<p>　　要进行功能设计，就得先知道槽函数。槽是普通的 C++ 成员函数，槽在 Qt 开发软件中是一个很重要的概念，在 Qt 里与信号连接的就是槽，我们一般称之为槽函数。</p>
+<p>　　在使用信号的时候，有四个参数：</p>
+<p>　　1）sender：发出信号的对象；</p>
+<p>　　2）signal：发送对象发出的信号；</p>
+<p>　　3）receiver：接收信号的对象；</p>
+<p>　　4）slot：接收对象在接收到信号之后所需要调用的函数（槽函数）。</p>
+<h3>2.使用方法</h3>
+<h4>（1）第一种方法</h4>
+<p>　　第一步，在 QtDesigner 中点击 &ldquo;Edit Signals/Slots&rdquo;，然后左键点击按钮后将鼠标拖到另一个 Label 上：</p>
+<p>　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具4.png" alt="" /></p>
+<p>&nbsp;　　第二步，在弹出的设置框中选择具体的方法及功能。</p>
+<p>　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具5.png" alt="" /></p>
+<p>&nbsp;　　这样做很简单，但是也有缺陷，问题在于不能自定义方法，只能使用给定的方法。</p>
+<h4>（2）第二种方法</h4>
+<p>　　在右下角找到 &ldquo;Signal/Slot Editor&rdquo; 并点击，然后就可以点击 &ldquo;+&rdquo; 创建信号了。</p>
+<p>　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具6.png" alt="" /></p>
+<p>&nbsp;　　这种方法能够让我们自定义了，但是也不算方便，尤其是当你不知道具体要实现什么方法的时候。</p>
+<h4>（3）第三种方法</h4>
+<p>　　使用 connect() 方法，传入的参数为一个方法名称。例如：</p>
+<blockquote>
+<pre><code>btn.clicked.connect(func)</pre>
+</blockquote>
+<p>&nbsp;</p>
+<h2>五、功能实现</h2>
+<h3>1.继承函数</h3>
+<p>　　使用 pyuic5 生成 py 文件中定义了一个 Ui_Form 类，其中包含了对各种控件的定义等，如果我们要增加其他功能，且直接在这个 py 文件中修改的话，那么之后要更新界面之类的就不会不方便了，所以最好的方法是继承 Ui_Form 类，然后在继承类中添加修改。参考代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> sys
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">from</span> PyQt5 <span style="color: #0000ff;">import</span><span style="color: #000000;"> QtWidgets
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">from</span> typing.ui <span style="color: #0000ff;">import</span><span style="color: #000000;"> Ui_Form
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MyForm(Ui_Form, QtWidgets.QWidget):
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self):
+</span><span style="color: #008080;"> 8</span>         super(MyForm, self).<span style="color: #800080;">__init__</span><span style="color: #000000;">()
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">        self.setupUi(self)
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span> <span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+</span><span style="color: #008080;">13</span>     app =<span style="color: #000000;"> QtWidgets.QApplication(sys.argv)
+</span><span style="color: #008080;">14</span>     my_form =<span style="color: #000000;"> MyForm()
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">    my_form.show()
+</span><span style="color: #008080;">16</span>     sys.exit(app.exec_())</pre>
+</div>
+<h3>2.隐藏显示控件</h3>
+<p>　　有时候我们可能会需要将某些控件隐藏起来，这里简单介绍几种方法。</p>
+<p>　　1）setHidden(bool)&nbsp; &nbsp;&nbsp;设置控件是否隐藏；</p>
+<p>　　2）hide() 隐藏控件；</p>
+<p>　　这两种隐藏的方法会完全隐藏控件，即不保留控件所占的位置。但如果要保留位置的话，可以使用下面这种方法：</p>
+<blockquote>
+<pre><code># 将透明度设置为0，达到隐藏且保留位置的目的<br />op = QtWidgets.QGraphicsOpacityEffect()<br />op.setOpacity(0)<br />self.lable.setGraphicsEffect(op)</pre>
+</blockquote>
+<h3>3.判断输入内容&nbsp;</h3>
+<p>　　这一功能的实现需要在点击&ldquo;提交&rdquo;按钮时获取输入框中的内容，再和给出的文本进行对比，最后将结果返回显示出来。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> click(self):
+</span><span style="color: #008080;"> 2</span>     <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 3</span> <span style="color: #800000;">    点击按钮时调用
+</span><span style="color: #008080;"> 4</span> <span style="color: #800000;">    :return: 
+</span><span style="color: #008080;"> 5</span>     <span style="color: #800000;">"""</span>
+<span style="color: #008080;"> 6</span> <span style="color: #000000;">    self.get_time()
+</span><span style="color: #008080;"> 7</span>     the_input =<span style="color: #000000;"> self.textEdit.toPlainText()
+</span><span style="color: #008080;"> 8</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> 计算准确率</span>
+<span style="color: #008080;"> 9</span>     count =<span style="color: #000000;"> 0
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> range(len(the_input)):
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">if</span> the_input[i] ==<span style="color: #000000;"> self.text[i]:
+</span><span style="color: #008080;">12</span>             count += 1
+<span style="color: #008080;">13</span>     accuracy = count / len(self.text) * 100
+<span style="color: #008080;">14</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> print(accuracy)</span>
+<span style="color: #008080;">15</span> <span style="color: #000000;">    self.show_label()
+</span><span style="color: #008080;">16</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> 设置提示信息</span>
+<span style="color: #008080;">17</span>     info = <span style="color: #800000;">"</span><span style="color: #800000;">有点可惜，你的正确率是:  %.2f%%  </span><span style="color: #800000;">"</span> % accuracy <span style="color: #0000ff;">if</span> accuracy != 100 <span style="color: #0000ff;">else</span> <span style="color: #800000;">"</span><span style="color: #800000;">恭喜你全对了呢！继续加油哦！</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">18</span>     self.info_lable.setText(info)</pre>
+</div>
+<p>　　对于我这种懒人来说，点击按钮这种操作都是费力的，所以最好加入一个快捷键，这样就方便多了，可以使用如下方法设置：</p>
+<blockquote>
+<pre><code># 设置快捷键<br />self.submit_btn.setShortcut('ctrl+e')</pre>
+</blockquote>
+<p>&nbsp;</p>
+<h2>六、运行结果</h2>
+<p>　　最终运行结果的截图如下：</p>
+<p>　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具7.png" alt="" /></p>
+<p>&nbsp;　　提交之后还可以点击下一句继续训练：</p>
+<p>　　<img src="./images/Python学习之旅：用Python制作一个打字训练小工具8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>　　<span style="font-size: 14pt;">完整代码已上传到 <a href="https://github.com/TM0831/PythonCode/tree/master/typing" target="_blank">GitHub</a>！</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

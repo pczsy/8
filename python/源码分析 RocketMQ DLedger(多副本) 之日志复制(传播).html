@@ -1,0 +1,859 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)</center></div><div class='banquan'>原文出处:本文由博客园博主中间件兴趣圈提供。<br/>
+原文连接:https://www.cnblogs.com/dingwpmz/p/12045738.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#dledgerentrypusher">1、DLedgerEntryPusher</a><ul>
+        <li><a href="#核心类图">1.1 核心类图</a></li>
+        <li><a href="#构造方法">1.2 构造方法</a></li>
+        <li><a href="#startup">1.3 startup</a></li>
+        </ul></li>
+        <li><a href="#entrydispatcher-详解">2、EntryDispatcher 详解</a><ul>
+        <li><a href="#核心类图-1">2.1 核心类图</a></li>
+        <li><a href="#push-请求类型">2.2 Push 请求类型</a></li>
+        <li><a href="#dowork-方法详解">2.3 doWork 方法详解</a></li>
+        </ul></li>
+        <li><a href="#entryhandler-详解">3、EntryHandler 详解</a><ul>
+        <li><a href="#核心类图-2">3.1 核心类图</a></li>
+        <li><a href="#handlepush">3.2 handlePush</a></li>
+        <li><a href="#dowork-方法详解-1">3.3 doWork 方法详解</a></li>
+        </ul></li>
+        <li><a href="#quorumackchecker">4、QuorumAckChecker</a><ul>
+        <li><a href="#类图">4.1 类图</a></li>
+        <li><a href="#dowork-详解">4.2 doWork 详解</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<blockquote>
+<p>温馨提示：源码分析RocketMQ DLedger 多副本系列连载中：<br />
+1、<a href="https://blog.csdn.net/prestigeding/article/details/99101912">RocketMQ 多副本前置篇：初探raft协议</a><br />
+2、<a href="https://blog.csdn.net/prestigeding/article/details/99697323">源码分析 RocketMQ DLedger 多副本之 Leader 选主</a><br />
+3、<a href="https://blog.csdn.net/prestigeding/article/details/100177780">源码分析 RocketMQ DLedger 多副本存储实现</a><br />
+4、<a href="https://blog.csdn.net/prestigeding/article/details/100835869">源码分析 RocketMQ DLedger(多副本) 之日志追加流程</a></p>
+</blockquote>
+<p>本文紧接着 源码分析 RocketMQ DLedger(多副本) 之日志追加流程 ，继续 Leader 处理客户端 append 的请求流程中最至关重要的一环：日志复制。</p>
+<p>DLedger 多副本的日志转发由 DLedgerEntryPusher 实现，接下来将对其进行详细介绍。</p>
+<blockquote>
+<p>温馨提示：由于本篇幅较长，为了更好的理解其实现，大家可以带着如下疑问来通读本篇文章：<br />
+1、raft 协议中有一个非常重要的概念：已提交日志序号，该如何实现。<br />
+2、客户端向 DLedger 集群发送一条日志，必须得到集群中大多数节点的认可才能被认为写入成功。<br />
+3、raft 协议中追加、提交两个动作如何实现。</p>
+</blockquote>
+<p>@(本节目录)</p>
+<p>日志复制(日志转发)由 DLedgerEntryPusher 实现，具体类图如下：<br />
+<img src="./images/源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)0.png" alt="在这里插入图片描述" /><br />
+主要由如下4个类构成：</p>
+<ul>
+<li>DLedgerEntryPusher<br />
+DLedger 日志转发与处理核心类，该内会启动如下3个对象，其分别对应一个线程。</li>
+<li>EntryHandler<br />
+日志接收处理线程，当节点为从节点时激活。</li>
+<li>QuorumAckChecker<br />
+日志追加ACK投票处理线程，当前节点为主节点时激活。</li>
+<li>EntryDispatcher<br />
+日志转发线程，当前节点为主节点时追加。</li>
+</ul>
+<p>接下来我们将详细介绍上述4个类，从而揭晓日志复制的核心实现原理。</p>
+<h2 id="dledgerentrypusher">1、DLedgerEntryPusher</h2>
+<h3 id="核心类图">1.1 核心类图</h3>
+<p><img src="./images/源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)1.png" alt="在这里插入图片描述" /><br />
+DLedger 多副本日志推送的核心实现类，里面会创建 EntryDispatcher、QuorumAckChecker、EntryHandler 三个核心线程。其核心属性如下：</p>
+<ul>
+<li>DLedgerConfig dLedgerConfig<br />
+多副本相关配置。</li>
+<li>DLedgerStore dLedgerStore<br />
+存储实现类。</li>
+<li>MemberState memberState<br />
+节点状态机。</li>
+<li>DLedgerRpcService dLedgerRpcService<br />
+RPC 服务实现类，用于集群内的其他节点进行网络通讯。</li>
+<li>Map&lt;Long, ConcurrentMap&lt;String, Long&gt;&gt; peerWaterMarksByTerm<br />
+每个节点基于投票轮次的当前水位线标记。键值为投票轮次，值为 ConcurrentMap&lt;String/** 节点id*/, Long/** 节点对应的日志序号*/&gt;。</li>
+<li>Map&lt;Long, ConcurrentMap&lt;Long, TimeoutFuture<AppendEntryResponse>&gt;&gt; pendingAppendResponsesByTerm<br />
+用于存放追加请求的响应结果(Future模式)。</li>
+<li>EntryHandler entryHandler<br />
+从节点上开启的线程，用于接收主节点的 push 请求（append、commit、append）。</li>
+<li>QuorumAckChecker quorumAckChecker<br />
+主节点上的追加请求投票器。</li>
+<li>Map&lt;String, EntryDispatcher&gt; dispatcherMap<br />
+主节点日志请求转发器，向从节点复制消息等。</li>
+</ul>
+<p>接下来介绍一下其核心方法的实现。</p>
+<h3 id="构造方法">1.2 构造方法</h3>
+<pre><code><code>public DLedgerEntryPusher(DLedgerConfig dLedgerConfig, MemberState memberState, DLedgerStore dLedgerStore,
+    DLedgerRpcService dLedgerRpcService) {
+    this.dLedgerConfig = dLedgerConfig;
+    this.memberState = memberState;
+    this.dLedgerStore = dLedgerStore;
+    this.dLedgerRpcService = dLedgerRpcService;
+    for (String peer : memberState.getPeerMap().keySet()) {
+        if (!peer.equals(memberState.getSelfId())) {
+            dispatcherMap.put(peer, new EntryDispatcher(peer, logger));
+        }
+    }
+}</code></pre>
+<p>构造方法的重点是会根据集群内的节点，依次构建对应的 EntryDispatcher 对象。</p>
+<h3 id="startup">1.3 startup</h3>
+<p>DLedgerEntryPusher#startup</p>
+<pre><code><code>public void startup() {
+    entryHandler.start();
+    quorumAckChecker.start();
+    for (EntryDispatcher dispatcher : dispatcherMap.values()) {
+        dispatcher.start();
+    }
+}</code></pre>
+<p>依次启动 EntryHandler、QuorumAckChecker 与 EntryDispatcher 线程。</p>
+<blockquote>
+<p>备注：DLedgerEntryPusher 的其他核心方法在详细分析其日志复制原理的过程中会一一介绍。</p>
+</blockquote>
+<p>接下来将从 EntryDispatcher、QuorumAckChecker、EntryHandler 来阐述 RocketMQ DLedger(多副本)的实现原理。</p>
+<h2 id="entrydispatcher-详解">2、EntryDispatcher 详解</h2>
+<h3 id="核心类图-1">2.1 核心类图</h3>
+<p><img src="./images/源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)2.png" alt="在这里插入图片描述" /><br />
+其核心属性如下。</p>
+<ul>
+<li>AtomicReference&lt;PushEntryRequest.Type&gt; type = new AtomicReference&lt;&gt;(PushEntryRequest.Type.COMPARE)<br />
+向从节点发送命令的类型，可选值：PushEntryRequest.Type.COMPARE、TRUNCATE、APPEND、COMMIT，下面详细说明。</li>
+<li>long lastPushCommitTimeMs = -1<br />
+上一次发送提交类型的时间戳。</li>
+<li>String peerId<br />
+目标节点ID。</li>
+<li>long compareIndex = -1<br />
+已完成比较的日志序号。</li>
+<li>long writeIndex = -1<br />
+已写入的日志序号。</li>
+<li>int maxPendingSize = 1000<br />
+允许的最大挂起日志数量。</li>
+<li>long term = -1<br />
+Leader 节点当前的投票轮次。</li>
+<li>String leaderId = null<br />
+Leader 节点ID。</li>
+<li>long lastCheckLeakTimeMs = System.currentTimeMillis()<br />
+上次检测泄漏的时间，所谓的泄漏，就是看挂起的日志请求数量是否查过了 maxPendingSize 。</li>
+<li>ConcurrentMap&lt;Long, Long&gt; pendingMap = new ConcurrentHashMap&lt;&gt;()<br />
+记录日志的挂起时间，key：日志的序列(entryIndex)，value：挂起时间戳。</li>
+<li>Quota quota = new Quota(dLedgerConfig.getPeerPushQuota())<br />
+配额。</li>
+</ul>
+<h3 id="push-请求类型">2.2 Push 请求类型</h3>
+<p>DLedger 主节点向从从节点复制日志总共定义了4类请求类型，其枚举类型为 PushEntryRequest.Type，其值分别为 COMPARE、TRUNCATE、APPEND、COMMIT。</p>
+<ul>
+<li>COMPARE<br />
+如果 Leader 发生变化，新的 Leader 需要与他的从节点的日志条目进行比较，以便截断从节点多余的数据。</li>
+<li>TRUNCATE<br />
+如果 Leader 通过索引完成日志对比，则 Leader 将发送 TRUNCATE 给它的从节点。</li>
+<li>APPEND<br />
+将日志条目追加到从节点。</li>
+<li>COMMIT<br />
+通常，leader 会将提交的索引附加到 append 请求，但是如果 append 请求很少且分散，leader 将发送一个单独的请求来通知从节点提交的索引。</li>
+</ul>
+<p>对主从节点的请求类型有了一个初步的认识后，我们将从 EntryDispatcher 的业务处理入口 doWork 方法开始讲解。</p>
+<h3 id="dowork-方法详解">2.3 doWork 方法详解</h3>
+<pre><code><code>public void doWork() {
+    try {
+        if (!checkAndFreshState()) {                                            // @1
+            waitForRunning(1);
+            return;
+        }
+
+        if (type.get() == PushEntryRequest.Type.APPEND) {   // @2
+            doAppend();
+        } else {
+            doCompare();                                                           // @3
+        }
+        waitForRunning(1);
+    } catch (Throwable t) {
+        DLedgerEntryPusher.logger.error(&quot;[Push-{}]Error in {} writeIndex={} compareIndex={}&quot;, peerId, getName(), writeIndex, compareIndex, t);
+        DLedgerUtils.sleep(500);
+    }
+}</code></pre>
+<p>代码@1：检查状态，是否可以继续发送 append 或 compare。</p>
+<p>代码@2：如果推送类型为APPEND，主节点向从节点传播消息请求。</p>
+<p>代码@3：主节点向从节点发送对比数据差异请求（当一个新节点被选举成为主节点时，往往这是第一步）。</p>
+<h4 id="checkandfreshstate-详解">2.3.1 checkAndFreshState 详解</h4>
+<p>EntryDispatcher#checkAndFreshState</p>
+<pre><code><code>private boolean checkAndFreshState() {
+    if (!memberState.isLeader()) {     // @1
+        return false;
+    }
+    if (term != memberState.currTerm() || leaderId == null || !leaderId.equals(memberState.getLeaderId())) {     // @2
+        synchronized (memberState) {
+            if (!memberState.isLeader()) {
+                return false;
+            }
+            PreConditions.check(memberState.getSelfId().equals(memberState.getLeaderId()), DLedgerResponseCode.UNKNOWN);
+            term = memberState.currTerm();
+            leaderId = memberState.getSelfId();
+            changeState(-1, PushEntryRequest.Type.COMPARE);
+        }
+    }
+    return true;
+}</code></pre>
+<p>代码@1：如果节点的状态不是主节点，则直接返回 false。则结束 本次 doWork 方法。因为只有主节点才需要向从节点转发日志。</p>
+<p>代码@2：如果当前节点状态是主节点，但当前的投票轮次与状态机轮次或 leaderId 还未设置，或 leaderId 与状态机的 leaderId 不相等，这种情况通常是集群触发了重新选举，设置其term、leaderId与状态机同步，即将发送COMPARE 请求。</p>
+<p>接下来看一下 changeState (改变状态)。</p>
+<pre><code><code>private synchronized void changeState(long index, PushEntryRequest.Type target) {
+    logger.info(&quot;[Push-{}]Change state from {} to {} at {}&quot;, peerId, type.get(), target, index);
+    switch (target) {
+        case APPEND:      // @1
+            compareIndex = -1;
+            updatePeerWaterMark(term, peerId, index);
+            quorumAckChecker.wakeup();
+            writeIndex = index + 1;
+            break;
+        case COMPARE:    // @2
+            if (this.type.compareAndSet(PushEntryRequest.Type.APPEND, PushEntryRequest.Type.COMPARE)) {
+                compareIndex = -1;
+                pendingMap.clear();
+            }
+            break;
+        case TRUNCATE:     // @3
+            compareIndex = -1;
+            break;
+        default:
+            break;
+    }
+    type.set(target);
+} </code></pre>
+<p>代码@1：如果将目标类型设置为 append，则重置 compareIndex ，并设置 writeIndex 为当前 index 加1。</p>
+<p>代码@2：如果将目标类型设置为 COMPARE，则重置 compareIndex 为负一，接下将向各个从节点发送 COMPARE 请求类似，并清除已挂起的请求。</p>
+<p>代码@3：如果将目标类型设置为 TRUNCATE，则重置 compareIndex 为负一。</p>
+<p>接下来具体来看一下 APPEND、COMPARE、TRUNCATE 等请求。</p>
+<h4 id="append-请求详解">2.3.2 append 请求详解</h4>
+<p>EntryDispatcher#doAppend</p>
+<pre><code><code>private void doAppend() throws Exception {
+    while (true) {
+        if (!checkAndFreshState()) {                                                 // @1
+            break;
+        }
+        if (type.get() != PushEntryRequest.Type.APPEND) {        // @2
+            break;
+        }
+        if (writeIndex &gt; dLedgerStore.getLedgerEndIndex()) {    // @3
+            doCommit();
+            doCheckAppendResponse();
+            break;
+        }
+        if (pendingMap.size() &gt;= maxPendingSize || (DLedgerUtils.elapsed(lastCheckLeakTimeMs) &gt; 1000)) {     // @4
+            long peerWaterMark = getPeerWaterMark(term, peerId);
+            for (Long index : pendingMap.keySet()) {
+                if (index &lt; peerWaterMark) {
+                    pendingMap.remove(index);
+                }
+            }
+            lastCheckLeakTimeMs = System.currentTimeMillis();
+        }
+        if (pendingMap.size() &gt;= maxPendingSize) {    // @5
+            doCheckAppendResponse();
+            break;
+        }
+        doAppendInner(writeIndex);                               // @6
+        writeIndex++;
+    }
+}</code></pre>
+<p>代码@1：检查状态，已经在上面详细介绍。</p>
+<p>代码@2：如果请求类型不为 APPEND，则退出，结束本轮 doWork 方法执行。</p>
+<p>代码@3：writeIndex 表示当前追加到从该节点的序号，通常情况下主节点向从节点发送 append 请求时，会附带主节点的已提交指针，但如何 append 请求发不那么频繁，writeIndex 大于 leaderEndIndex 时（由于pending请求超过其 pending 请求的队列长度（默认为1w)，时，会阻止数据的追加，此时有可能出现 writeIndex 大于 leaderEndIndex 的情况，此时单独发送 COMMIT 请求。</p>
+<p>代码@4：检测 pendingMap(挂起的请求数量)是否发送泄漏，即挂起队列中容量是否超过允许的最大挂起阀值。获取当前节点关于本轮次的当前水位线(已成功 append 请求的日志序号)，如果发现正在挂起请求的日志序号小于水位线，则丢弃。</p>
+<p>代码@5：如果挂起的请求（等待从节点追加结果）大于 maxPendingSize 时，检查并追加一次 append 请求。</p>
+<p>代码@6：具体的追加请求。</p>
+<h5 id="docommit-发送提交请求">2.3.2.1 doCommit 发送提交请求</h5>
+<p>EntryDispatcher#doCommit</p>
+<pre><code><code>private void doCommit() throws Exception {
+    if (DLedgerUtils.elapsed(lastPushCommitTimeMs) &gt; 1000) {   // @1
+        PushEntryRequest request = buildPushRequest(null, PushEntryRequest.Type.COMMIT);   // @2
+        //Ignore the results
+        dLedgerRpcService.push(request);                                                                                        // @3
+        lastPushCommitTimeMs = System.currentTimeMillis();
+    }
+}</code></pre>
+<p>代码@1：如果上一次单独发送 commit 的请求时间与当前时间相隔低于 1s，放弃本次提交请求。</p>
+<p>代码@2：构建提交请求。</p>
+<p>代码@3：通过网络向从节点发送 commit 请求。</p>
+<p>接下来先了解一下如何构建 commit 请求包。</p>
+<p>EntryDispatcher#buildPushRequest</p>
+<pre><code><code>private PushEntryRequest buildPushRequest(DLedgerEntry entry, PushEntryRequest.Type target) {
+    PushEntryRequest request = new PushEntryRequest();
+    request.setGroup(memberState.getGroup());  
+    request.setRemoteId(peerId);                          
+    request.setLeaderId(leaderId);
+    request.setTerm(term);
+    request.setEntry(entry);
+    request.setType(target);
+    request.setCommitIndex(dLedgerStore.getCommittedIndex());
+    return request;
+}</code></pre>
+<p>提交包请求字段主要包含如下字段：DLedger 节点所属组、从节点 id、主节点 id，当前投票轮次、日志内容、请求类型与 committedIndex(主节点已提交日志序号)。</p>
+<h5 id="docheckappendresponse-检查并追加请求">2.3.2.2 doCheckAppendResponse 检查并追加请求</h5>
+<p>EntryDispatcher#doCheckAppendResponse</p>
+<pre><code><code>private void doCheckAppendResponse() throws Exception {
+    long peerWaterMark = getPeerWaterMark(term, peerId);   // @1
+    Long sendTimeMs = pendingMap.get(peerWaterMark + 1); 
+    if (sendTimeMs != null &amp;&amp; System.currentTimeMillis() - sendTimeMs &gt; dLedgerConfig.getMaxPushTimeOutMs()) { // @2
+        logger.warn(&quot;[Push-{}]Retry to push entry at {}&quot;, peerId, peerWaterMark + 1);
+        doAppendInner(peerWaterMark + 1);
+    }
+}</code></pre>
+<p>该方法的作用是检查 append 请求是否超时，其关键实现如下：</p>
+<ul>
+<li>获取已成功 append 的序号。</li>
+<li>从挂起的请求队列中获取下一条的发送时间，如果不为空并去超过了 append 的超时时间，则再重新发送 append 请求，最大超时时间默认为 1s，可以通过 maxPushTimeOutMs 来改变默认值。</li>
+</ul>
+<h5 id="doappendinner-追加请求">2.3.2.3 doAppendInner 追加请求</h5>
+<p>向从节点发送 append 请求。</p>
+<p>EntryDispatcher#doAppendInner</p>
+<pre><code><code>private void doAppendInner(long index) throws Exception {
+    DLedgerEntry entry = dLedgerStore.get(index);   // @1
+    PreConditions.check(entry != null, DLedgerResponseCode.UNKNOWN, &quot;writeIndex=%d&quot;, index);
+    checkQuotaAndWait(entry);                                   // @2
+    PushEntryRequest request = buildPushRequest(entry, PushEntryRequest.Type.APPEND);   // @3
+    CompletableFuture&lt;PushEntryResponse&gt; responseFuture = dLedgerRpcService.push(request);   // @4
+    pendingMap.put(index, System.currentTimeMillis());                                                                          // @5
+    responseFuture.whenComplete((x, ex) -&gt; {
+        try {
+            PreConditions.check(ex == null, DLedgerResponseCode.UNKNOWN);
+            DLedgerResponseCode responseCode = DLedgerResponseCode.valueOf(x.getCode());
+            switch (responseCode) {
+                case SUCCESS:                                                                                                                // @6
+                    pendingMap.remove(x.getIndex());
+                    updatePeerWaterMark(x.getTerm(), peerId, x.getIndex());
+                    quorumAckChecker.wakeup();
+                    break;
+                case INCONSISTENT_STATE:                                                                                         // @7
+                    logger.info(&quot;[Push-{}]Get INCONSISTENT_STATE when push index={} term={}&quot;, peerId, x.getIndex(), x.getTerm());
+                    changeState(-1, PushEntryRequest.Type.COMPARE);
+                    break;
+                default:
+                    logger.warn(&quot;[Push-{}]Get error response code {} {}&quot;, peerId, responseCode, x.baseInfo());
+                    break;
+            }
+        } catch (Throwable t) {
+            logger.error(&quot;&quot;, t);
+        }
+    });
+    lastPushCommitTimeMs = System.currentTimeMillis();
+}</code></pre>
+<p>代码@1：首先根据序号查询出日志。</p>
+<p>代码@2：检测配额，如果超过配额，会进行一定的限流，其关键实现点：</p>
+<ul>
+<li>首先触发条件：append 挂起请求数已超过最大允许挂起数；基于文件存储并主从差异超过300m，可通过 peerPushThrottlePoint 配置。</li>
+<li>每秒追加的日志超过 20m(可通过 peerPushQuota 配置)，则会 sleep 1s中后再追加。</li>
+</ul>
+<p>代码@3：构建 PUSH 请求日志。</p>
+<p>代码@4：通过 Netty 发送网络请求到从节点，从节点收到请求会进行处理(本文并不会探讨与网络相关的实现细节)。</p>
+<p>代码@5：用 pendingMap 记录待追加的日志的发送时间，用于发送端判断是否超时的一个依据。</p>
+<p>代码@6：请求成功的处理逻辑，其关键实现点如下：</p>
+<ul>
+<li>移除 pendingMap 中的关于该日志的发送超时时间。</li>
+<li>更新已成功追加的日志序号(按投票轮次组织，并且每个从服务器一个键值对)。</li>
+<li>唤醒 quorumAckChecker 线程(主要用于仲裁 append 结果)，后续会详细介绍。</li>
+</ul>
+<p>代码@7：Push 请求出现状态不一致情况，将发送 COMPARE 请求，来对比主从节点的数据是否一致。</p>
+<p>日志转发 append 追加请求类型就介绍到这里了，接下来我们继续探讨另一个请求类型 compare。</p>
+<h4 id="compare-请求详解">2.3.3 compare 请求详解</h4>
+<p>COMPARE 类型的请求有 doCompare 方法发送，首先该方法运行在 while (true) 中，故在查阅下面代码时，要注意其退出循环的条件。<br />
+EntryDispatcher#doCompare</p>
+<pre><code><code>if (!checkAndFreshState()) {
+    break;
+}
+if (type.get() != PushEntryRequest.Type.COMPARE
+    &amp;&amp; type.get() != PushEntryRequest.Type.TRUNCATE) {
+    break;
+}
+if (compareIndex == -1 &amp;&amp; dLedgerStore.getLedgerEndIndex() == -1) {
+    break;
+}</code></pre>
+<p>Step1：验证是否执行，有几个关键点如下：</p>
+<ul>
+<li>判断是否是主节点，如果不是主节点，则直接跳出。</li>
+<li>如果是请求类型不是 COMPARE 或 TRUNCATE 请求，则直接跳出。</li>
+<li>如果已比较索引 和 ledgerEndIndex 都为 -1 ，表示一个新的 DLedger 集群，则直接跳出。</li>
+</ul>
+<p>EntryDispatcher#doCompare</p>
+<pre><code><code>if (compareIndex == -1) {
+    compareIndex = dLedgerStore.getLedgerEndIndex();
+    logger.info(&quot;[Push-{}][DoCompare] compareIndex=-1 means start to compare&quot;, peerId);
+} else if (compareIndex &gt; dLedgerStore.getLedgerEndIndex() || compareIndex &lt; dLedgerStore.getLedgerBeginIndex()) {
+    logger.info(&quot;[Push-{}][DoCompare] compareIndex={} out of range {}-{}&quot;, peerId, compareIndex, dLedgerStore.getLedgerBeginIndex(), dLedgerStore.getLedgerEndIndex());
+    compareIndex = dLedgerStore.getLedgerEndIndex();
+}</code></pre>
+<p>Step2：如果 compareIndex 为 -1 或compareIndex 不在有效范围内，则重置待比较序列号为当前已已存储的最大日志序号：ledgerEndIndex。</p>
+<pre><code><code>DLedgerEntry entry = dLedgerStore.get(compareIndex);
+PreConditions.check(entry != null, DLedgerResponseCode.INTERNAL_ERROR, &quot;compareIndex=%d&quot;, compareIndex);
+PushEntryRequest request = buildPushRequest(entry, PushEntryRequest.Type.COMPARE);
+CompletableFuture&lt;PushEntryResponse&gt; responseFuture = dLedgerRpcService.push(request);
+PushEntryResponse response = responseFuture.get(3, TimeUnit.SECONDS);</code></pre>
+<p>Step3：根据序号查询到日志，并向从节点发起 COMPARE 请求，其超时时间为 3s。</p>
+<p>EntryDispatcher#doCompare</p>
+<pre><code><code>long truncateIndex = -1;
+if (response.getCode() == DLedgerResponseCode.SUCCESS.getCode()) {   // @1
+    if (compareIndex == response.getEndIndex()) {
+        changeState(compareIndex, PushEntryRequest.Type.APPEND);
+        break;
+    } else {
+        truncateIndex = compareIndex;
+    }
+
+} else if (response.getEndIndex() &lt; dLedgerStore.getLedgerBeginIndex() 
+        || response.getBeginIndex() &gt; dLedgerStore.getLedgerEndIndex()) {    // @2
+    truncateIndex = dLedgerStore.getLedgerBeginIndex();
+} else if (compareIndex &lt; response.getBeginIndex()) {                                    // @3
+    truncateIndex = dLedgerStore.getLedgerBeginIndex();
+} else if (compareIndex &gt; response.getEndIndex()) {                                      // @4
+    compareIndex = response.getEndIndex();
+} else {                                                                                                              // @5
+    compareIndex--;
+}
+
+if (compareIndex &lt; dLedgerStore.getLedgerBeginIndex()) {                          // @6
+    truncateIndex = dLedgerStore.getLedgerBeginIndex();
+}</code></pre>
+<p>Step4：根据响应结果计算需要截断的日志序号，其主要实现关键点如下：</p>
+<ul>
+<li>代码@1：如果两者的日志序号相同，则无需截断，下次将直接先从节点发送 append 请求；否则将 truncateIndex 设置为响应结果中的 endIndex。</li>
+<li>代码@2：如果从节点存储的最大日志序号小于主节点的最小序号，或者从节点的最小日志序号大于主节点的最大日志序号，即两者不相交，这通常发生在从节点崩溃很长一段时间，而主节点删除了过期的条目时。truncateIndex 设置为主节点的 ledgerBeginIndex，即主节点目前最小的偏移量。</li>
+<li>代码@3：如果已比较的日志序号小于从节点的开始日志序号，很可能是从节点磁盘发送损耗，从主节点最小日志序号开始同步。</li>
+<li>代码@4：如果已比较的日志序号大于从节点的最大日志序号，则已比较索引设置为从节点最大的日志序号，触发数据的继续同步。</li>
+<li>代码@5：如果已比较的日志序号大于从节点的开始日志序号，但小于从节点的最大日志序号，则待比较索引减一。</li>
+<li>代码@6：如果比较出来的日志序号小于主节点的最小日志需要，则设置为主节点的最小序号。</li>
+</ul>
+<pre><code><code>if (truncateIndex != -1) {
+    changeState(truncateIndex, PushEntryRequest.Type.TRUNCATE);
+    doTruncate(truncateIndex);
+    break;
+}</code></pre>
+<p>Step5：如果比较出来的日志序号不等于 -1 ，则向从节点发送 TRUNCATE 请求。</p>
+<h5 id="dotruncate-详解">2.3.3.1 doTruncate 详解</h5>
+<pre><code><code>private void doTruncate(long truncateIndex) throws Exception {
+    PreConditions.check(type.get() == PushEntryRequest.Type.TRUNCATE, DLedgerResponseCode.UNKNOWN);
+    DLedgerEntry truncateEntry = dLedgerStore.get(truncateIndex);
+    PreConditions.check(truncateEntry != null, DLedgerResponseCode.UNKNOWN);
+    logger.info(&quot;[Push-{}]Will push data to truncate truncateIndex={} pos={}&quot;, peerId, truncateIndex, truncateEntry.getPos());
+    PushEntryRequest truncateRequest = buildPushRequest(truncateEntry, PushEntryRequest.Type.TRUNCATE);
+    PushEntryResponse truncateResponse = dLedgerRpcService.push(truncateRequest).get(3, TimeUnit.SECONDS);
+    PreConditions.check(truncateResponse != null, DLedgerResponseCode.UNKNOWN, &quot;truncateIndex=%d&quot;, truncateIndex);
+    PreConditions.check(truncateResponse.getCode() == DLedgerResponseCode.SUCCESS.getCode(), DLedgerResponseCode.valueOf(truncateResponse.getCode()), &quot;truncateIndex=%d&quot;, truncateIndex);
+    lastPushCommitTimeMs = System.currentTimeMillis();
+    changeState(truncateIndex, PushEntryRequest.Type.APPEND);
+}</code></pre>
+<p>该方法主要就是构建 truncate 请求到从节点。</p>
+<p>关于服务端的消息复制转发就介绍到这里了，主节点负责向从服务器PUSH请求，从节点自然而然的要处理这些请求，接下来我们就按照主节点发送的请求，来具体分析一下从节点是如何响应的。</p>
+<h2 id="entryhandler-详解">3、EntryHandler 详解</h2>
+<p>EntryHandler 同样是一个线程，当节点状态为从节点时激活。</p>
+<h3 id="核心类图-2">3.1 核心类图</h3>
+<p><img src="./images/源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)3.png" alt="在这里插入图片描述" /><br />
+其核心属性如下：</p>
+<ul>
+<li>long lastCheckFastForwardTimeMs<br />
+上一次检查主服务器是否有 push 消息的时间戳。</li>
+<li>ConcurrentMap&lt;Long, Pair&lt;PushEntryRequest, CompletableFuture&lt; PushEntryResponse&gt;&gt;&gt; writeRequestMap<br />
+append 请求处理队列。</li>
+<li>BlockingQueue&lt;Pair&lt;PushEntryRequest, CompletableFuture&lt; PushEntryResponse&gt;&gt;&gt; compareOrTruncateRequests<br />
+COMMIT、COMPARE、TRUNCATE 相关请求</li>
+</ul>
+<h3 id="handlepush">3.2 handlePush</h3>
+<p>从上文得知，主节点会主动向从节点传播日志，从节点会通过网络接受到请求数据进行处理，其调用链如图所示：<br />
+<img src="./images/源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)4.png" alt="在这里插入图片描述" /><br />
+最终会调用 EntryHandler 的 handlePush 方法。</p>
+<p>EntryHandler#handlePush</p>
+<pre><code><code>public CompletableFuture&lt;PushEntryResponse&gt; handlePush(PushEntryRequest request) throws Exception {
+    //The timeout should smaller than the remoting layer&#39;s request timeout
+    CompletableFuture&lt;PushEntryResponse&gt; future = new TimeoutFuture&lt;&gt;(1000);      // @1
+    switch (request.getType()) {
+        case APPEND:                                                                                                          // @2
+            PreConditions.check(request.getEntry() != null, DLedgerResponseCode.UNEXPECTED_ARGUMENT);
+            long index = request.getEntry().getIndex();
+            Pair&lt;PushEntryRequest, CompletableFuture&lt;PushEntryResponse&gt;&gt; old = writeRequestMap.putIfAbsent(index, new Pair&lt;&gt;(request, future));
+            if (old != null) {
+                logger.warn(&quot;[MONITOR]The index {} has already existed with {} and curr is {}&quot;, index, old.getKey().baseInfo(), request.baseInfo());
+                future.complete(buildResponse(request, DLedgerResponseCode.REPEATED_PUSH.getCode()));
+            }
+            break;
+        case COMMIT:                                                                                                           // @3
+            compareOrTruncateRequests.put(new Pair&lt;&gt;(request, future));
+            break;
+        case COMPARE:
+        case TRUNCATE:                                                                                                     // @4
+            PreConditions.check(request.getEntry() != null, DLedgerResponseCode.UNEXPECTED_ARGUMENT);
+            writeRequestMap.clear();
+            compareOrTruncateRequests.put(new Pair&lt;&gt;(request, future));
+            break;
+        default:
+            logger.error(&quot;[BUG]Unknown type {} from {}&quot;, request.getType(), request.baseInfo());
+            future.complete(buildResponse(request, DLedgerResponseCode.UNEXPECTED_ARGUMENT.getCode()));
+            break;
+    }
+    return future;
+}</code></pre>
+<p>从几点处理主节点的 push 请求，其实现关键点如下。</p>
+<p>代码@1：首先构建一个响应结果Future，默认超时时间 1s。</p>
+<p>代码@2：如果是 APPEND 请求，放入到 writeRequestMap 集合中，如果已存在该数据结构，说明主节点重复推送，构建返回结果，其状态码为 REPEATED_PUSH。放入到 writeRequestMap 中，由 doWork 方法定时去处理待写入的请求。</p>
+<p>代码@3：如果是提交请求， 将请求存入 compareOrTruncateRequests 请求处理中，由 doWork 方法异步处理。</p>
+<p>代码@4：如果是 COMPARE 或 TRUNCATE 请求，将待写入队列 writeRequestMap 清空，并将请求放入 compareOrTruncateRequests 请求队列中，由 doWork 方法异步处理。</p>
+<p>接下来，我们重点来分析 doWork 方法的实现。</p>
+<h3 id="dowork-方法详解-1">3.3 doWork 方法详解</h3>
+<p>EntryHandler#doWork</p>
+<pre><code><code>public void doWork() {
+    try {
+        if (!memberState.isFollower()) {     // @1
+            waitForRunning(1);
+            return;
+        }
+        if (compareOrTruncateRequests.peek() != null) {    // @2
+            Pair&lt;PushEntryRequest, CompletableFuture&lt;PushEntryResponse&gt;&gt; pair = compareOrTruncateRequests.poll();
+            PreConditions.check(pair != null, DLedgerResponseCode.UNKNOWN);
+            switch (pair.getKey().getType()) {
+                case TRUNCATE:
+                    handleDoTruncate(pair.getKey().getEntry().getIndex(), pair.getKey(), pair.getValue());
+                    break;
+                case COMPARE:
+                    handleDoCompare(pair.getKey().getEntry().getIndex(), pair.getKey(), pair.getValue());
+                    break;
+                case COMMIT:
+                    handleDoCommit(pair.getKey().getCommitIndex(), pair.getKey(), pair.getValue());
+                    break;
+                default:
+                    break;
+            }
+        } else { // @3
+            long nextIndex = dLedgerStore.getLedgerEndIndex() + 1;
+            Pair&lt;PushEntryRequest, CompletableFuture&lt;PushEntryResponse&gt;&gt; pair = writeRequestMap.remove(nextIndex);
+            if (pair == null) {
+                checkAbnormalFuture(dLedgerStore.getLedgerEndIndex());
+                waitForRunning(1);
+                return;
+            }
+            PushEntryRequest request = pair.getKey();
+            handleDoAppend(nextIndex, request, pair.getValue());
+        }
+    } catch (Throwable t) {
+        DLedgerEntryPusher.logger.error(&quot;Error in {}&quot;, getName(), t);
+        DLedgerUtils.sleep(100);
+    }
+}</code></pre>
+<p>代码@1：如果当前节点的状态不是从节点，则跳出。</p>
+<p>代码@2：如果 compareOrTruncateRequests 队列不为空，说明有COMMIT、COMPARE、TRUNCATE 等请求，这类请求优先处理。值得注意的是这里使用是 peek、poll 等非阻塞方法，然后根据请求的类型，调用对应的方法。稍后详细介绍。</p>
+<p>代码@3：如果只有 append 类请求，则根据当前节点最大的消息序号，尝试从 writeRequestMap 容器中，获取下一个消息复制请求(ledgerEndIndex + 1) 为 key 去查找。如果不为空，则执行 doAppend 请求，如果为空，则调用 checkAbnormalFuture 来处理异常情况。</p>
+<p>接下来我们来重点分析各个处理细节。</p>
+<h4 id="handledocommit">3.3.1 handleDoCommit</h4>
+<p>处理提交请求，其处理比较简单，就是调用 DLedgerStore 的 updateCommittedIndex 更新其已提交偏移量，故我们还是具体看一下DLedgerStore 的 updateCommittedIndex 方法。</p>
+<p>DLedgerMmapFileStore#updateCommittedIndex</p>
+<pre><code><code>public void updateCommittedIndex(long term, long newCommittedIndex) {   // @1
+    if (newCommittedIndex == -1
+            || ledgerEndIndex == -1
+            || term &lt; memberState.currTerm()
+            || newCommittedIndex == this.committedIndex) {                               // @2
+            return;
+    }
+    if (newCommittedIndex &lt; this.committedIndex
+            || newCommittedIndex &lt; this.ledgerBeginIndex) {                             // @3
+        logger.warn(&quot;[MONITOR]Skip update committed index for new={} &lt; old={} or new={} &lt; beginIndex={}&quot;, newCommittedIndex, this.committedIndex, newCommittedIndex, this.ledgerBeginIndex);
+        return;
+    }
+    long endIndex = ledgerEndIndex;
+    if (newCommittedIndex &gt; endIndex) {                                                       // @4
+            //If the node fall behind too much, the committedIndex will be larger than enIndex.
+        newCommittedIndex = endIndex;
+    }
+    DLedgerEntry dLedgerEntry = get(newCommittedIndex);                        // @5                
+    PreConditions.check(dLedgerEntry != null, DLedgerResponseCode.DISK_ERROR);
+    this.committedIndex = newCommittedIndex;
+    this.committedPos = dLedgerEntry.getPos() + dLedgerEntry.getSize();     // @6
+}</code></pre>
+<p>代码@1：首先介绍一下方法的参数：</p>
+<ul>
+<li>long term<br />
+主节点当前的投票轮次。</li>
+<li>long newCommittedIndex:<br />
+主节点发送日志复制请求时的已提交日志序号。</li>
+</ul>
+<p>代码@2：如果待更新提交序号为 -1 或 投票轮次小于从节点的投票轮次或主节点投票轮次等于从节点的已提交序号，则直接忽略本次提交动作。</p>
+<p>代码@3：如果主节点的已提交日志序号小于从节点的已提交日志序号或待提交序号小于当前节点的最小有效日志序号，则输出警告日志[MONITOR]，并忽略本次提交动作。</p>
+<p>代码@4：如果从节点落后主节点太多，则重置 提交索引为从节点当前最大有效日志序号。</p>
+<p>代码@5：尝试根据待提交序号从从节点查找数据，如果数据不存在，则抛出 DISK_ERROR 错误。</p>
+<p>代码@6：更新 commitedIndex、committedPos 两个指针，DledgerStore会定时将已提交指针刷入 checkpoint 文件，达到持久化 commitedIndex 指针的目的。</p>
+<h4 id="handledocompare">3.3.2 handleDoCompare</h4>
+<p>处理主节点发送过来的 COMPARE 请求，其实现也比较简单，最终调用 buildResponse 方法构造响应结果。</p>
+<p>EntryHandler#buildResponse</p>
+<pre><code><code>private PushEntryResponse buildResponse(PushEntryRequest request, int code) {
+    PushEntryResponse response = new PushEntryResponse();
+    response.setGroup(request.getGroup());
+    response.setCode(code);
+    response.setTerm(request.getTerm());
+    if (request.getType() != PushEntryRequest.Type.COMMIT) {
+        response.setIndex(request.getEntry().getIndex());
+    }
+    response.setBeginIndex(dLedgerStore.getLedgerBeginIndex());
+    response.setEndIndex(dLedgerStore.getLedgerEndIndex());
+    return response;
+}</code></pre>
+<p>主要也是返回当前从几点的 ledgerBeginIndex、ledgerEndIndex 以及投票轮次，供主节点进行判断比较。</p>
+<h4 id="handledotruncate">3.3.3 handleDoTruncate</h4>
+<p>handleDoTruncate 方法实现比较简单，删除从节点上 truncateIndex 日志序号之后的所有日志，具体调用dLedgerStore 的 truncate 方法，由于其存储与 RocketMQ 的存储设计基本类似故本文就不在详细介绍，简单介绍其实现要点：根据日志序号，去定位到日志文件，如果命中具体的文件，则修改相应的读写指针、刷盘指针等，并将所在在物理文件之后的所有文件删除。大家如有兴趣，可以查阅笔者的《RocketMQ技术内幕》第4章：RocketMQ 存储相关内容。</p>
+<h4 id="handledoappend">3.3.4 handleDoAppend</h4>
+<pre><code><code>private void handleDoAppend(long writeIndex, PushEntryRequest request,
+    CompletableFuture&lt;PushEntryResponse&gt; future) {
+    try {
+        PreConditions.check(writeIndex == request.getEntry().getIndex(), DLedgerResponseCode.INCONSISTENT_STATE);
+        DLedgerEntry entry = dLedgerStore.appendAsFollower(request.getEntry(), request.getTerm(), request.getLeaderId());
+        PreConditions.check(entry.getIndex() == writeIndex, DLedgerResponseCode.INCONSISTENT_STATE);
+        future.complete(buildResponse(request, DLedgerResponseCode.SUCCESS.getCode()));
+        dLedgerStore.updateCommittedIndex(request.getTerm(), request.getCommitIndex());
+    } catch (Throwable t) {
+        logger.error(&quot;[HandleDoWrite] writeIndex={}&quot;, writeIndex, t);
+        future.complete(buildResponse(request, DLedgerResponseCode.INCONSISTENT_STATE.getCode()));
+    }
+}</code></pre>
+<p>其实现也比较简单，调用DLedgerStore 的 appendAsFollower 方法进行日志的追加，与appendAsLeader 在日志存储部分相同，只是从节点无需再转发日志。</p>
+<h4 id="checkabnormalfuture">3.3.5 checkAbnormalFuture</h4>
+<p>该方法是本节的重点，doWork 的从服务器存储的最大有效日志序号(ledgerEndIndex) + 1 序号，尝试从待写请求中获取不到对应的请求时调用，这种情况也很常见，例如主节点并么有将最新的数据 PUSH 给从节点。接下来我们详细来看看该方法的实现细节。<br />
+EntryHandler#checkAbnormalFuture</p>
+<pre><code><code>if (DLedgerUtils.elapsed(lastCheckFastForwardTimeMs) &lt; 1000) {
+    return;
+}
+lastCheckFastForwardTimeMs  = System.currentTimeMillis();
+if (writeRequestMap.isEmpty()) {
+    return;
+}</code></pre>
+<p>Step1：如果上一次检查的时间距现在不到1s，则跳出；如果当前没有积压的append请求，同样跳出，因为可以同样明确的判断出主节点还未推送日志。</p>
+<p>EntryHandler#checkAbnormalFuture</p>
+<pre><code><code>for (Pair&lt;PushEntryRequest, CompletableFuture&lt;PushEntryResponse&gt;&gt; pair : writeRequestMap.values()) {
+    long index = pair.getKey().getEntry().getIndex();             // @1
+    //Fall behind
+    if (index &lt;= endIndex) {                                                   // @2
+        try {
+            DLedgerEntry local = dLedgerStore.get(index);
+            PreConditions.check(pair.getKey().getEntry().equals(local), DLedgerResponseCode.INCONSISTENT_STATE);
+            pair.getValue().complete(buildResponse(pair.getKey(), DLedgerResponseCode.SUCCESS.getCode()));
+            logger.warn(&quot;[PushFallBehind]The leader pushed an entry index={} smaller than current ledgerEndIndex={}, maybe the last ack is missed&quot;, index, endIndex);
+        } catch (Throwable t) {
+            logger.error(&quot;[PushFallBehind]The leader pushed an entry index={} smaller than current ledgerEndIndex={}, maybe the last ack is missed&quot;, index, endIndex, t);
+            pair.getValue().complete(buildResponse(pair.getKey(), DLedgerResponseCode.INCONSISTENT_STATE.getCode()));
+        }
+        writeRequestMap.remove(index);
+        continue;
+    }
+    //Just OK
+    if (index ==  endIndex + 1) {    // @3
+        //The next entry is coming, just return
+        return;
+    }
+    //Fast forward
+    TimeoutFuture&lt;PushEntryResponse&gt; future  = (TimeoutFuture&lt;PushEntryResponse&gt;) pair.getValue();    // @4
+    if (!future.isTimeOut()) {
+        continue;
+    }
+    if (index &lt; minFastForwardIndex) {                                                                                                                // @5
+        minFastForwardIndex = index;
+    }
+}</code></pre>
+<p>Step2：遍历当前待写入的日志追加请求(主服务器推送过来的日志复制请求)，找到需要快速快进的的索引。其关键实现点如下：</p>
+<ul>
+<li>代码@1：首先获取待写入日志的序号。</li>
+<li>代码@2：如果待写入的日志序号小于从节点已追加的日志(endIndex)，并且日志的确已存储在从节点，则返回成功，并输出警告日志【PushFallBehind】，继续监测下一条待写入日志。</li>
+<li>代码@3：如果待写入 index 等于 endIndex + 1，则结束循环，因为下一条日志消息已经在待写入队列中，即将写入。</li>
+<li>代码@4：如果待写入 index 大于 endIndex + 1，并且未超时，则直接检查下一条待写入日志。</li>
+<li>代码@5：如果待写入 index 大于 endIndex + 1，并且已经超时，则记录该索引，使用 minFastForwardIndex 存储。</li>
+</ul>
+<p>EntryHandler#checkAbnormalFuture</p>
+<pre><code><code>if (minFastForwardIndex == Long.MAX_VALUE) {
+    return;
+}
+Pair&lt;PushEntryRequest, CompletableFuture&lt;PushEntryResponse&gt;&gt; pair = writeRequestMap.get(minFastForwardIndex);
+if (pair == null) {
+    return;
+}</code></pre>
+<p>Step3：如果未找到需要快速失败的日志序号或 writeRequestMap 中未找到其请求，则直接结束检测。</p>
+<p>EntryHandler#checkAbnormalFuture</p>
+<pre><code><code>logger.warn(&quot;[PushFastForward] ledgerEndIndex={} entryIndex={}&quot;, endIndex, minFastForwardIndex);
+pair.getValue().complete(buildResponse(pair.getKey(), DLedgerResponseCode.INCONSISTENT_STATE.getCode()));</code></pre>
+<p>Step4：则向主节点报告从节点已经与主节点发生了数据不一致，从节点并没有写入序号 minFastForwardIndex 的日志。如果主节点收到此种响应，将会停止日志转发，转而向各个从节点发送 COMPARE 请求，从而使数据恢复一致。</p>
+<p>行为至此，已经详细介绍了主服务器向从服务器发送请求，从服务做出响应，那接下来就来看一下，服务端收到响应结果后的处理，我们要知道主节点会向它所有的从节点传播日志，主节点需要在指定时间内收到超过集群一半节点的确认，才能认为日志写入成功，那我们接下来看一下其实现过程。</p>
+<h2 id="quorumackchecker">4、QuorumAckChecker</h2>
+<p>日志复制投票器，一个日志写请求只有得到集群内的的大多数节点的响应，日志才会被提交。</p>
+<h3 id="类图">4.1 类图</h3>
+<p><img src="./images/源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)5.png" alt="在这里插入图片描述" /><br />
+其核心属性如下：</p>
+<ul>
+<li>long lastPrintWatermarkTimeMs<br />
+上次打印水位线的时间戳，单位为毫秒。</li>
+<li>long lastCheckLeakTimeMs<br />
+上次检测泄漏的时间戳，单位为毫秒。</li>
+<li>long lastQuorumIndex<br />
+已投票仲裁的日志序号。</li>
+</ul>
+<h3 id="dowork-详解">4.2 doWork 详解</h3>
+<p>QuorumAckChecker#doWork</p>
+<pre><code><code>if (DLedgerUtils.elapsed(lastPrintWatermarkTimeMs) &gt; 3000) {    
+    logger.info(&quot;[{}][{}] term={} ledgerBegin={} ledgerEnd={} committed={} watermarks={}&quot;,
+            memberState.getSelfId(), memberState.getRole(), memberState.currTerm(), dLedgerStore.getLedgerBeginIndex(), dLedgerStore.getLedgerEndIndex(), dLedgerStore.getCommittedIndex(), JSON.toJSONString(peerWaterMarksByTerm));
+    lastPrintWatermarkTimeMs = System.currentTimeMillis();
+}</code></pre>
+<p>Step1：如果离上一次打印 watermak 的时间超过3s，则打印一下当前的 term、ledgerBegin、ledgerEnd、committed、peerWaterMarksByTerm 这些数据日志。</p>
+<p>QuorumAckChecker#doWork</p>
+<pre><code><code>if (!memberState.isLeader()) {   // @2
+    waitForRunning(1);
+    return;
+}</code></pre>
+<p>Step2：如果当前节点不是主节点，直接返回，不作为。</p>
+<p>QuorumAckChecker#doWork</p>
+<pre><code><code>if (pendingAppendResponsesByTerm.size() &gt; 1) {   // @1
+    for (Long term : pendingAppendResponsesByTerm.keySet()) {
+        if (term == currTerm) {
+            continue;
+        }
+        for (Map.Entry&lt;Long, TimeoutFuture&lt;AppendEntryResponse&gt;&gt; futureEntry : pendingAppendResponsesByTerm.get(term).entrySet()) {
+            AppendEntryResponse response = new AppendEntryResponse();
+            response.setGroup(memberState.getGroup());
+            response.setIndex(futureEntry.getKey());
+            response.setCode(DLedgerResponseCode.TERM_CHANGED.getCode());
+            response.setLeaderId(memberState.getLeaderId());
+            logger.info(&quot;[TermChange] Will clear the pending response index={} for term changed from {} to {}&quot;, futureEntry.getKey(), term, currTerm);
+            futureEntry.getValue().complete(response);
+        }
+        pendingAppendResponsesByTerm.remove(term);
+    }
+}
+if (peerWaterMarksByTerm.size() &gt; 1) {
+    for (Long term : peerWaterMarksByTerm.keySet()) {
+        if (term == currTerm) {
+            continue;
+        }
+        logger.info(&quot;[TermChange] Will clear the watermarks for term changed from {} to {}&quot;, term, currTerm);
+        peerWaterMarksByTerm.remove(term);
+    }
+}</code></pre>
+<p>Step3：清理pendingAppendResponsesByTerm、peerWaterMarksByTerm 中本次投票轮次的数据，避免一些不必要的内存使用。</p>
+<pre><code><code>Map&lt;String, Long&gt; peerWaterMarks = peerWaterMarksByTerm.get(currTerm);
+long quorumIndex = -1;
+for (Long index : peerWaterMarks.values()) {  // @1
+    int num = 0;
+    for (Long another : peerWaterMarks.values()) {  // @2
+        if (another &gt;= index) {
+            num++;
+        }
+    }
+    if (memberState.isQuorum(num) &amp;&amp; index &gt; quorumIndex) {  // @3
+        quorumIndex = index;
+    }
+}
+dLedgerStore.updateCommittedIndex(currTerm, quorumIndex);  // @4</code></pre>
+<p>Step4：根据各个从节点反馈的进度，进行仲裁，确定已提交序号。为了加深对这段代码的理解，再来啰嗦一下 peerWaterMarks 的作用，存储的是各个从节点当前已成功追加的日志序号。例如一个三节点的 DLedger 集群，peerWaterMarks 数据存储大概如下：</p>
+<pre class="json"><code>{
+“dledger_group_01_0” : 100,
+&quot;dledger_group_01_1&quot; : 101,
+}</code></pre>
+<p>其中 dledger_group_01_0 为从节点1的ID，当前已复制的序号为 100，而 dledger_group_01_1 为节点2的ID，当前已复制的序号为 101。再加上主节点，如何确定可提交序号呢？</p>
+<ul>
+<li>代码@1：首先遍历 peerWaterMarks 的 value 集合，即上述示例中的 {100, 101}，用临时变量 index 来表示待投票的日志序号，需要集群内超过半数的节点的已复制序号超过该值，则该日志能被确认提交。</li>
+<li>代码@2：遍历 peerWaterMarks 中的所有已提交序号，与当前值进行比较，如果节点的已提交序号大于等于待投票的日志序号(index)，num 加一，表示投赞成票。</li>
+<li>代码@3：对 index 进行仲裁，如果超过半数 并且 index 大于 quorumIndex，更新 quorumIndex 的值为 index。quorumIndex 经过遍历的，得出当前最大的可提交日志序号。</li>
+<li>代码@4：更新 committedIndex 索引，方便 DLedgerStore 定时将 committedIndex 写入 checkpoint 中。</li>
+</ul>
+<pre><code><code>ConcurrentMap&lt;Long, TimeoutFuture&lt;AppendEntryResponse&gt;&gt; responses = pendingAppendResponsesByTerm.get(currTerm);
+boolean needCheck = false;
+int ackNum = 0;
+if (quorumIndex &gt;= 0) {
+    for (Long i = quorumIndex; i &gt;= 0; i--) {  // @1
+        try {
+            CompletableFuture&lt;AppendEntryResponse&gt; future = responses.remove(i);   // @2
+            if (future == null) {                                                                                              // @3
+                needCheck = lastQuorumIndex != -1 &amp;&amp; lastQuorumIndex != quorumIndex &amp;&amp; i != lastQuorumIndex;
+                break;
+            } else if (!future.isDone()) {                                                                                // @4
+                AppendEntryResponse response = new AppendEntryResponse();
+                response.setGroup(memberState.getGroup());
+                response.setTerm(currTerm);
+                response.setIndex(i);
+                response.setLeaderId(memberState.getSelfId());
+                response.setPos(((AppendFuture) future).getPos());
+                future.complete(response);
+            }
+            ackNum++;                                                                                                      // @5
+        } catch (Throwable t) {
+            logger.error(&quot;Error in ack to index={} term={}&quot;, i, currTerm, t);
+        }
+    }
+}</code></pre>
+<p>Step5：处理 quorumIndex 之前的挂起请求，需要发送响应到客户端,其实现步骤：</p>
+<ul>
+<li>代码@1：从 quorumIndex 开始处理，没处理一条，该序号减一，直到大于0或主动退出，请看后面的退出逻辑。</li>
+<li>代码@2：responses 中移除该日志条目的挂起请求。</li>
+<li>代码@3：如果未找到挂起请求，说明前面挂起的请求已经全部处理完毕，准备退出，退出之前再 设置 needCheck 的值，其依据如下(三个条件必须同时满足)：
+<ul>
+<li>最后一次仲裁的日志序号不等于-1</li>
+<li>并且最后一次不等于本次新仲裁的日志序号</li>
+<li>最后一次仲裁的日志序号不等于最后一次仲裁的日志。正常情况一下，条件一、条件二通常为true，但这一条大概率会返回false。</li>
+</ul></li>
+<li>代码@4：向客户端返回结果。</li>
+<li>代码@5：ackNum，表示本次确认的数量。</li>
+</ul>
+<pre><code><code>if (ackNum == 0) {
+    for (long i = quorumIndex + 1; i &lt; Integer.MAX_VALUE; i++) {
+        TimeoutFuture&lt;AppendEntryResponse&gt; future = responses.get(i);
+        if (future == null) {
+            break;
+        } else if (future.isTimeOut()) {
+            AppendEntryResponse response = new AppendEntryResponse();
+            response.setGroup(memberState.getGroup());
+            response.setCode(DLedgerResponseCode.WAIT_QUORUM_ACK_TIMEOUT.getCode());
+            response.setTerm(currTerm);
+            response.setIndex(i);
+            response.setLeaderId(memberState.getSelfId());
+            future.complete(response);
+        } else {
+            break;
+        }
+    }
+    waitForRunning(1);
+}</code></pre>
+<p>Step6：如果本次确认的个数为0，则尝试去判断超过该仲裁序号的请求，是否已经超时，如果已超时，则返回超时响应结果。</p>
+<pre><code><code>if (DLedgerUtils.elapsed(lastCheckLeakTimeMs) &gt; 1000 || needCheck) {
+    updatePeerWaterMark(currTerm, memberState.getSelfId(), dLedgerStore.getLedgerEndIndex());
+    for (Map.Entry&lt;Long, TimeoutFuture&lt;AppendEntryResponse&gt;&gt; futureEntry : responses.entrySet()) {
+        if (futureEntry.getKey() &lt; quorumIndex) {
+            AppendEntryResponse response = new AppendEntryResponse();
+            response.setGroup(memberState.getGroup());
+            response.setTerm(currTerm);
+            response.setIndex(futureEntry.getKey());
+            response.setLeaderId(memberState.getSelfId());
+            response.setPos(((AppendFuture) futureEntry.getValue()).getPos());
+            futureEntry.getValue().complete(response);
+            responses.remove(futureEntry.getKey());
+        }
+    }
+    lastCheckLeakTimeMs = System.currentTimeMillis();
+}</code></pre>
+<p>Step7：检查是否发送泄漏。其判断泄漏的依据是如果挂起的请求的日志序号小于已提交的序号，则移除。</p>
+<p>Step8：一次日志仲裁就结束了，最后更新 lastQuorumIndex 为本次仲裁的的新的提交值。</p>
+<p>关于 DLedger 的日志复制部分就介绍到这里了。本文篇幅较长，看到这里的各位亲爱的读者朋友们，麻烦点个赞，谢谢。</p>
+<hr />
+<blockquote>
+<p>作者介绍：丁威，《RocketMQ技术内幕》作者，RocketMQ 社区布道师，公众号：<a href="https://mp.weixin.qq.com/s/LB7k8A06BgssXy9bxfZC3w">中间件兴趣圈</a> 维护者，目前已陆续发表源码分析Java集合、Java 并发包(JUC)、Netty、Mycat、Dubbo、RocketMQ、Mybatis等源码专栏。可以点击链接加入<a href="https://t.zsxq.com/QbYNzZN">中间件知识星球</a> ，一起探讨高并发、分布式服务架构，交流源码。</p>
+</blockquote>
+<p><img src="./images/源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)6.png" alt="在这里插入图片描述" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

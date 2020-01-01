@@ -1,0 +1,257 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修项目分享：模拟博客园登录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>项目分享：模拟博客园登录</center></div><div class='banquan'>原文出处:本文由博客园博主天狼大大提供。<br/>
+原文连接:https://www.cnblogs.com/tianlangdada/p/11573534.html</div><br>
+    <h1 id="项目二模拟博客园登录">项目二：模拟博客园登录</h1>
+<h2 id="声明">声明：</h2>
+<p>项目代码纯粹本人自己编写，无任何抄袭、转载等情况，所以写的很low，仅供大家参考，有不懂的随时评论留言</p>
+<h2 id="项目要求">项目要求：</h2>
+<ol>
+<li><p>首先程序启动，显示下面内容供用户选择：</p>
+<ol>
+<li>请登录<br />
+</li>
+<li>请注册<br />
+</li>
+<li>进入文章页面<br />
+</li>
+<li>进入评论页面<br />
+</li>
+<li>进入日记页面<br />
+</li>
+<li>进入收藏页面<br />
+</li>
+<li>注销账号<br />
+</li>
+<li>退出整个程序</li>
+</ol></li>
+<li><p>必须实现的功能：</p>
+<ol>
+<li><p>注册功能要求：</p>
+<ul>
+<li><p>首先判断用户名在userinfo.txt表中存在不在,存在就不能进行注册</p></li>
+<li>当注册的用户名不存在的时候将用户名、密码要记录在文件中。<br />
+</li>
+<li>用户名要求：不能有特殊字符并且确保用户名唯一。<br />
+</li>
+<li><p>密码要求：长度要在6~14个字符之间。</p></li>
+</ul></li>
+<li><p>登录功能要求：</p>
+<ul>
+<li>用户输入用户名、密码进行登录验证。<br />
+</li>
+<li>登录成功之后，才可以访问3 - 7选项，如果没有登录或者登录不成功时访问3 - 7选项，不允许访问,提示用户进行登录!<br />
+</li>
+<li>用户名和密码不一致,只有三次登录机会,三次过后提示用户名被锁定,请联系管理员!并终止循环</li>
+<li>当用户名错误三次,再次运行程序.登录锁定的账号继续提示用户名被锁定,请联系管理员!</li>
+</ul></li>
+<li><p>进入文章页面要求：</p>
+<ul>
+<li>提示欢迎xx进入文章页面。(xx是当前登录的用户名)</li>
+</ul></li>
+<li><p>进入评论页面要求：</p>
+<ul>
+<li>提示欢迎xx进入评论页面</li>
+</ul></li>
+<li><p>进入日记页面要求：</p>
+<ul>
+<li>提示欢迎xx进入日记页面。</li>
+</ul></li>
+<li><p>进入收藏页面要求：</p>
+<ul>
+<li>提示欢迎xx进入收藏页面。</li>
+</ul></li>
+<li><p>注销账号要求：</p>
+<ul>
+<li>不是退出整个程序，而是将已经登录的状态变成未登录状态（在次访问3~7选项时需要重新登录）</li>
+</ul></li>
+<li><p>退出整个程序要求：</p>
+<ul>
+<li>就是结束整个程序</li>
+</ul></li>
+</ol></li>
+</ol>
+<h2 id="源码">源码：</h2>
+<pre><code><code>def register():
+    &quot;&quot;&quot;
+    功能：账号密码注册
+    实现：判断用户输入内容符合注册要求后循环查看文件中有无输入信息，若没有将信息加入文件
+    :return: None
+    &quot;&quot;&quot;
+    flag1 = True
+    while flag1:
+        username = input(&quot;请输入账号(不能含有特殊字符):&quot;)
+        password = input(&quot;请输入密码(6~14字符):&quot;)
+        if not username.isalnum():
+            print(&quot;账号不能含有特殊字符，请重新输入！&quot;)
+        elif not 6 &lt;= len(password) &lt;= 14:
+            print(&quot;密码长度不符，请重新输入！&quot;)
+        else:
+            f1.seek(0)
+            for el in f1:
+                if username in el.split(&quot;:&quot;)[1]:
+                    print(&quot;该账号已存在&quot;)
+                    break
+            else:
+                print(&quot;注册成功！&quot;)
+                f1.write(f&quot;\n{0}:{username}:{password}&quot;)
+                flag1 = False
+
+
+def login():
+    &quot;&quot;&quot;
+    功能：账号密码登录
+    实现：输入三次错误锁定账号
+    :return: str ——&gt; None
+    &quot;&quot;&quot;
+    global flag,username,visit
+    count = 3
+    while count:
+        username = input(&quot;请输入账号:&quot;)
+        password = input(&quot;请输入密码:&quot;)
+        f1.seek(0)
+        for el in f1:
+            num, user, pwd = el.strip().split(&quot;:&quot;)
+            if num == &quot;1&quot;:
+                print(&quot;账号已被锁定！请联系管理员！&quot;)
+                return
+            elif username == user:
+                if password == pwd:
+                    print(&quot;登陆成功！&quot;)
+                    visit = True
+                    return
+                else:
+                    count -= 1
+                    print(f&quot;账号密码错误，请重新输入(剩余次数:{count})&quot;)
+                    break
+        else:
+            print(&quot;账号不存在，请先注册！&quot;)
+    else:
+        print(&quot;账号已被锁定！请联系管理员！&quot;)
+        f1.seek(0)
+        for el in f1:
+            if el.strip().split(&quot;:&quot;)[1] == username:
+                f2.write(el.replace(&quot;0&quot;, &quot;1&quot;, 1))
+            else:
+                f2.write(el)
+        flag = True
+
+def article():
+    &quot;&quot;&quot;
+    功能：进入文章页面
+    实现：格式化输出
+    :return: None
+    &quot;&quot;&quot;
+    print(f&quot;欢迎{username}进入文章页面&quot;)
+
+def comment():
+    &quot;&quot;&quot;
+    功能：进入文章评论页面
+    实现：格式化输出
+    :return: None
+    &quot;&quot;&quot;
+    print(f&quot;欢迎{username}进入评论页面&quot;)
+
+def diary():
+    &quot;&quot;&quot;
+    功能：进入文章日记页面
+    实现：格式化输出
+    :return: None
+    &quot;&quot;&quot;
+    print(f&quot;欢迎{username}进入日记页面&quot;)
+
+def collect():
+    &quot;&quot;&quot;
+    功能：进入文章收藏页面
+    实现：格式化输出
+    :return: None
+    &quot;&quot;&quot;
+    print(f&quot;欢迎{username}进入收藏页面&quot;)
+
+def logout():
+    &quot;&quot;&quot;
+    功能：注销登录
+    实现：将全局访问权变标志变为False
+    :return: None
+    &quot;&quot;&quot;
+    global visit
+    print(&quot;注销成功&quot;)
+    visit = False
+
+def drop_out():
+    &quot;&quot;&quot;
+    功能：退出
+    实现：利用exit()函数
+    :return:None
+    &quot;&quot;&quot;
+    print(&quot;欢迎您下次访问！&quot;)
+    exit()
+
+
+function = {
+    &quot;1&quot;: register,
+    &quot;2&quot;: login,
+    &quot;3&quot;: article,
+    &quot;4&quot;: comment,
+    &quot;5&quot;: diary,
+    &quot;6&quot;: collect,
+    &quot;7&quot;: logout,
+    &quot;8&quot;: drop_out,
+}
+msg = f&quot;&quot;&quot;{&#39;博客园&#39;.center(15, &quot;*&quot;)}
+1.注册
+2.登录
+3.进入文章页面
+4.进入评论页面
+5.进入日记页面
+6.进入收藏页面
+7.注销账号
+8.退出
+请输入序号:&quot;&quot;&quot;
+import os
+
+flag = False
+visit = False  # 访问权限标志
+while True:
+    with open(&quot;userinfo.txt&quot;, &quot;r+&quot;, encoding=&quot;utf-8&quot;) as f1, \
+            open(&quot;userinfo_副本.txt&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f2:
+        choose = input(msg)
+        if choose in function:  # 先判断choose是否在字典中
+            if visit:  # 判断访问权限标志位是否开启，若不开启不能访问3~7
+                if choose in [&quot;1&quot;, &quot;2&quot;]:  # 若已登录不能再注册登录
+                    print(&quot;您已登录，请先注销！&quot;)
+                else:
+                    function[choose]()  # 执行对应函数
+            elif choose in [&quot;1&quot;, &quot;2&quot;, &quot;8&quot;]:  # 只能执行&quot;1&quot;、&quot;2&quot;、&quot;8&quot;功能
+                function[choose]()
+            else:
+                print(&quot;请先登录&quot;)
+        else:
+            print(&quot;您的输入有误，请重新输入！&quot;)
+    if flag:  # 修改文件
+        os.remove(&quot;userinfo.txt&quot;)
+        os.rename(&quot;userinfo_副本.txt&quot;, &quot;userinfo.txt&quot;)
+        flag = False
+        exit()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

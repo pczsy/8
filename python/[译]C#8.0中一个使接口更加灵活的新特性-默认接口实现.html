@@ -1,0 +1,132 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[译]C#8.0中一个使接口更加灵活的新特性-默认接口实现' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[译]C#8.0中一个使接口更加灵活的新特性-默认接口实现</center></div><div class='banquan'>原文出处:本文由博客园博主依乐祝提供。<br/>
+原文连接:https://www.cnblogs.com/yilezhu/p/12034584.html</div><br>
+    <blockquote>
+<p>9月份的时候，微软宣布正式发布C#8.0，作为.NET Core 3.0发行版的一部分。C#8.0的新特性之一就是默认接口实现。在本文中，我们将一起来聊聊默认接口实现。<br />
+作者：依乐祝<br />
+原文链接：<a href="https://www.cnblogs.com/yilezhu/p/12034584.html" class="uri">https://www.cnblogs.com/yilezhu/p/12034584.html</a></p>
+</blockquote>
+<blockquote>
+<p>提前说下：</p>
+</blockquote>
+<ol>
+<li>这实际上是一种基于特性的编程技术，可以在几个无关类之间进行方法的重用。不过的确有点反认知，毕竟接口方法不能进行实现，已经深入骨髓了。</li>
+<li>一定要区分抽象类及接口的适用场景，抽象类表述的对象，而接口表述的是行为，以及规则哦<br />
+当然你们也可以接口有多个实现类的时候可以使用抽象类来包一层。而不是直接使用抽象类来定义行为哈。可能很多小伙伴直接使用抽象类来定义行为了！</li>
+</ol>
+<p>众所周知，对现有应用程序的接口进行更改是一项很危险的操作。</p>
+<p>如果这个接口又在多个项目中使用了，那么进行更改将需要付出更多的精力，以确保它不会在其他地方运行失败。</p>
+<p>如果该项目是一个小项目，那么我们可以很容易地识别这些类，并在接口发生变化时进行相应的更改。但是，如果项目是大而复杂的，那么很难识别所有受影响的项目的模块和类。</p>
+<p>我们可能需要更多的资源和精力来识别和更改所有项目模块和类。除此之外，我们可能需要重建和交付所有使用该接口的项目。</p>
+<p>为了处理这种情况，Microsoft团队在C#8.0中引入了一个新特性--默认接口实现</p>
+<p>C#8.0允许我们为接口中的方法指定默认实现。</p>
+<p>下面让我们用一个例子来讨论这个问题。假设我们有一个图书馆管理的应用程序。</p>
+<p>我们已经为图书处理创建了一个接口IBook。然后，假设我们在IBook接口中声明了两个方法。</p>
+<p>请参阅下面的接口结构。</p>
+<pre><code><code>public interface IBook  
+    {  
+        void AddBook(string bookName, string autherName);  
+        void removeBook(string bookName);  
+    }  </code></pre>
+<p>然后，我们有多个类继承了这个接口，如下所示</p>
+<pre><code><code>public class Book : IBook  
+{  
+    public void AddBook(string bookName, string autherName)  
+    {  
+        Console.WriteLine(&quot;Book {0} added!&quot;,bookName);  
+    }  
+  
+    public void removeBook(string bookName)  
+    {  
+        Console.WriteLine(&quot;Book {0} Removed!&quot;,bookName);  
+    }  
+}</code></pre>
+<p>在第一阶段完成之后，我们已经交付了应用程序。</p>
+<p>在第二阶段，客户想要一个给书本进行评级的功能。</p>
+<p>因此，我们可以在<code>IBook</code>接口中添加另一个方法，如下所示。</p>
+<pre><code><code>public interface IBook  
+    {  
+        void AddBook(string bookName, string autherName);  
+        void removeBook(string bookName);  
+        void rateBook(int bookID);  
+    }  </code></pre>
+<p>然后，我们需要在继承该接口的所有类中实现该方法。</p>
+<p>否则，继承这个接口的类将引发错误，如下所示。</p>
+<p><img src="./images/[译]C#8.0中一个使接口更加灵活的新特性-默认接口实现0.png" alt="C# 8.0 - Default Interface Implementation - A New Feature Which Makes The Interface More Flexible" /></p>
+<p>如果我们为接口方法提供一个定义，我们将得到以下错误。</p>
+<p><img src="./images/[译]C#8.0中一个使接口更加灵活的新特性-默认接口实现1.png" alt="C# 8.0 - Default Interface Implementation - A New Feature Which Makes The Interface More Flexible" /></p>
+<p>即使我们仅仅只是在一个模块或类中需要这个新方法，我们也应该对使用这个接口的所有模块/类进行更改。</p>
+<p>对于一个小应用程序来说，这不会有太大的工作量。但是对于更大的应用程序来说，在接口中进行更改可能会导致更多的问题，如应用程序失败、bug、构建和交付问题等等。</p>
+<p>但是在C#8.0中Microsoft 团队通过引入默认接口实现特性为这种情况引入了一种简单的解决方案。</p>
+<p>在C#8.0中，我们可以为接口成员定义默认定义。</p>
+<p>请参阅下面的接口声明。</p>
+<pre><code><code>public interface IBook  
+{  
+    void AddBook(string bookName, string autherName);  
+    void removeBook(string bookName);  
+  
+    void rateBook(int bookID)  
+    {                          
+        //default logic here  
+        Console.WriteLine(&quot;\nExecuted the Default implementation in the interface&quot;);  
+    }  
+}  </code></pre>
+<p>让我们从Main方法调用该方法，如下所示。</p>
+<pre><code><code>static void Main(string[] args)  
+        {  
+            IBook ib = new Book();  
+            ib.AddBook(&quot;Wings of Fire&quot;,&quot;Dr.A.P.J Abdul Kalam&quot;);  
+            ib.removeBook(&quot;Belated Bachelor Party&quot;);  
+  
+            ib.rateBook(1);  
+        } </code></pre>
+<p>输出如下。</p>
+<p><img src="./images/[译]C#8.0中一个使接口更加灵活的新特性-默认接口实现2.png" alt="C# 8.0 - Default Interface Implementation - A New Feature Which Makes The Interface More Flexible" /></p>
+<p>由于我们没有覆盖类中的<code>rateBook()</code>方法，因此将执行接口中的默认实现。</p>
+<p>但是，如果在类中重写此方法，类中的实现将被执行。</p>
+<p>下面的代码中给出了这个方法的一个新的实现，如下所示。</p>
+<pre><code><code>public class Book : IBook  
+    {  
+        public void AddBook(string bookName, string autherName)  
+        {  
+            Console.WriteLine(&quot;Book {0} added!&quot;, bookName);  
+        }  
+  
+        public void removeBook(string bookName)  
+        {  
+            Console.WriteLine(&quot;Book {0} Removed!&quot;, bookName);  
+        }  
+        public void rateBook(int bookID)  
+        {  
+            Console.WriteLine(&quot;\nOverride : Executed the implementation in the class&quot;);  
+        }  
+    }  </code></pre>
+<p>如果我们运行应用程序，我们将得到以下结果</p>
+<p><img src="./images/[译]C#8.0中一个使接口更加灵活的新特性-默认接口实现3.png" alt="C# 8.0 - Default Interface Implementation - A New Feature Which Makes The Interface More Flexible" /></p>
+<p>这似乎是一个有趣的特性，这将有助于我们的架构重构工作，并使接口更加灵活。</p>
+<p>快乐学习~~~~~</p>
+<p>很久没写文章了，有点生疏了，接下来准备抽时间写写C#中的异步，聊聊我的理解~~~欢迎大家加入<code>.net core两千人交流群637326624</code>交流</p>
+<p>原文：<a href="https://www.c-sharpcorner.com/article/working-with-default-interface-implementation-in-c-sharp-8-0/" class="uri">https://www.c-sharpcorner.com/article/working-with-default-interface-implementation-in-c-sharp-8-0/</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,207 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python IO多路复用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python IO多路复用</center></div><div class='banquan'>原文出处:本文由博客园博主Hyyyy提供。<br/>
+原文连接:https://www.cnblogs.com/Hybb/p/11518411.html</div><br>
+    <h1 id="io多路复用">IO多路复用</h1>
+<p>检测多个socket是否已经发生变化，（是否已经连接成功/是否已经获得数据）（可读/可写）</p>
+<p>实现：</p>
+<ol>
+<li><p><strong>IO多路复用 select模块</strong></p>
+<p>操作系统检查socket是否发生变化，有三种模式：</p>
+<ul>
+<li><strong>select</strong>：最多<code>1024</code>个socket；循环去检测</li>
+<li><strong>poll</strong>：不限制监听socket个数；循环去检测（水平触发）</li>
+<li><strong>epoll</strong>：不限制监听socket个数；回调方式（边缘触发）</li>
+</ul>
+<p><strong>python模块：</strong></p>
+<ul>
+<li>select.select</li>
+<li>select.epoll</li>
+</ul></li>
+<li><p><strong>非阻塞</strong></p></li>
+</ol>
+<p>代码如下：</p>
+<pre><code><code>import socket
+import select
+
+client1 = socket.socket()
+client1.setblocking(False) # 将原本链接阻塞，修改为非阻塞
+# 百度创建链接，阻塞
+try:
+    client1.connect((&#39;www.baidu.com&#39;,80))
+except BlockingIOError:
+    pass
+
+client2 = socket.socket()
+client2.setblocking(False) # 将原本链接阻塞，修改为不阻塞
+# 百度创建链接，阻塞
+try:
+    client2.connect((&#39;www.sogou.com&#39;,80))
+except BlockingIOError:
+    pass
+
+client3 = socket.socket()
+client3.setblocking(False) # 将原本链接阻塞，修改为不阻塞
+# 百度创建链接，阻塞
+try:
+    client3.connect((&#39;www.oldboyedu.com&#39;,80))
+except BlockingIOError:
+    pass
+
+socket_list = [client1,client2,client3]
+conn_list = [client1,client2,client3]
+
+while True:
+    rlist,wlist,elist = select.select(socket_list,conn_list,[],0.005)
+
+    for sk in wlist:
+        if sk == client1:
+            sk.sendall(b&#39;GET /s?wd=alex HTTP/1.0\r\nhost:www.baidu.com\r\n\r\n&#39;)
+        elif sk == client2:
+            sk.sendall(b&#39;GET /web?query=alex HTTP/1.0\r\nhost:www.sogou.com\r\n\r\n&#39;)
+        else:
+            sk.sendall(b&#39;GET /s?wd=alex HTTP/1.0\r\nhost:www.oldboyedu.com\r\n\r\n&#39;)
+        conn_list.remove(sk)
+
+    for sk in rlist:
+        chunk_list = []
+        while True:
+            try:
+                chunk = sk.recv(8096)
+                if not chunk:
+                    break
+                chunk_list.append(chunk)
+            except BlockingIOError:
+               break
+
+        boby = b&#39;&#39;.join(chunk_list)
+        print(&#39;-------&gt;&#39;,boby)
+        sk.close()
+        socket_list.remove(sk)
+
+    if not socket_list:
+        break</code></pre>
+<h2 id="著名异步框架twisted">著名异步框架：Twisted</h2>
+<p>基于事件循环实现的异步非阻塞框架</p>
+<ul>
+<li><strong>非阻塞</strong>：不等待</li>
+<li><strong>异步</strong>：执行完某个事物的时候，自动调用我给他的函数</li>
+</ul>
+<p>python中开源 基于事件循环实现的异步非阻塞框架 Twisted</p>
+<p>自定义基于事件循环的异步非阻塞代码示例：</p>
+<pre><code><code>import socket
+import select
+
+class Req():
+    def __init__(self,sk,func):
+        self.sock = sk
+        self.func = func
+
+    def fileno(self):
+        return self.sock.fileno()
+
+
+
+class Nb():
+    def __init__(self):
+        self.conn_list = []
+        self.socket_list = []
+
+    def add(self,url,func):
+        client = socket.socket()
+        client.setblocking(False)
+
+        try:
+            client.connect((url,80))
+        except BlockingIOError:
+            pass
+
+        obj = Req(client,func)
+        self.socket_list.append(obj)
+        self.conn_list.append(obj)
+
+    def run(self):
+        while True:
+            rlist,wlist,elist = select.select(self.socket_list,self.conn_list,[],0.005)
+
+            for sk in wlist:
+                sk.sock.sendall(b&#39;GET /s?wd=alex HTTP/1.0\r\nhost:www.baidu.com\r\n\r\n&#39;)
+                self.conn_list.remove(sk)
+
+            for sk in rlist:
+                chunk_list = []
+                while True:
+                    try:
+                        chunk = sk.sock.recv(8096)
+                        if not chunk:
+                            break
+                        chunk_list.append(chunk)
+                    except BlockingIOError:
+                       break
+
+                boby = b&#39;&#39;.join(chunk_list)
+                sk.func(boby)
+                sk.sock.close()
+                self.socket_list.remove(sk)
+
+            if not self.socket_list:
+                break
+
+
+def baidu_response(data):
+    print(&#39;百度数据：&#39;,data)
+
+def sogou_response(data):
+    print(&#39;sogou: &#39;,data)
+
+
+obj1 = Nb()
+obj1.add(&#39;www.baidu.com&#39;,baidu_response)
+obj1.add(&#39;www.sogou.com&#39;,sogou_response)
+obj1.run()</code></pre>
+<h2 id="提高并发方案">提高并发方案</h2>
+<ul>
+<li><p><strong>多进程</strong></p></li>
+<li><p><strong>多线程</strong></p></li>
+<li><p><strong>单线程异步非阻塞模块（Twisted）</strong> 著名框架scrapy框架（单线程并发）</p>
+<p>返回的数据太多,解决方法</p>
+<ul>
+<li>生产者与消费者模式</li>
+</ul></li>
+</ul>
+<h2 id="为什么异步非阻塞面试题">为什么异步非阻塞（面试题）</h2>
+<ul>
+<li><p><strong>非阻塞</strong>： 不等待。</p>
+<p>比如：创建socket对某个地址进行content，或者 获取接收数据recv时，默认都是阻塞的（连接成功或者接收数据），才会执行后续操作。</p>
+<p>如果设置了<code>setblocking(False)</code>，以上两个过程就不再等待了。但是会报<code>BlockingIOError</code>的错误，只要捕获它即可。</p></li>
+<li><p><strong>异步</strong>，执行完成之后自动执行回调函数或自动执行某些操作：</p>
+<p>比如：做爬虫中向某个地址baidu.com发送请求，当请求执行完成后自动执行回调函数（通知）</p></li>
+</ul>
+<h2 id="为什么同步阻塞">为什么同步阻塞</h2>
+<ul>
+<li><p><strong>阻塞</strong>：等</p></li>
+<li><p><strong>同步</strong>：按照顺序逐步执行</p>
+<p>爬虫：<code>request.get(url)</code>，使用for循环默认就会一个一个url去爬取，这就是一个例子</p></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

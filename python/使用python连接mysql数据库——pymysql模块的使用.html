@@ -1,0 +1,273 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修使用python连接mysql数据库——pymysql模块的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>使用python连接mysql数据库——pymysql模块的使用</center></div><div class='banquan'>原文出处:本文由博客园博主三国小梦提供。<br/>
+原文连接:https://www.cnblogs.com/lxy0/p/11441723.html</div><br>
+    <h1 id="安装pymysql">安装pymysql</h1>
+<pre><code><code>pip install pymysql</code></pre>
+<h1 id="使用pymysql">使用pymysql</h1>
+<h2 id="使用数据查询语句">使用数据查询语句</h2>
+<ul>
+<li><strong>查询一条数据fetchone()</strong></li>
+</ul>
+<pre><code><code>from pymysql import *
+
+conn = connect(
+    host=&#39;127.0.0.1&#39;,
+    port=3306, user=&#39;root&#39;,
+    password=&#39;123456&#39;,
+    database=&#39;itcast&#39;,
+    charset=&#39;utf8&#39;)
+
+# 创建游标
+c = conn.cursor()
+# 执行sql语句
+c.execute(&quot;select * from student&quot;)
+# 查询一行数据
+result = c.fetchone()
+print(result)
+# 关闭游标
+c.close()
+# 关闭数据库连接
+conn.close()
+&quot;&quot;&quot;
+(1, &#39;张三&#39;, 18, b&#39;\x01&#39;)
+&quot;&quot;&quot;</code></pre>
+<ul>
+<li><strong>查询多条数据fetchall()</strong></li>
+</ul>
+<pre><code><code>from pymysql import *
+
+conn = connect(
+    host=&#39;127.0.0.1&#39;,
+    port=3306, user=&#39;root&#39;,
+    password=&#39;123456&#39;,
+    database=&#39;itcast&#39;,
+    charset=&#39;utf8&#39;)
+
+# 创建游标
+c = conn.cursor()
+# 执行sql语句
+c.execute(&quot;select * from student&quot;)
+# 查询多行数据
+result = c.fetchall()
+for item in result:
+    print(item)
+# 关闭游标
+c.close()
+# 关闭数据库连接
+conn.close()
+&quot;&quot;&quot;
+(1, &#39;张三&#39;, 18, b&#39;\x01&#39;)
+(2, &#39;李四&#39;, 19, b&#39;\x00&#39;)
+(3, &#39;王五&#39;, 20, b&#39;\x01&#39;)
+&quot;&quot;&quot;</code></pre>
+<ul>
+<li><strong>更改游标的默认设置，返回值为字典</strong></li>
+</ul>
+<pre><code><code>from pymysql import *
+
+conn = connect(
+    host=&#39;127.0.0.1&#39;,
+    port=3306, user=&#39;root&#39;,
+    password=&#39;123456&#39;,
+    database=&#39;itcast&#39;,
+    charset=&#39;utf8&#39;)
+
+# 创建游标，操作设置为字典类型
+c = conn.cursor(cursors.DictCursor)
+# 执行sql语句
+c.execute(&quot;select * from student&quot;)
+# 查询多行数据
+result = c.fetchall()
+for item in result:
+    print(item)
+# 关闭游标
+c.close()
+# 关闭数据库连接
+conn.close()
+&quot;&quot;&quot;
+{&#39;id&#39;: 1, &#39;name&#39;: &#39;张三&#39;, &#39;age&#39;: 18, &#39;sex&#39;: b&#39;\x01&#39;}
+{&#39;id&#39;: 2, &#39;name&#39;: &#39;李四&#39;, &#39;age&#39;: 19, &#39;sex&#39;: b&#39;\x00&#39;}
+{&#39;id&#39;: 3, &#39;name&#39;: &#39;王五&#39;, &#39;age&#39;: 20, &#39;sex&#39;: b&#39;\x01&#39;}
+&quot;&quot;&quot;</code></pre>
+<p>返回一条数据时也是一样的。返回字典或者时元组看个人需要。</p>
+<h2 id="使用数据操作语句">使用数据操作语句</h2>
+<p>执行增加、删除、更新语句的操作其实是一样的。只写一个作为示范。</p>
+<pre><code><code>from pymysql import *
+
+conn = connect(
+    host=&#39;127.0.0.1&#39;,
+    port=3306, user=&#39;root&#39;,
+    password=&#39;123456&#39;,
+    database=&#39;itcast&#39;,
+    charset=&#39;utf8&#39;)
+
+# 创建游标
+c = conn.cursor()
+# 执行sql语句
+c.execute(&quot;insert into student(name,age,sex) values (%s,%s,%s)&quot;,(&quot;小二&quot;,28,1))
+# 提交事务
+conn.commit()
+# 关闭游标
+c.close()
+# 关闭数据库连接
+conn.close()</code></pre>
+<p>和查询语句不同的是必须使用commit()提交事务，否则操作就是无效的。</p>
+<h1 id="编写数据库连接类">编写数据库连接类</h1>
+<ul>
+<li><strong>普通版</strong></li>
+</ul>
+<p>MysqlHelper.py</p>
+<pre><code><code>from pymysql import connect,cursors
+
+class MysqlHelper:
+    def __init__(self,
+                 host=&quot;127.0.0.1&quot;,
+                 user=&quot;root&quot;,
+                 password=&quot;123456&quot;,
+                 database=&quot;itcast&quot;,
+                 charset=&#39;utf8&#39;,
+                 port=3306):
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.database = database
+        self.charset = charset
+        self._conn = None
+        self._cursor = None
+
+    def _open(self):
+        # print(&quot;连接已打开&quot;)
+        self._conn = connect(host=self.host,
+                             port=self.port,
+                             user=self.user,
+                             password=self.password,
+                             database=self.database,
+                             charset=self.charset)
+        self._cursor = self._conn.cursor(cursors.DictCursor)
+
+    def _close(self):
+        # print(&quot;连接已关闭&quot;)
+        self._cursor.close()
+        self._conn.close()
+
+    def one(self, sql, params=None):
+        result: tuple = None
+        try:
+            self._open()
+            self._cursor.execute(sql, params)
+            result = self._cursor.fetchone()
+        except Exception as e:
+            print(e)
+        finally:
+            self._close()
+        return result
+
+    def all(self, sql, params=None):
+        result: tuple = None
+        try:
+            self._open()
+            self._cursor.execute(sql, params)
+            result = self._cursor.fetchall()
+        except Exception as e:
+            print(e)
+        finally:
+            self._close()
+        return result
+
+    def exe(self, sql, params=None):
+        try:
+            self._open()
+            self._cursor.execute(sql, params)
+            self._conn.commit()
+        except Exception as e:
+            print(e)
+        finally:
+            self._close()
+</code></pre>
+<p>该类封装了fetchone、fetchall、execute，省去了数据库连接的打开和关闭和游标的打开和关闭。<br />
+下面的代码是调用该类的小示例：</p>
+<pre><code><code>from MysqlHelper import *
+
+mysqlhelper = MysqlHelper()
+ret = mysqlhelper.all(&quot;select * from student&quot;)
+for item in ret:
+    print(item)
+&quot;&quot;&quot;
+{&#39;id&#39;: 1, &#39;name&#39;: &#39;张三&#39;, &#39;age&#39;: 18, &#39;sex&#39;: b&#39;\x01&#39;}
+{&#39;id&#39;: 2, &#39;name&#39;: &#39;李四&#39;, &#39;age&#39;: 19, &#39;sex&#39;: b&#39;\x00&#39;}
+{&#39;id&#39;: 3, &#39;name&#39;: &#39;王五&#39;, &#39;age&#39;: 20, &#39;sex&#39;: b&#39;\x01&#39;}
+{&#39;id&#39;: 5, &#39;name&#39;: &#39;小二&#39;, &#39;age&#39;: 28, &#39;sex&#39;: b&#39;\x01&#39;}
+{&#39;id&#39;: 6, &#39;name&#39;: &#39;娃哈哈&#39;, &#39;age&#39;: 28, &#39;sex&#39;: b&#39;\x01&#39;}
+{&#39;id&#39;: 7, &#39;name&#39;: &#39;娃哈哈&#39;, &#39;age&#39;: 28, &#39;sex&#39;: b&#39;\x01&#39;}
+&quot;&quot;&quot;</code></pre>
+<ul>
+<li><strong>上下文管理器版</strong></li>
+</ul>
+<p>mysql_with.py</p>
+<pre><code><code>from pymysql import connect, cursors
+
+class DB:
+    def __init__(self,
+                 host=&#39;localhost&#39;,
+                 port=3306,
+                 db=&#39;itcast&#39;,
+                 user=&#39;root&#39;,
+                 passwd=&#39;123456&#39;,
+                 charset=&#39;utf8&#39;):
+        # 建立连接
+        self.conn = connect(
+            host=host,
+            port=port,
+            db=db,
+            user=user,
+            passwd=passwd,
+            charset=charset)
+        # 创建游标，操作设置为字典类型
+        self.cur = self.conn.cursor(cursor=cursors.DictCursor)
+
+    def __enter__(self):
+        # 返回游标
+        return self.cur
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # 提交数据库并执行
+        self.conn.commit()
+        # 关闭游标
+        self.cur.close()
+        # 关闭数据库连接
+        self.conn.close()</code></pre>
+<p><strong>如何使用：</strong></p>
+<pre><code><code>from mysql_with import DB
+
+with DB() as db:
+    db.execute(&quot;select * from student&quot;)
+    ret = db.fetchone()
+    print(ret)
+
+&quot;&quot;&quot;
+{&#39;id&#39;: 1, &#39;name&#39;: &#39;张三&#39;, &#39;age&#39;: 18, &#39;sex&#39;: b&#39;\x01&#39;}
+&quot;&quot;&quot;</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

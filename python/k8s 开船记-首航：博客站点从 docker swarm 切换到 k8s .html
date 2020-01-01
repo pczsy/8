@@ -1,0 +1,69 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修k8s 开船记-首航：博客站点从 docker swarm 切换到 k8s ' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>k8s 开船记-首航：博客站点从 docker swarm 切换到 k8s </center></div><div class='banquan'>原文出处:本文由博客园博主博客园团队提供。<br/>
+原文连接:https://www.cnblogs.com/cmt/p/12033446.html</div><br>
+    <p><img src="./images/k8s 开船记-首航：博客站点从 docker swarm 切换到 k8s 0.png" alt="" width="500" height="334" /></p>
+<p>昨天晚上，我们将博客站点的生产环境从 docker swarm 集群切换到了 k8s 集群，开船到目前，航行非常平稳，可以说首航成功！</p>
+<p>k8s 集群是我们用10台阿里云服务器自己搭建的，1台 master 配置是2核4G，9台 nodes 配置都是4核8G，kubernetes 版本是 1.16.3 。</p>
+<p>博客站点请求入口没有走 ingress ，直接通过 service 监听 30080 端口，阿里云负载均衡转发请求到该端口。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">apiVersion: v1
+kind: Service
+metadata:
+  name: blog-web
+  namespace: production
+spec:
+  type: NodePort
+  selector:
+    app: blog-web
+  ports:
+  - nodePort: </span>30080<span style="color: #000000;">
+    port: </span>80<span style="color: #000000;">
+    targetPort: </span>80</pre>
+</div>
+<p>博客站点（blog-web）是通过 DaemonSet 方式部署的，每个 node 都会运行 blog-web pod ，这样的好处是可以将负载均分到各个 node 进行处理，而且在新服务器添加到集群后可以立即分担负载。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: blog-web
+  namespace: production
+  labels:
+    name: blog
+...</span></pre>
+</div>
+<p>在将部署环境从 docker swarm 切换到 k8s 的过程中，主要遇到2个问题。</p>
+<p>一个问题是服务名称包含下划线的问题。docker swarm 服务名称中默认就包含下划线，k8s 坚决不允许服务名称中包含下划线，而我们的博客应用调用的一些 web api 用的是包含下划线的主机名，为了减少代码修改工作，我们采用了变通的解决方法，借助 coredns 在 dns 解析时重写主机名。</p>
+<div class="cnblogs_code">
+<pre><code>rewrite stop {
+  name regex ([a-zA-Z0-9-]+)_([a-zA-Z0-9-]+).$ {1}-{2}.production.svc.cluster.local
+  answer name ([a-zA-Z0-9-]+)-([a-zA-Z0-9-]+)\.production\.svc\.cluster\.local\.$ {1}_{2}
+}</pre>
+</div>
+<p>另一个问题是 k8s 的 yaml 配置文件不支持直接读取环境变量，docker swarm 是直接支持的，通过 envsubst 搞定。</p>
+<div class="cnblogs_code">
+<pre><code>envsubst &lt; daemonset-production-blog-web.yaml | kubectl apply -f -</pre>
+</div>
+<p>匆忙之间写了这篇开船首航记，不到之处，望谅解。</p>
+<p>最后推荐一篇对于了解 k8s 非常有帮助的英文博文 &mdash;&mdash; <a href="https://www.jeremyjordan.me/kubernetes/" target="_blank">An introduction to Kubernetes</a> 。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

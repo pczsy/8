@@ -1,0 +1,147 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Git详细操作' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Git详细操作</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11525845.html</div><br>
+    <h1 id="git详细操作">Git详细操作</h1>
+<h2 id="一.本地配置">一.本地配置</h2>
+<h3 id="公钥钥配置">1公钥钥配置</h3>
+<p>1.参考帮助文档：https://gitee.com/help/<br />
+仓库管理 =公钥管理 =生成/添加SSH公钥</p>
+<p><code>ssh-keygen -t rsa -C &quot;xxxx@163.com&quot;</code></p>
+<p>按照提示完成三次回车，即可生成 ssh key。通过查看 <code>~/.ssh/id_rsa.pub</code> 文件内容，获取到你的 public key</p>
+<p>复制生成后的 ssh key，通过仓库主页 <strong>「管理」--「部署公钥管理」--「添加部署公钥」</strong> ，添加生成的 public key 添加到仓库中。</p>
+<p>添加后，在终端（Terminal）中输入</p>
+<p><code>ssh -T git@gitee.com</code></p>
+<p>-首次使用需要确认并添加主机到本机SSH可信列表。若返回 <code>Hi XXX! You've successfully authenticated, but Gitee.com does not provide shell access.</code> 内容，则证明添加成功。</p>
+<h3 id="本地配置线上的账号与邮箱">2.本地配置线上的账号与邮箱</h3>
+<p><code>git config --global user.name &quot;xxxxx&quot;</code><br />
+<code>git config --global user.email &quot;xxxxxxxxx&quot;</code></p>
+<h2 id="二.本地相关操作">二.本地相关操作</h2>
+<h3 id="本地初始化git仓库可以建立一个项目架构">1.本地初始化git仓库(可以建立一个项目架构)</h3>
+<p>1）创建项目<br />
+2）进入项目目录初始化仓库：</p>
+<p><code>git init</code></p>
+<p><code>必须空文件夹</code></p>
+<p>3）提交代码到本地版本库</p>
+<h3 id="将本地版本库同步到远程仓库">2.将本地版本库同步到远程仓库</h3>
+<p>创建一个远程空仓库(码云)</p>
+<p>1）在本地仓库内添加远程仓库源，源名默认就采用origin，就采用https协议即可</p>
+<p><code>git remote add origin https://gitee.com/doctor_owen/luffy.git</code></p>
+<p>本质是改变git文件夹中config文件变成</p>
+<pre><code><code>[remote &quot;origin&quot;]
+    url = https://gitee.com/doctor_owen/luffy.git
+    fetch = +refs/heads/*:refs/remotes/origin/*</code></pre>
+<p>2）将本地版本库提交到远程版本库，需要远程仓库账号密码</p>
+<p><code>git push -u origin master</code></p>
+<h2 id="三.开发者对于管理员操作">三.开发者对于管理员操作</h2>
+<p>1.要参与开发的成员配置本地全局账号密码</p>
+<p><code>git config --global user.name &quot;owen&quot;</code></p>
+<p><code>git config --global user.email &quot;owen@163.com&quot;</code></p>
+<p>2.生成本机的SSH公钥提供给管理员</p>
+<p><code>ssh-keygen -t rsa -C &quot;owen@163.com&quot;</code></p>
+<p><code>项目公开了无所谓了直接去下载即可</code></p>
+<h2 id="四.管理员对于开发者操作">四.管理员对于开发者操作</h2>
+<p>添加开发者提供的公钥到 个人公钥 并非是 公钥，并给开发者提供远程仓库SSH地址<br />
+仓库 =管理 =添加公钥 =添加个人公钥<br />
+SSH地址：git@gitee.com:doctor_owen/luffy.git</p>
+<h2 id="五.开发者授权后相关操作">五.开发者授权后相关操作</h2>
+<h3 id="下载项目">1.下载项目</h3>
+<p><code>注意</code>:必须是空文件</p>
+<p><code>git clone git@gitee.com:doctor_owen/luffy.git</code></p>
+<h3 id="查看远程源">2.查看远程源</h3>
+<p>.进入本地项目仓库进行开发</p>
+<p><code>git remote -v</code></p>
+<h3 id="项目修改后提交">3.项目修改后提交</h3>
+<h4 id="拉取项目">1.拉取项目</h4>
+<p>开发过程中要提交新功能时，<code>一定要遵循先拉取(pull)</code>，<code>再提交(push)</code></p>
+<p><code>git pull</code></p>
+<p>默认拉的是<code>当前分支</code>如果要拉其他分支</p>
+<p><code>git pull origin(源名) 分支名</code></p>
+<h4 id="添加修改内容">2.添加修改内容</h4>
+<p><code>git add .</code></p>
+<h4 id="注释提交信息">3.注释提交信息</h4>
+<p><code>git commit -m '提交新功能的信息说明'</code></p>
+<h4 id="再次拉取项目">4.再次拉取项目</h4>
+<p><code>git pull origin(源名) 分支名</code></p>
+<p><code>提示all read.....即可提交</code></p>
+<h4 id="提交项目">5.提交项目</h4>
+<p><code>git push origin 分支名</code></p>
+<p>如果后面不填,但是<code>不建议这样操</code>作以免提交错误</p>
+<p><code>git push</code>提交位置为<code>当前分支</code></p>
+<h2 id="六.分支相关操作">六.分支相关操作</h2>
+<h3 id="创建分支">1.创建分支</h3>
+<p><code>git branch 分支名</code></p>
+<p>只是创建本地项目git上并没有创建</p>
+<p>有新的文件提交前可以执行下面的命令创建git上的分支</p>
+<p><code>git push --set-upstream origin 分支名</code></p>
+<h3 id="查看分支">2.查看分支</h3>
+<p><code>git branch</code></p>
+<h3 id="切换分支">3.切换分支</h3>
+<p><code>git checkout 分支名</code></p>
+<h3 id="创建并切换到分支">4.创建并切换到分支</h3>
+<p><code>git checkout -b 分支名</code></p>
+<h3 id="删除分支">5.删除分支</h3>
+<p><code>git branch -d 分支名</code></p>
+<h3 id="查看远程分支">6.查看远程分支</h3>
+<p><code>git branch -a</code></p>
+<h2 id="七.冲突解决分支合并">七.冲突解决、分支合并</h2>
+<p><code>多人开发中我们项目可能会存在提交以及拉取时候的异常</code></p>
+<p><code>git status</code></p>
+<p>查看信息</p>
+<p>打开对应的文件查看错误信息</p>
+<p>基本上都是线下沟通</p>
+<h2 id="八.git版本回溯和版本提交查看">八.git版本回溯和版本提交查看</h2>
+<h3 id="版本查看">1.版本查看</h3>
+<h4 id="查看历史">1.查看历史</h4>
+<p><code>git log</code></p>
+<p><code>注意</code>: 这个命令可以帮助查看最近15天（貌似）的commit记录（时间从近到远），里面主要是下面这样子的</p>
+<p>其中显示的参数</p>
+<ul>
+<li><p>commit: 后面的是版本号，只要取前六位就可以到处用了</p></li>
+<li><p>author: 是提交这个版本号的作者名字</p></li>
+<li><p>date: 是提交日期</p></li>
+</ul>
+<h4 id="记录所操作的每一次命令">2.记录所操作的每一次命令</h4>
+<p><code>git reflog</code></p>
+<p>例如:</p>
+<pre class="git"><code>33a5cde (HEAD -&gt; master, origin/master, origin/HEAD) HEAD@{0}: commit: 修正
+fe2a965 HEAD@{1}: commit: sqlite3
+abc9fe2 HEAD@{2}: clone: from https://gitee.com/pythonywy/lufei.git</code></pre>
+<p>其中<code>33a5cde</code>为<code>commit_id</code></p>
+<h4 id="查看指定版本修改的内容">3.查看指定版本修改的内容</h4>
+<p><code>git show commit_id</code> 即为<code>git show 33a5cde</code></p>
+<h4 id="查看某个文件的修改历史">4.查看某个文件的修改历史</h4>
+<p><code>git log -p  filename</code></p>
+<p><code>git log -p -2</code>查看最近两次的更新内容</p>
+<h3 id="版本回溯">2.版本回溯</h3>
+<h4 id="全部统一修改">全部统一修改</h4>
+<h5 id="按提交历史">1.按提交历史</h5>
+<p>git reset --hard HEAD^ 回溯到上一个commit提交的版本，那上上个版本呢就是HEAD^^,其次类推</p>
+<h5 id="回到指定版本">2.回到指定版本</h5>
+<p><code>git reflog</code></p>
+<p><code>git reset --hard commit_id</code></p>
+<h4 id="局部文件回溯">局部文件回溯</h4>
+<p><code>git checkout  filename</code> 将工作区的改动恢复到上一个版本提交后的状态</p>
+<p><code>git reset commit_id  filename</code> 这个就可以回溯到某个版本的某个文件状态了，</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

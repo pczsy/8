@@ -1,0 +1,97 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django中的缓存机制' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django中的缓存机制</center></div><div class='banquan'>原文出处:本文由博客园博主晓阿呆提供。<br/>
+原文连接:https://www.cnblogs.com/adaicary/p/11721947.html</div><br>
+    <div><span style="color: #00ffff;"><span style="color: #0000ff; font-size: 14pt;">概述</span> &nbsp;</span></div>
+<div>&nbsp; &nbsp; 对于中等流量网站来说，尽可能的减少开销是必要的。缓存数据就是为了保存那些需要很多计算资源大的结果，这样的的话就不必在下次重复消耗计算资源。</div>
+<div>&nbsp; &nbsp; Django自带了一个健壮的缓存系统来保存动态页面，避免每次请求都重新计算。</div>
+<div>&nbsp; &nbsp; Django提供了不同级别的缓存策略，可以缓存特定的视图输出、可以仅仅缓存那些很难计算出来的部分、或者缓存整个网站。</div>
+<div>&nbsp;</div>
+<div>&nbsp; &nbsp; 将缓存存储到redis中，默认使用redis中的数据库，首先需要安装扩展库，<span style="text-decoration: underline;"><span style="color: #339966; text-decoration: underline;">pip install django-redis-cache</span></span>。</div>
+<div>&nbsp; &nbsp; 然后在setting.py里配置，</div>
+<div>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>         CACHES=<span style="color: #000000;">{
+</span><span style="color: #008080;">2</span>     <span style="color: #800000;">'</span><span style="color: #800000;">default</span><span style="color: #800000;">'</span><span style="color: #000000;">:{
+</span><span style="color: #008080;">3</span>         <span style="color: #800000;">'</span><span style="color: #800000;">BACKEND</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">redis_cache.cache.RedisCache</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+</span><span style="color: #008080;">4</span>         <span style="color: #800000;">'</span><span style="color: #800000;">LOCATION</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">localhost:6379</span><span style="color: #800000;">'</span>,<span style="color: #008000;">#</span><span style="color: #008000;">redis数据库，</span>
+<span style="color: #008080;">5</span>         <span style="color: #800000;">'</span><span style="color: #800000;">TIMEOUT</span><span style="color: #800000;">'</span>:60  <span style="color: #008000;">#</span><span style="color: #008000;">过期时间</span>
+<span style="color: #008080;">6</span>     }<br />  }</pre>
+</div>
+<p>&nbsp;</p>
+<p>然后再，<strong><span style="color: #ff0000; font-size: 14pt;">单个view缓存</span></strong>：</p>
+<p><span style="color: #800000;">第一种方法在视图views里面设置</span>，</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #000000;">django.views.decorators.cache.cache_page装饰器用于对视图的输出进行缓存
+</span><span style="color: #008080;">2</span> <span style="color: #0000ff;">from</span> django.views.decorators.cache <span style="color: #0000ff;">import</span><span style="color: #000000;"> cache_page
+</span><span style="color: #008080;">3</span>  
+<span style="color: #008080;">4</span> @cache_page(60 * 2<span style="color: #000000;">)
+</span><span style="color: #008080;">5</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> index(request):
+</span><span style="color: #008080;">6</span>     <span style="color: #008000;">#</span><span style="color: #008000;"> return HttpResponse("sunck is a good man")</span>
+<span style="color: #008080;">7</span>     <span style="color: #0000ff;">return</span> HttpResponse(<span style="color: #800000;">"</span><span style="color: #800000;">sunck is a nice man</span><span style="color: #800000;">"</span>)</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<div>&nbsp;</div>
+<div>cache_page(timeout, [cache=cache name], [key_prefix=key prefix])</div>
+<div>
+<p>cache_page只接受一个参数和两个关键字参数，</p>
+<ul>
+<li>timeout是缓存时间，以秒为单位</li>
+<li>cache：指定使用你的CACHES设置中的哪一个缓存后端</li>
+<li>key_prefix：指定缓存前缀，可以覆盖在配置文件中CACHE_MIDDLEWARE_KEY_PREFIX的值</li>
+</ul>
+<p><span style="color: #800000;"><strong>第二种，在路由URL里面设置;</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">from</span> django.views.decorators.cache <span style="color: #0000ff;">import</span><span style="color: #000000;"> cache_page
+</span><span style="color: #008080;">2</span>  urlpatterns = (<span style="color: #800000;">''</span><span style="color: #000000;">,
+</span><span style="color: #008080;">3</span>     (r<span style="color: #800000;">'</span><span style="color: #800000;">^foo/(\d{1,2})/$</span><span style="color: #800000;">'</span>, cache_page(60 * 15)(my_view)),</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong><span style="color: #ff0000;">模板片段的缓存设置</span></strong>，</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> {% load static %<span style="color: #000000;">}
+</span><span style="color: #008080;"> 2</span> {% load cache %<span style="color: #000000;">}
+</span><span style="color: #008080;"> 3</span> &lt;!DOCTYPE html&gt;
+<span style="color: #008080;"> 4</span> &lt;html lang=<span style="color: #800000;">"</span><span style="color: #800000;">en</span><span style="color: #800000;">"</span>&gt;
+<span style="color: #008080;"> 5</span> &lt;head&gt;
+<span style="color: #008080;"> 6</span>     &lt;meta charset=<span style="color: #800000;">"</span><span style="color: #800000;">UTF-8</span><span style="color: #800000;">"</span>&gt;
+<span style="color: #008080;"> 7</span>     &lt;title&gt;主页&lt;/title&gt;
+<span style="color: #008080;"> 8</span>  
+<span style="color: #008080;"> 9</span> {<span style="color: #008000;">#</span><span style="color: #008000;">    &lt;link rel="stylesheet" type="text/css" href="/static/css/index.css"&gt;#}</span>
+<span style="color: #008080;">10</span>     &lt;link rel=<span style="color: #800000;">"</span><span style="color: #800000;">stylesheet</span><span style="color: #800000;">"</span> type=<span style="color: #800000;">"</span><span style="color: #800000;">text/css</span><span style="color: #800000;">"</span> href=<span style="color: #800000;">"</span><span style="color: #800000;">{% static 'css/index.css' %}</span><span style="color: #800000;">"</span>&gt;
+<span style="color: #008080;">11</span> &lt;/head&gt;
+<span style="color: #008080;">12</span> &lt;body&gt;
+<span style="color: #008080;">13</span>     &lt;h1&gt;sunck <span style="color: #0000ff;">is</span> a nice man&lt;/h1&gt;
+<span style="color: #008080;">14</span>     {% cache 120 sunck %}<span style="color: #008000;">#</span><span style="color: #008000;">参数，120是缓存时间，以秒为单位，sunk是缓存片段的名字。</span>
+<span style="color: #008080;">15</span>         &lt;h1&gt;nice man&lt;/h1&gt;
+<span style="color: #008080;">16</span>         &lt;!--&lt;h1&gt;good man&lt;/h1&gt;--&gt;
+<span style="color: #008080;">17</span>     {% endcache %<span style="color: #000000;">}
+</span><span style="color: #008080;">18</span> &lt;/body&gt;
+<span style="color: #008080;">19</span> &lt;/html&gt;</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

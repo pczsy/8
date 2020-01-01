@@ -1,0 +1,69 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修with与上下文管理器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>with与上下文管理器</center></div><div class='banquan'>原文出处:本文由博客园博主三国小梦提供。<br/>
+原文连接:https://www.cnblogs.com/lxy0/p/11433035.html</div><br>
+    <h1 id="with关键字">with关键字</h1>
+<p>在程序中，有很多连接需要关闭和打开，如文件的读写、数据库连接、socket，频繁的手动关闭比较麻烦，就出现的with。<br />
+例如对文件的操作正常情况下我们是这样的：</p>
+<pre><code><code>f = open(&quot;a.txt&quot;, &quot;w&quot;)
+f.write(&quot;python&quot;)
+f.close()</code></pre>
+<p>使用with关键字以后：</p>
+<pre><code><code>with open(&quot;a.txt&quot;, &quot;r&quot;) as f:
+        f.write(&quot;Python&quot;)</code></pre>
+<p>这是一种更加简洁的语法。</p>
+<h1 id="上下文管理器">上下文管理器</h1>
+<p>任何实现了 __ enter __ () 和 __ exit __ () 方法的对象都可称之为上下文管理器，上下文管理器对象可以使用 with 关键字。显然，文件（file）对象也实现了上下文管理器。<br />
+__ enter __ () 方法返回资源对象，这里就是你将要打开的那个文件对象，__ exit __ () 方法处理一些清除工作。</p>
+<h2 id="自己实现一个上下文管理器">自己实现一个上下文管理器</h2>
+<pre><code><code>class File:
+    def __init__(self, file_name, mode):
+        self.file_name = file_name
+        self.mode = mode
+
+    def __enter__(self):
+        self.f = open(self.file_name, self.mode, encoding=&quot;utf-8&quot;)
+        print(&quot;enter&quot;)
+        return self.f
+
+    def __exit__(self, *args):
+        self.f.close()
+        print(&quot;exit&quot;)
+
+
+with File(&quot;a.txt&quot;, &quot;w&quot;) as f:
+    f.write(&quot;你好&quot;)</code></pre>
+<h2 id="使用contextmanager-装饰器实现上下文管理器">使用contextmanager 装饰器实现上下文管理器</h2>
+<p>Python 还提供了一个 contextmanager 的装饰器，更进一步简化了上下文管理器的实现方式。通过 yield 将函数分割成两部分，yield 之前的语句在 __ enter __ 方法中执行，yield 之后的语句在 __ exit __ 方法中执行。紧跟在 yield 后面的值是函数的返回值。</p>
+<pre><code><code>from contextlib import contextmanager
+
+@contextmanager
+def file(file_name, mode):
+    f = open(file_name,mode,encoding=&quot;utf-8&quot;)
+    yield f
+    f.close()
+
+with file(&quot;a.txt&quot;, &quot;w&quot;) as f:
+    f.write(&quot;你fdf好&quot;)</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

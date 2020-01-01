@@ -1,0 +1,1157 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修你见过的最全面的 Python 重点' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>你见过的最全面的 Python 重点</center></div><div class='banquan'>原文出处:本文由博客园博主python学习者0提供。<br/>
+原文连接:https://www.cnblogs.com/xxpythonxx/p/11663717.html</div><br>
+    <p>由于总结了太多的东西，所以篇幅有点长，这也是我&quot;缝缝补补&quot;总结了好久的东西。</p>
+<p><strong>Py2 VS Py3</strong></p>
+<ul>
+<li><p>print成为了函数，python2是关键字</p></li>
+<li><p>不再有unicode对象，默认str就是unicode</p></li>
+<li><p>python3除号返回浮点数</p></li>
+<li><p>没有了long类型</p></li>
+<li><p>xrange不存在，range替代了xrange</p></li>
+<li><p>可以使用中文定义函数名变量名</p></li>
+<li><p>高级解包 和*解包</p></li>
+<li><p>限定关键字参数 *后的变量必须加入名字=值</p></li>
+<li><p>raise from</p></li>
+<li><p>iteritems移除变成items()</p></li>
+<li><p>yield from 链接子生成器</p></li>
+<li><p>asyncio,async/await原生协程支持异步编程</p></li>
+<li><p>新增enum,mock,ipaddress,concurrent.futures,asyncio urllib，selector</p></li>
+<li><ul>
+<li>不同枚举类间不能进行比较</li>
+<li>同一枚举类间只能进行相等的比较</li>
+<li>枚举类的使用(编号默认从1开始)</li>
+<li>为了避免枚举类中相同枚举值的出现，可以使用@unique装饰枚举类</li>
+</ul></li>
+</ul>
+<pre><code><code>#枚举的注意事项
+from enum import Enum
+
+class COLOR(Enum):
+    YELLOW=1
+#YELLOW=2#会报错
+    GREEN=1#不会报错,GREEN可以看作是YELLOW的别名
+    BLACK=3
+    RED=4
+print(COLOR.GREEN)#COLOR.YELLOW,还是会打印出YELLOW
+for i in COLOR:#遍历一下COLOR并不会有GREEN
+    print(i)
+#COLOR.YELLOW\nCOLOR.BLACK\nCOLOR.RED\n怎么把别名遍历出来
+for i in COLOR.__members__.items():
+    print(i)
+# output:(&#39;YELLOW&#39;, &lt;COLOR.YELLOW: 1&gt;)\n(&#39;GREEN&#39;, &lt;COLOR.YELLOW: 1&gt;)\n(&#39;BLACK&#39;, &lt;COLOR.BLACK: 3&gt;)\n(&#39;RED&#39;, &lt;COLOR.RED: 4&gt;)
+for i in COLOR.__members__:
+    print(i)
+# output:YELLOW\nGREEN\nBLACK\nRED
+
+#枚举转换
+#最好在数据库存取使用枚举的数值而不是使用标签名字字符串
+#在代码里面使用枚举类
+a=1
+print(COLOR(a))# output:COLOR.YELLOW</code></pre>
+<p><strong>py2/3转换工具</strong></p>
+<ul>
+<li>six模块：兼容pyton2和pyton3的模块</li>
+<li>2to3工具：改变代码语法版本</li>
+<li><strong>future</strong>：使用下一版本的功能</li>
+</ul>
+<p><strong>常用的库</strong></p>
+<ul>
+<li><p>必须知道的collections</p>
+<p>https://segmentfault.com/a/1190000017385799</p></li>
+<li><p>python排序操作及heapq模块</p>
+<p>https://segmentfault.com/a/1190000017383322</p></li>
+<li><p>itertools模块超实用方法</p>
+<p>https://segmentfault.com/a/1190000017416590</p></li>
+</ul>
+<p><strong>不常用但很重要的库</strong></p>
+<ul>
+<li><p>dis(代码字节码分析)</p></li>
+<li><p>inspect(生成器状态)</p></li>
+<li><p>cProfile(性能分析)</p></li>
+<li><p>bisect(维护有序列表)</p></li>
+<li><p>fnmatch</p></li>
+<li><ul>
+<li>fnmatch(string,&quot;*.txt&quot;) #win下不区分大小写</li>
+<li>fnmatch根据系统决定</li>
+<li>fnmatchcase完全区分大小写</li>
+</ul></li>
+<li><p>timeit(代码执行时间)</p></li>
+</ul>
+<pre><code><code>    def isLen(strString):
+        #还是应该使用三元表达式，更快
+        return True if len(strString)&gt;6 else False
+
+    def isLen1(strString):
+        #这里注意false和true的位置
+        return [False,True][len(strString)&gt;6]
+    import timeit
+    print(timeit.timeit(&#39;isLen1(&quot;5fsdfsdfsaf&quot;)&#39;,setup=&quot;from __main__ import isLen1&quot;))
+
+    print(timeit.timeit(&#39;isLen(&quot;5fsdfsdfsaf&quot;)&#39;,setup=&quot;from __main__ import isLen&quot;))</code></pre>
+<ul>
+<li><p>contextlib</p></li>
+<li><ul>
+<li>@contextlib.contextmanager使生成器函数变成一个上下文管理器</li>
+</ul></li>
+<li><p>types(包含了标准解释器定义的所有类型的类型对象,可以将生成器函数修饰为异步模式)</p></li>
+</ul>
+<pre><code><code>    import types
+    types.coroutine #相当于实现了__await__</code></pre>
+<ul>
+<li>html(实现对html的转义)</li>
+</ul>
+<pre><code><code>    import html
+    html.escape(&quot;&lt;h1&gt;I&#39;m Jim&lt;/h1&gt;&quot;) # output:&#39;&amp;lt;h1&amp;gt;I&amp;#x27;m Jim&amp;lt;/h1&amp;gt;&#39;
+    html.unescape(&#39;&amp;lt;h1&amp;gt;I&amp;#x27;m Jim&amp;lt;/h1&amp;gt;&#39;) # &lt;h1&gt;I&#39;m Jim&lt;/h1&gt;</code></pre>
+<ul>
+<li>mock(解决测试依赖)</li>
+<li>concurrent(创建进程池河线程池)</li>
+</ul>
+<pre><code><code>from concurrent.futures import ThreadPoolExecutor
+
+pool = ThreadPoolExecutor()
+task = pool.submit(函数名，（参数）) #此方法不会阻塞，会立即返回
+task.done()#查看任务执行是否完成
+task.result()#阻塞的方法，查看任务返回值
+task.cancel()#取消未执行的任务，返回True或False,取消成功返回True
+task.add_done_callback()#回调函数
+task.running()#是否正在执行     task就是一个Future对象
+
+for data in pool.map(函数，参数列表):#返回已经完成的任务结果列表，根据参数顺序执行
+    print(返回任务完成得执行结果data)
+
+from concurrent.futures import as_completed
+as_completed(任务列表)#返回已经完成的任务列表，完成一个执行一个
+
+wait(任务列表,return_when=条件)#根据条件进行阻塞主线程，有四个条件</code></pre>
+<ul>
+<li>selector(封装select,用户多路复用io编程)</li>
+<li>asyncio</li>
+</ul>
+<pre><code><code>future=asyncio.ensure_future(协程)  等于后面的方式  future=loop.create_task(协程)
+future.add_done_callback()添加一个完成后的回调函数
+loop.run_until_complete(future)
+future.result()查看写成返回结果
+
+asyncio.wait()接受一个可迭代的协程对象
+asynicio.gather(*可迭代对象,*可迭代对象）    两者结果相同，但gather可以批量取消，gather对象.cancel()
+
+一个线程中只有一个loop
+
+在loop.stop时一定要loop.run_forever()否则会报错
+loop.run_forever()可以执行非协程
+最后执行finally模块中 loop.close()
+
+asyncio.Task.all_tasks()拿到所有任务 然后依次迭代并使用任务.cancel()取消
+
+偏函数partial(函数，参数)把函数包装成另一个函数名  其参数必须放在定义函数的前面
+
+loop.call_soon(函数,参数)
+call_soon_threadsafe()线程安全
+loop.call_later(时间,函数,参数)
+在同一代码块中call_soon优先执行，然后多个later根据时间的升序进行执行
+
+如果非要运行有阻塞的代码
+使用loop.run_in_executor(executor,函数，参数)包装成一个多线程，然后放入到一个task列表中，通过wait(task列表)来运行
+
+通过asyncio实现http
+reader,writer=await asyncio.open_connection(host,port)
+writer.writer()发送请求
+async for data in reader:
+    data=data.decode(&quot;utf-8&quot;)
+    list.append(data)
+然后list中存储的就是html
+
+as_completed(tasks)完成一个返回一个,返回的是一个可迭代对象
+
+协程锁
+async with Lock():</code></pre>
+<p><strong>Python进阶</strong></p>
+<ul>
+<li><p>进程间通信：</p></li>
+<li><ul>
+<li>Manager(内置了好多数据结构，可以实现多进程间内存共享)</li>
+</ul></li>
+</ul>
+<pre><code><code>from multiprocessing import Manager,Process
+def add_data(p_dict, key, value):
+    p_dict[key] = value
+
+if __name__ == &quot;__main__&quot;:
+    progress_dict = Manager().dict()
+    from queue import PriorityQueue
+
+    first_progress = Process(target=add_data, args=(progress_dict, &quot;bobby1&quot;, 22))
+    second_progress = Process(target=add_data, args=(progress_dict, &quot;bobby2&quot;, 23))
+
+    first_progress.start()
+    second_progress.start()
+    first_progress.join()
+    second_progress.join()
+
+    print(progress_dict)</code></pre>
+<ul>
+<li><ul>
+<li>Pipe(适用于两个进程)</li>
+</ul></li>
+</ul>
+<pre><code><code>from multiprocessing import Pipe,Process
+#pipe的性能高于queue
+def producer(pipe):
+    pipe.send(&quot;bobby&quot;)
+
+def consumer(pipe):
+    print(pipe.recv())
+
+if __name__ == &quot;__main__&quot;:
+    recevie_pipe, send_pipe = Pipe()
+    #pipe只能适用于两个进程
+    my_producer= Process(target=producer, args=(send_pipe, ))
+    my_consumer = Process(target=consumer, args=(recevie_pipe,))
+
+    my_producer.start()
+    my_consumer.start()
+    my_producer.join()
+    my_consumer.join()</code></pre>
+<ul>
+<li><ul>
+<li>Queue(不能用于进程池,进程池间通信需要使用Manager().Queue())</li>
+</ul></li>
+</ul>
+<pre><code><code>from multiprocessing import Queue,Process
+def producer(queue):
+    queue.put(&quot;a&quot;)
+    time.sleep(2)
+
+def consumer(queue):
+    time.sleep(2)
+    data = queue.get()
+    print(data)
+
+if __name__ == &quot;__main__&quot;:
+    queue = Queue(10)
+    my_producer = Process(target=producer, args=(queue,))
+    my_consumer = Process(target=consumer, args=(queue,))
+    my_producer.start()
+    my_consumer.start()
+    my_producer.join()
+    my_consumer.join()</code></pre>
+<ul>
+<li><ul>
+<li>进程池</li>
+</ul></li>
+</ul>
+<pre><code><code>def producer(queue):
+    queue.put(&quot;a&quot;)
+    time.sleep(2)
+
+def consumer(queue):
+    time.sleep(2)
+    data = queue.get()
+    print(data)
+
+if __name__ == &quot;__main__&quot;:
+    queue = Manager().Queue(10)
+    pool = Pool(2)
+
+    pool.apply_async(producer, args=(queue,))
+    pool.apply_async(consumer, args=(queue,))
+
+    pool.close()
+    pool.join()</code></pre>
+<ul>
+<li><p>sys模块几个常用方法</p></li>
+<li><ul>
+<li>argv 命令行参数list,第一个是程序本身的路径</li>
+<li>path 返回模块的搜索路径</li>
+<li>modules.keys() 返回已经导入的所有模块的列表</li>
+<li>exit(0) 退出程序</li>
+</ul></li>
+<li><p>a in s or b in s or c in s简写</p></li>
+<li><ul>
+<li>采用any方式：all() 对于任何可迭代对象为空都会返回True</li>
+</ul></li>
+</ul>
+<pre><code><code>    # 方法一
+    True in [i in s for i in [a,b,c]]
+    # 方法二
+    any(i in s for i in [a,b,c])
+    # 方法三
+    list(filter(lambda x:x in s,[a,b,c]))</code></pre>
+<ul>
+<li><p>set集合运用</p></li>
+<li><ul>
+<li>{1,2}.issubset({1,2,3})#判断是否是其子集</li>
+<li>{1,2,3}.issuperset({1,2})</li>
+<li>{}.isdisjoint({})#判断两个set交集是否为空,是空集则为True</li>
+</ul></li>
+<li><p>代码中中文匹配</p></li>
+<li><ul>
+<li>[u4E00-u9FA5]匹配中文文字区间[一到龥]</li>
+</ul></li>
+<li><p>查看系统默认编码格式</p></li>
+</ul>
+<pre><code><code>    import sys
+    sys.getdefaultencoding()    # setdefaultencodeing()设置系统编码方式</code></pre>
+<ul>
+<li>getattr VS getattribute</li>
+</ul>
+<pre><code><code>class A(dict):
+    def __getattr__(self,value):#当访问属性不存在的时候返回
+        return 2
+    def __getattribute__(self,item):#屏蔽所有的元素访问
+        return item</code></pre>
+<ul>
+<li><p>类变量是不会存入实例__dict__中的，只会存在于类的__dict__中</p></li>
+<li><p>globals/locals(可以变相操作代码)</p></li>
+<li><ul>
+<li>globals中保存了当前模块中所有的变量属性与值</li>
+<li>locals中保存了当前环境中的所有变量属性与值</li>
+</ul></li>
+<li><p>python变量名的解析机制(LEGB)</p></li>
+<li><ul>
+<li>本地作用域(Local)</li>
+<li>当前作用域被嵌入的本地作用域(Enclosing locals)</li>
+<li>全局/模块作用域(Global)</li>
+<li>内置作用域(Built-in)</li>
+</ul></li>
+<li><p>实现从1-100每三个为一组分组</p></li>
+</ul>
+<pre><code><code>    print([[x for x in range(1,101)][i:i+3] for i in range(0,100,3)])</code></pre>
+<ul>
+<li><p>什么是元类？</p></li>
+<li><ul>
+<li>即创建类的类，创建类的时候只需要将metaclass=元类，元类需要继承type而不是object,因为type就是元类</li>
+</ul></li>
+</ul>
+<pre><code><code>type.__bases__  #(&lt;class &#39;object&#39;&gt;,)
+object.__bases__    #()
+type(object)    #&lt;class &#39;type&#39;&gt;</code></pre>
+<pre><code><code>    class Yuan(type):
+        def __new__(cls,name,base,attr,*args,**kwargs):
+            return type(name,base,attr,*args,**kwargs)
+    class MyClass(metaclass=Yuan):
+        pass</code></pre>
+<ul>
+<li><p>什么是鸭子类型(即:多态)？</p></li>
+<li><ul>
+<li>Python在使用传入参数的过程中不会默认判断参数类型，只要参数具备执行条件就可以执行</li>
+</ul></li>
+<li><p>深拷贝和浅拷贝</p></li>
+<li><ul>
+<li>深拷贝拷贝内容，浅拷贝拷贝地址(增加引用计数)</li>
+<li>copy模块实现神拷贝</li>
+</ul></li>
+<li><p>单元测试</p></li>
+<li><ul>
+<li>一般测试类继承模块unittest下的TestCase</li>
+<li>pytest模块快捷测试(方法以test_开头/测试文件以test_开头/测试类以Test开头，并且不能带有 init 方法)</li>
+<li>coverage统计测试覆盖率</li>
+</ul></li>
+</ul>
+<pre><code><code>    class MyTest(unittest.TestCase):
+        def tearDown(self):# 每个测试用例执行前执行
+            print(&#39;本方法开始测试了&#39;)
+
+        def setUp(self):# 每个测试用例执行之前做操作
+            print(&#39;本方法测试结束&#39;)
+
+        @classmethod
+        def tearDownClass(self):# 必须使用 @ classmethod装饰器, 所有test运行完后运行一次
+            print(&#39;开始测试&#39;)
+        @classmethod
+        def setUpClass(self):# 必须使用@classmethod 装饰器,所有test运行前运行一次
+            print(&#39;结束测试&#39;)
+
+        def test_a_run(self):
+            self.assertEqual(1, 1)  # 测试用例</code></pre>
+<ul>
+<li><p>gil会根据执行的字节码行数以及时间片释放gil，gil在遇到io的操作时候主动释放</p></li>
+<li><p>什么是monkey patch?</p></li>
+<li><ul>
+<li>猴子补丁，在运行的时候替换掉会阻塞的语法修改为非阻塞的方法</li>
+</ul></li>
+<li><p>什么是自省(Introspection)？</p></li>
+<li><ul>
+<li>运行时判断一个对象的类型的能力，id,type,isinstance</li>
+</ul></li>
+<li><p>python是值传递还是引用传递？</p></li>
+<li><ul>
+<li>都不是，python是共享传参，默认参数在执行时只会执行一次</li>
+</ul></li>
+<li><p>try-except-else-finally中else和finally的区别</p></li>
+<li><ul>
+<li>else在不发生异常的时候执行，finally无论是否发生异常都会执行</li>
+<li>except一次可以捕获多个异常，但一般为了对不同异常进行不同处理，我们分次捕获处理</li>
+</ul></li>
+<li><p>GIL全局解释器锁</p></li>
+<li><ul>
+<li>同一时间只能有一个线程执行，CPython(IPython)的特点，其他解释器不存在</li>
+<li>cpu密集型：多进程+进程池</li>
+<li>io密集型：多线程/协程</li>
+</ul></li>
+<li><p>什么是Cython</p></li>
+<li><ul>
+<li>将python解释成C代码工具</li>
+</ul></li>
+<li><p>生成器和迭代器</p></li>
+<li><ul>
+<li><p>可迭代对象只需要实现__iter__方法</p></li>
+<li><ul>
+<li>实现__next__和__iter__方法的对象就是迭代器</li>
+</ul></li>
+<li><p>使用生成器表达式或者yield的生成器函数(生成器是一种特殊的迭代器)</p></li>
+</ul></li>
+<li><p>什么是协程</p></li>
+<li><ul>
+<li><p>yield</p></li>
+<li><p>async-awiat</p></li>
+<li><ul>
+<li>比线程更轻量的多任务方式</li>
+<li>实现方式</li>
+</ul></li>
+</ul></li>
+<li><p>dict底层结构</p></li>
+<li><ul>
+<li>为了支持快速查找使用了哈希表作为底层结构</li>
+<li>哈希表平均查找时间复杂度为o(1)</li>
+<li>CPython解释器使用二次探查解决哈希冲突问题</li>
+</ul></li>
+<li><p>Hash扩容和Hash冲突解决方案</p></li>
+<li><ul>
+<li><p>链接法</p></li>
+<li><p>二次探查(开放寻址法)：python使用</p></li>
+<li><ul>
+<li>循环复制到新空间实现扩容</li>
+<li>冲突解决：</li>
+</ul></li>
+</ul></li>
+</ul>
+<pre><code><code>    for gevent import monkey
+    monkey.patch_all()  #将代码中所有的阻塞方法都进行修改，可以指定具体要修改的方法</code></pre>
+<ul>
+<li>判断是否为生成器或者协程</li>
+</ul>
+<pre><code><code>    co_flags = func.__code__.co_flags
+
+    # 检查是否是协程
+    if co_flags &amp; 0x180:
+        return func
+
+    # 检查是否是生成器
+    if co_flags &amp; 0x20:
+        return func</code></pre>
+<ul>
+<li>斐波那契解决的问题及变形</li>
+</ul>
+<pre><code><code>#一只青蛙一次可以跳上1级台阶，也可以跳上2级。求该青蛙跳上一个n级的台阶总共有多少种跳法。
+#请问用n个2*1的小矩形无重叠地覆盖一个2*n的大矩形，总共有多少种方法？
+#方式一：
+fib = lambda n: n if n &lt;= 2 else fib(n - 1) + fib(n - 2)
+#方式二：
+def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return b
+
+#一只青蛙一次可以跳上1级台阶，也可以跳上2级……它也可以跳上n级。求该青蛙跳上一个n级的台阶总共有多少种跳法。
+fib = lambda n: n if n &lt; 2 else 2 * fib(n - 1)</code></pre>
+<ul>
+<li>获取电脑设置的环境变量</li>
+</ul>
+<pre><code><code>    import os
+    os.getenv(env_name,None)#获取环境变量如果不存在为None</code></pre>
+<ul>
+<li><p>垃圾回收机制</p></li>
+<li><ul>
+<li>引用计数</li>
+<li>标记清除</li>
+<li>分代回收</li>
+</ul></li>
+</ul>
+<pre><code><code>    #查看分代回收触发
+    import gc
+    gc.get_threshold()  #output:(700, 10, 10)</code></pre>
+<ul>
+<li><p>True和False在代码中完全等价于1和0,可以直接和数字进行计算，inf表示无穷大</p></li>
+<li><p>C10M/C10K</p></li>
+<li><ul>
+<li>C10M:8核心cpu，64G内存，在10gbps的网络上保持1000万并发连接</li>
+<li>C10K：1GHz CPU,2G内存，1gbps网络环境下保持1万个客户端提供FTP服务</li>
+</ul></li>
+<li><p>yield from与yield的区别：</p></li>
+<li><ul>
+<li>yield from跟的是一个可迭代对象，而yield后面没有限制</li>
+<li>GeneratorExit生成器停止时触发</li>
+</ul></li>
+<li><p>单下划线的几种使用</p></li>
+<li><ul>
+<li>在定义变量时，表示为私有变量</li>
+<li>在解包时，表示舍弃无用的数据</li>
+<li>在交互模式中表示上一次代码执行结果</li>
+<li>可以做数字的拼接(111_222_333)</li>
+</ul></li>
+<li><p>使用break就不会执行else</p></li>
+<li><p>10进制转2进制</p></li>
+</ul>
+<pre><code><code>    def conver_bin(num):
+        if num == 0:
+            return num
+        re = []
+        while num:
+            num, rem = divmod(num,2)
+            re.append(str(rem))
+        return &quot;&quot;.join(reversed(re))
+    conver_bin(10)</code></pre>
+<ul>
+<li>list1 = ['A', 'B', 'C', 'D'] 如何才能得到以list中元素命名的新列表 A=[],B=[],C=[],D=[]呢</li>
+</ul>
+<pre><code><code>    list1 = [&#39;A&#39;, &#39;B&#39;, &#39;C&#39;, &#39;D&#39;]
+
+    # 方法一
+    for i in list1:
+        globals()[i] = []   # 可以用于实现python版反射
+
+    # 方法二
+    for i in list1:
+        exec(f&#39;{i} = []&#39;)   # exec执行字符串语句</code></pre>
+<ul>
+<li>memoryview与bytearray$\color{#000}(不常用，只是看到了记载一下)$</li>
+</ul>
+<pre><code><code>    # bytearray是可变的，bytes是不可变的,memoryview不会产生新切片和对象
+    a = &#39;aaaaaa&#39;
+    ma = memoryview(a)
+    ma.readonly  # 只读的memoryview
+    mb = ma[:2]  # 不会产生新的字符串
+
+    a = bytearray(&#39;aaaaaa&#39;)
+    ma = memoryview(a)
+    ma.readonly  # 可写的memoryview
+    mb = ma[:2]      # 不会会产生新的bytearray
+    mb[:2] = &#39;bb&#39;    # 对mb的改动就是对ma的改动</code></pre>
+<ul>
+<li>Ellipsis类型</li>
+</ul>
+<pre><code><code># 代码中出现...省略号的现象就是一个Ellipsis对象
+L = [1,2,3]
+L.append(L)
+print(L)    # output:[1,2,3,[…]]</code></pre>
+<ul>
+<li>lazy惰性计算</li>
+</ul>
+<pre><code><code>    class lazy(object):
+        def __init__(self, func):
+            self.func = func
+
+        def __get__(self, instance, cls):
+            val = self.func(instance)    #其相当于执行的area(c),c为下面的Circle对象
+            setattr(instance, self.func.__name__, val)
+            return val`
+
+    class Circle(object):
+        def __init__(self, radius):
+            self.radius = radius
+
+        @lazy
+        def area(self):
+            print(&#39;evalute&#39;)
+            return 3.14 * self.radius ** 2</code></pre>
+<ul>
+<li>遍历文件，传入一个文件夹，将里面所有文件的路径打印出来(递归)</li>
+</ul>
+<pre><code><code>all_files = []
+def getAllFiles(directory_path):
+    import os
+    for sChild in os.listdir(directory_path):
+        sChildPath = os.path.join(directory_path,sChild)
+        if os.path.isdir(sChildPath):
+            getAllFiles(sChildPath)
+        else:
+            all_files.append(sChildPath)
+    return all_files</code></pre>
+<ul>
+<li>文件存储时，文件名的处理</li>
+</ul>
+<pre><code><code>#secure_filename将字符串转化为安全的文件名
+from werkzeug import secure_filename
+secure_filename(&quot;My cool movie.mov&quot;) # output:My_cool_movie.mov
+secure_filename(&quot;../../../etc/passwd&quot;) # output:etc_passwd
+secure_filename(u&#39;i contain cool \xfcml\xe4uts.txt&#39;) # output:i_contain_cool_umlauts.txt</code></pre>
+<ul>
+<li>日期格式化</li>
+</ul>
+<pre><code><code>from datetime import datetime
+
+datetime.now().strftime(&quot;%Y-%m-%d&quot;)
+
+import time
+#这里只有localtime可以被格式化，time是不能格式化的
+time.strftime(&quot;%Y-%m-%d&quot;,time.localtime())</code></pre>
+<ul>
+<li>tuple使用+=奇怪的问题</li>
+</ul>
+<pre><code><code># 会报错，但是tuple的值会改变，因为t[1]id没有发生变化
+t=(1,[2,3])
+t[1]+=[4,5]
+# t[1]使用append\extend方法并不会报错，并可以成功执行</code></pre>
+<ul>
+<li>__missing__你应该知道</li>
+</ul>
+<pre><code><code>class Mydict(dict):
+    def __missing__(self,key): # 当Mydict使用切片访问属性不存在的时候返回的值
+        return key</code></pre>
+<ul>
+<li>+与+=</li>
+</ul>
+<pre><code><code># +不能用来连接列表和元祖，而+=可以（通过iadd实现，内部实现方式为extends(),所以可以增加元组），+会创建新对象
+#不可变对象没有__iadd__方法，所以直接使用的是__add__方法，因此元祖可以使用+=进行元祖之间的相加</code></pre>
+<ul>
+<li>如何将一个可迭代对象的每个元素变成一个字典的所有键？</li>
+</ul>
+<pre><code><code>dict.fromkeys([&#39;jim&#39;,&#39;han&#39;],21) # output:{&#39;jim&#39;: 21, &#39;han&#39;: 21}</code></pre>
+<ul>
+<li>wireshark抓包软件</li>
+</ul>
+<p><strong>网络知识</strong></p>
+<ul>
+<li><p>什么是HTTPS?</p></li>
+<li><ul>
+<li>安全的HTTP协议，https需要cs证书，数据加密，端口为443，安全，同一网站https seo排名会更高</li>
+</ul></li>
+<li><p>常见响应状态码</p></li>
+</ul>
+<pre><code><code>    204 No Content //请求成功处理，没有实体的主体返回，一般用来表示删除成功
+    206 Partial Content //Get范围请求已成功处理
+    303 See Other //临时重定向，期望使用get定向获取
+    304 Not Modified //求情缓存资源
+    307 Temporary Redirect //临时重定向，Post不会变成Get
+    401 Unauthorized //认证失败
+    403 Forbidden //资源请求被拒绝
+    400 //请求参数错误
+    201 //添加或更改成功
+    503 //服务器维护或者超负载
+</code></pre>
+<ul>
+<li>http请求方法的幂等性及安全性</li>
+<li>WSGI</li>
+</ul>
+<pre><code><code>    # environ：一个包含所有HTTP请求信息的dict对象
+    # start_response：一个发送HTTP响应的函数
+    def application(environ, start_response):
+        start_response(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;text/html&#39;)])
+        return &#39;&lt;h1&gt;Hello, web!&lt;/h1&gt;&#39;
+</code></pre>
+<ul>
+<li><p>RPC</p></li>
+<li><p>CDN</p></li>
+<li><p>SSL(Secure Sockets Layer 安全套接层),及其继任者传输层安全（Transport Layer Security，TLS）是为网络通信提供安全及数据完整性的一种安全协议。</p></li>
+<li><p>SSH（安全外壳协议） 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是目前较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题。SSH最初是UNIX系统上的一个程序，后来又迅速扩展到其他操作平台。SSH在正确使用时可弥补网络中的漏洞。SSH客户端适用于多种平台。几乎所有UNIX平台—包括HP-UX、Linux、AIX、Solaris、Digital UNIX、Irix，以及其他平台，都可运行SSH。</p></li>
+<li><p>TCP/IP</p></li>
+<li><ul>
+<li><p>TCP:面向连接/可靠/基于字节流</p></li>
+<li><p>UDP:无连接/不可靠/面向报文</p></li>
+<li><p>三次握手四次挥手</p></li>
+<li><ul>
+<li>三次握手(SYN/SYN+ACK/ACK)</li>
+<li>四次挥手(FIN/ACK/FIN/ACK)</li>
+</ul></li>
+<li><p>为什么连接的时候是三次握手，关闭的时候却是四次握手？</p></li>
+<li><ul>
+<li>因为当Server端收到Client端的SYN连接请求报文后，可以直接发送SYN+ACK报文。其中ACK报文是用来应答的，SYN报文是用来同步的。但是关闭连接时，当Server端收到FIN报文时，很可能并不会立即关闭SOCKET，所以只能先回复一个ACK报文，告诉Client端，&quot;你发的FIN报文我收到了&quot;。只有等到我Server端所有的报文都发送完了，我才能发送FIN报文，因此不能一起发送。故需要四步握手。</li>
+</ul></li>
+<li><p>为什么TIME_WAIT状态需要经过2MSL(最大报文段生存时间)才能返回到CLOSE状态？</p></li>
+<li><ul>
+<li>虽然按道理，四个报文都发送完毕，我们可以直接进入CLOSE状态了，但是我们必须假象网络是不可靠的，有可以最后一个ACK丢失。所以TIME_WAIT状态就是用来重发可能丢失的ACK报文。</li>
+</ul></li>
+</ul></li>
+<li><p>XSS/CSRF</p></li>
+<li><ul>
+<li>HttpOnly禁止js脚本访问和操作Cookie,可以有效防止XSS</li>
+</ul></li>
+</ul>
+<p><strong>Mysql</strong></p>
+<ul>
+<li><p>索引改进过程</p></li>
+<li><ul>
+<li>线性结构-&gt;二分查找-&gt;hash-&gt;二叉查找树-&gt;平衡二叉树-&gt;多路查找树-&gt;多路平衡查找树(B-Tree)</li>
+</ul></li>
+<li><p>Mysql面试总结基础篇</p>
+<p>https://segmentfault.com/a/1190000018371218</p></li>
+<li><p>Mysql面试总结进阶篇</p>
+<p>https://segmentfault.com/a/1190000018380324</p></li>
+<li><p>深入浅出Mysql</p>
+<p>http://ningning.today/2017/02/13/database/深入浅出mysql/</p></li>
+<li><p>清空整个表时，InnoDB是一行一行的删除，而MyISAM则会从新删除建表</p></li>
+<li><p>text/blob数据类型不能有默认值，查询时不存在大小写转换</p></li>
+<li><p>什么时候索引失效</p></li>
+<li><ul>
+<li><p>以%开头的like模糊查询</p></li>
+<li><p>出现隐士类型转换</p></li>
+<li><p>没有满足最左前缀原则</p></li>
+<li><ul>
+<li>对于多列索引，不是使用的第一部分，则不会使用索引</li>
+</ul></li>
+<li><p>失效场景：</p></li>
+<li><ul>
+<li>应尽量避免在 where 子句中使用 != 或 &lt;&gt; 操作符，否则引擎将放弃使用索引而进行全表扫描</li>
+<li>尽量避免在 where 子句中使用 or 来连接条件，否则将导致引擎放弃使用索引而进行全表扫描，即使其中有条件带索引也不会使用，这也是为什么尽量少用 or 的原因</li>
+<li>如果列类型是字符串，那一定要在条件中将数据使用引号引用起来，否则不会使用索引</li>
+<li>应尽量避免在 where 子句中对字段进行函数操作，这将导致引擎放弃使用索引而进行全表扫描</li>
+</ul></li>
+</ul></li>
+</ul>
+<pre><code><code>例如：
+select id from t where substring(name,1,3) = &#39;abc&#39; – name;
+以abc开头的，应改成：
+select id from t where name like &#39;abc%&#39; 
+例如：
+select id from t where datediff(day, createdate, &#39;2005-11-30&#39;) = 0 – &#39;2005-11-30&#39;;
+应改为:</code></pre>
+<ul>
+<li><ul>
+<li><ul>
+<li>不要在 where 子句中的 “=” 左边进行函数、算术运算或其他表达式运算，否则系统将可能无法正确使用索引</li>
+<li>应尽量避免在 where 子句中对字段进行表达式操作，这将导致引擎放弃使用索引而进行全表扫描</li>
+</ul></li>
+</ul></li>
+</ul>
+<pre><code><code>如：
+select id from t where num/2 = 100 
+应改为:
+select id from t where num = 100*2；</code></pre>
+<ul>
+<li><ul>
+<li><ul>
+<li><p>不适合键值较少的列（重复数据较多的列）比如：set enum列就不适合(枚举类型(enum)可以添加null,并且默认的值会自动过滤空格集合(set)和枚举类似，但只可以添加64个值)</p></li>
+<li><p>如果MySQL估计使用全表扫描要比使用索引快，则不使用索引</p></li>
+</ul></li>
+</ul></li>
+<li><p>什么是聚集索引</p></li>
+<li><ul>
+<li>B+Tree叶子节点保存的是数据还是指针</li>
+<li>MyISAM索引和数据分离，使用非聚集</li>
+<li>InnoDB数据文件就是索引文件，主键索引就是聚集索引</li>
+</ul></li>
+</ul>
+<p><strong>Redis命令总结</strong></p>
+<ul>
+<li><p>为什么这么快？</p></li>
+<li><ul>
+<li><p>基于内存，由C语言编写</p></li>
+<li><p>使用多路I/O复用模型，非阻塞IO</p></li>
+<li><p>使用单线程减少线程间切换</p></li>
+<li><ul>
+<li>因为Redis是基于内存的操作，CPU不是Redis的瓶颈，Redis的瓶颈最有可能是机器内存的大小或者网络带宽。既然单线程容易实现，而且CPU不会成为瓶颈，那就顺理成章地采用单线程的方案了（毕竟采用多线程会有很多麻烦！）。</li>
+</ul></li>
+<li><p>数据结构简单</p></li>
+<li><p>自己构建了VM机制，减少调用系统函数的时间</p></li>
+</ul></li>
+<li><p>优势</p></li>
+<li><ul>
+<li>性能高 – Redis能读的速度是110000次/s,写的速度是81000次/s</li>
+<li>丰富的数据类型</li>
+<li>原子 – Redis的所有操作都是原子性的，同时Redis还支持对几个操作全并后的原子性执行</li>
+<li>丰富的特性 – Redis还支持 publish/subscribe（发布/订阅）, 通知, key 过期等等特性</li>
+</ul></li>
+<li><p>什么是redis事务？</p></li>
+<li><ul>
+<li>将多个请求打包，一次性、按序执行多个命令的机制</li>
+<li>通过multi,exec,watch等命令实现事务功能</li>
+<li>Python redis-py pipeline=conn.pipeline(transaction=True)</li>
+</ul></li>
+<li><p>持久化方式</p></li>
+<li><ul>
+<li><p>RDB(快照)</p></li>
+<li><ul>
+<li>save(同步，可以保证数据一致性)</li>
+<li>bgsave(异步，shutdown时，无AOF则默认使用)</li>
+</ul></li>
+<li><p>AOF(追加日志)</p></li>
+</ul></li>
+<li><p>怎么实现队列</p></li>
+<li><ul>
+<li>push</li>
+<li>rpop</li>
+</ul></li>
+<li><p>常用的数据类型(Bitmaps,Hyperloglogs,范围查询等不常用)</p></li>
+<li><ul>
+<li><p>String(字符串):计数器</p></li>
+<li><ul>
+<li>整数或sds(Simple Dynamic String)</li>
+</ul></li>
+<li><p>List(列表)：用户的关注，粉丝列表</p></li>
+<li><ul>
+<li>ziplist(连续内存块，每个entry节点头部保存前后节点长度信息实现双向链表功能)或double linked list</li>
+</ul></li>
+<li><p>Hash(哈希)：</p></li>
+<li><p>Set(集合)：用户的关注者</p></li>
+<li><ul>
+<li>intset或hashtable</li>
+</ul></li>
+<li><p>Zset(有序集合)：实时信息排行榜</p></li>
+<li><ul>
+<li>skiplist(跳跃表)</li>
+</ul></li>
+</ul></li>
+<li><p>与Memcached区别</p></li>
+<li><ul>
+<li>Memcached只能存储字符串键</li>
+<li>Memcached用户只能通过APPEND的方式将数据添加到已有的字符串的末尾，并将这个字符串当做列表来使用。但是在删除这些元素的时候，Memcached采用的是通过黑名单的方式来隐藏列表里的元素，从而避免了对元素的读取、更新、删除等操作</li>
+<li>Redis和Memcached都是将数据存放在内存中，都是内存数据库。不过Memcached还可用于缓存其他东西，例如图片、视频等等</li>
+<li>虚拟内存–Redis当物理内存用完时，可以将一些很久没用到的Value 交换到磁盘</li>
+<li>存储数据安全–Memcached挂掉后，数据没了；Redis可以定期保存到磁盘（持久化）</li>
+<li>应用场景不一样：Redis出来作为NoSQL数据库使用外，还能用做消息队列、数据堆栈和数据缓存等；Memcached适合于缓存SQL语句、数据集、用户临时性数据、延迟查询数据和Session等</li>
+</ul></li>
+<li><p>Redis实现分布式锁</p></li>
+<li><ul>
+<li>使用setnx实现加锁，可以同时通过expire添加超时时间</li>
+<li>锁的value值可以是一个随机的uuid或者特定的命名</li>
+<li>释放锁的时候，通过uuid判断是否是该锁，是则执行delete释放锁</li>
+</ul></li>
+<li><p>常见问题</p></li>
+<li><ul>
+<li><p>缓存雪崩</p></li>
+<li><ul>
+<li>短时间内缓存数据过期，大量请求访问数据库</li>
+</ul></li>
+<li><p>缓存穿透</p></li>
+<li><ul>
+<li>请求访问数据时，查询缓存中不存在，数据库中也不存在</li>
+</ul></li>
+<li><p>缓存预热</p></li>
+<li><ul>
+<li>初始化项目，将部分常用数据加入缓存</li>
+</ul></li>
+<li><p>缓存更新</p></li>
+<li><ul>
+<li>数据过期，进行更新缓存数据</li>
+</ul></li>
+<li><p>缓存降级</p></li>
+<li><ul>
+<li>当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级</li>
+</ul></li>
+</ul></li>
+<li><p>一致性Hash算法</p></li>
+<li><ul>
+<li>使用集群的时候保证数据的一致性</li>
+</ul></li>
+<li><p>基于redis实现一个分布式锁，要求一个超时的参数</p></li>
+<li><ul>
+<li>setnx</li>
+</ul></li>
+<li><p>虚拟内存</p></li>
+<li><p>内存抖动</p></li>
+</ul>
+<p><strong>Linux</strong></p>
+<ul>
+<li><p>Unix五种i/o模型</p></li>
+<li><ul>
+<li><p>阻塞io</p></li>
+<li><p>非阻塞io</p></li>
+<li><p>多路复用io(Python下使用selectot实现io多路复用)</p></li>
+<li><ul>
+<li><p>select</p></li>
+<li><ul>
+<li>并发不高，连接数很活跃的情况下</li>
+</ul></li>
+<li><p>poll</p></li>
+<li><ul>
+<li>比select提高的并不多</li>
+</ul></li>
+<li><p>epoll</p></li>
+<li><ul>
+<li>适用于连接数量较多，但活动链接数少的情况</li>
+</ul></li>
+</ul></li>
+<li><p>信号驱动io</p></li>
+<li><p>异步io(Gevent/Asyncio实现异步)</p></li>
+</ul></li>
+<li><p>比man更好使用的命令手册</p></li>
+<li><ul>
+<li>tldr:一个有命令示例的手册</li>
+</ul></li>
+<li><p>kill -9和-15的区别</p></li>
+<li><ul>
+<li>-15：程序立刻停止/当程序释放相应资源后再停止/程序可能仍然继续运行</li>
+<li>-9：由于-15的不确定性，所以直接使用-9立即杀死进程</li>
+</ul></li>
+<li><p>分页机制（逻辑地址和物理地址分离的内存分配管理方案）：</p></li>
+<li><ul>
+<li>操作系统为了高效管理内存，减少碎片</li>
+<li>程序的逻辑地址划分为固定大小的页</li>
+<li>物理地址划分为同样大小的帧</li>
+<li>通过页表对应逻辑地址和物理地址</li>
+</ul></li>
+<li><p>分段机制</p></li>
+<li><ul>
+<li>为了满足代码的一些逻辑需求</li>
+<li>数据共享/数据保护/动态链接</li>
+<li>每个段内部连续内存分配，段和段之间是离散分配的</li>
+</ul></li>
+<li><p>查看cpu内存使用情况？</p></li>
+<li><ul>
+<li>top</li>
+<li>free 查看可用内存，排查内存泄漏问题</li>
+</ul></li>
+</ul>
+<p><strong>设计模式</strong></p>
+<p>单例模式</p>
+<pre><code><code>    # 方式一
+    def Single(cls,*args,**kwargs):
+        instances = {}
+        def get_instance (*args, **kwargs):
+            if cls not in instances:
+                instances[cls] = cls(*args, **kwargs)
+            return instances[cls]
+        return get_instance
+    @Single
+    class B:
+        pass
+    # 方式二
+    class Single:
+        def __init__(self):
+            print(&quot;单例模式实现方式二。。。&quot;)
+
+    single = Single()
+    del Single  # 每次调用single就可以了
+    # 方式三(最常用的方式)
+    class Single:
+        def __new__(cls,*args,**kwargs):
+            if not hasattr(cls,&#39;_instance&#39;):
+                cls._instance = super().__new__(cls,*args,**kwargs)
+            return cls._instance</code></pre>
+<p>工厂模式</p>
+<pre><code><code>    class Dog:
+        def __init__(self):
+            print(&quot;Wang Wang Wang&quot;)
+    class Cat:
+        def __init__(self):
+            print(&quot;Miao Miao Miao&quot;)
+
+
+    def fac(animal):
+        if animal.lower() == &quot;dog&quot;:
+            return Dog()
+        if animal.lower() == &quot;cat&quot;:
+            return Cat()
+        print(&quot;对不起，必须是：dog,cat&quot;)</code></pre>
+<p>构造模式</p>
+<pre><code><code>    class Computer:
+        def __init__(self,serial_number):
+            self.serial_number = serial_number
+            self.memory = None
+            self.hadd = None
+            self.gpu = None
+        def __str__(self):
+            info = (f&#39;Memory:{self.memoryGB}&#39;,
+            &#39;Hard Disk:{self.hadd}GB&#39;,
+            &#39;Graphics Card:{self.gpu}&#39;)
+            return &#39;&#39;.join(info)
+    class ComputerBuilder：
+        def __init__(self):
+            self.computer = Computer(&#39;Jim1996&#39;)
+        def configure_memory(self,amount):
+            self.computer.memory = amount
+            return self #为了方便链式调用
+        def configure_hdd(self,amount):
+            pass
+        def configure_gpu(self,gpu_model):
+            pass
+    class HardwareEngineer:
+        def __init__(self):
+            self.builder = None
+        def construct_computer(self,memory,hdd,gpu)
+            self.builder = ComputerBuilder()
+            self.builder.configure_memory(memory).configure_hdd(hdd).configure_gpu(gpu)
+        @property
+        def computer(self):
+            return self.builder.computer</code></pre>
+<p><strong>数据结构和算法内置数据结构和算法</strong></p>
+<p>python实现各种数据结构</p>
+<p><strong>快速排序</strong></p>
+<pre><code><code>    def quick_sort(_list):
+            if len(_list) &lt; 2:
+                return _list
+            pivot_index = 0
+            pivot = _list(pivot_index)
+            left_list = [i for i in _list[:pivot_index] if i &lt; pivot]
+            right_list = [i for i in _list[pivot_index:] if i &gt; pivot]
+        return quick_sort(left) + [pivot] + quick_sort(right)</code></pre>
+<p><strong>选择排序</strong></p>
+<pre><code><code>    def select_sort(seq):
+        n = len(seq)
+        for i in range(n-1)
+        min_idx = i
+            for j in range(i+1,n):
+                if seq[j] &lt; seq[min_inx]:
+                    min_idx = j
+            if min_idx != i:
+                seq[i], seq[min_idx] = seq[min_idx],seq[i]</code></pre>
+<p><strong>插入排序</strong></p>
+<pre><code><code>    def insertion_sort(_list):
+        n = len(_list)
+        for i in range(1,n):
+            value = _list[i]
+            pos = i
+            while pos &gt; 0 and value &lt; _list[pos - 1]
+                _list[pos] = _list[pos - 1]
+                pos -= 1
+            _list[pos] = value
+            print(sql)</code></pre>
+<p><strong>归并排序</strong></p>
+<pre><code><code>    def merge_sorted_list(_list1,_list2):   #合并有序列表
+        len_a, len_b = len(_list1),len(_list2)
+        a = b = 0
+        sort = []
+        while len_a &gt; a and len_b &gt; b:
+            if _list1[a] &gt; _list2[b]:
+                sort.append(_list2[b])
+                b += 1
+            else:
+                sort.append(_list1[a])
+                a += 1
+        if len_a &gt; a:
+            sort.append(_list1[a:])
+        if len_b &gt; b:
+            sort.append(_list2[b:])
+        return sort
+
+    def merge_sort(_list):
+        if len(list1)&lt;2:
+            return list1
+        else:
+            mid = int(len(list1)/2)
+            left = mergesort(list1[:mid])
+            right = mergesort(list1[mid:])
+            return merge_sorted_list(left,right)</code></pre>
+<p><strong>堆排序heapq模块</strong></p>
+<pre><code><code>    from heapq import nsmallest
+    def heap_sort(_list):
+        return nsmallest(len(_list),_list)</code></pre>
+<p><strong>栈</strong></p>
+<pre><code><code>    from collections import deque
+    class Stack:
+        def __init__(self):
+            self.s = deque()
+        def peek(self):
+            p = self.pop()
+            self.push(p)
+            return p
+        def push(self, el):
+            self.s.append(el)
+        def pop(self):
+            return self.pop()</code></pre>
+<p><strong>队列</strong></p>
+<pre><code><code>    from collections import deque
+    class Queue:
+        def __init__(self):
+            self.s = deque()
+        def push(self, el):
+            self.s.append(el)
+        def pop(self):
+            return self.popleft()</code></pre>
+<p><strong>二分查找</strong></p>
+<pre><code><code>    def binary_search(_list,num):
+        mid = len(_list)//2
+        if len(_list) &lt; 1:
+            return Flase
+        if num &gt; _list[mid]:
+            BinarySearch(_list[mid:],num)
+        elif num &lt; _list[mid]:
+            BinarySearch(_list[:mid],num)
+        else:
+            return _list.index(num)</code></pre>
+<p><strong>面试加强题：</strong></p>
+<p>关于数据库优化及设计</p>
+<ul>
+<li><p>如何使用两个栈实现一个队列</p></li>
+<li><p>反转链表</p></li>
+<li><p>合并两个有序链表</p></li>
+<li><p>删除链表节点</p></li>
+<li><p>反转二叉树</p></li>
+<li><p>设计短网址服务？62进制实现</p></li>
+<li><p>设计一个秒杀系统(feed流)？</p></li>
+<li><p>为什么mysql数据库的主键使用自增的整数比较好？使用uuid可以吗？为什么？</p></li>
+<li><ul>
+<li>如果InnoDB表的数据写入顺序能和B+树索引的叶子节点顺序一致的话，这时候存取效率是最高的。为了存储和查询性能应该使用自增长id做主键。</li>
+<li>对于InnoDB的主索引，数据会按照主键进行排序，由于UUID的无序性，InnoDB会产生巨大的IO压力，此时不适合使用UUID做物理主键，可以把它作为逻辑主键，物理主键依然使用自增ID。为了全局的唯一性，应该用uuid做索引关联其他表或做外键</li>
+</ul></li>
+<li><p>如果是分布式系统下我们怎么生成数据库的自增id呢？</p></li>
+<li><ul>
+<li>使用redis</li>
+</ul></li>
+<li><p>基于redis实现一个分布式锁，要求一个超时的参数</p></li>
+<li><ul>
+<li>setnx</li>
+<li>setnx + expire</li>
+</ul></li>
+<li><p>如果redis单个节点宕机了，如何处理？还有其他业界的方案实现分布式锁码?</p></li>
+<li><ul>
+<li>使用hash一致算法</li>
+</ul></li>
+</ul>
+<p><strong>缓存算法</strong></p>
+<ul>
+<li>LRU(least-recently-used):替换最近最少使用的对象</li>
+<li>LFU(Least frequently used):最不经常使用，如果一个数据在最近一段时间内使用次数很少，那么在将来一段时间内被使用的可能性也很小</li>
+</ul>
+<p><strong>服务端性能优化方向</strong></p>
+<ul>
+<li><p>使用数据结构和算法</p></li>
+<li><p>数据库</p></li>
+<li><ul>
+<li><p>索引优化</p></li>
+<li><p>慢查询消除</p></li>
+<li><ul>
+<li>slow_query_log_file开启并且查询慢查询日志</li>
+<li>通过explain排查索引问题</li>
+<li>调整数据修改索引</li>
+</ul></li>
+<li><p>批量操作，从而减少io操作</p></li>
+<li><p>使用NoSQL:比如Redis</p></li>
+</ul></li>
+<li><p>网络io</p></li>
+<li><ul>
+<li>批量操作</li>
+<li>pipeline</li>
+</ul></li>
+<li><p>缓存</p></li>
+<li><ul>
+<li>Redis</li>
+</ul></li>
+<li><p>异步</p></li>
+<li><ul>
+<li>Asyncio实现异步操作</li>
+<li>使用Celery减少io阻塞</li>
+</ul></li>
+<li><p>并发</p></li>
+<li><ul>
+<li>多线程</li>
+<li>Gevent</li>
+</ul></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

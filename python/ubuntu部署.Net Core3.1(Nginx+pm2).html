@@ -1,0 +1,139 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修ubuntu部署.Net Core3.1(Nginx+pm2)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>ubuntu部署.Net Core3.1(Nginx+pm2)</center></div><div class='banquan'>原文出处:本文由博客园博主她微笑的脸提供。<br/>
+原文连接:https://www.cnblogs.com/linhuiy/p/12023124.html</div><br>
+    <h2 id="前言"><font color=#6495cd><strong>前言</strong></font></h2>
+<p>虽然.NetCore已经出来很久了,但是很多初学者还是不会在linux部署.所以写一篇初学者在ubuntu下部署Core的全过程,大佬请无视。</p>
+<h2 id="环境搭建"><font color=#6495cd><strong>环境搭建</strong></font></h2>
+<ul>
+<li>ubuntu18.04</li>
+<li>NetCore3.1</li>
+<li>Nginx</li>
+<li>pm2</li>
+</ul>
+<h3 id="netcoresdk安装"><strong>.NetCoreSDK安装</strong></h3>
+<p>安装源<br />
+<code>wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb</code><br />
+<code>sudo dpkg -i packages-microsoft-prod.deb</code></p>
+<p>安装sdk,具体哪个版本可以根据自己的喜好.<br />
+<code>sudo add-apt-repository universe</code><br />
+<code>sudo apt-get install apt-transport-https</code><br />
+<code>sudo apt-get update</code><br />
+<code>sudo apt-get install dotnet-sdk-3.1</code></p>
+<p>安装完成执行 <code>dotnet --info</code> 命令查看安装的SDK信息<br />
+<img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)0.png" alt="20191211142103.png" /></p>
+<h3 id="nginx安装"><strong>.Nginx安装</strong></h3>
+<p>因为.NetCore是自宿主,所以我们需要一个反向代理web服务器来给我的kestrel做反向代理</p>
+<p>安装命令<br />
+<code>sudo apt-get install nginx</code></p>
+<p>启动命令<br />
+<code>sudo service nginx start</code></p>
+<p>安装成功后直接访问服务器地址，若出现下图则nginx安装成功<br />
+<img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)1.png" alt="20191211143329.png" /></p>
+<h3 id="pm2进程守护安装"><strong>PM2进程守护安装</strong></h3>
+<p>PM2是一个nodejs进程高级工具,用来守护 .NET Core 进程是没有问题,最主要的原因,它没有繁琐的安装和配置,非常适合初学者。<br />
+PM2依赖nodejs,所以我们先需要安装nodejs。</p>
+<p>更新apt-get<br />
+<code>apt-get update</code><br />
+安装node.js<br />
+<code>apt-get install nodejs</code><br />
+安装npm<br />
+<code>apt-get install npm</code><br />
+安装PM2<br />
+<code>npm install -g pm2</code><br />
+设置开机启动<br />
+<code>pm2 startup</code></p>
+<p>安装成功以后使用 <code>pm2 --help</code> 命令来检查是否安装成功,出现下图则安装成功</p>
+<p><img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)2.png" alt="20191211144948.png" /></p>
+<p>有关于pm2的详细说明可以去看晓晨大佬的文章。<a href="https://www.cnblogs.com/stulzq/p/9775973.html">传送门</a></p>
+<h3 id="开始部署"><strong>开始部署</strong></h3>
+<p>本地新建一个webapi项目,添加一个接口并打印一句话</p>
+<pre><code><code>using Microsoft.AspNetCore.Mvc;
+
+namespace api.Controllers
+{
+    [Route(&quot;api/[controller]&quot;)]
+    [ApiController]
+    public class ValuesController : ControllerBase
+    {
+        [HttpGet(&quot;print&quot;)]
+        public string Print()
+        {
+            return &quot;hello .NetCore&quot;;
+        }
+    }
+}</code></pre>
+<p>修改端口为5002。</p>
+<pre><code><code>using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+
+namespace api
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateWebHostBuilder(args).Build().Run();
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =&gt;
+            WebHost.CreateDefaultBuilder(args)
+                .UseUrls(&quot;http://localhost*:5002&quot;)
+                .UseStartup&lt;Startup&gt;();
+    }
+}
+</code></pre>
+<p>发布我们的项目,然后在ubuntu的home文件下新建一个api文件夹并把发布文件copy到这里。</p>
+<p><img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)3.png" alt="20191211150953.png" /></p>
+<p>使用<code>cd /home/api</code>命令进入我们发布文件夹下。</p>
+<p>使用 <code>dotnet Api.dll</code>命令运行我们刚才的项目<br />
+<img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)4.png" alt="20191211152748.png" /></p>
+<p>可以看到我们的项目已经跑起来啦。我们使用浏览器来访问我们的Api看看是否成功</p>
+<p><img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)5.png" alt="20191211153006.png" /></p>
+<p>可以看到我们的接口是可以访问的,到这里我们已经完成了在ubuntu上部署一个.NetCore的项目了。<br />
+但是我们需要一直在这里看着这个程序不被关闭吗？显然是不可能的,现在就需要pm2登场了,用pm2来守护我们的.netCore 程序。<br />
+执行<code>pm2 start &quot;dotnet api.dll&quot; --name api</code>命令就可以让pm2来帮助我们守护啦。就是这么简单,没有繁琐的配置。</p>
+<p><img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)6.png" alt="20191211153504.png" /></p>
+<p>使用 <code>pm2 ls</code> 命令可以看到pm2正在守护程序的列表。</p>
+<p>那么问题又来了,直接把服务暴露在外并不是很好的选择,且无法做负载。所以我们需要配置nginx来给我们的kestrel做反向代理。<br />
+执行 <code>vim /etc/nginx/sites-available/default</code> 命令来修改默认的配置文件,注释掉原有所有配置,新增如下配置,并保存。</p>
+<pre class="conf"><code>server {
+    listen 80;
+    listen [::]:80;
+    location / {
+    proxy_pass http://localhost:5002; //刚才发布项目的端口
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection keep-alive;
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+    }
+}</code></pre>
+<p>使用<code>nginx -s reload</code> 命令来优雅重启nginx,并重新载入配置文件。</p>
+<p>使用80端口来调用我们的接口。</p>
+<p><img src="./images/ubuntu部署.Net Core3.1(Nginx+pm2)7.png" alt="20191211155506.png" /></p>
+<p>可以看到是可以通过80端口去调用我们的Api的。</p>
+<h2 id="总结"><font color=#6495cd><strong>总结</strong></font></h2>
+<p>到这里已经就完成了我们在ubuntu部署.NetCore项目小目标啦。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

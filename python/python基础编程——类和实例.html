@@ -1,0 +1,530 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python基础编程——类和实例' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python基础编程——类和实例</center></div><div class='banquan'>原文出处:本文由博客园博主呱唧_T_呱唧提供。<br/>
+原文连接:https://www.cnblogs.com/aitiknowledge/p/11491300.html</div><br>
+    <p>　　在了解类和实例之前，需要先了解什么是面向对象，什么又是面向过程。面向过程是以过程为中心实现一步步操作（相互调用，类似流水线思想）；面向对象是以事物为中心，某个事物可以拥有自己的多个行为，而另一个事物也可以拥有自己的多个行为。</p>
+<p>　　面向对象的基础：</p>
+<p>　　　　对象：没有具体的事物，只能说是一切皆对象。如人、汽车、国家，.......</p>
+<p>　　　　对象的属性和行为：这个对象有什么特征或者有什么行为方式。如人有身高、头发颜色等属性，人有睡觉、吃饭等行为</p>
+<p>　　　　类：将具有相同特征的属性和行为的对象抽象出来封装成一个可以描述多个对象的类。所以就有类是对象的抽象，对象是类的实例</p>
+<p>　　　　消息和方法：对象之间的通信传递简称消息，而方法是实现传递消息的可观效果</p>
+<p>　　　　继承：某个对象是由另一个对象产生的，也可以抽象为某个类是由另一个类产生的，这个对象就可以拥有另个对象的所有属性和行为</p>
+<p>　　　　多态：多个对象的相同行为会产生不一样的结果</p>
+<p>　　面向对象的特性：</p>
+<p>　　　　由上述我们可以总结出抽象、封装、继承、多态4大特性</p>
+<p>　　本篇博客主要内容就是简单的讲述这4大特性和面向对象的基础知识，在讲述的过程中会扩展一些知识</p>
+<h2>　　抽象</h2>
+<p>　　　　类是软件开发过程中对业务相关的具有共同特征的事物的抽象。所以类在编程语言中是抽象的主要表现形式</p>
+<p>　　　　我们可以对&ldquo;人&rdquo;进行抽象并抽象成Person类，因为人类有一些共同的特征，我们也可以对&ldquo;动物&rdquo;进行抽象并抽象成Animal类。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> Person类</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">
+    人的共有特征和行为
+    </span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        self.high </span>=<span style="color: #000000;"> high
+        self.weight </span>=<span style="color: #000000;"> weight
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 说话</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> speak(self):
+        </span><span style="color: #0000ff;">pass</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 睡觉</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> sleep(self):
+        </span><span style="color: #0000ff;">pass</span></pre>
+</div>
+<p>　　　　代码博主只写了一丢丢Person共有的属性和行为，有过编程经验的朋友们都知道一些初始化方法，这里是初始化一些共有的属性；还定义一些共有的方法；</p>
+<p>　　　　在接下来讲的应该都是封装需要讲述的</p>
+<h2>　　封装</h2>
+<p>　　　　对于封装，类可以封装我们上述所说的具有共同属性和行为的一种方式（大的封装）。而封装又不限于类，函数也是可以封装一些共同的操作。下面涉及的知识都是封装，只是封装的方式会略有不同，我们先不谈封装知识。</p>
+<p>　　　　我们先对初始化方法进行一个简单的了解，python类里__init__()方法是对对象的初始化一些属性的方法，但是这个方法不是创建对象。我们在创建类时，这个__init__()方法就是我们需要放置一些我们考虑多个对象的共同的属性还有一些需要初始化的操作（调用方法），既然__init__()方法不是创建对象的方法，那么创建对象的方法是哪个呢？__new__()方法。相信朋友们已经见过了这个方法，这个方法在创建类时会自动调用，不需要我们写出来（待会写出来用于测试）。这样明了，创建对象的时候先调用__new__()方法返回一个对象，然后再调用__init__()方法初始化对象的属性。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__new__</span>(cls, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 父类调用__new__()返回一个对象</span>
+        <span style="color: #0000ff;">return</span> super().<span style="color: #800080;">__new__</span><span style="color: #000000;">(cls)
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        self.high </span>=<span style="color: #000000;"> high
+        self.weight </span>=<span style="color: #000000;"> weight
+
+
+person </span>= Person(12, 135)</pre>
+</div>
+<p>　　　　在类中可以有很多属性，我这说的很多不是属性的个数，也不是属性值的类型，而是属性的类型。以下代码里的注释可以忽略</p>
+<p>　　　　属性的类型有：类属性、类的私有属性、类的保护属性，实例属性、实例的私有属性、实例的保护属性，这里说的保护属性和私有属性，在python中没有严格说明，但是功能或者使用保留</p>
+<p>　　　　　　1、类属性：</p>
+<p>　　　　　　　　类和实例都可以直接修改并且访问类属性</p>
+<p>　　　　　　　　在实例方法通过实例访问和修改类属性</p>
+<p>　　　　　　　　在类方法通过类名访问和修改类属性</p>
+<p>　　　　　　　　在静态方法通过类名访问和修改类的私属性</p>
+<p>　　　　　　　　如果实例有与类属性同名的实例属性，那么修改和访问就和类属性没有关系了</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('09c16906-4dc3-4247-851b-5318c91d2103')"><img id="code_img_closed_09c16906-4dc3-4247-851b-5318c91d2103" class="code_img_closed" src="./images/python基础编程——类和实例0.png" alt="" /><img id="code_img_opened_09c16906-4dc3-4247-851b-5318c91d2103" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('09c16906-4dc3-4247-851b-5318c91d2103',event)" src="./images/python基础编程——类和实例1.png" alt="" />
+<div id="cnblogs_code_open_09c16906-4dc3-4247-851b-5318c91d2103" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类的保护属性初始值&ldquo;12&rdquo;</span>
+    count = <span style="color: #800000;">"</span><span style="color: #800000;">12</span><span style="color: #800000;">"</span>
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        self.high </span>=<span style="color: #000000;"> high
+        self.weight </span>=<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_set_count(self, count):
+        self.count </span>=<span style="color: #000000;"> count
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_get_count(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.count
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类方法</span>
+<span style="color: #000000;">    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_set_count(cls, count):
+        cls.count </span>=<span style="color: #000000;"> count
+
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_get_count(cls):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cls.count
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 静态方法</span>
+<span style="color: #000000;">    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_set_count(count):
+        Person.count </span>=<span style="color: #000000;"> count
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_get_count():
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Person.count
+
+
+person </span>= Person(12, 135<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例直接修改并访问类的保护属性</span>
+person.count = <span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(person.count)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 类名直接修改并访问类的保护属性</span>
+Person.count = <span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(Person.count)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用实例方法修改并访问类的私有属性</span>
+person.self_set_count(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.self_get_count())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用类方法修改并访问类的私有属性</span>
+Person.class_set_count(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.class_get_count())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用静态方法修改并访问类的私有属性</span>
+person.static_set_count(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.static_get_count())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用静态方法修改并访问类的私有属性</span>
+Person.static_set_count(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.static_get_count())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　　　　　2、类的私有属性：</p>
+<p>　　　　　　　　在实例方法通过实例访问和修改类的私有属性</p>
+<p>　　　　　　　　在类方法通过类名访问和修改类的私有属性</p>
+<p>　　　　　　　　在静态方法通过类名访问和修改类的私有属性</p>
+<p>　　　　　　　　在类外类和实例都是不能访问的；如果实例有与类的私有属性同名的实例私有属性，那么修改和访问就和类的私有属性没有关系了</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('60a54bc2-affb-47aa-a2ed-ecd744922bdb')"><img id="code_img_closed_60a54bc2-affb-47aa-a2ed-ecd744922bdb" class="code_img_closed" src="./images/python基础编程——类和实例0.png" alt="" /><img id="code_img_opened_60a54bc2-affb-47aa-a2ed-ecd744922bdb" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('60a54bc2-affb-47aa-a2ed-ecd744922bdb',event)" src="./images/python基础编程——类和实例1.png" alt="" />
+<div id="cnblogs_code_open_60a54bc2-affb-47aa-a2ed-ecd744922bdb" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类属性初始值12</span>
+    count = 12
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 类的私有属性初始值&ldquo;12&rdquo;</span>
+    <span style="color: #800080;">__string</span> = <span style="color: #800000;">"</span><span style="color: #800000;">12</span><span style="color: #800000;">"</span>
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__new__</span>(cls, *args, **<span style="color: #000000;">kwargs):
+        </span><span style="color: #0000ff;">return</span> super().<span style="color: #800080;">__new__</span><span style="color: #000000;">(cls)
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        self.high </span>=<span style="color: #000000;"> high
+        self.weight </span>=<span style="color: #000000;"> weight
+    
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_set_string(self, string):
+        self.</span><span style="color: #800080;">__string</span> =<span style="color: #000000;"> string
+    
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_get_string(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__string</span>
+    
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 类方法</span>
+<span style="color: #000000;">    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_set_string(cls, string):
+        cls.</span><span style="color: #800080;">__string</span> =<span style="color: #000000;"> string
+    
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_get_string(cls):
+        </span><span style="color: #0000ff;">return</span> cls.<span style="color: #800080;">__string</span>
+    
+    <span style="color: #008000;">#</span><span style="color: #008000;">静态方法</span>
+<span style="color: #000000;">    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_set_string(string):
+        Person.</span><span style="color: #800080;">__string</span> =<span style="color: #000000;"> string
+    
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_get_string():
+        </span><span style="color: #0000ff;">return</span> Person.<span style="color: #800080;">__string</span><span style="color: #000000;">
+
+
+person </span>= Person(12, 135<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例修改并访问类属性</span>
+person.count = 24
+<span style="color: #0000ff;">print</span>(person.count)    <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名修改并访问类属性</span>
+Person.count = 36
+<span style="color: #0000ff;">print</span>(Person.count)    <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用实例方法修改并访问类的私有属性</span>
+person.self_set_string(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.self_get_string())    <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用类方法修改并访问类的私有属性</span>
+Person.class_set_string(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.class_get_string())    <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用静态方法修改并访问类的私有属性</span>
+person.static_set_string(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.static_get_string())    <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用静态方法修改并访问类的私有属性</span>
+Person.static_set_string(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.static_get_string())    <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　　　　　3、类的保护属性：</p>
+<p>　　　　　　　　在类外通过类和实例访问和修改类的保护属性</p>
+<p>　　　　　　　　在实例方法通过实例访问和修改类的保护属性</p>
+<p>　　　　　　　　在类方法通过类名访问和修改类的保护属性</p>
+<p>　　　　　　　　在静态方法通过类名访问和修改类的保护属性</p>
+<p>　　　　　　　　在模块外类和实例都是不能访问的；如果实例有与类的保护属性同名的实例保护属性，那么修改和访问就和类的保护属性没有关系了</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('150a014b-e7d9-4048-bfe6-d450b0d42d4f')"><img id="code_img_closed_150a014b-e7d9-4048-bfe6-d450b0d42d4f" class="code_img_closed" src="./images/python基础编程——类和实例0.png" alt="" /><img id="code_img_opened_150a014b-e7d9-4048-bfe6-d450b0d42d4f" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('150a014b-e7d9-4048-bfe6-d450b0d42d4f',event)" src="./images/python基础编程——类和实例1.png" alt="" />
+<div id="cnblogs_code_open_150a014b-e7d9-4048-bfe6-d450b0d42d4f" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类的保护属性初始值&ldquo;12&rdquo;</span>
+    _protection = <span style="color: #800000;">"</span><span style="color: #800000;">12</span><span style="color: #800000;">"</span>
+
+    <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        self.high </span>=<span style="color: #000000;"> high
+        self.weight </span>=<span style="color: #000000;"> weight
+    
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_set_protection(self, protection):
+        self._protection </span>=<span style="color: #000000;"> protection
+    
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_get_protection(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self._protection
+    
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类方法</span>
+<span style="color: #000000;">    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_set_protection(cls, protection):
+        cls._protection </span>=<span style="color: #000000;"> protection
+    
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_get_protection(cls):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cls._protection
+    
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">静态方法</span>
+<span style="color: #000000;">    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_set_protection(protection):
+        Person._protection </span>=<span style="color: #000000;"> protection
+    
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_get_protection():
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Person._protection
+
+
+person </span>= Person(12, 135<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例直接修改并访问类的保护属性</span>
+person._protection = <span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(person._protection)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 类名直接修改并访问类的保护属性</span>
+Person._protection = <span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(Person._protection)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用实例方法修改并访问类的私有属性</span>
+person.self_set_protection(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.self_get_protection())    <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用类方法修改并访问类的私有属性</span>
+Person.class_set_protection(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.class_get_protection())    <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用静态方法修改并访问类的私有属性</span>
+person.static_set_protection(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.static_get_protection())    <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用静态方法修改并访问类的私有属性</span>
+Person.static_set_protection(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.static_get_protection())    <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　　　　　4、实例属性：</p>
+<p>　　　　　　　　在类外通过类和实例访问和修改实例属性</p>
+<p>　　　　　　　　在实例方法通过实例访问和修改实例属性</p>
+<p>　　　　　　　　在类方法通过类名访问和修改实例属性</p>
+<p>　　　　　　　　在静态方法通过类名访问和修改实例属性</p>
+<p>　　　　　　　　如果实例有与类属性同名的实例属性，那么修改和访问就和类属性没有关系了</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('6d7d087e-d7ff-452c-9d7b-9ed1b520ba17')"><img id="code_img_closed_6d7d087e-d7ff-452c-9d7b-9ed1b520ba17" class="code_img_closed" src="./images/python基础编程——类和实例0.png" alt="" /><img id="code_img_opened_6d7d087e-d7ff-452c-9d7b-9ed1b520ba17" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('6d7d087e-d7ff-452c-9d7b-9ed1b520ba17',event)" src="./images/python基础编程——类和实例1.png" alt="" />
+<div id="cnblogs_code_open_6d7d087e-d7ff-452c-9d7b-9ed1b520ba17" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例属性</span>
+        self.high =<span style="color: #000000;"> high
+        self.weight </span>=<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_set_high(self, high):
+        self.high </span>=<span style="color: #000000;"> high
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_get_high(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.high
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类方法</span>
+<span style="color: #000000;">    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_set_high(cls, high):
+        cls.high </span>=<span style="color: #000000;"> high
+
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_get_high(cls):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cls.high
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 静态方法</span>
+<span style="color: #000000;">    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_set_high(high):
+        Person.high </span>=<span style="color: #000000;"> high
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_get_high():
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Person.high
+
+
+person </span>= Person(12, 135<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例直接修改并访问类的保护属性</span>
+person.high = <span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(person.high)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 类名直接修改并访问类的保护属性</span>
+Person.high = <span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(Person.high)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用实例方法修改并访问类的私有属性</span>
+person.self_set_high(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.self_get_high())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用类方法修改并访问类的私有属性</span>
+Person.class_set_high(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.class_get_high())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用静态方法修改并访问类的私有属性</span>
+person.static_set_high(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.static_get_high())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用静态方法修改并访问类的私有属性</span>
+Person.static_set_high(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.static_get_high())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　　　　　5、实例的私有属性：</p>
+<p>　　　　　　　　在实例方法通过实例访问和修改实例私有属性</p>
+<p>　　　　　　　　在类方法通过类名访问和修改实例私有属性</p>
+<p>　　　　　　　　在静态方法通过类名访问和修改实例私有属性</p>
+<p>　　　　　　　　在类外通过类和实例访问和修改实例私有属性，相当于自身动态增加了一个属性，所以在类外是不能访问的；如果实例有与类的私有属性同名的实例私有属性，那么修改和访问就和类的私有属性没有关系了</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('5bb0e0bd-0441-472e-969d-3ed5b7f2c28c')"><img id="code_img_closed_5bb0e0bd-0441-472e-969d-3ed5b7f2c28c" class="code_img_closed" src="./images/python基础编程——类和实例0.png" alt="" /><img id="code_img_opened_5bb0e0bd-0441-472e-969d-3ed5b7f2c28c" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('5bb0e0bd-0441-472e-969d-3ed5b7f2c28c',event)" src="./images/python基础编程——类和实例1.png" alt="" />
+<div id="cnblogs_code_open_5bb0e0bd-0441-472e-969d-3ed5b7f2c28c" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例属性</span>
+        self.high =<span style="color: #000000;"> high
+        self.</span><span style="color: #800080;">__weight</span> =<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_set_weight(self, weight):
+        self.</span><span style="color: #800080;">__weight</span> =<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_get_weight(self):
+        </span><span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__weight</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 类方法</span>
+<span style="color: #000000;">    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_set_weight(cls, weight):
+        cls.</span><span style="color: #800080;">__weight</span> =<span style="color: #000000;"> weight
+
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_get_weight(cls):
+        </span><span style="color: #0000ff;">return</span> cls.<span style="color: #800080;">__weight</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 静态方法</span>
+<span style="color: #000000;">    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_set_weight(weight):
+        Person.</span><span style="color: #800080;">__weight</span> =<span style="color: #000000;"> weight
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_get_weight():
+        </span><span style="color: #0000ff;">return</span> Person.<span style="color: #800080;">__weight</span><span style="color: #000000;">
+
+
+person </span>= Person(12, 135<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这里是实例动态增加的属性</span>
+person.<span style="color: #800080;">__weight</span> = <span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span>(person.<span style="color: #800080;">__weight</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这里是类名动态增加的属性</span>
+Person.<span style="color: #800080;">__weight</span> = <span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span>(Person.<span style="color: #800080;">__weight</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用实例方法修改并访问类的私有属性</span>
+person.self_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.self_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用类方法修改并访问类的私有属性</span>
+Person.class_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.class_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用静态方法修改并访问类的私有属性</span>
+person.static_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.static_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用静态方法修改并访问类的私有属性</span>
+Person.static_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.static_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>　　　　　　6、实例的保护属性：</p>
+<p>　　　　　　　　在实例方法通过实例访问和修改实例保护属性</p>
+<p>　　　　　　　　在类方法通过类名访问和修改实例保护属性</p>
+<p>　　　　　　　　在静态方法通过类名访问和修改实例保护属性</p>
+<p>　　　　　　　　在类外通过类和实例访问和修改实例保护属性，相当于自身动态增加了一个属性，所以在类外是不能访问的；如果实例有与类的私有属性同名的实例私有属性，那么修改和访问就和类的私有属性没有关系了　　　</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('8bb5acdd-a7ac-4796-97c9-9efb5a0bdd46')"><img id="code_img_closed_8bb5acdd-a7ac-4796-97c9-9efb5a0bdd46" class="code_img_closed" src="./images/python基础编程——类和实例0.png" alt="" /><img id="code_img_opened_8bb5acdd-a7ac-4796-97c9-9efb5a0bdd46" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('8bb5acdd-a7ac-4796-97c9-9efb5a0bdd46',event)" src="./images/python基础编程——类和实例1.png" alt="" />
+<div id="cnblogs_code_open_8bb5acdd-a7ac-4796-97c9-9efb5a0bdd46" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例属性</span>
+        self.high =<span style="color: #000000;"> high
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例保护属性</span>
+        self._weight =<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_set_weight(self, weight):
+        self._weight </span>=<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_get_weight(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self._weight
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类方法</span>
+<span style="color: #000000;">    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_set_weight(cls, weight):
+        cls._weight </span>=<span style="color: #000000;"> weight
+
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_get_weight(cls):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cls._weight
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 静态方法</span>
+<span style="color: #000000;">    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_set_weight(weight):
+        Person._weight </span>=<span style="color: #000000;"> weight
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_get_weight():
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Person._weight
+
+
+person </span>= Person(12, 135<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这里是实例动态增加的属性</span>
+person._weight = <span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(person._weight)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 这里是类名动态增加的属性</span>
+Person._weight = <span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">print</span><span style="color: #000000;">(Person._weight)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用实例方法修改并访问类的私有属性</span>
+person.self_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.self_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用类方法修改并访问类的私有属性</span>
+Person.class_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.class_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用静态方法修改并访问类的私有属性</span>
+person.static_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.static_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 类名调用静态方法修改并访问类的私有属性</span>
+Person.static_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.static_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>&nbsp;　　　　关于类里面涉及属性都举例说明了（亲测有效），但是类中出现了几种方法，这个方法也是关键。类的方法类型：类方法、实例方法、静态方法</p>
+<p>　　　　　　　主要是验证谁可以调用3大方法</p>
+<p>　　　　　　　上述代码已经验证了实例可以调用实例方法、类名可以调用类方法、类名可以调用静态方法</p>
+<p>　　　　　　　实例可以调用类方法和静态方法</p>
+<p>　　　　　　　类名可以调用实例方法，传参必须传递一个具体实例</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('03314208-a986-446d-9c09-ab78f2621880')"><img id="code_img_closed_03314208-a986-446d-9c09-ab78f2621880" class="code_img_closed" src="./images/python基础编程——类和实例0.png" alt="" /><img id="code_img_opened_03314208-a986-446d-9c09-ab78f2621880" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('03314208-a986-446d-9c09-ab78f2621880',event)" src="./images/python基础编程——类和实例1.png" alt="" />
+<div id="cnblogs_code_open_03314208-a986-446d-9c09-ab78f2621880" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person:
+
+    </span><span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, high, weight):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例属性</span>
+        self.high =<span style="color: #000000;"> high
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例保护属性</span>
+        self._weight =<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_set_weight(self, weight):
+        self._weight </span>=<span style="color: #000000;"> weight
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> self_get_weight(self):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self._weight
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类方法</span>
+<span style="color: #000000;">    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_set_weight(cls, weight):
+        cls._weight </span>=<span style="color: #000000;"> weight
+
+    @classmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> class_get_weight(cls):
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cls._weight
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 静态方法</span>
+<span style="color: #000000;">    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_set_weight(weight):
+        Person._weight </span>=<span style="color: #000000;"> weight
+
+    @staticmethod
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> static_get_weight():
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Person._weight
+
+
+person </span>= Person(12, 135<span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 实例调用类方法</span>
+person.class_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.class_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 实例调用静态方法</span>
+person.static_set_weight(<span style="color: #800000;">"</span><span style="color: #800000;">36</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(person.static_get_weight())  <span style="color: #008000;">#</span><span style="color: #008000;"> 36</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> 类名调用实例方法，第一个参数必须是具体的实例</span>
+Person.self_set_weight(person, <span style="color: #800000;">"</span><span style="color: #800000;">24</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span>(Person.self_get_weight(person))  <span style="color: #008000;">#</span><span style="color: #008000;"> 24</span></pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>&nbsp;　　总结：</p>
+<p>　　　　1、对象名可以调用静态方法、实例方法、类方法</p>
+<p>　　　　2、类名可以调用静态方法、类方法、实例方法，但在调用实例方法时需要将第一个参数self传入，传入的其实是对象本身，不带参数报错</p>
+<p>　　　　3、实例属性通过实例方法的&lt;self.&gt;进行访问，静态方法和类方法无法访问实例属性</p>
+<p>　　　　4、类属性通过类方法的&lt;cls.&gt;进行访问，或者在其他函数内部通过&lt;类名.&gt;访问</p>
+<h2>　　继承</h2>
+<p>　　　　当子类/子对象和父类/父对象有很多共同之处，但是又有不同之处，这个时候我们就可以使用继承机制。继承父类的属性和行为，其他属性和行为需自己定义。</p>
+<p>　　　　python用的最多的继承是单继承，当然python也提供多继承的，但是尽可能的不要使用多继承，如果多继承多了的话，编程的思维很容易乱。</p>
+<p>　　　　类继承需在类名添加括号，在括号里添加父类名称，这还没有实现继承。使用super关键字调用父类的方法，属性可以直接拿来使用。父类可以看作是对子类的共同属性和方法的抽象，将他们封装成我们需要的父类</p>
+<p>　　　　类继承的几个关键点：</p>
+<p>　　　　　　1、子类继承可以继承父类的初始化函数__init__()，但是子类不写初始化函数时，会自动/默认调用父类的初始化函数；子类定义初始化函数，也一定要调用父类初始化函数</p>
+<p>　　　　　　这里继承是只能继承父类的类属性，不能继承父类对象的属性，若想也拥有同样的属性，所以才继承父类的初始化函数。</p>
+<p>　　　　　　抱歉！改天更新...</p>
+<p>　　　　　　</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

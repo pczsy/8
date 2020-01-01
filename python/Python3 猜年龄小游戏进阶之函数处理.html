@@ -1,0 +1,140 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python3 猜年龄小游戏进阶之函数处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python3 猜年龄小游戏进阶之函数处理</center></div><div class='banquan'>原文出处:本文由博客园博主MrBigB提供。<br/>
+原文连接:https://www.cnblogs.com/bigb/p/11551038.html</div><br>
+    <h3 id="在猜年龄的基础上编写登录注册方法并且把猜年龄游戏分函数处理">在猜年龄的基础上编写登录、注册方法，并且把猜年龄游戏分函数处理</h3>
+<ol>
+<li><p>登录函数</p></li>
+<li><p>注册函数</p></li>
+<li><p>猜年龄函数</p></li>
+<li><p>选择奖品函数</p></li>
+</ol>
+<pre><code><code># 注册
+def register():
+    &#39;&#39;&#39;注册&#39;&#39;&#39;
+    count = 0
+    while count &lt; 3:
+        name_inp = input(&#39;请输入用户名: &#39;)
+        pwd_inp = input(&#39;请输入密码: &#39;)
+        re_pwd_inp = input(&#39;再次输入以确认: &#39;)
+        if pwd_inp == re_pwd_inp:
+            with open(&#39;user_info&#39;, &#39;a&#39;, encoding=&#39;utf-8&#39;) as fa:
+                fa.write(f&#39;{name_inp}:{pwd_inp}\n&#39;)
+                print(&#39;注册成功&#39;)
+                break
+
+        else:
+            print(&#39;两次密码输入不一致&#39;)
+            count += 1
+
+
+# 登录
+def login():
+    &#39;&#39;&#39;登录&#39;&#39;&#39;
+    count = 0
+    while count &lt; 3:
+        name_inp = input(&#39;请输入用户名: &#39;)
+        pwd_inp = input(&#39;请输入密码: &#39;)
+
+        with open(&#39;user_info&#39;, &#39;r&#39;, encoding=&#39;utf-8&#39;) as fr:
+            for i in fr:
+                print(i)
+                name, pwd = i.split(&#39;:&#39;)
+
+                if name_inp == name.strip() and pwd_inp == pwd.strip():
+                    print(&#39;登录成功&#39;)
+                    count = 3
+                    break
+
+            else:
+                print(&#39;密码或用户名错误&#39;)
+                count += 1
+
+
+# 猜年龄
+def guess_age():
+    &#39;&#39;&#39;猜年龄游戏&#39;&#39;&#39;
+
+    age_count = 0
+    age = 18
+
+    while age_count &lt; 3:
+        age_inp = input(&#39;请输入你猜的年龄:&#39;)
+        if not age_inp.isdigit():
+            print(&#39;输入错误&#39;)
+            continue
+
+        age_inp_int = int(age_inp)
+        if age_inp_int &gt; age:
+            print(&#39;猜大了&#39;)
+        elif age_inp_int &lt; age:
+            print(&#39;猜小了&#39;)
+        else:
+            print(&#39;猜对了&#39;)
+            print(&#39;获得两次选择奖品的机会哦&#39;)
+            award()
+            break
+
+        age_count += 1
+
+
+# 选奖品
+def award():
+    &#39;&#39;&#39;选奖品&#39;&#39;&#39;
+    award_dict = {
+        &#39;0&#39;: &#39;马云&#39;,
+        &#39;1&#39;: &#39;马化腾&#39;,
+        &#39;2&#39;: &#39;马冬梅&#39;,
+    }
+    print(award_dict)
+
+    choice_count = 0  # 计数
+    choice_dic = {}
+
+    while choice_count &lt; 2:
+
+        choice = input(&#39;请输入奖品编号: &#39;)
+        award = award_dict[choice]
+        print(f&#39;你选择的奖品是: {award}&#39;)
+
+        # 保存用户选择信息
+        if award in choice_dic:
+            choice_dic[award_dict[choice]] += 1
+        else:
+            choice_dic[award_dict[choice]] = 1
+        print(f&#39;已选奖品为: {choice_dic}&#39;)
+        choice_count += 1
+
+    print(f&#39;你的奖品为: {choice_dic}&#39;)
+
+# 开始游戏
+def play():
+    &#39;&#39;&#39;开始游戏&#39;&#39;&#39;
+    register()
+    login()
+    guess_age()
+
+
+play()</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

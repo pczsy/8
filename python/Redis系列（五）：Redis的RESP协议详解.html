@@ -1,0 +1,341 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis系列（五）：Redis的RESP协议详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis系列（五）：Redis的RESP协议详解</center></div><div class='banquan'>原文出处:本文由博客园博主toby.xu提供。<br/>
+原文连接:https://www.cnblogs.com/toby-xu/p/11992730.html</div><br>
+    <h2>一、什么是RESP</h2>
+<p>　　Redis是Redis序列化协议，Redis客户端RESP协议与Redis服务器通信。Redis协议在以下几点之间做出了折衷：</p>
+<ul>
+<li>简单的实现</li>
+<li>快速地被计算机解析</li>
+<li>简单得可以能被人工解析</li>
+</ul>
+<h2>二、RESP协议描述</h2>
+<p>　　RESP协议在Redis 1.2中引入，但在Redis 2.0中成为与Redis服务器通信的标准方式。这个通信方式就是Redis客户端实现的协议。RESP实际上是一个序列化协议，它支持以下数据类型:简单字符串、错误、整数、大容量字符串和数组。</p>
+<h3>　　1、RESP在Redis中用作请求-响应协议的方式如下:</h3>
+<ul>
+<li>客户端将命令以批量字符串的RESP数组的形式发送到Redis服务器，如下：</li>
+</ul>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">SET mykey myvalue
+</span>*3<span style="color: #000000;">
+$</span>3<span style="color: #000000;">
+SET
+$</span>5<span style="color: #000000;">
+mykey
+$</span>7<span style="color: #000000;">
+myvalue
+
+</span>*3<span style="color: #000000;">：SET mykey myvalue 这数组的长度
+$</span>3<span style="color: #000000;">：表示下面的字符长度是3，这里是SET长度是
+$</span>5<span style="color: #000000;">：表示下面的字符的长度是5，这里是mykey的长度
+$</span>7：表示下面的字符的长度是7，这里是myvalue的长度</pre>
+</div>
+<ul>
+<li>服务器根据命令实现使用其中一种RESP类型进行响应</li>
+</ul>
+<h3>　　2、在RESP中，某些数据的类型取决于第一个字节:</h3>
+<ul>
+<li>For <strong>Simple Strings</strong> the first byte of the reply is "+"&nbsp; &nbsp;简单字符串回复的第一个字节将是&ldquo;+&rdquo;</li>
+</ul>
+<p>　　比如：向服务器发送"set toby xu"命令，实际上服务器的返回是:"+OK\r\n"</p>
+<p><img src="./images/Redis系列（五）：Redis的RESP协议详解0.png" alt="" /></p>
+<ul>
+<li>For <strong>Errors</strong> the first byte of the reply is "-"&nbsp; &nbsp;错误消息，回复的第一个字节将是&ldquo;-&rdquo;</li>
+</ul>
+<p>　　比如：向服务器发送"add toby xu"命令，实际上服务器的返回是:"-ERR unknown command `add`, with args beginning with: `toby`, `xu`,\r\n"</p>
+<p><img src="./images/Redis系列（五）：Redis的RESP协议详解1.png" alt="" /></p>
+<ul>
+<li>For <strong>Integers</strong> the first byte of the reply is ":"&nbsp;&nbsp;整型数字，回复的第一个字节将是&ldquo;:&rdquo;</li>
+</ul>
+<p>　　比如：向服务器发送"incr count"命令，实际上服务器的返回是:":6\r\n"</p>
+<p><img src="./images/Redis系列（五）：Redis的RESP协议详解2.png" alt="" /></p>
+<ul>
+<li>For <strong>Bulk Strings</strong> the first byte of the reply is "$"&nbsp;&nbsp;批量回复，回复的第一个字节将是&ldquo;$&rdquo;</li>
+</ul>
+<p>　　比如：向服务器发送"get toby"命令，实际上服务器的返回是:"$2\r\nxu\r\n"</p>
+<p><img src="./images/Redis系列（五）：Redis的RESP协议详解3.png" alt="" /></p>
+<ul>
+<li>For <strong>Arrays</strong> the first byte of the reply is "*"&nbsp; 数组回复的第一个字节将是&ldquo;*&rdquo;</li>
+</ul>
+<p>　　比如：向服务器发送"hgetall toby_h"命令，实际上服务器的返回是:"*4\r\n$4\r\njava\r\n$3\r\n100\r\n$3\r\nc++\r\n$2\r\n80\r\n"</p>
+<p><img src="./images/Redis系列（五）：Redis的RESP协议详解4.png" alt="" /></p>
+<p>&nbsp;　　示例RedisServerReplyTest代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @desc: 测试服务器返回
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: toby
+ * @date: 2019/12/5 23:07
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RedisServerReplyTest {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #0000ff;">try</span>(Socket socket = <span style="color: #0000ff;">new</span> Socket("192.168.160.146",6379<span style="color: #000000;">);
+            OutputStream os </span>=<span style="color: #000000;"> socket.getOutputStream();
+            InputStream is </span>=<span style="color: #000000;"> socket.getInputStream()){
+            os.write(assemblyCommandForArrays().getBytes());
+            </span><span style="color: #0000ff;">byte</span>[] bytes=<span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span>[4096<span style="color: #000000;">];
+            is.read(bytes);
+            System.out.println(</span>"服务器真实返回:" + <span style="color: #0000ff;">new</span><span style="color: #000000;"> String(bytes));
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * For Simple Strings the first byte of the reply is "+"
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String assemblyCommandForSimpleStrings() {
+        StringBuilder sb</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+        sb.append(</span>"*3").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("set".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"set").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("toby".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"toby").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("xu".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"xu").append("\r\n"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sb.toString();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * For Errors the first byte of the reply is "-"
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String assemblyCommandForErrors() {
+        StringBuilder sb</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+        sb.append(</span>"*3").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("set".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"add").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("toby".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"toby").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("xu".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"xu").append("\r\n"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sb.toString();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * For Integers the first byte of the reply is ":"
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String assemblyCommandForIntegers() {
+        StringBuilder sb</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+        sb.append(</span>"*2").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("incr".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"incr").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("count".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"count").append("\r\n"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sb.toString();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * For Bulk Strings the first byte of the reply is "$"
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String assemblyCommandForBulkStrings() {
+        StringBuilder sb</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+        sb.append(</span>"*2").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("get".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"get").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("toby".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"toby").append("\r\n"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sb.toString();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * For Arrays the first byte of the reply is "*"
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String assemblyCommandForArrays() {
+        StringBuilder sb</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+        sb.append(</span>"*2").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("hgetall".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"hgetall").append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"$").append("toby_h".length()).append("\r\n"<span style="color: #000000;">);
+        sb.append(</span>"toby_h").append("\r\n"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sb.toString();
+    }
+}</span></pre>
+</div>
+<h2>&nbsp;三、自定义简单的Redis Client</h2>
+<p>　　我们现在了解了Redis的RESP协议，并且知道网络层上Redis在TCP端口6379上监听到来的连接，客户端连接到来时，Redis服务器为此创建一个TCP连接。在客户端与服务器端之间传输的每个Redis命令或者数据都以\r\n结尾，那么接下来我们自定义一个简单的Client。&nbsp;</p>
+<h3>　　（1）编解码器Coder：</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @desc: 编解码器
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: toby
+ * @date: 2019/12/6 19:33
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Coder {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">byte</span>[] encode(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String str) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">if</span> (str == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("value sent to redis cannot be null"<span style="color: #000000;">);
+            }
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> str.getBytes(RedisProtocol.CHARSET);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (UnsupportedEncodingException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> String decode(<span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[] data) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> String(data, RedisProtocol.CHARSET);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (UnsupportedEncodingException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+}</span></pre>
+</div>
+<h3>　　（2）Redis协议RedisProtocol：</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @desc: Redis协议
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: toby
+ * @date: 2019/12/6 19:33
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RedisProtocol {<br />
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String CHARSET = "UTF-8"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span> DOLLAR_BYTE = '$'<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span> ASTERISK_BYTE = '*'<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span> PLUS_BYTE = '+'<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span> MINUS_BYTE = '-'<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span> COLON_BYTE = ':'<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span> CR_BYTE = '\r'<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span> LF_BYTE = '\n'<span style="color: #000000;">;
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * *3
+     * $3
+     * SET
+     * $4
+     * toby
+     * $2
+     * xu
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> os
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> command
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> args
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> sendCommand(<span style="color: #0000ff;">final</span> OutputStream os, <span style="color: #0000ff;">final</span> Command command, <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[]... args) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            os.write(ASTERISK_BYTE);
+            os.write(Coder.encode(String.valueOf(args.length </span>+ 1<span style="color: #000000;">)));
+            os.write(CR_BYTE);
+            os.write(LF_BYTE);
+            os.write(DOLLAR_BYTE);
+            os.write(Coder.encode(String.valueOf(command.name().length())));
+            os.write(CR_BYTE);
+            os.write(LF_BYTE);
+            os.write(Coder.encode(command.name()));
+            os.write(CR_BYTE);
+            os.write(LF_BYTE);
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[] arg : args) {
+                os.write(DOLLAR_BYTE);
+                os.write(Coder.encode(String.valueOf(arg.length)));
+                os.write(CR_BYTE);
+                os.write(LF_BYTE);
+                os.write(arg);
+                os.write(CR_BYTE);
+                os.write(LF_BYTE);
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">enum</span><span style="color: #000000;"> Command{
+        SET, GET
+    }
+
+}</span></pre>
+</div>
+<h3>　　（3）自定义Client RedisClient：</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @desc: 自定义Client
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: toby
+ * @date: 2019/12/6 19:31
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RedisClient {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String host;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> port;
+
+    </span><span style="color: #0000ff;">public</span> RedisClient(String host,<span style="color: #0000ff;">int</span><span style="color: #000000;"> port){
+        </span><span style="color: #0000ff;">this</span>.host =<span style="color: #000000;"> host;
+        </span><span style="color: #0000ff;">this</span>.port =<span style="color: #000000;"> port;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String set(String key,String value){
+        </span><span style="color: #0000ff;">try</span> (Socket socket = <span style="color: #0000ff;">new</span> Socket(<span style="color: #0000ff;">this</span>.host,<span style="color: #0000ff;">this</span><span style="color: #000000;">.port);
+             InputStream is </span>=<span style="color: #000000;"> socket.getInputStream();
+             OutputStream os </span>=<span style="color: #000000;"> socket.getOutputStream()){
+            RedisProtocol.sendCommand(os,RedisProtocol.Command.SET,Coder.encode(key),Coder.encode(value));
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> getReply(is);
+        }</span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> e.getMessage();
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String get(String key){
+        </span><span style="color: #0000ff;">try</span> (Socket socket = <span style="color: #0000ff;">new</span> Socket(<span style="color: #0000ff;">this</span>.host,<span style="color: #0000ff;">this</span><span style="color: #000000;">.port);
+             InputStream is </span>=<span style="color: #000000;"> socket.getInputStream();
+             OutputStream os </span>=<span style="color: #000000;"> socket.getOutputStream()){
+            RedisProtocol.sendCommand(os,RedisProtocol.Command.GET,Coder.encode(key));
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> getReply(is);
+        }</span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> e.getMessage();
+        }
+    }
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String getReply(InputStream is){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">byte</span>[] bytes = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span>[4096<span style="color: #000000;">];
+            is.read(bytes);
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Coder.decode(bytes);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        }
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+}</span></pre>
+</div>
+<h3>　　（4）Redis Client 测试&nbsp;RedisClientTest：</h3>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @desc: Redis Client 测试
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: toby
+ * @date: 2019/12/6 19:35
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RedisClientTest {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        RedisClient client </span>= <span style="color: #0000ff;">new</span> RedisClient("192.168.160.146",6379<span style="color: #000000;">);
+        System.out.println(client.set(</span>"toby_2","xu_2"<span style="color: #000000;">));
+        System.out.println(client.get(</span>"toby_2"<span style="color: #000000;">));
+    }
+}</span></pre>
+</div>
+<p>　　运行结果如下：</p>
+<p><img src="./images/Redis系列（五）：Redis的RESP协议详解5.png" alt="" /></p>
+<p>&nbsp;　　至此自定义的简单的Redis Client完成！！！！！！</p>
+<h2>四、总结</h2>
+<p>　　通过本章的学习，了解了什么是Redis的RESP协议？Redis协议几个特点：简单的实现；快速地被计算机解析；简单得可以能被人工解析。有了协议，我们就可以通过自定义的Client想Redis服务端发起请求，从而进行操作Redis。对后面理解Redis客户端Jedis的实现原理有很大的帮助。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

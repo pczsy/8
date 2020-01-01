@@ -1,0 +1,169 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python 入门 之 反射' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python 入门 之 反射</center></div><div class='banquan'>原文出处:本文由博客园博主永亮提供。<br/>
+原文连接:https://www.cnblogs.com/caiyongliang/p/11638354.html</div><br>
+    <h1 id="python-入门-之-反射">Python 入门 之 反射</h1>
+<h2 id="反射-自省">1、反射 ： (自省)</h2>
+<p>​ 反射主要是指程序可以访问、检测和修改它本身状态或行为的一种能力（自省）。</p>
+<p>Python面向对象中的反射：通过字符串的形式操作对象的相关属性。Python中的一切事物都是对象（都可以使用反射）</p>
+<h5 id="getattr-获取">&lt;1&gt; getattr() 获取</h5>
+<h5 id="setattr-设置">&lt;2&gt; setattr() 设置</h5>
+<h5 id="hasattr-判断是否存在">&lt;3&gt; hasattr() 判断是否存在</h5>
+<h5 id="delattr-删除">&lt;4&gt; delattr() 删除</h5>
+<h2 id="通过字符串操作对象的属性和方法">（1）通过字符串操作对象的属性和方法</h2>
+<pre><code><code>class A:
+    def __init__(self,name):
+        self.name = name
+
+    def func(self):
+        print(&quot;is A func&quot;)
+a = A(&quot;rimo&quot;)
+
+
+A.func()
+print(a.name)
+a.func()</code></pre>
+<h2 id="对象的角度使用反射">（2）对象的角度使用反射</h2>
+<pre><code><code>class A:
+    def __init__(self,name):
+        self.name = name
+
+    def func(self):
+        print(&quot;is A func&quot;)
+a = A(&quot;rimo&quot;)
+
+print(hasattr(a,&quot;name&quot;))  # 返回 True就是说明name这个属性在对象a中存在
+
+print(getattr(a,&quot;name&quot;))
+f = getattr(a,&quot;func&quot;)
+f()
+setattr(a,&quot;age&quot;,18)
+print(a.__dict__)
+
+delattr(a,&quot;name&quot;)
+print(a.__dict__)</code></pre>
+<h3 id="类的角度使用反射">（3）类的角度使用反射</h3>
+<pre><code><code>class A:
+    def __init__(self,name):
+        self.name = name
+
+    def func(self):
+        print(&quot;is A func&quot;)
+
+a = A(&quot;rimo&quot;)
+
+print(hasattr(A,&quot;name&quot;))
+f = getattr(A,&quot;func&quot;)
+f(11)</code></pre>
+<h3 id="当前模块使用反射">（4）当前模块使用反射</h3>
+<pre><code><code>def func():
+    print(&quot;is func&quot;)
+
+# 当前模块:
+print(globals()[&quot;func&quot;])
+
+import sys
+o = sys.modules[__name__]   # 获取当前模块名对应的对象
+f = getattr(o,&quot;func&quot;)
+f()</code></pre>
+<h3 id="其他模块使用反射">（5）其他模块使用反射</h3>
+<pre><code><code>import test       # 导入模块
+test.func()
+
+o = globals()[&quot;test&quot;]
+getattr(o,&quot;func&quot;)()</code></pre>
+<h3 id="反射的应用场景">（6）反射的应用场景</h3>
+<pre><code><code>class Blog:
+
+    def login(self):
+        print(&quot;is login&quot;)
+
+    def register(self):
+        print(&quot;is register&quot;)
+
+    def comment(self):
+        print(&quot;is comment&quot;)
+
+    def log(self):
+        print(&quot;is log&quot;)
+
+    def log_out(self):
+        print(&quot;is log_out&quot;)
+
+b = Blog()
+
+func_dic = {
+    &quot;1&quot;:b.login,
+    &quot;2&quot;:b.register,
+    &quot;3&quot;:b.comment,
+    &quot;4&quot;:b.log,
+    &quot;5&quot;:b.log_out
+}
+
+msg = &quot;&quot;&quot;
+1.登录
+2.注册
+3.评论
+4.日志
+5.注销
+&quot;&quot;&quot;
+
+choose = input(msg)
+if choose in func_dic:
+    func_dic[choose]()</code></pre>
+<h6 id="将上述代码进行修改减少代码通过字符串操作对象的属性和方法">将上述代码进行修改，减少代码（通过字符串操作对象的属性和方法）</h6>
+<pre><code><code>class Blog:
+    def login(self):
+        print(&quot;is login&quot;)
+
+    def register(self):
+        print(&quot;is register&quot;)
+
+    def comment(self):
+        print(&quot;is comment&quot;)
+
+    def log(self):
+        print(&quot;is log&quot;)
+
+    def log_out(self):
+        print(&quot;is log_out&quot;)
+
+b = Blog()
+
+msg = &quot;&quot;&quot;
+login
+register
+comment
+log
+log_out
+&quot;&quot;&quot;
+
+while 1:
+    choose = input(msg)
+    if hasattr(b,choose):
+        getattr(b,choose)()
+    else:
+        print(&quot;请重新输入!&quot;)
+</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

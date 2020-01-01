@@ -1,0 +1,146 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python递归函数,二分查找算法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python递归函数,二分查找算法</center></div><div class='banquan'>原文出处:本文由博客园博主changxin7提供。<br/>
+原文连接:https://www.cnblogs.com/changxin7/p/11340202.html</div><br>
+    <h2 id="一初始递归">一、初始递归</h2>
+<p>递归函数：在一个函数里在调用这个函数本身。</p>
+<p>递归的最大深度：998</p>
+<p>正如你们刚刚看到的，递归函数如果不受到外力的阻止会一直执行下去。但是我们之前已经说过关于函数调用的问题，每一次函数调用都会产生一个属于它自己的名称空间，如果一直调用下去，就会造成名称空间占用太多内存的问题，于是python为了杜绝此类现象，强制的将递归层数控制在了<strong>997</strong>(只要997！你买不了吃亏，买不了上当...).</p>
+<p>拿什么来证明这个“998理论”呢？这里我们可以做一个实验：</p>
+<pre><code><code>def foo(n):
+    print(n)
+    n += 1
+    foo(n)
+foo(1)</code></pre>
+<p>由此我们可以看出，未报错之前能看到的最大数字就是998.当然了，997是python为了我们程序的内存优化所设定的一个默认值，我们当然还可以通过一些手段去修改它：</p>
+<pre><code><code>import sys
+print(sys.setrecursionlimit(100000))</code></pre>
+<p>我们可以通过这种方式来修改递归的最大深度，刚刚我们将python允许的递归深度设置为了10w，至于实际可以达到的深度就取决于计算机的性能了。不过我们还是不推荐修改这个默认的递归深度，因为如果用997层递归都没有解决的问题要么是不适合使用递归来解决要么是你代码写的太烂了～～～</p>
+<p>看到这里，你可能会觉得递归也并不是多么好的东西，不如while True好用呢！然而，江湖上流传这这样一句话叫做：人理解循环，神理解递归。所以你可别小看了递归函数，很多人被拦在大神的门槛外这么多年，就是因为没能领悟递归的真谛。而且之后我们学习的很多算法都会和递归有关系。来吧，只有学会了才有资本嫌弃！</p>
+<h2 id="二递归示例讲解">二、递归示例讲解</h2>
+<p>这里我们又要举个例子来说明递归能做的事情。</p>
+<p><strong>例一：</strong></p>
+<p>现在你们问我，alex老师多大了？我说我不告诉你，但alex比 egon 大两岁。</p>
+<p>你想知道alex多大，你是不是还得去问egon？egon说，我也不告诉你，但我比武sir大两岁。</p>
+<p>你又问武sir，武sir也不告诉你，他说他比太白大两岁。</p>
+<p>那你问太白，太白告诉你，他18了。</p>
+<p>这个时候你是不是就知道了？alex多大？</p>
+<table>
+<thead>
+<tr class="header">
+<th>1</th>
+<th>金鑫</th>
+<th>18</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2</td>
+<td>武sir</td>
+<td>20</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>egon</td>
+<td>22</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>alex</td>
+<td>24</td>
+</tr>
+</tbody>
+</table>
+<p>你为什么能知道的？</p>
+<p>首先，你是不是问alex的年龄，结果又找到egon、武sir、太白，你挨个儿问过去，一直到拿到一个确切的答案，然后顺着这条线再找回来，才得到最终alex的年龄。这个过程已经非常接近递归的思想。我们就来具体的我分析一下，这几个人之间的规律。</p>
+<pre><code><code>age(4) = age(3) + 2 
+age(3) = age(2) + 2
+age(2) = age(1) + 2
+age(1) = 40</code></pre>
+<p>那这样的情况，我们的函数怎么写呢？</p>
+<pre><code><code>def age(n):
+    if n == 1:
+        return 40
+    else:
+        return age(n-1)+2
+
+print(age(4))</code></pre>
+<p>如果有这样一个列表，让你从这个列表中找到66的位置，你要怎么做？</p>
+<pre><code><code>l = [2,3,5,10,15,16,18,22,26,30,32,35,41,42,43,55,56,66,67,69,72,76,82,83,88]</code></pre>
+<p>你说，so easy！</p>
+<p>l.index(66)...</p>
+<p>我们之所以用index方法可以找到，是因为python帮我们实现了查找方法。如果，index方法不给你用了。。。你还能找到这个66么？</p>
+<pre><code><code>l = [2,3,5,10,15,16,18,22,26,30,32,35,41,42,43,55,56,66,67,69,72,76,82,83,88]
+
+i = 0
+for num in l:
+    if num == 66:
+        print(i)
+    i+=1</code></pre>
+<p>上面这个方法就实现了从一个列表中找到66所在的位置了。</p>
+<p>但我们现在是怎么找到这个数的呀？是不是循环这个列表，一个一个的找的呀？假如我们这个列表特别长，里面好好几十万个数，那我们找一个数如果运气不好的话是不是要对比十几万次？这样效率太低了，我们得想一个新办法。</p>
+<h2 id="二分查找算法">二分查找算法</h2>
+<pre><code><code>l = [2,3,5,10,15,16,18,22,26,30,32,35,41,42,43,55,56,66,67,69,72,76,82,83,88]</code></pre>
+<p>你观察这个列表，这是不是一个从小到大排序的<strong>有序</strong>列表呀？</p>
+<p>如果这样，假如我要找的数比列表中间的数还大，是不是我直接在列表的后半边找就行了？</p>
+<p><img src="./images/Python递归函数,二分查找算法0.png" alt="img" /></p>
+<p>这就是<strong>二分查找算法</strong>！</p>
+<p>那么落实到代码上我们应该怎么实现呢？</p>
+<p>简单版二分法</p>
+<pre><code><code>l = [2,3,5,10,15,16,18,22,26,30,32,35,41,42,43,55,56,66,67,69,72,76,82,83,88]
+
+def func(l,aim):
+    mid = (len(l)-1)//2
+    if l:
+        if aim &gt; l[mid]:
+            func(l[mid+1:],aim)
+        elif aim &lt; l[mid]:
+            func(l[:mid],aim)
+        elif aim == l[mid]:
+            print(&quot;bingo&quot;,mid)
+    else:
+        print(&#39;找不到&#39;)
+func(l,66)
+func(l,6)</code></pre>
+<p>升级版二分法</p>
+<pre><code><code>l1 = [1, 2, 4, 5, 7, 9]
+def two_search(l,aim,start=0,end=None):
+    end = len(l)-1 if end is None else end
+    mid_index = (end - start) // 2 + start
+    if end &gt;= start:
+        if aim &gt; l[mid_index]:
+            return two_search(l,aim,start=mid_index+1,end=end)
+
+        elif aim &lt; l[mid_index]:
+            return two_search(l,aim,start=start,end=mid_index-1)
+
+        elif aim == l[mid_index]:
+            return mid_index
+        else:
+            return &#39;没有此值&#39;
+    else:
+        return &#39;没有此值&#39;
+print(two_search(l1,9))</code></pre>
+<p>我的博客即将搬运同步至腾讯云+社区，邀请大家一同入驻：<a href="https://cloud.tencent.com/developer/support-plan" class="uri">https://cloud.tencent.com/developer/support-plan</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

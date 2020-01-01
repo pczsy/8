@@ -1,0 +1,284 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修BeetleX之快速构建Web多房间聊天室' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>BeetleX之快速构建Web多房间聊天室</center></div><div class='banquan'>原文出处:本文由博客园博主开源微服务(BeetleX)提供。<br/>
+原文连接:https://www.cnblogs.com/smark/p/12090001.html</div><br>
+    <p><span style="font-size: 15px;">其实构建一个<code>Web</code>多房间聊天室也并不是什么困难的技术，借助于<code>websocket</code>就可以轻松实现多用户在线实时通讯交互；在这里主要介绍一下在<code>BeetleX</code>和<code>BeetleXjs</code>的支持下如何让这个功能实现的更简单和高效。接下来通过使用<code>BeetleX</code>来一步步讲解Web多房间聊天室的具体实现。</span></p>
+<h2 id="h2_1">信息逻辑</h2>
+<p><span style="font-size: 15px;">既然是多房间聊天室那它具备两个主要元素，分别是用户和房间;下面通过类来描述这两个元素:</span></p>
+<p><strong>用户</strong></p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User
+    {
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+
+        [JsonIgnore]
+        </span><span style="color: #0000ff;">public</span> ISession Session { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+
+        [JsonIgnore]
+        </span><span style="color: #0000ff;">public</span> Room Room { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Send(BeetleX.FastHttpApi.WebSockets.DataFrame frame)
+        {
+            frame.Send(Session);
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Exit()
+        {
+            Room</span>?.Exit(<span style="color: #0000ff;">this</span><span style="color: #000000;">);
+        }
+    }</span></pre>
+</div>
+<p><span style="font-size: 15px;">信息描述比较简单主要包括信息用:名称，会话和房间；涉及的行为有发送信息和退出房间。</span></p>
+<p><strong><span style="font-size: 15px;">房间</span></strong></p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Room
+    {
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+
+        </span><span style="color: #0000ff;">public</span> List&lt;User&gt; Users { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">set</span>; } = <span style="color: #0000ff;">new</span> List&lt;User&gt;<span style="color: #000000;">();
+
+        </span><span style="color: #0000ff;">public</span> HttpApiServer HttpServer { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Send(Command cmd)
+        {
+            cmd.Room </span>=<span style="color: #000000;"> Name;
+            </span><span style="color: #0000ff;">var</span> frame =<span style="color: #000000;"> HttpServer.CreateDataFrame(cmd);
+            </span><span style="color: #0000ff;">lock</span><span style="color: #000000;"> (Users)
+            {
+                </span><span style="color: #0000ff;">foreach</span> (<span style="color: #0000ff;">var</span> item <span style="color: #0000ff;">in</span><span style="color: #000000;"> Users)
+                    item.Send(frame);
+            }
+
+        }
+
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User[] GetOnlines()
+        {
+            </span><span style="color: #0000ff;">lock</span><span style="color: #000000;"> (Users)
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Users.ToArray();
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Enter(User user)
+        {
+            </span><span style="color: #0000ff;">if</span> (user == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">if</span> (user.Room != <span style="color: #0000ff;">this</span><span style="color: #000000;">)
+            {
+                user.Room</span>?<span style="color: #000000;">.Exit(user);
+                </span><span style="color: #0000ff;">lock</span><span style="color: #000000;"> (Users)
+                    Users.Add(user);
+                user.Room </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+                Command quit </span>= <span style="color: #0000ff;">new</span> Command { Type = <span style="color: #800000;">"</span><span style="color: #800000;">enter</span><span style="color: #800000;">"</span>,Message=$<span style="color: #800000;">"</span><span style="color: #800000;">enter room</span><span style="color: #800000;">"</span>, User =<span style="color: #000000;"> user };
+                Send(quit);
+            }
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Exit(User user)
+        {
+            </span><span style="color: #0000ff;">if</span> (user == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">lock</span><span style="color: #000000;"> (Users)
+                Users.Remove(user);
+            user.Room </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+            Command quit </span>= <span style="color: #0000ff;">new</span> Command { Type = <span style="color: #800000;">"</span><span style="color: #800000;">quit</span><span style="color: #800000;">"</span>, Message = $<span style="color: #800000;">"</span><span style="color: #800000;">exit room</span><span style="color: #800000;">"</span>, User =<span style="color: #000000;"> user };
+            Send(quit);
+        }
+    }</span></pre>
+</div>
+<p><span style="font-size: 15px;">房间信息主要包括名称和用户信息，具体行为有进房间，出房间和向房间发送信息。</span></p>
+<h2 id="h2_2">服务逻辑</h2>
+<p><span style="font-size: 15px;">有了逻辑信息那就需要把这个信息通过接口的服务方式提供给外部访问操作，接下来定义一个简单的控制器类来描述相关接口服务行为</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">    [BeetleX.FastHttpApi.Controller]
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Home : BeetleX.FastHttpApi.IController
+    {
+        [BeetleX.FastHttpApi.NotAction]
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> Init(HttpApiServer server, <span style="color: #0000ff;">string</span><span style="color: #000000;"> path)
+        {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; <span style="color: #800080;">10</span>; i++<span style="color: #000000;">)
+            {
+                </span><span style="color: #0000ff;">string</span> key = $<span style="color: #800000;">"</span><span style="color: #800000;">{i:00}</span><span style="color: #800000;">"</span><span style="color: #000000;">;
+                mRooms[key] </span>= <span style="color: #0000ff;">new</span> Room { Name = key, HttpServer =<span style="color: #000000;"> server };
+            }
+            server.HttpDisconnect </span>+= (o, e) =&gt;<span style="color: #000000;">
+            {
+                GetUser(e.Session)</span>?<span style="color: #000000;">.Exit();
+            };
+        }
+        </span><span style="color: #0000ff;">private</span> ConcurrentDictionary&lt;<span style="color: #0000ff;">string</span>, Room&gt;<span style="color: #000000;"> mRooms 
+        </span>= <span style="color: #0000ff;">new</span> ConcurrentDictionary&lt;<span style="color: #0000ff;">string</span>, Room&gt;<span style="color: #000000;">(StringComparer.OrdinalIgnoreCase);
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">object</span><span style="color: #000000;"> Rooms()
+        {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">from</span> a <span style="color: #0000ff;">in</span> mRooms.Values <span style="color: #0000ff;">orderby</span> a.Name <span style="color: #0000ff;">select</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> {a.Name};
+        }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> Enter(<span style="color: #0000ff;">string</span><span style="color: #000000;"> room, IHttpContext context)
+        {
+            User user </span>=<span style="color: #000000;"> GetUser(context.Session);
+            mRooms.TryGetValue(room, </span><span style="color: #0000ff;">out</span><span style="color: #000000;"> Room result);
+            result</span>?<span style="color: #000000;">.Enter(user);
+        }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> Talk(<span style="color: #0000ff;">string</span><span style="color: #000000;"> message, IHttpContext context)
+        {
+            </span><span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">string</span><span style="color: #000000;">.IsNullOrEmpty(message))
+            {
+                </span><span style="color: #0000ff;">var</span> user =<span style="color: #000000;"> GetUser(context.Session);
+                Command cmd </span>= <span style="color: #0000ff;">new</span> Command { Type = <span style="color: #800000;">"</span><span style="color: #800000;">talk</span><span style="color: #800000;">"</span>, Message = message, User =<span style="color: #000000;"> user };
+                user</span>?.Room?<span style="color: #000000;">.Send(cmd);
+            }
+        }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> Login(<span style="color: #0000ff;">string</span><span style="color: #000000;"> name, IHttpContext context)
+        {
+            User user </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+            user.Name </span>=<span style="color: #000000;"> name;
+            user.Session </span>=<span style="color: #000000;"> context.Session;
+            user.Address </span>=<span style="color: #000000;"> context.Request.RemoteIPAddress;
+            SetUser(context.Session, user);
+        }
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> User GetUser(ISession session)
+        {
+            </span><span style="color: #0000ff;">return</span> (User)session[<span style="color: #800000;">"</span><span style="color: #800000;">__user</span><span style="color: #800000;">"</span><span style="color: #000000;">];
+        }
+
+        </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> SetUser(ISession session, User user)
+        {
+            session[</span><span style="color: #800000;">"</span><span style="color: #800000;">__user</span><span style="color: #800000;">"</span>] =<span style="color: #000000;"> user;
+        }
+    }</span></pre>
+</div>
+<p><strong><span style="font-size: 15px;">Init方法</span></strong></p>
+<p><span style="font-size: 15px;">用于初始化房间信息，并绑定连接断开事件，如果用户断开了则执行用户退出房间。</span></p>
+<p><strong><span style="font-size: 15px;">Login方法</span></strong></p>
+<p><span style="font-size: 15px;">登陆到用户中</span></p>
+<p><strong><span style="font-size: 15px;">Rooms方法</span></strong></p>
+<p><span style="font-size: 15px;">获取所有房间信息</span></p>
+<p><strong><span style="font-size: 15px;">Enter方法</span></strong></p>
+<p><span style="font-size: 15px;">用户进入房间</span></p>
+<p><strong><span style="font-size: 15px;">Talk</span></strong></p>
+<p><span style="font-size: 15px;">用户向房间内发送一条消息</span></p>
+<h2 id="h2_3">启动服务</h2>
+<p><span style="font-size: 15px;">当功能逻辑写好后，接下来的工作就是让这些接口部署到<code>websocket</code>服务中，部署的代码比较简单:</span></p>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">class</span><span style="color: #000000;"> Program
+    {
+        </span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> Main(<span style="color: #0000ff;">string</span><span style="color: #000000;">[] args)
+        {
+            </span><span style="color: #0000ff;">var</span> builder = <span style="color: #0000ff;">new</span><span style="color: #000000;"> HostBuilder()
+                .ConfigureServices((hostContext, services) </span>=&gt;<span style="color: #000000;">
+                {
+                    services.UseBeetlexHttp(o </span>=&gt;<span style="color: #000000;">
+                    {
+                        o.LogToConsole </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                        o.ManageApiEnabled </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                        o.Port </span>= <span style="color: #800080;">80</span><span style="color: #000000;">;
+                        o.SetDebug();
+                        o.LogLevel </span>=<span style="color: #000000;"> BeetleX.EventArgs.LogType.Warring;
+                    },
+                    </span><span style="color: #0000ff;">typeof</span><span style="color: #000000;">(Program).Assembly);
+                });
+            builder.Build().Run();
+        }
+    }</span></pre>
+</div>
+<p><span style="font-size: 15px;">当服务部署后就可以专心去做前端实现的工作。</span></p>
+<h2 id="h2_4">Web前端</h2>
+<p><span style="font-size: 15px;">为了更方便地和<code>Beetlex</code>服务整合，因此也单独针对性地封装了相应的<code>javascript</code>组件；除了自有封装的<code>javascript</code>还涉及到<code>vuejs</code>的使用。通过以上组件整合前端的代码相比服务端来说就更简单了,详细代码如下:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="page"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">page-header</span><span style="color: #0000ff;">&gt;</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">page-header</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="container"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="margin-top:110px;"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="row"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">ul </span><span style="color: #ff0000;">style</span><span style="color: #0000ff;">="list-style:none;"</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">li </span><span style="color: #ff0000;">v-for</span><span style="color: #0000ff;">="item in messages"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="message"</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>
+                            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="label label-success"</span><span style="color: #0000ff;">&gt;</span>[{{item.Room}}]<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+                            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="label label-info"</span><span style="color: #0000ff;">&gt;</span>{{item.User.Name}}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+                            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="label label-default"</span><span style="color: #0000ff;">&gt;</span>{{new Date()}}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">style</span><span style="color: #0000ff;">="padding-left:20px;"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+                            {{item.Message}}
+                        </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">li</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">ul</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">page-footer </span><span style="color: #ff0000;">:status</span><span style="color: #0000ff;">="loginStatus"</span><span style="color: #ff0000;"> @login</span><span style="color: #0000ff;">="onLogin($event)"</span><span style="color: #ff0000;">
+                     @talk</span><span style="color: #0000ff;">="onTalk($event)"</span><span style="color: #ff0000;"> @select</span><span style="color: #0000ff;">="onSelectRoom($event)"</span><span style="color: #ff0000;"> :rooms</span><span style="color: #0000ff;">="getRooms.result"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">page-footer</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span><span style="background-color: #f5f5f5; color: #000000;">
+        beetlex.websocket.receive </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (r) {
+            page.messages.push(r);
+        };
+        beetlex.websocket.disconnect </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> () {
+            page.loginStatus </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">false</span><span style="background-color: #f5f5f5; color: #000000;">;
+        };
+        beetlex.useWebsocket();
+        </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> login </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">new</span><span style="background-color: #f5f5f5; color: #000000;"> beetlexAction(</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">/Login</span><span style="background-color: #f5f5f5; color: #000000;">"</span><span style="background-color: #f5f5f5; color: #000000;">);
+        </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> getRooms </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">new</span><span style="background-color: #f5f5f5; color: #000000;"> beetlexAction(</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">/Rooms</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">, </span><span style="background-color: #f5f5f5; color: #0000ff;">null</span><span style="background-color: #f5f5f5; color: #000000;">, []);
+        </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> enterRoom </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">new</span><span style="background-color: #f5f5f5; color: #000000;"> beetlexAction(</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">/Enter</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">);
+        </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> talk </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">new</span><span style="background-color: #f5f5f5; color: #000000;"> beetlexAction(</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">/Talk</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">);
+        login.requested </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (r) {
+            page.loginStatus </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">true</span><span style="background-color: #f5f5f5; color: #000000;">;
+        };
+        </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> model </span><span style="background-color: #f5f5f5; color: #000000;">=</span><span style="background-color: #f5f5f5; color: #000000;"> {
+            getRooms: getRooms,
+            loginStatus: </span><span style="background-color: #f5f5f5; color: #0000ff;">false</span><span style="background-color: #f5f5f5; color: #000000;">,
+            login: login,
+            talk: talk,
+            enterRoom: enterRoom,
+            messages: [],
+        };
+        </span><span style="background-color: #f5f5f5; color: #0000ff;">var</span><span style="background-color: #f5f5f5; color: #000000;"> page </span><span style="background-color: #f5f5f5; color: #000000;">=</span> <span style="background-color: #f5f5f5; color: #0000ff;">new</span><span style="background-color: #f5f5f5; color: #000000;"> Vue({
+            el: </span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">#page</span><span style="background-color: #f5f5f5; color: #000000;">'</span><span style="background-color: #f5f5f5; color: #000000;">,
+            data: model,
+            methods: {
+                onSelectRoom: </span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (r) {
+                    </span><span style="background-color: #f5f5f5; color: #008000;">//</span><span style="background-color: #f5f5f5; color: #008000;"> alert(r);</span>
+                    <span style="background-color: #f5f5f5; color: #0000ff;">this</span><span style="background-color: #f5f5f5; color: #000000;">.enterRoom.post({ room: r });
+                },
+                onLogin: </span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (r) {
+                    </span><span style="background-color: #f5f5f5; color: #0000ff;">this</span><span style="background-color: #f5f5f5; color: #000000;">.login.post({ name: r });
+                },
+                onTalk: </span><span style="background-color: #f5f5f5; color: #0000ff;">function</span><span style="background-color: #f5f5f5; color: #000000;"> (msg) {
+                    talk.post({ message: msg });
+                },
+            },
+        });
+        getRooms.get();
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">script</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p><strong><span style="font-size: 15px;">beetlex</span></strong></p>
+<p><span style="font-size: 15px;">是针对<code>http</code>和<code>websocket</code>封装的功能类，它自动兼容这两种请求；在默认情况是<code>http</code>请求，调用<code>useWebsocket</code>后所有请求都优先使用<code>websocket</code>;当<code>websocket</code>不可用的情况组会自动切回到<code>http</code>.</span></p>
+<p><strong><span style="font-size: 15px;">beetlexAction</span></strong></p>
+<p><span style="font-size: 15px;">用于描述一个请求，分别提供了<code>post</code>和<code>get</code>方法；当在<code>websocket</code>下这两个方法的处理方式一样。</span></p>
+<h2 id="h2_5">运行效果</h2>
+<p><img class="zoom-in-cursor" src="./images/BeetleX之快速构建Web多房间聊天室0.png" alt="" /></p>
+<p><strong><span style="font-size: 15px;">演示地址</span></strong></p>
+<p><span style="font-size: 15px;"><a href="http://chat.ikende.com/" rel="nofollow">http://chat.ikende.com</a></span></p>
+<p><strong><span style="font-size: 15px;">代码地址</span></strong></p>
+<p><span style="font-size: 15px;"><a href="https://github.com/IKende/BeetleX-Samples/tree/master/WebSocket.Chat" rel="nofollow">https://github.com/IKende/BeetleX-Samples/tree/master/WebSocket.Chat</a></span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

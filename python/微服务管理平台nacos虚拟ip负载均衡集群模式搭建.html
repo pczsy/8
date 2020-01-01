@@ -1,0 +1,168 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修微服务管理平台nacos虚拟ip负载均衡集群模式搭建' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>微服务管理平台nacos虚拟ip负载均衡集群模式搭建</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/12034550.html</div><br>
+    <h2 id="一nacos简介">一、Nacos简介</h2>
+<p>Nacos是用于微服务管理的平台，其核心功能是服务注册与发现、服务配置管理。</p>
+<ul>
+<li>Nacos作为服务注册发现组件，可以替换Spring Cloud应用中传统的服务注册于发现组件，如：Eureka、consul等，支持服务的健康检查。</li>
+<li>Nacos作为服务配置中心，可以替换Spring Cloud Config。</li>
+</ul>
+<p>当然Nacos作为一个微服务管理平台，除了面向spring Cloud,还支持很多其他的微服务基础设施，如：docker、dubbo、kubernetes等。除了核心的服务注册与发现和配置管理功能，还提供了各种服务管理的功能特性，如：动态DNS、服务元数据管理等。</p>
+<h2 id="二nacos单点部署">二、Nacos单点部署</h2>
+<p>Nacos支持单点部署的模式，搭建过程非常简单，实际上nacos的standalone模式没有所谓的安装过程，就是下载和启动。但是这种情况没有高可用支持，所以只适合测试或学习使用。<br />
+首先去nacos的github地址下载release安装包。当然你也可以自己下载源码之后进行编译打包，nacos是使用java开发的，使用maven进行编译打包。这里我们就不自己打包了，使用release安装包。下载地址是：<a href="https://github.com/alibaba/nacos/releases" class="uri">https://github.com/alibaba/nacos/releases</a>。在linux系统下可以使用如下的命令下载和解压缩。</p>
+<pre><code><code>#下载nacos
+wget https://github.com/alibaba/nacos/releases/download/1.1.4/nacos-server-1.1.4.tar.gz；
+# 解压nacos
+tar -xvf nacos-server-1.1.4.tar.gz</code></pre>
+<p>进入到nacos/bin目录下面，startup命令用于启动nacos，shutdown命令用于停掉nacos。</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建0.png" alt="file" /></p>
+<ul>
+<li>如果你是linux/unix系统，使用<code>sh startup.sh -m standalone</code>脚本启动方式。</li>
+<li>如果你是windows系统，双击startup.cmd启动nacos。</li>
+</ul>
+<p>nacos的默认服务端口是8848，启动完成之后通过浏览器访问nacos：<code>http://ip:8848/nacos/</code>。看到如下界面，需要登陆，默认的用户名密码都是nacos，登陆之后看到如下界面：</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建1.png" alt="file" /></p>
+<p>如果你访问不到上面的界面，请检查你部署的主机操作系统的防火墙设置。以下是为CentOS7系统防火墙开放8848端口的命令，其他系统请自行解决。</p>
+<pre><code><code>firewall-cmd --zone=public --add-port=8848/tcp --permanent    
+firewall-cmd --reload</code></pre>
+<h2 id="三查看主机网卡名称">三、查看主机网卡名称</h2>
+<p>使用<code>ip addr</code>命令查看linux主机的网卡。</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建2.png" alt="file" /></p>
+<ul>
+<li>第一个lo网络ip是回路ip，127.0.0.1,这个是标配</li>
+<li>第二个enp0s3网络设备，ip是10.0.2.15,这个是因为我的服务器网络使用了双网卡：桥接+HostOnly模式。正常的服务器是没有的。</li>
+<li>第三个enp0s8就是本服务器真正的使用到提供服务的网络ip，如：192.168.161.4。</li>
+<li>第四个网络设备是因为我在这台虚拟机上安装过docker，所以有一个docker0的网络设备。</li>
+</ul>
+<p>因为较多的网络设备，导致我在后续安装过程出现问题。这里先卖个关子。</p>
+<h2 id="四配置nacos集群">四、配置nacos集群</h2>
+<p>我们准备了三台服务器(虚拟机)，192.168.161.3、192.168.161.4、192.168.161.5。在三台服务器上分别下载、解压nacos，并开放8848端口。参考单点standalone部署的模式的操作。然后在conf/cluster.conf中加入三台服务器的ip配置</p>
+<pre><code><code>#ip:port
+192.168.161.3:8848
+192.168.161.4:8848
+192.168.161.5:8848</code></pre>
+<ul>
+<li>初始化 MySQL 数据库，sql源文件是在nacos/conf解压目录下面的nacos-mysql.sql文件。<a href="https://github.com/alibaba/nacos/blob/master/distribution/conf/nacos-mysql.sql">sql语句源文件</a>。并在nacos/conf/application.properties中增加mysql配置</li>
+</ul>
+<pre><code><code>spring.datasource.platform=mysql
+
+db.num=1
+db.url.0=jdbc:mysql://192.168.161.3:3306/testdb?characterEncoding=utf8&amp;connectTimeout=1000&amp;socketTimeout=3000&amp;autoReconnect=true
+db.user=test
+db.password=</code></pre>
+<ul>
+<li>spring.datasource.platform说明支持数据持久化的数据库类型，已知目前只支持mysql</li>
+<li>db.num数据库的数量，我们实验环境只有一个mysql数据库，所以是1</li>
+<li>db.url.0表示第一个mysql数据库的jdbc url连接。如果还有第二个、第三个，请增加db.url.n中的n。</li>
+</ul>
+<p><strong>问题：</strong> 解决网卡获取的不是我们希望绑定的网卡的问题：当我们配置完成之后，使用startup.sh命令启动。发现集群节点列表中并没有任何记录。而且后台服务日志报错，内容如下：</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建3.png" alt="file" /></p>
+<p><strong>分析：</strong> 通过日志我们看到nacos程序自动获取的是10.0.2.15这个ip，而我们配置的是192.168.161.x的ip。二者不一致，所以报错。我们看一下获取主机ip的程序源码，如下：</p>
+<pre><code><code>private static String getHostAddress() {
+        String address = System.getProperty(&quot;nacos.server.ip&quot;);
+        if (StringUtils.isNotEmpty(address)) {
+            return address;
+        } else {
+            address = &quot;127.0.0.1&quot;;
+        }
+        ...
+}</code></pre>
+<p><strong>解决方案：</strong> 看完源码之后，ip是通过System.getProperty获取的，所以我们完全可以通过JVM传参指定ip。在startup.sh的启动脚本中增加nacos.server.ip参数。</p>
+<pre><code><code>#=================================================================================
+# JVM Configuration
+#================================================================================
+
+# 单机模式对应的启动参数
+if [[ &quot;${MODE}&quot; == &quot;standalone&quot; ]]; then
+    JAVA_OPT=&quot;${JAVA_OPT} -Xms512m -Xmx512m -Xmn256m&quot;
+    JAVA_OPT=&quot;${JAVA_OPT} -Dnacos.standalone=true&quot;
+else
+# 集群模式对应的启动参数
+    JAVA_OPT=&quot;${JAVA_OPT} -server -Xms2g -Xmx2g -Xmn1g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m&quot;
+    JAVA_OPT=&quot;${JAVA_OPT} -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${BASE_DIR}/logs/java_heapdump.hprof&quot;
+    JAVA_OPT=&quot;${JAVA_OPT} -XX:-UseLargePages&quot;
+# 新增以下参数设置本机ip地址
+    JAVA_OPT=&quot;${JAVA_OPT} -Dnacos.server.ip=你的服务器的ip&quot;
+fi</code></pre>
+<p>当以上工作都完成之后，我们通过浏览器分别访问nacos服务，看到如下界面。集群管理的节点列表里面已经有三各节点，ip分别是192.168.161.3:8848、192.168.161.4:8848、192.168.161.5:8848。</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建4.png" alt="file" /></p>
+<h2 id="五nacos集群架构">五、nacos集群架构</h2>
+<p>在完成nacos集群的配置之后，我们可以通过三个入口分别访问集群内的nacos服务，那下面的问题就是如何将三个入口转成一个入口。目前许多个人开发者写的博客或教程中的方法就是在三个nacos服务的前端加一个负载均衡器，如：nginx、haproxy。然后号称是生产级别的搭建方法，但这种方法是绝对不能用于生产的，因为你的nginx和haproxy是单点，一旦nginx挂了，整个服务就挂了。</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建5.png" alt="file" /></p>
+<p>nacos官网推荐的方法是使用虚拟ip的方法，如下：</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建6.png" alt="file" /></p>
+<ul>
+<li>最开始虚拟ip192.168.161.6可能与192.168.161.3的主机绑定在一起，通过这两个ip都可以访问192.168.161.3主机的nacos服务。</li>
+<li>一旦192.168.161.3主机宕机或者其他网络故障，192.168.161.6会自动切换到与192.168.161.4或者192.168.161.5主机绑定在一起。这个过程被叫做虚拟ip的漂移。</li>
+</ul>
+<p>这种虚拟ip的方法就是没有使用到负载均衡，访问的仍然是某一个节点的nacos服务，只不过形成了主从备份，提供了高可用。那既可以提供高可用，又可以提供负载均衡的办法可能有的朋友已经想到了，如下图：</p>
+<p><img src="./images/微服务管理平台nacos虚拟ip负载均衡集群模式搭建7.png" alt="file" /></p>
+<ul>
+<li>在nacos服务的前端加上nginx或者haproxy的负载均衡器</li>
+<li>然后对负载均衡器使用虚拟ip，通过keepalived实现虚拟ip的漂移</li>
+<li>用户访问负载均衡器实现对nacos服务的访问，主nginx挂掉，虚拟ip漂移到从nginx负载均衡提供服务</li>
+</ul>
+<h2 id="六nacos集群虚拟ip漂移">六、nacos集群(虚拟ip漂移)</h2>
+<p>我们就拿官网中推荐的方法，使用虚拟ip访问nacos集群的方式做个例子讲解一下。为什么不讲第三种？一般系统架构水平到了的人听懂这种方式就知道第三种方式怎么做，水平不到的人听了第三种仍然还是不懂。</p>
+<h3 id="安装配置keepalived">6.1.安装配置keepalived</h3>
+<p>在三台服务器上分别安装keepalived</p>
+<pre><code><code>yum install -y keepalived</code></pre>
+<p>在三台服务器上分别修改/etc/keepalived/keepalived.conf</p>
+<pre><code><code>vrrp_instance VI_1 {
+    state MASTER
+    interface enp0s8
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 123456
+    }
+    virtual_ipaddress {
+        192.168.161.6
+    }
+}</code></pre>
+<ul>
+<li>一台服务器是MASTER,其他的服务器为BACKUP</li>
+<li>interface 配置为我们刚刚查看的网卡的名称</li>
+<li>virtual_router_id 必须一致，表示这三台服务器抢用一个虚拟ip。</li>
+<li>修改priority 优先级，三台服务器要不一样，比如：100、101、102，优先级最高的优先使用虚拟ip。MASTER的优先级一定要高于BACKUP主机</li>
+<li>advert_int 是几台服务器之间的同步检查时间，1秒</li>
+<li>authentication 的设置必须一致，这样这几台服务器才能通信</li>
+<li>修改virtual_ipaddress为三台服务器所在网段内未被占用的IP地址，比如：192.168.161.6</li>
+</ul>
+<p>6.2.修改防火墙<br />
+CentOS7必须开放防火墙配置，否则三台主机无法就虚拟ip的使用优先级通信，将都是MASTER，都配置虚拟ip。</p>
+<pre><code><code>firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 0  --protocol vrrp -j ACCEPT;
+firewall-cmd --reload;</code></pre>
+<p>6.3.启动keepalived服务</p>
+<pre><code><code>sudo systemctl restart keepalived.service</code></pre>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>向您推荐博主的系列文档：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

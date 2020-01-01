@@ -1,0 +1,118 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【MongoDB详细使用教程】四、python操作MongoDB' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【MongoDB详细使用教程】四、python操作MongoDB</center></div><div class='banquan'>原文出处:本文由博客园博主cbowen提供。<br/>
+原文连接:https://www.cnblogs.com/cbowen/p/11755480.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#安装pymongo">1、安装pymongo</a></li>
+        <li><a href="#连接数据库">2、连接数据库</a></li>
+        <li><a href="#操作数据库">3、操作数据库</a><ul>
+        <li><a href="#查">3.1、查</a></li>
+        <li><a href="#增">3.2、增</a></li>
+        <li><a href="#改">3.3、改</a></li>
+        <li><a href="#删">3.4、删</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<p><a href="https://www.cnblogs.com/cbowen/p/11748922.html">【MongoDB详细使用教程】一、Mac安装MongoDB</a><br />
+<a href="https://www.cnblogs.com/cbowen/p/11752733.html">【MongoDB详细使用教程】二、MongoDB基本操作</a><br />
+<a href="https://www.cnblogs.com/cbowen/p/11752746.html">【MongoDB详细使用教程】三、高级查询</a><br />
+<a href="https://www.cnblogs.com/cbowen/p/11755480.html">【MongoDB详细使用教程】四、python操作MongoDB</a><br />
+<a href="https://www.cnblogs.com/cbowen/p/11763463.html">【MongoDB详细使用教程】五、MongoDB的数据库管理</a></p>
+<p>使用第三方库pymongo来实现python对MongoDB的操作<br />
+pymongo官方文档:<a href="https://api.mongodb.com/python/current/tutorial.html" class="uri">https://api.mongodb.com/python/current/tutorial.html</a></p>
+<h1 id="安装pymongo">1、安装pymongo</h1>
+<pre><code><code>pip install 安装pymongo</code></pre>
+<h1 id="连接数据库">2、连接数据库</h1>
+<pre class="py"><code>import pymongo
+
+client = pymongo.MongoClient(&#39;localhost&#39;, 27017)    # 连接服务器，需要先开启服务
+db = client[&#39;mymongo&#39;]  # 选择数据库
+data = db.students.find()   # 查询数据，返回一个游标，通过对游标进行遍历来获取每条数据 
+print(db)
+print(data)
+
+
+# 对查询到的数据进行遍历，每一项为一个dict
+for i in data:
+    print(i, type(i))</code></pre>
+<p>返回结果：</p>
+<pre><code><code>MongoClient(host=[&#39;localhost:27017&#39;], document_class=dict, tz_aware=False, connect=True)
+Database(MongoClient(host=[&#39;localhost:27017&#39;], document_class=dict, tz_aware=False, connect=True), &#39;mymongo&#39;)
+&lt;pymongo.cursor.Cursor object at 0x1058e57f0&gt;
+{&#39;_id&#39;: ObjectId(&#39;5db642b30f98841018f76965&#39;), &#39;name&#39;: &#39;chen&#39;, &#39;age&#39;: 18.0, &#39;grade&#39;: &#39;一年级&#39;} &lt;class &#39;dict&#39;&gt;
+{&#39;_id&#39;: ObjectId(&#39;5db642bc0f98841018f76966&#39;), &#39;name&#39;: &#39;wang&#39;, &#39;age&#39;: 19.0, &#39;grade&#39;: &#39;二年级&#39;} &lt;class &#39;dict&#39;&gt;
+{&#39;_id&#39;: ObjectId(&#39;5db653920f98841018f7696b&#39;), &#39;name&#39;: &#39;xu&#39;, &#39;age&#39;: 20.0, &#39;grade&#39;: &#39;三年级&#39;, &#39;text&#39;: [&#39;女&#39;, &#39;研究员&#39;]} &lt;class &#39;dict&#39;&gt;
+{&#39;_id&#39;: ObjectId(&#39;5db654660f98841018f7696c&#39;), &#39;name&#39;: &#39;ma&#39;, &#39;age&#39;: 20.0, &#39;grade&#39;: &#39;二年级&#39;, &#39;text&#39;: [&#39;女&#39;, &#39;副教授&#39;, &#39;副处长&#39;]} &lt;class &#39;dict&#39;&gt;
+{&#39;_id&#39;: ObjectId(&#39;5db68d190f98841018f76970&#39;), &#39;name&#39;: &#39;cheng&#39;, &#39;age&#39;: 21.0, &#39;grade&#39;: &#39;四年级&#39;} &lt;class &#39;dict&#39;&gt;
+{&#39;_id&#39;: ObjectId(&#39;5db68f6c0f98841018f76971&#39;), &#39;name&#39;: &#39;cheng&#39;, &#39;age&#39;: 22.0, &#39;grade&#39;: &#39;五年级&#39;} &lt;class &#39;dict&#39;&gt;</code></pre>
+<h1 id="操作数据库">3、操作数据库</h1>
+<p>python操作mysql和oracle都是通过直接执行sql来完成，<br />
+而对MongoDB的操作是通过pymongo提供的方法来完成的。</p>
+<p>本节不再把语法单独提出，所有&quot;students&quot;字样均为集合名。</p>
+<h2 id="查">3.1、查</h2>
+<pre class="py"><code>data_all = db.students.find()   # 查询全部
+data_lim = db.students.find().limit(1)  # 返回第一条
+data_the = db.students.find({&quot;name&quot;: &quot;xu&quot;})  # 条件查询(结果只有1条匹配)
+data_one = db.students.find_one()   # 查询一条
+
+
+print(data_all, type(data_all))
+print(data_lim, type(data_lim))
+print(data_the, type(data_the))
+print(data_one, type(data_one))</code></pre>
+<p>虽然后3个方法得到的数据都是1条，但只有使用.find_one()时会返回dict，其余返回的都是Cursor(游标)，需要遍历才可以得到具体数据。</p>
+<pre><code><code>&lt;pymongo.cursor.Cursor object at 0x105a04780&gt; &lt;class &#39;pymongo.cursor.Cursor&#39;&gt;
+&lt;pymongo.cursor.Cursor object at 0x105a047f0&gt; &lt;class &#39;pymongo.cursor.Cursor&#39;&gt;
+&lt;pymongo.cursor.Cursor object at 0x105a04860&gt; &lt;class &#39;pymongo.cursor.Cursor&#39;&gt;
+{&#39;_id&#39;: ObjectId(&#39;5db642b30f98841018f76965&#39;), &#39;name&#39;: &#39;chen&#39;, &#39;age&#39;: 18.0, &#39;grade&#39;: &#39;一年级&#39;} &lt;class &#39;dict&#39;&gt;</code></pre>
+<h2 id="增">3.2、增</h2>
+<pre class="py"><code># 插入单条
+db.students.insert_one({&quot;name&quot;: &quot;zuo&quot;, &quot;age&quot;: 40, &quot;grate&quot;: &quot;九年级&quot;})
+
+# 插入多条
+many_data = [{&quot;name&quot;: &quot;ding&quot;, &quot;age&quot;: 40, &quot;grate&quot;: &quot;九年级&quot;},
+             {&quot;name&quot;: &quot;liao&quot;, &quot;age&quot;: 42, &quot;grate&quot;: &quot;十年级&quot;},
+             {&quot;name&quot;: &quot;zhao&quot;, &quot;age&quot;: 35, &quot;grate&quot;: &quot;九年级&quot;}]
+db.students.insert_many(many_data)</code></pre>
+<h2 id="改">3.3、改</h2>
+<pre class="py"><code># 修改单条
+db.students.update_one(filter={&quot;name&quot;: &quot;zuo&quot;}, update={&quot;$set&quot;: {&quot;grate&quot;: &quot;十年级&quot;}})
+
+# 修改全部匹配项
+db.students.update_many(filter={&quot;name&quot;: &quot;zuo&quot;}, update={&quot;$set&quot;: {&quot;grate&quot;: &quot;十年级&quot;}})
+
+
+# filter后为条件，update后为修改后值，其中$set为固定语法。</code></pre>
+<h2 id="删">3.4、删</h2>
+<pre><code><code># 删除单条
+db.students.delete_one({})  # 删除全部数据的第一条
+db.students.delete_one({&quot;name&quot;: &quot;zuo&quot;}) # 删除匹配项的第一条
+
+# 删除多条
+db.students.delete_many({&quot;name&quot;:&quot;zuo&quot;}) # 删除集合中的全部数据
+db.students.delete_many({&quot;name&quot;:&quot;zuo&quot;}) # 删除全部匹配项</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

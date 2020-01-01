@@ -1,0 +1,65 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修android 点击无效验证' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>android 点击无效验证</center></div><div class='banquan'>原文出处:本文由博客园博主族语提供。<br/>
+原文连接:https://www.cnblogs.com/aoximin/p/12028395.html</div><br>
+    <h3 id="背景">背景</h3>
+<p>在写一个东西滑动删除列表的时候，出现了一个问题。我的需求是，左滑然后出现delete，然后点击delete，让该滑块消失。<br />
+我在点列表的第一行的时候，左滑，出现delete，点击删除，ok的，完美。然后我点击第三个，同样左滑出现delete，点击delete没有任何反应。<br />
+然后我再点击第一个，又可以删除。<br />
+模型如下:<br />
+<img src="./images/android 点击无效验证0.png" /><br />
+子模型:<br />
+<img src="./images/android 点击无效验证1.png" /></p>
+<p>ps:</p>
+<pre><code><code> 黑色的是最外层，蓝色的是在黑块中，然后delete区域在滑块区。滑动是控制蓝色区域的移动。</code></pre>
+<p>如果仅仅是这样，我一点也不慌。出现了一些东西，更加我让疑惑。delete的groupview 容器点击是有效的,也就是蓝色区域可点击的,我用它来点击添加item，这同样也给我提供了线索。<br />
+<img src="./images/android 点击无效验证2.png" /></p>
+<p>在我心中产生了两个个疑问：</p>
+<ol>
+<li>为什么只有第一个可以点击, 删除第一个后，第二个变成了第一个，又可以删除？</li>
+<li>为什么delete 区域不可点击，而其groupview 可以点击?</li>
+</ol>
+<h3 id="解决">解决</h3>
+<p>对于第一个疑问，我尝试检测是否绑定了，当然不可能去调试看了，因为list嘛，都一个样，查看xy坐标的话，脑壳痛。</p>
+<pre class="java"><code>// holder.tvMsgRemindDelete 是获取到delete对象
+holder.tvMsgRemindDelete.setText(&quot;你好啊&quot;);</code></pre>
+<p>我将拿到的delete view,然后修改它的text。<br />
+当然肯定是没用的，我写完的时候就感觉不对劲，然而还抱着一丝希望。<br />
+因为如果变成第一个的话，那么是可以点击删除的，肯定绑定了事件哈。<br />
+对于第二个疑问，父类groupview 可以点击，我就猜想是否是父类的groupview 阻止了该分发事件。（一般情况是不会阻止的，然而我做的这个滑动较为复杂，自我安慰一下）<br />
+是否分发到子元素，涉及到</p>
+<pre><code><code>1. onInterceptTouchEvent
+2. dispatchTouchEvent</code></pre>
+<p>这两个事件,一个是分发，一个是拦截。<br />
+然后找到[ACTION_DOWN,ACTION_UP]判断事件是通过这两个判断的。<br />
+然后真的发现:return inView(x, y)<br />
+ps:</p>
+<pre><code><code>inView 是我用来判断是当前x，y轴是否在滑块中，也就是蓝色块中。</code></pre>
+<p>前面将delete放在外面，如下:<br />
+<img src="./images/android 点击无效验证3.png" /><br />
+忘记改然后造成了这个问题。<br />
+<img src="./images/android 点击无效验证4.png" /></p>
+<h3 id="总结">总结</h3>
+<p>点击无效的时候，不仅要查阅自身事件，同样也需要查询事件分发机制，看看是否哪个土匪拦截了，当然土匪一般是自己创造的。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

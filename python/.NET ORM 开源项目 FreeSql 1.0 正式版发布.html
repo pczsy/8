@@ -1,0 +1,454 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修.NET ORM 开源项目 FreeSql 1.0 正式版发布' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>.NET ORM 开源项目 FreeSql 1.0 正式版发布</center></div><div class='banquan'>原文出处:本文由博客园博主nicye提供。<br/>
+原文连接:https://www.cnblogs.com/kellynic/p/12098419.html</div><br>
+    <h1 id="一简介">一、简介</h1>
+<p>FreeSql 是 .NET 平台下的对象关系映射技术(O/RM)，支持 .NetCore 2.1+ 或 .NetFramework 4.0+ 或 Xamarin。</p>
+<p>从 0.0.1 发布，历时整整一年的迭代更新，原计划元旦发布1.0，可能作者比较急提前了几天发布。其实是元旦有其他事……</p>
+<p>本文内容从简，介绍项目的主要功能框架，以及暂时能想到的可能比较有说服力的特性。</p>
+<h1 id="二项目统计">二、项目统计</h1>
+<p>主仓库解决方案共计项目：29个</p>
+<p>单元测试：3510个</p>
+<p>Code Issues：168个</p>
+<p>文档Wiki：43个</p>
+<p>Stars：1140</p>
+<p>Forks：236</p>
+<p>Commits：690次</p>
+<p>Nuget主包下载量：86,568次</p>
+<p>开源地址：<a href="https://github.com/2881099/FreeSql" class="uri">https://github.com/2881099/FreeSql</a></p>
+<h1 id="三功能结构">三、功能结构</h1>
+<p><img src="./images/.NET ORM 开源项目 FreeSql 1.0 正式版发布0.png" /></p>
+<ul>
+<li>支持 CodeFirst 迁移，哪怕使用 Access 数据库也支持；</li>
+<li>支持 DbFirst 从数据库导入实体类；</li>
+<li>支持 深入的类型映射，比如pgsql的数组类型；</li>
+<li>支持 丰富的表达式函数，以及灵活的自定义解析；</li>
+<li>支持 导航属性一对多、多对多贪婪加载，以及延时加载；</li>
+<li>支持 读写分离、分表分库，租户设计，过滤器，乐观锁，悲观锁；</li>
+<li>支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦数据库/Access；</li>
+</ul>
+<h1 id="四codefirstdbfirst">四、CodeFirst/DbFirst</h1>
+<p>一切皆 CodeFirst，所有功能都是由实体类型，到表操作的过程。CodeFirst 【自动迁移】只需要一行代码：</p>
+<pre><code><code>using FreeSql;
+
+static IFreeSql fsql = new FreeSqlBuilder()
+    .UseConnectionString(DataType.Sqlite, 
+        @&quot;Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10&quot;)
+    .UseAutoSyncStructure(true) //自动同步实体结构到数据库
+    .Build();</code></pre>
+<p>在开发过程中，表结构会自动创建、或改变（不丢数据），取决于实体类的变化。</p>
+<p>CodeFirst 提供功能丰富的特性ColumnAttribute，定义实体与表间的映射，并且支持 FluentApi 方式。如果不喜欢 ColumnAttribute 这个名字，还可以通过 AOP 设置换为 MyColumnAttribute。</p>
+<pre><code><code>using FreeSql.DataAnnotations;
+
+class Song {
+    [Column(IsIdentity = true)]
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Url { get; set; }
+    public DateTime CreateTime { get; set; }
+}</code></pre>
+<p>DbFirst 数据表先行，许多哥们使用动软、T4模板生成实体类代码。自已处理每种数据库的字段类型，和 csharp 类型对应，比较麻烦，各大 ORM 可能还不通用。</p>
+<p>我们提供命令行工具生成实体类，dotnet-tools，对就是它。。非常好用的工具，没有之一。</p>
+<pre class="shell"><code>C:\Users\28810&gt;dotnet tool install -g freesql.generator
+可使用以下命令调用工具: FreeSql.Generator
+已成功安装工具“freesql.generator”(版本“1.0.0”)。
+
+C:\Users\28810&gt;FreeSql.Generator —help</code></pre>
+<p>它基于 Razor 模板生成，支持自定义模板生成，意味着它远不止可以生成实体类，甚至是 IRepository 或者。。。</p>
+<h1 id="五导航属性">五、导航属性</h1>
+<p>从一开始就着重导航对象的设计，支持一对多、多对多、父子关系、一对一、多对一，不夸张的说目前对导航属性处理最流弊，最容易上手的 ORM。多表查询的表达式使用非常便利，如下：</p>
+<pre><code><code>fsql.Select&lt;Catetory&gt;()
+    .Where(a =&gt; a.Parent.Parent.Name == &quot;粤语&quot;)</code></pre>
+<p>可以使用导航属性一直这样点下去。。。</p>
+<p>级联保存，级联查询功能也必不可少，如下查询多对多：</p>
+<pre><code><code>fsql.Select&lt;Song&gt;()
+    .IncludeMany(a =&gt; a.Tags)
+    .ToList();</code></pre>
+<p>上面的代码，如果只返回 Tags 前 5条记录，也是支持的 .IncludeMany(a =&gt; a.Tags.Take(5))</p>
+<p>对性能有追求，还可以指定 Tags 只查询部分字段</p>
+<p>关于 IncludeMany 不便再这过多展开介绍。。。（其实还有黑科技！）</p>
+<p>哦，还有 FreeSql.AdminLTE 扩展包，它不属于主仓库项目，最大化利用导航属性完成通用的 CURD 后台管理功能。</p>
+<p><img src="./images/.NET ORM 开源项目 FreeSql 1.0 正式版发布1.png" /></p>
+<p>流弊哒哒~~~~</p>
+<h1 id="六仓储模式">六、仓储模式</h1>
+<p>仓储工作单元目前是当下的流行风，在比较早的时候大约0.2版本发布了第一个仓储版本，当时参考了大量的项目设计，最终选用 abp vnext 的 IRepository 设计接口，实现通用仓储类功能。</p>
+<p>也就是说，使用 FreeSql.Repository 你不必再自己写那些繁琐的 CURD 重复的仓储功能，不用再头疼仓储类的接口方法定义。定义标准比写代码难多了，abp vnext 的 IRepository 目前是见过最好的，木有之一！！</p>
+<p>仓储模式都在操作实体对象，无论是更新还是删除，都是传对象。。。传传传。。。</p>
+<p>问题1、传对象更新，意味着更新所有字段？</p>
+<p>不会的，我们的仓储实现拥有状态管理机制，从对象查询出来的时候已经记录了拍照，当调用更新方法的时候会与之对比，计算出变化的字段，只更新变化的字段！</p>
+<pre><code><code>var repo = fsql.GetRepository&lt;Song&gt;();
+var item = repo.Where(a =&gt; a.Id == 1).First();
+item.Title = &quot;原谅我今天&quot;;
+repo.Update(item);</code></pre>
+<blockquote>
+<p>提示：支持乐观锁、悲观锁</p>
+</blockquote>
+<p>问题2、状态管理是否影响性能？</p>
+<p>不完全，因为状态管理设计在仓储实现之上，我们最原始的 IFreeSql 没有这个功能（仓储算是一种扩展包吧，但是仓储又非常有效）。仓储即用即销毁，擅用它的对比功能更新对象，不滥用没有性能问题。</p>
+<p>有了仓储怎么会没有 UnitOfWork 呢，UnitOfWork 目前以事务的方式做了默认实现，并且它拥有实体变化跟踪记录。</p>
+<h1 id="七性能">七、性能</h1>
+<p>1、插入测试(52个字段)</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>18W</th>
+<th>1W</th>
+<th>5K</th>
+<th>2K</th>
+<th>1K</th>
+<th>500</th>
+<th>100</th>
+<th>50</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MySql 5.5 ExecuteAffrows</td>
+<td>55,497</td>
+<td>4,953</td>
+<td>2,304</td>
+<td>2,554</td>
+<td>1,516</td>
+<td>1,572</td>
+<td>265</td>
+<td>184</td>
+</tr>
+<tr class="even">
+<td>SqlServer Express ExecuteAffrows</td>
+<td>402,355</td>
+<td>24,847</td>
+<td>11,465</td>
+<td>4,971</td>
+<td>2,437</td>
+<td>915</td>
+<td>138</td>
+<td>88</td>
+</tr>
+<tr class="odd">
+<td>SqlServer Express ExecuteSqlBulkCopy</td>
+<td>21,065</td>
+<td>578</td>
+<td>326</td>
+<td>139</td>
+<td>105</td>
+<td>79</td>
+<td>60</td>
+<td>48</td>
+</tr>
+<tr class="even">
+<td>PostgreSQL 10 ExecuteAffrows</td>
+<td>46,756</td>
+<td>3,294</td>
+<td>2,269</td>
+<td>1,019</td>
+<td>374</td>
+<td>209</td>
+<td>51</td>
+<td>37</td>
+</tr>
+<tr class="odd">
+<td>PostgreSQL 10 ExecutePgCopy</td>
+<td>10,090</td>
+<td>583</td>
+<td>337</td>
+<td>136</td>
+<td>88</td>
+<td>61</td>
+<td>30</td>
+<td>25</td>
+</tr>
+<tr class="even">
+<td>Oracle XE ExecuteAffrows</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>24,528</td>
+<td>10,648</td>
+<td>571</td>
+<td>200</td>
+</tr>
+<tr class="odd">
+<td>Sqlite ExecuteAffrows</td>
+<td>28,554</td>
+<td>1,149</td>
+<td>701</td>
+<td>327</td>
+<td>155</td>
+<td>91</td>
+<td>44</td>
+<td>35</td>
+</tr>
+</tbody>
+</table>
+<p>测试结果，是在相同操作系统下进行的，并且都有预热</p>
+<p>18W 解释：插入18万行记录，表格中的数字是执行时间（单位ms）</p>
+<blockquote>
+<p>Oracle 插入性能不用怀疑，可能安装学生版限制较大</p>
+</blockquote>
+<p>提醒：开源数据库测试结果比较有意义，商业数据库版本之间性能可能有较大差距</p>
+<p>2、插入测试(10个字段)</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>18W</th>
+<th>1W</th>
+<th>5K</th>
+<th>2K</th>
+<th>1K</th>
+<th>500</th>
+<th>100</th>
+<th>50</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MySql 5.5 ExecuteAffrows</td>
+<td>15,380</td>
+<td>1,813</td>
+<td>1,457</td>
+<td>1,254</td>
+<td>563</td>
+<td>246</td>
+<td>55</td>
+<td>21</td>
+</tr>
+<tr class="even">
+<td>SqlServer Express ExecuteAffrows</td>
+<td>47,204</td>
+<td>2,275</td>
+<td>1,108</td>
+<td>488</td>
+<td>279</td>
+<td>123</td>
+<td>35</td>
+<td>16</td>
+</tr>
+<tr class="odd">
+<td>SqlServer Express ExecuteSqlBulkCopy</td>
+<td>4,248</td>
+<td>127</td>
+<td>71</td>
+<td>30</td>
+<td>48</td>
+<td>14</td>
+<td>11</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<td>PostgreSQL 10 ExecuteAffrows</td>
+<td>9,786</td>
+<td>568</td>
+<td>336</td>
+<td>157</td>
+<td>102</td>
+<td>34</td>
+<td>9</td>
+<td>6</td>
+</tr>
+<tr class="odd">
+<td>PostgreSQL 10 ExecutePgCopy</td>
+<td>4,081</td>
+<td>167</td>
+<td>93</td>
+<td>39</td>
+<td>21</td>
+<td>12</td>
+<td>4</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td>Oracle XE ExecuteAffrows</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>2,394</td>
+<td>731</td>
+<td>67</td>
+<td>33</td>
+</tr>
+<tr class="odd">
+<td>Sqlite ExecuteAffrows</td>
+<td>4,524</td>
+<td>246</td>
+<td>137</td>
+<td>94</td>
+<td>35</td>
+<td>19</td>
+<td>14</td>
+<td>11</td>
+</tr>
+</tbody>
+</table>
+<p>提示：已经支持了 SqlServer 数据库的 SqlBulkCopy 功能、以及 PostgreSQL 数据库的 Copy 功能</p>
+<h1 id="八拉姆达">八、拉姆达</h1>
+<p>非常特色的功能之一，深入细化函数解析，所支持的类型基本都可以使用对应的表达式函数，例如 日期、字符串、IN查询、数组（PostgreSQL的数组）、字典（PostgreSQL HStore)等等。</p>
+<p>1、In查询</p>
+<pre><code><code>var t1 = fsql.Select&lt;T&gt;()
+  .Where(a =&gt; new[] { 1, 2, 3 }.Contains(a.Id))
+  .ToSql();
+//SELECT .. FROM ..
+//WHERE (a.`Id` in (1,2,3))</code></pre>
+<p>已优化，防止 where in 元素多过的 SQL 错误，如：</p>
+<blockquote>
+<p>[Err] ORA-01795: maximum number of expressions in a list a 1000</p>
+</blockquote>
+<p>原来：where id in (1..1333)</p>
+<p>现在：where id in (1..500) or id in (501..1000) or id in (1001..1333)</p>
+<p>2、In查询(多列)</p>
+<pre><code><code>//元组集合
+vae lst = new List&lt;(Guid, DateTime)&gt;();
+
+lst.Add((Guid.NewGuid(), DateTime.Now));
+lst.Add((Guid.NewGuid(), DateTime.Now));
+lst.Add((Guid.NewGuid(), DateTime.Now));
+fsql.Select&lt;T&gt;()
+  .Where(a =&gt; lst.Contains(a.Id, a.ct1))
+  .ToSql();
+//SELECT .. FROM ..
+//WHERE (a.&quot;Id&quot; = &#39;685ee1f6-bdf6-4719-a291-c709b8a1378f&#39; AND a.&quot;ct1&quot; = &#39;2019-12-07 23:55:27&#39; OR 
+//a.&quot;Id&quot; = &#39;5ecd838a-06a0-4c81-be43-1e77633b7404&#39; AND a.&quot;ct1&quot; = &#39;2019-12-07 23:55:27&#39; OR 
+//a.&quot;Id&quot; = &#39;b8b366f3-1c03-4547-9c96-d362dd5cae6a&#39; AND a.&quot;ct1&quot; = &#39;2019-12-07 23:55:27&#39;)</code></pre>
+<p>3、自定义函数</p>
+<p>默认已经支持了很丰富的函数解析，如果不够再自己定义：</p>
+<pre><code><code>[ExpressionCall]
+public static class DbFunc
+{
+    //必要定义 static + ThreadLocal
+    static ThreadLocal&lt;ExpressionCallContext&gt; context = new ThreadLocal&lt;ExpressionCallContext&gt;();
+
+    public static DateTime FormatDateTime(this DateTime that, string arg1)
+    {
+        var up = context.Value;
+        if (up.DataType == FreeSql.DataType.Sqlite) //重写内容
+            context.Value.Result = $&quot;date_format({up.ParsedContent[&quot;that&quot;]}, {up.ParsedContent[&quot;arg1&quot;]})&quot;;
+        return that;
+    }
+}
+
+fsql.Select&lt;T&gt;().ToSql(a =&gt; a.CreateTime.FormatDateTime(&quot;yyyy-MM-dd&quot;));
+//SELECT date_format(a.&quot;CreateTime&quot;, &#39;yyyy-MM-dd&#39;) as1 
+//FROM &quot;T&quot; a</code></pre>
+<p>提示：SqlServer nvarchar/varchar 已兼容表达式解析，分别解析为：N'' 和 ''，优化索引执行计划</p>
+<h1 id="九骚操作">九、骚操作</h1>
+<p>1、代码注释 -&gt; 迁移到数据库</p>
+<p>CodeFirst 支持将 c# 代码内的注释，迁移至数据库的备注。先决条件：</p>
+<ul>
+<li>实体类所在程序集，需要开启 xml 文档功能；</li>
+<li>xml 文件必须与程序集同目录，且文件名：xxx.dll -&gt; xxx.xml；</li>
+</ul>
+<p>2、NoneParameter</p>
+<p>可以设置不使用 参数化 执行 SQL 命令，方便开发调试，区别如下：</p>
+<pre class="sql"><code>INSERT INTO `tb_topic`(`Title`) VALUES(?Title0)
+INSERT INTO `tb_topic`(`Title`) VALUES(&#39;Title_1&#39;)</code></pre>
+<p>在 new FreeSqlBuilder().UseNoneParameter(true) 全局设置</p>
+<p>在 单次 ISelect、IInsert、IDelete、IUpdate 上使用 NoneParameter() 设置单次生效</p>
+<p>3、Dto 映射查询</p>
+<p>用过 ProjectTo 功能吗？没用过当忽略此行。。。</p>
+<p>有些朋友可能是先 ToList().Mapper&lt;T&gt;()，这样会先查询了所有字段。</p>
+<p>Dto 映射查询支持单表/多表，这个功能可以决定只查询部分字段（不是、不是、不是先查询所有字段再到内存映射）。</p>
+<p>规则：查找属性名，会循环内部对象 _tables（多表会增长），以 主表优先查，直到查到相同的字段。</p>
+<p>如：A, B, C 都有 id，Dto { id, a1, a2, b1, b2 }，A.id 被映射。也可以指定 id = C.id 映射。</p>
+<pre><code><code>fsql.Select&lt;Song&gt;().ToList(a =&gt; new DTO { xxx = a.ext }) 
+//情况1：附加所有映射，再额外映射 ext，返回 List&lt;DTO&gt;
+
+fsql.Select&lt;Song&gt;().ToList(a =&gt; new Song { id = a.id }) 
+//情况2：只查询 id，返回 List&lt;Song&gt;
+
+fsql.Select&lt;Song&gt;().ToList(a =&gt; new { id = a.id }) 
+//情况3：只查询 id，返回 List&lt;匿名对象&gt;
+
+fsql.Select&lt;Song&gt;().ToList(a =&gt; new DTO(a.id))
+//情况4：只查询 id，返回 List&lt;DTO&gt;
+
+fsql.Select&lt;Song&gt;().ToList(a =&gt; new DTO(a.id) { xxx = a.ext })
+//情况5：查询 id, ext，返回 List&lt;DTO&gt;
+
+fsql.Select&lt;Song&gt;().ToList(a =&gt; new Song(a.id))
+//情况6：查询 id，返回 List&lt;Song&gt;
+
+fsql.Select&lt;Song&gt;().ToList(a =&gt; new Song(a.id) { xxx = a.ext })
+//情况7：查询 id, ext，返回 List&lt;Song&gt;</code></pre>
+<p>4、WhereCascade</p>
+<p>FreeSql 擅长多表查询，遇到像isdeleted每个表都给条件的时候，挺麻烦。WhereCascade使用后生成sql时，所有表都附上这个条件。</p>
+<p>如：</p>
+<pre><code><code>fsql.Select&lt;t1&gt;()
+    .LeftJoin&lt;t2&gt;(...)
+    .WhereCascade(x =&gt; x.IsDeleted == false)
+    .ToList();</code></pre>
+<p>得到的 SQL：</p>
+<pre class="sql"><code>SELECT ...
+FROM t1
+LEFT JOIN t2 on ... AND (t2.IsDeleted = 0) 
+WHERE t1.IsDeleted = 0</code></pre>
+<p>其中的实体可附加表达式时才生效，支持子表查询。单次查询使用的表数目越多收益越大。</p>
+<p>5、审计 CURD</p>
+<p>如果因为某个 sql 骚操作耗时很高，没有一个相关的审计功能，排查起来可以说无从下手。</p>
+<p>FreeSql 支持简单的类似功能：</p>
+<pre><code><code>fsql.Aop.CurdAfter = (s, e) =&gt; {
+    if (e.ElapsedMilliseconds &gt; 200) {
+        //记录日志
+        //发送短信给负责人
+    }
+};</code></pre>
+<p>只需要一个事件，就可以对全局起到作用。</p>
+<p>还有一个 CurdBefore 在执行 sql 之前触发，常用于记录日志或开发调试。</p>
+<p>6、审计属性值</p>
+<p>实现插入/更新时统一处理某些值，比如某属性的雪花算法值、创建时间值、甚至是业务值。</p>
+<pre><code><code>fsql.Aop.AuditValue += (s, e) =&gt; {
+    if (e.Column.CsType == typeof(long) 
+        &amp;&amp; e.Property.GetCustomAttribute&lt;SnowflakeAttribute&gt;(false) != null
+        &amp;&amp; e.Value?.ToString() == 0)
+        e.Value = new Snowflake().GetId();
+};
+
+class Order {
+    [Snowflake]
+    public long Id { get; set; }
+    //...
+}</code></pre>
+<p>当属性的类型是 long，并且标记了 [Snowflake]，并且当前值是 0，那么在插入/更新时它的值将设置为雪花id值。</p>
+<p>说明：SnowflakeAttribute 是使用者您来定义，new Snowflake().GetId() 也是由使用者您来实现</p>
+<p>如果命名规范，可以在 aop 里判断，if (e.Property.Name == &quot;createtime&quot;) e.Value = DateTime.Now;</p>
+<blockquote>
+<p>还有。。还有很多骚操作。。不便在此展开。。。</p>
+</blockquote>
+<h1 id="十展望-2020">十、展望 2020</h1>
+<p>2019 年支持了主流的数据库：</p>
+<ul>
+<li><p>SqlServer 2000-2019，支持 row_number/offset fetch next 分页自动版本选择适配，以及其他语法的差异适配，提供 ado.net 与 odbc 两种实现方式；</p></li>
+<li><p>PostgreSQL 9.4-12，完成了版本间部分差异适配，提供 ado.net 与 odbc 两种实现方式；</p></li>
+<li><p>MySql 5.5、Mariadb，提供 Oracle 官方驱动、与 MySqlConnector 社区驱动，还有 odbc 实现方式；</p></li>
+<li><p>Oracle 11+，提供 ado.net 与 odbc 两种实现方式；</p></li>
+<li><p>Sqlite，兼容了 .net core / .net framework / xamarin 平台适配，支持 CodeFirst 开发模式，一个字爽！！！</p></li>
+<li><p>MsAccess 2003-2007，提供 oledb 实现方式，支持 CodeFirst 开发模式；</p></li>
+<li><p>达梦，提供 odbc 的实现方式，并且支持 DbFirst 和 CodeFirst 两种开发模式；</p></li>
+</ul>
+<p>2020 年支持国产是重点，重心，重要的工作内容，南大通用将是下一个目标，并且已经在进行中了。</p>
+<p>开源地址：<a href="https://github.com/2881099/FreeSql" class="uri">https://github.com/2881099/FreeSql</a></p>
+<p>写到最后面，感谢这一年来与 FreeSql 一直陪伴的兄弟朋友们。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

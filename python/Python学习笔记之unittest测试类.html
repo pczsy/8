@@ -1,0 +1,61 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python学习笔记之unittest测试类' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python学习笔记之unittest测试类</center></div><div class='banquan'>原文出处:本文由博客园博主雨夜Rainight提供。<br/>
+原文连接:https://www.cnblogs.com/rainights/p/11782708.html</div><br>
+    <p>11-3 雇员：编写一个名为Employee 的类，其方法__init__()接受名、姓和年薪，并将它们都存储在属性中。编写一个名为give_raise()的方法，它默认将年薪增加5000美元，但也能够接受其他的年薪增加量。<br />为Employee 编写一个测试用例，其中包含两个测试方法：test_give_default_raise()和test_give_custom_raise()。使用方法setUp()，以免在每个测试方法中都创建新的雇员实例。运行这个测试用例，确认两个测试都通过了。</p>
+<p>employee.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Employee():
+</span><span style="color: #008080;">2</span> 
+<span style="color: #008080;">3</span>     <span style="color: #0000ff;">def</span> <span style="color: #800080;">__init__</span><span style="color: #000000;">(self, first_name, last_name, annual_salary):
+</span><span style="color: #008080;">4</span>         self.first_name =<span style="color: #000000;"> first_name
+</span><span style="color: #008080;">5</span>         self.last_name =<span style="color: #000000;"> last_name
+</span><span style="color: #008080;">6</span>         self.annual_salary =<span style="color: #000000;"> annual_salary
+</span><span style="color: #008080;">7</span>     
+<span style="color: #008080;">8</span>     <span style="color: #0000ff;">def</span> give_raise(self, annual_salary=5000<span style="color: #000000;">):
+</span><span style="color: #008080;">9</span>         self.annual_salary += annual_salary</pre>
+</div>
+<p>test_employee.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> unittest
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">from</span> employee <span style="color: #0000ff;">import</span><span style="color: #000000;"> Employee
+</span><span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestEmployee(unittest.TestCase):
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> setUp(self):
+</span><span style="color: #008080;"> 7</span>         self.eric = Employee(<span style="color: #800000;">'</span><span style="color: #800000;">eric</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">wong</span><span style="color: #800000;">'</span>, 60000<span style="color: #000000;">)
+</span><span style="color: #008080;"> 8</span>     
+<span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> test_give_default_raise(self):
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">        self.eric.give_raise()
+</span><span style="color: #008080;">11</span>         self.assertEqual(self.eric.annual_salary, 65000<span style="color: #000000;">)
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> test_give_custom_raise(self):
+</span><span style="color: #008080;">14</span>         self.eric.give_raise(8000<span style="color: #000000;">)
+</span><span style="color: #008080;">15</span>         self.assertEqual(self.eric.annual_salary, 68000<span style="color: #000000;">)
+</span><span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span> unittest.main()</pre>
+</div>
+<p>&nbsp;</p>
+<p>在Employee类中，只有一个give_raise一个增加年薪的方法，所以在测试类的时候，只针对这个方法来测试即可</p>
+<p>在TestEmployee类中，有一个setUp的方法，用来创建类的实例对象，供下面两个test方法使用，这样在运行test_give_default_raise()和test_give_custom_raise()的时候，直接调用setUp创建的对象即可，不用再自行创建</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

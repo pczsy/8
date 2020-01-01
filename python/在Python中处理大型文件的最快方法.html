@@ -1,0 +1,54 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修在Python中处理大型文件的最快方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>在Python中处理大型文件的最快方法</center></div><div class='banquan'>原文出处:本文由博客园博主python之蝉提供。<br/>
+原文连接:https://www.cnblogs.com/pythonzhichan/p/11509842.html</div><br>
+    <p><span><span>我们需要处理的各种目录中有大约500GB的图像。</span><span>每个图像的大小约为4MB，我们有一个python脚本，一次处理一个图像（它读取元数据并将其存储在数据库中）。</span><span>每个目录可能需要1-4小时才能处理，具体取决于大小。</span></span></p>
+<p><span><span>我们可以在GNU / Linux操作系统上使用2.2Ghz四核处理器和16GB RAM。</span><span>当前脚本仅使用一个处理器。</span><span>利用其他内核和RAM来更快地处理图像的最佳方法是什么？</span><span>启动多个Python进程来运行脚本会利用其他内核吗？</span></span></p>
+<p><span><span>另一个选择是使用Gearman或Beanstalk之类的东西将工作分配给其他机器。</span><span>我已经看了多处理库但不知道如何利用它。</span></span></p>
+<p>&nbsp;</p>
+<h2>解决方案</h2>
+<hr />
+<blockquote>
+<p><span><span>启动多个Python进程来运行脚本会利用其他内核吗？</span></span></p>
+
+
+</blockquote>
+<p><span><span>是的，如果任务受CPU约束，它将会。</span><span>这可能是最简单的选择。</span><span>但是，不要为每个文件或每个目录生成单个进程; </span><span>考虑使用像这样的工具，</span></span><a href="http://manpages.ubuntu.com/manpages/natty/man1/parallel.1.html" rel="nofollow"><code>parallel(1)</code></a><span><span>并让它产生每个核心两个进程的东西。</span></span></p>
+<blockquote>
+<p><span><span>另一个选择是使用Gearman或Beanstalk之类的东西将工作分配给其他机器。</span></span></p>
+
+
+</blockquote>
+<p><span><span>那可能有用。</span><span>另外，看看</span></span><a href="http://www.zeromq.org/bindings%3apython" rel="nofollow"><span><span>ZeroMQ</span></span></a><span><span>的</span><a href="http://www.zeromq.org/bindings%3apython" rel="nofollow"><span>Python绑定</span></a><span>，它使分布式处理变得非常简单。</span></span></p>
+<blockquote>
+<p><span><span>我已经看了多处理库但不知道如何利用它。</span></span></p>
+
+
+</blockquote>
+<p><span><span>比如定义一个函数，</span></span><code>process</code><span><span>它读取单个目录中的图像，连接到数据库并存储元数据。</span><span>让它返回一个表示成功或失败的布尔值。</span><span>我们</span></span><code>directories</code><span><span>是目录处理的列表。</span><span>然后</span></span></p>
+<pre><code><code><span class="kwd">import<span class="pln"> multiprocessing
+pool <span class="pun">=<span class="pln"> multiprocessing<span class="pun">.<span class="typ">Pool<span class="pun">(<span class="pln">multiprocessing<span class="pun">.<span class="pln">cpu_count<span class="pun">())<span class="pln">
+success <span class="pun">=<span class="pln"> all<span class="pun">(<span class="pln">pool<span class="pun">.<span class="pln">imap_unordered<span class="pun">(<span class="pln">process<span class="pun">,<span class="pln"> directories<span class="pun">))</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p><span><span>将并行处理所有目录。</span><span>如果需要，您还可以在文件级执行并行操作; </span><span>这需要更多的修修补补。</span></span></p>
+<p><span><span>请注意，这将在第一次失败时停止; </span><span>使其容错需要更多的工作。</span></span><br /><br /><br />本文首发于<a href="http://www.pythonheidong.com/" target="_blank">python黑洞网</a>，博客园同步更新</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

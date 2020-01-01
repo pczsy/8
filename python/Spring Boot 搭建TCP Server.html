@@ -1,0 +1,714 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 搭建TCP Server' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 搭建TCP Server</center></div><div class='banquan'>原文出处:本文由博客园博主云天提供。<br/>
+原文连接:https://www.cnblogs.com/tqlin/p/12037795.html</div><br>
+    <p>本示例首选介绍Java原生API实现BIO通信，然后进阶实现NIO通信，最后利用Netty实现NIO通信及Netty主要模块组件介绍。</p>
+<p>Netty 是一个异步事件驱动的网络应用程序框架，用于快速开发可维护的高性能协议服务器和客户端。</p>
+<h2 id="bioblocking-io-方案">BIO（Blocking I/O） 方案</h2>
+<p>BIO通信（一请求一应答）模型图如下</p>
+<p><img src="./images/Spring Boot 搭建TCP Server0.png" /></p>
+<p>采用 BIO 通信模型 的服务端，通常由一个独立的 Acceptor 线程负责监听客户端的连接。我们一般通过在while(true) 循环中服务端会调用 accept() 方法等待接收客户端的连接的方式监听请求，一旦接收到一个连接请求，就可以在这个通信套接字上进行读写操作，此时不能再接收其他客户端连接请求，只能等待当前连接的客户端的操作执行完成， 如果要让 BIO 通信模型 能够同时处理多个客户端请求，就必须使用多线程（主要原因是socket.accept()、socket.read()、socket.write() 涉及的三个主要函数都是同步阻塞的）</p>
+<h3 id="代码实现">代码实现</h3>
+<h4 id="bio服务端">BIO服务端</h4>
+<p>BIOServer.java</p>
+<pre><code><code>package com.easy.javaBio;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+@Slf4j
+public class BIOServer {
+    public static void main(String[] args) throws IOException {
+        ServerSocket server = new ServerSocket(10002);
+        while (true) {
+            Socket client = server.accept(); //等待客户端的连接，如果没有获取连接  ,在此步一直等待
+            new Thread(new ServerThread(client)).start(); //为每个客户端连接开启一个线程
+        }
+        //server.close();
+    }
+}
+
+@Slf4j
+class ServerThread extends Thread {
+
+    private Socket client;
+
+    public ServerThread(Socket client) {
+        this.client = client;
+    }
+
+    @SneakyThrows
+    @Override
+    public void run() {
+        log.info(&quot;客户端:&quot; + client.getInetAddress().getLocalHost() + &quot;已连接到服务器&quot;);
+        BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        //读取客户端发送来的消息
+        String mess = br.readLine();
+        log.info(&quot;客户端：&quot; + mess);
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+        bw.write(mess + &quot;\n&quot;);
+        bw.flush();
+    }
+}</code></pre>
+<h4 id="bio客户端">BIO客户端</h4>
+<p>BIOClient.java</p>
+<pre><code><code>package com.easy.javaBio;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.*;
+import java.net.Socket;
+
+@Slf4j
+public class BIOClient {
+
+    public static void main(String[] args) throws IOException {
+        Socket s = new Socket(&quot;0.0.0.0&quot;, 10002);
+
+        InputStream input = s.getInputStream();
+        OutputStream output = s.getOutputStream();
+
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(output));
+        bw.write(&quot;客户端给服务端发消息测试\n&quot;);  //向服务器端发送一条消息
+        bw.flush();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(input));  //读取服务器返回的消息
+        String mess = br.readLine();
+        log.info(&quot;服务器：&quot; + mess);
+    }
+}</code></pre>
+<h3 id="运行示例">运行示例</h3>
+<p>运行BIO服务端，然后再运行BIO客户端，观察控制台</p>
+<p>BIOServer控制台输出：</p>
+<pre class="cfml"><code>Connected to the target VM, address: &#39;127.0.0.1:64346&#39;, transport: &#39;socket&#39;
+17:29:52.519 [Thread-1] INFO com.easy.javaBio.ServerThread - 客户端:YHE6OR5UXQJ6D35/192.168.9.110已连接到服务器
+17:29:52.523 [Thread-1] INFO com.easy.javaBio.ServerThread - 客户端：客户端给服务端发消息测试</code></pre>
+<p>BIOClient控制台输出:</p>
+<pre class="cfml"><code>Connected to the target VM, address: &#39;127.0.0.1:64355&#39;, transport: &#39;socket&#39;
+17:29:52.527 [main] INFO com.easy.javaBio.BIOClient - 服务器：客户端给服务端发消息测试
+Disconnected from the target VM, address: &#39;127.0.0.1:64355&#39;, transport: &#39;socket&#39;</code></pre>
+<p>这表示我们实现了一个最简单的BIO通信了</p>
+<p>这种方式为每个客户端开启一个线程，高并发时消耗资源较多，容易浪费，甚至导致服务端崩溃，对性能造成负面影响，高并发下不推荐使用。</p>
+<h2 id="nionew-io方案">NIO（New I/O）方案</h2>
+<p>NIO通信模型图如下</p>
+<p><img src="./images/Spring Boot 搭建TCP Server1.png" /></p>
+<p>NIO是一种同步非阻塞的I/O模型，在Java 1.4 中引入了 NIO 框架，对应 java.nio 包，提供了 Channel , Selector，Buffer等抽象。</p>
+<p>NIO中的N可以理解为Non-blocking，不单纯是New。它支持面向缓冲的，基于通道的I/O操作方法。 NIO提供了与传统BIO模型中的 Socket 和 ServerSocket 相对应的 SocketChannel 和 ServerSocketChannel 两种不同的套接字通道实现,两种通道都支持阻塞和非阻塞两种模式。阻塞模式使用就像传统中的支持一样，比较简单，但是性能和可靠性都不好；非阻塞模式正好与之相反。对于低负载、低并发的应用程序，可以使用同步阻塞I/O来提升开发速率和更好的维护性；对于高负载、高并发的（网络）应用，应使用 NIO 的非阻塞模式来开发。</p>
+<h3 id="nio服务端">NIO服务端</h3>
+<p>NIOServer.java</p>
+<pre><code><code>package com.easy.javaBio;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.*;
+
+@Slf4j
+public class NIOServer {
+    private InetAddress addr;
+    private int port;
+    private Selector selector;
+
+    private static int BUFF_SIZE = 1024;
+
+    public NIOServer(InetAddress addr, int port) throws IOException {
+        this.addr = addr;
+        this.port = port;
+        startServer();
+    }
+
+    private void startServer() throws IOException {
+        // 获得selector及通道(socketChannel)
+        this.selector = Selector.open();
+        ServerSocketChannel serverChannel = ServerSocketChannel.open();
+        serverChannel.configureBlocking(false);
+
+        // 绑定地址及端口
+        InetSocketAddress listenAddr = new InetSocketAddress(this.addr, this.port);
+        serverChannel.socket().bind(listenAddr);
+        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+
+        log.info(&quot;NIOServer运行中...按下Ctrl-C停止服务&quot;);
+
+        while (true) {
+            log.info(&quot;服务器等待新的连接和selector选择…&quot;);
+            this.selector.select();
+
+            // 选择key工作
+            Iterator keys = this.selector.selectedKeys().iterator();
+            while (keys.hasNext()) {
+                SelectionKey key = (SelectionKey) keys.next();
+
+                // 防止出现重复的key，处理完需及时移除
+                keys.remove();
+
+                //无效直接跳过
+                if (!key.isValid()) {
+                    continue;
+                }
+                if (key.isAcceptable()) {
+                    this.accept(key);
+                } else if (key.isReadable()) {
+                    this.read(key);
+                } else if (key.isWritable()) {
+                    this.write(key);
+                } else if (key.isConnectable()) {
+                    this.connect(key);
+                }
+            }
+        }
+    }
+
+    private void connect(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        if (channel.finishConnect()) {
+            // 成功
+            log.info(&quot;成功连接了&quot;);
+        } else {
+            // 失败
+            log.info(&quot;失败连接&quot;);
+        }
+    }
+
+    private void accept(SelectionKey key) throws IOException {
+        ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
+        SocketChannel channel = serverChannel.accept();
+        channel.configureBlocking(false);
+        channel.register(this.selector, SelectionKey.OP_READ);
+
+        Socket socket = channel.socket();
+        SocketAddress remoteAddr = socket.getRemoteSocketAddress();
+        log.info(&quot;连接到: &quot; + remoteAddr);
+    }
+
+    private void read(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+
+        ByteBuffer buffer = ByteBuffer.allocate(BUFF_SIZE);
+        int numRead = channel.read(buffer);
+        if (numRead == -1) {
+            log.info(&quot;关闭客户端连接: &quot; + channel.socket().getRemoteSocketAddress());
+            channel.close();
+            return;
+        }
+        String msg = new String(buffer.array()).trim();
+        log.info(&quot;得到了: &quot; + msg);
+
+        // 回复客户端
+        String reMsg = msg + &quot; 你好，这是BIOServer给你的回复消息:&quot; + System.currentTimeMillis();
+        channel.write(ByteBuffer.wrap(reMsg.getBytes()));
+    }
+
+    private void write(SelectionKey key) throws IOException {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(BUFF_SIZE);
+        byteBuffer.flip();
+        SocketChannel clientChannel = (SocketChannel) key.channel();
+        while (byteBuffer.hasRemaining()) {
+            clientChannel.write(byteBuffer);
+        }
+        byteBuffer.compact();
+    }
+
+    public static void main(String[] args) throws IOException {
+        new NIOServer(null, 10002);
+    }
+}</code></pre>
+<p>使用NIO, 可以用Selector最终决定哪一组注册的socket准备执行I/O</p>
+<h3 id="nio客户端">NIO客户端</h3>
+<p>NIOClient.java</p>
+<pre><code><code>package com.easy.javaBio;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+
+@Slf4j
+public class NIOClient {
+    private static int BUFF_SIZE = 1024;
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+
+        InetSocketAddress socketAddress = new InetSocketAddress(&quot;0.0.0.0&quot;, 10002);
+        SocketChannel socketChannel = SocketChannel.open(socketAddress);
+
+        log.info(&quot;连接 BIOServer 服务，端口：10002...&quot;);
+
+        ArrayList&lt;String&gt; companyDetails = new ArrayList&lt;&gt;();
+
+        // 创建消息列表
+        companyDetails.add(&quot;腾讯&quot;);
+        companyDetails.add(&quot;阿里巴巴&quot;);
+        companyDetails.add(&quot;京东&quot;);
+        companyDetails.add(&quot;百度&quot;);
+        companyDetails.add(&quot;google&quot;);
+
+        for (String companyName : companyDetails) {
+            socketChannel.write(ByteBuffer.wrap(companyName.getBytes()));
+            log.info(&quot;发送: &quot; + companyName);
+
+            ByteBuffer buffer = ByteBuffer.allocate(BUFF_SIZE);
+            buffer.clear();
+            socketChannel.read(buffer);
+            String result = new String(buffer.array()).trim();
+            log.info(&quot;收到NIOServer回复的消息：&quot; + result);
+
+            // 等待2秒钟再发送下一条消息
+            Thread.sleep(2000);
+        }
+
+        socketChannel.close();
+    }
+}</code></pre>
+<h3 id="运行示例-1">运行示例</h3>
+<p>首先运行我们的NIOServer，然后再运行NIOClient，观察控制台输出</p>
+<p>NIOServer控制台输出</p>
+<pre class="cfml"><code>17:35:40.921 [main] INFO com.easy.javaBio.NIOServer - NIOServer运行中...按下Ctrl-C停止服务
+17:35:40.924 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…
+17:36:29.188 [main] INFO com.easy.javaBio.NIOServer - 连接到: /192.168.9.110:64443
+17:36:29.188 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…
+17:36:29.194 [main] INFO com.easy.javaBio.NIOServer - 得到了: 腾讯
+17:36:29.194 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…
+17:36:31.194 [main] INFO com.easy.javaBio.NIOServer - 得到了: 阿里巴巴
+17:36:31.195 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…
+17:36:33.195 [main] INFO com.easy.javaBio.NIOServer - 得到了: 京东
+17:36:33.195 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…
+17:36:35.196 [main] INFO com.easy.javaBio.NIOServer - 得到了: 百度
+17:36:35.197 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…
+17:36:37.197 [main] INFO com.easy.javaBio.NIOServer - 得到了: google
+17:36:37.198 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…
+17:36:39.198 [main] INFO com.easy.javaBio.NIOServer - 关闭客户端连接: /192.168.9.110:64443
+17:36:39.198 [main] INFO com.easy.javaBio.NIOServer - 服务器等待新的连接和selector选择…</code></pre>
+<p>NIOClient控制台输出</p>
+<pre class="cfml"><code>17:36:29.189 [main] INFO com.easy.javaBio.NIOClient - 连接 BIOServer 服务，端口：10002...
+17:36:29.194 [main] INFO com.easy.javaBio.NIOClient - 发送: 腾讯
+17:36:29.194 [main] INFO com.easy.javaBio.NIOClient - 收到NIOServer回复的消息：腾讯 你好，这是BIOServer给你的回复消息:1576229789194
+17:36:31.194 [main] INFO com.easy.javaBio.NIOClient - 发送: 阿里巴巴
+17:36:31.195 [main] INFO com.easy.javaBio.NIOClient - 收到NIOServer回复的消息：阿里巴巴 你好，这是BIOServer给你的回复消息:1576229791194
+17:36:33.195 [main] INFO com.easy.javaBio.NIOClient - 发送: 京东
+17:36:33.196 [main] INFO com.easy.javaBio.NIOClient - 收到NIOServer回复的消息：京东 你好，这是BIOServer给你的回复消息:1576229793195
+17:36:35.196 [main] INFO com.easy.javaBio.NIOClient - 发送: 百度
+17:36:35.197 [main] INFO com.easy.javaBio.NIOClient - 收到NIOServer回复的消息：百度 你好，这是BIOServer给你的回复消息:1576229795197
+17:36:37.197 [main] INFO com.easy.javaBio.NIOClient - 发送: google
+17:36:37.198 [main] INFO com.easy.javaBio.NIOClient - 收到NIOServer回复的消息：google 你好，这是BIOServer给你的回复消息:1576229797198</code></pre>
+<p>NIO服务端每隔两秒会收到客户端的请求，并对客户端的消息做出回复。</p>
+<p>直接使用Java NIO API构建应用程序是可以的，但要做到正确和安全并不容易。特别是在高负载下，可靠和高效地处理和调度I/O操作是一项繁琐而且容易出错的任务。可以选中Netty, Apache Mina等高性能网络编程框架。</p>
+<h2 id="netty-构建-nio-通信服务-方案">Netty 构建 NIO 通信服务 方案</h2>
+<h3 id="使用jdk原生网络应用程序api会存在的问题">使用JDK原生网络应用程序API，会存在的问题</h3>
+<ul>
+<li><p>NIO的类库和API繁杂，使用麻烦，你需要熟练掌握Selector、ServerSocketChannel、SocketChannel、ByteBuffer等</p></li>
+<li><p>需要具备其它的额外技能做铺垫，例如熟悉Java多线程编程，因为NIO编程涉及到Reactor模式，你必须对多线程和网路编程非常熟悉，才能编写出高质量的NIO程序</p></li>
+<li><p>可靠性能力补齐，开发工作量和难度都非常大。例如客户端面临断连重连、网络闪断、半包读写、失败缓存、网络拥塞和异常码流的处理等等，NIO编程的特点是功能开发相对容易，但是可靠性能力补齐工作量和难度都非常大</p></li>
+</ul>
+<h3 id="netty对jdk自带的nio的api进行封装解决上述问题主要特点有">Netty对JDK自带的NIO的API进行封装，解决上述问题，主要特点有</h3>
+<ul>
+<li>高并发</li>
+</ul>
+<p>Netty是一款基于NIO（Nonblocking I/O，非阻塞IO）开发的网络通信框架，对比于BIO（Blocking I/O，阻塞IO），他的并发性能得到了很大提高 。</p>
+<ul>
+<li>传输快</li>
+</ul>
+<p>Netty的传输快其实也是依赖了NIO的一个特性——零拷贝。</p>
+<ul>
+<li>封装好</li>
+</ul>
+<p>Netty封装了NIO操作的很多细节，提供易于使用的API。</p>
+<h3 id="netty框架的优势">Netty框架的优势</h3>
+<ul>
+<li>API使用简单，开发门槛低；</li>
+<li>功能强大，预置了多种编解码功能，支持多种主流协议；</li>
+<li>定制能力强，可以通过ChannelHandler对通信框架进行灵活地扩展；</li>
+<li>性能高，通过与其他业界主流的NIO框架对比，Netty的综合性能最优；</li>
+<li>成熟、稳定，Netty修复了已经发现的所有JDK NIO BUG，业务开发人员不需要再为NIO的BUG而烦恼；</li>
+<li>社区活跃，版本迭代周期短，发现的BUG可以被及时修复，同时，更多的新功能会加入；</li>
+<li>经历了大规模的商业应用考验，质量得到验证。在互联网、大数据、网络游戏、企业应用、电信软件等众多行业得到成功商用，证明了它已经完全能够满足不同行业的商业应用了。</li>
+</ul>
+<h3 id="代码实现-1">代码实现</h3>
+<p>pom.xml依赖</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;2.1.9.RELEASE&lt;/version&gt;
+        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+    &lt;groupId&gt;com.easy&lt;/groupId&gt;
+    &lt;artifactId&gt;netty&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1&lt;/version&gt;
+    &lt;name&gt;netty&lt;/name&gt;
+    &lt;description&gt;Demo project for Spring Boot&lt;/description&gt;
+
+    &lt;properties&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+        &lt;encoding&gt;UTF-8&lt;/encoding&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;!-- https://mvnrepository.com/artifact/io.netty/netty-all --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.netty&lt;/groupId&gt;
+            &lt;artifactId&gt;netty-all&lt;/artifactId&gt;
+            &lt;version&gt;4.1.43.Final&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;scope&gt;compile&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;modules&gt;
+        &lt;module&gt;java-tcp&lt;/module&gt;
+        &lt;module&gt;netty-server&lt;/module&gt;
+        &lt;module&gt;netty-client&lt;/module&gt;
+    &lt;/modules&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</code></pre>
+<h4 id="搭建-netty-服务端">搭建 Netty 服务端</h4>
+<p>NettyServer.java</p>
+<pre><code><code>package com.easy.nettyServer;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.net.InetSocketAddress;
+
+@Component
+@Slf4j
+public class NettyServer {
+    /**
+     * boss 线程组用于处理连接工作
+     */
+    private EventLoopGroup boss = new NioEventLoopGroup();
+    /**
+     * work 线程组用于数据处理
+     */
+    private EventLoopGroup work = new NioEventLoopGroup();
+
+    @Value(&quot;${netty.port}&quot;)
+    private Integer port;
+
+    /**
+     * 启动Netty Server
+     *
+     * @throws InterruptedException
+     */
+    @PostConstruct
+    public void start() throws InterruptedException {
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap.group(boss, work)
+                // 指定Channel
+                .channel(NioServerSocketChannel.class)
+                //使用指定的端口设置套接字地址
+                .localAddress(new InetSocketAddress(port))
+
+                //服务端可连接队列数,对应TCP/IP协议listen函数中backlog参数
+                .option(ChannelOption.SO_BACKLOG, 1024)
+
+                //设置TCP长连接,一般如果两个小时内没有数据的通信时,TCP会自动发送一个活动探测数据报文
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
+
+                //将小的数据包包装成更大的帧进行传送，提高网络的负载
+                .childOption(ChannelOption.TCP_NODELAY, true)
+
+                .childHandler(new ServerChannelInitializer());
+        ChannelFuture future = bootstrap.bind().sync();
+        if (future.isSuccess()) {
+            log.info(&quot;启动 Netty Server&quot;);
+        }
+    }
+
+    @PreDestroy
+    public void destory() throws InterruptedException {
+        boss.shutdownGracefully().sync();
+        work.shutdownGracefully().sync();
+        log.info(&quot;关闭Netty&quot;);
+    }
+}</code></pre>
+<p>NettyServerHandler.java</p>
+<pre><code><code>package com.easy.nettyServer;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class NettyServerHandler extends ChannelInboundHandlerAdapter {
+    /**
+     * 客户端连接会触发
+     */
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        log.info(&quot;Channel active......&quot;);
+    }
+
+    /**
+     * 客户端发消息会触发
+     */
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        log.info(&quot;服务器收到消息: {}&quot;, msg.toString());
+        ctx.write(&quot;我是服务端，我收到你的消息了！&quot;);
+        ctx.flush();
+    }
+
+    /**
+     * 发生异常触发
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        ctx.close();
+    }
+}</code></pre>
+<p>ServerChannelInitializer.java</p>
+<pre><code><code>package com.easy.nettyServer;
+
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.util.CharsetUtil;
+
+public class ServerChannelInitializer extends ChannelInitializer&lt;SocketChannel&gt; {
+    @Override
+    protected void initChannel(SocketChannel socketChannel) throws Exception {
+        //添加编解码
+        socketChannel.pipeline().addLast(&quot;decoder&quot;, new StringDecoder(CharsetUtil.UTF_8));
+        socketChannel.pipeline().addLast(&quot;encoder&quot;, new StringEncoder(CharsetUtil.UTF_8));
+        socketChannel.pipeline().addLast(new NettyServerHandler());
+    }
+}</code></pre>
+<h4 id="创建-netty-客户端">创建 Netty 客户端</h4>
+<p>NettyClient.java</p>
+<pre><code><code>package com.easy.nettyClient;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.concurrent.TimeUnit;
+
+@Component
+@Slf4j
+public class NettyClient {
+
+    private EventLoopGroup group = new NioEventLoopGroup();
+
+    @Value(&quot;${netty.port}&quot;)
+    private Integer port;
+
+    @Value(&quot;${netty.host}&quot;)
+    private String host;
+
+    private SocketChannel socketChannel;
+
+    /**
+     * 发送消息
+     */
+    public void sendMsg(String msg) {
+        socketChannel.writeAndFlush(msg);
+    }
+
+    @PostConstruct
+    public void start() {
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(group)
+                .channel(NioSocketChannel.class)
+                .remoteAddress(host, port)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .handler(new NettyClientInitializer());
+        ChannelFuture future = bootstrap.connect();
+        //客户端断线重连逻辑
+        future.addListener((ChannelFutureListener) future1 -&gt; {
+            if (future1.isSuccess()) {
+                log.info(&quot;连接Netty服务端成功&quot;);
+            } else {
+                log.info(&quot;连接失败，进行断线重连&quot;);
+                future1.channel().eventLoop().schedule(() -&gt; start(), 20, TimeUnit.SECONDS);
+            }
+        });
+        socketChannel = (SocketChannel) future.channel();
+    }
+}
+</code></pre>
+<p>NettyClientHandler.java</p>
+<pre><code><code>package com.easy.nettyClient;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class NettyClientHandler extends ChannelInboundHandlerAdapter {
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        log.info(&quot;客户端Active .....&quot;);
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        log.info(&quot;客户端收到消息: {}&quot;, msg.toString());
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        ctx.close();
+    }
+}</code></pre>
+<p>NettyClientInitializer.java</p>
+<pre><code><code>package com.easy.nettyClient;
+
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+
+public class NettyClientInitializer extends ChannelInitializer&lt;SocketChannel&gt; {
+    @Override
+    protected void initChannel(SocketChannel socketChannel) throws Exception {
+        socketChannel.pipeline().addLast(&quot;decoder&quot;, new StringDecoder());
+        socketChannel.pipeline().addLast(&quot;encoder&quot;, new StringEncoder());
+        socketChannel.pipeline().addLast(new NettyClientHandler());
+    }
+}</code></pre>
+<h3 id="运行示例-2">运行示例</h3>
+<p>打开浏览器，地址栏输入：http://localhost:8091/send?msg=%E4%BD%A0%E5%A5%BD，观察服务端和客户端控制台</p>
+<p>服务端控制台输出</p>
+<pre><code><code>2019-12-13 18:01:37.901  INFO 11288 --- [           main] com.easy.nettyServer.NettyServer         : 启动 Netty Server
+2019-12-13 18:01:45.834  INFO 11288 --- [ntLoopGroup-3-1] com.easy.nettyServer.NettyServerHandler  : Channel active......
+2019-12-13 18:02:07.858  INFO 11288 --- [ntLoopGroup-3-1] com.easy.nettyServer.NettyServerHandler  : 服务器收到消息: 你好</code></pre>
+<p>客户端控制台输出</p>
+<pre><code><code>2019-12-13 18:01:45.822  INFO 11908 --- [ntLoopGroup-2-1] com.easy.nettyClient.NettyClient         : 连接Netty服务端成功
+2019-12-13 18:01:45.822  INFO 11908 --- [ntLoopGroup-2-1] com.easy.nettyClient.NettyClientHandler  : 客户端Active .....
+2019-12-13 18:02:08.005  INFO 11908 --- [ntLoopGroup-2-1] com.easy.nettyClient.NettyClientHandler  : 客户端收到消息: 我是服务端，我收到你的消息了！</code></pre>
+<p>表示使用Netty实现了我们的NIO通信了</p>
+<h2 id="netty-模块组件">Netty 模块组件</h2>
+<h3 id="bootstrapserverbootstrap">Bootstrap、ServerBootstrap</h3>
+<p>一个Netty应用通常由一个Bootstrap开始，主要作用是配置整个Netty程序，串联各个组件，Netty中Bootstrap类是客户端程序的启动引导类，ServerBootstrap是服务端启动引导类。</p>
+<h3 id="futurechannelfuture">Future、ChannelFuture</h3>
+<p>在Netty中所有的IO操作都是异步的，不能立刻得知消息是否被正确处理，但是可以过一会等它执行完成或者直接注册一个监听，具体的实现就是通过Future和ChannelFuture，他们可以注册一个监听，当操作执行成功或失败时监听会自动触发注册的监听事件。</p>
+<h3 id="channel">Channel</h3>
+<p>Netty网络通信组件，能够用于执行网络I/O操作。Channel为用户提供：</p>
+<ul>
+<li>当前网络连接的通道的状态（例如是否打开？是否已连接？）</li>
+<li>网络连接的配置参数 （例如接收缓冲区大小）</li>
+<li>提供异步的网络I/O操作(如建立连接，读写，绑定端口)，异步调用意味着任何I/O调用都将立即返回，并且不保证在调用结束时所请求的I/O操作已完成。调用立即返回一个ChannelFuture实例，通过注册监听器到ChannelFuture上，可以I/O操作成功、失败或取消时回调通知调用方。</li>
+<li>支持关联I/O操作与对应的处理程序</li>
+</ul>
+<p>不同协议、不同阻塞类型的连接都有不同的 Channel 类型与之对应，下面是一些常用的 Channel 类型</p>
+<ul>
+<li>NioSocketChannel，异步的客户端 TCP Socket 连接</li>
+<li>NioServerSocketChannel，异步的服务器端 TCP Socket 连接</li>
+<li>NioDatagramChannel，异步的 UDP 连接</li>
+<li>NioSctpChannel，异步的客户端 Sctp 连接</li>
+<li>NioSctpServerChannel，异步的 Sctp 服务器端连接</li>
+</ul>
+<h3 id="selector">Selector</h3>
+<p>Netty基于Selector对象实现I/O多路复用，通过 Selector, 一个线程可以监听多个连接的Channel事件, 当向一个Selector中注册Channel 后，Selector 内部的机制就可以自动不断地查询(select) 这些注册的Channel是否有已就绪的I/O事件(例如可读, 可写, 网络连接完成等)，这样程序就可以很简单地使用一个线程高效地管理多个 Channel</p>
+<h3 id="nioeventloop">NioEventLoop</h3>
+<p>NioEventLoop中维护了一个线程和任务队列，支持异步提交执行任务，线程启动时会调用NioEventLoop的run方法，执行I/O任务和非I/O任务：</p>
+<ul>
+<li>I/O任务 即selectionKey中ready的事件，如accept、connect、read、write等，由processSelectedKeys方法触发。</li>
+<li>非IO任务 添加到taskQueue中的任务，如register0、bind0等任务，由runAllTasks方法触发。</li>
+</ul>
+<p>两种任务的执行时间比由变量ioRatio控制，默认为50，则表示允许非IO任务执行的时间与IO任务的执行时间相等。</p>
+<h3 id="nioeventloopgroup">NioEventLoopGroup</h3>
+<p>NioEventLoopGroup，主要管理eventLoop的生命周期，可以理解为一个线程池，内部维护了一组线程，每个线程(NioEventLoop)负责处理多个Channel上的事件，而一个Channel只对应于一个线程。</p>
+<h3 id="channelhandler">ChannelHandler</h3>
+<p>ChannelHandler是一个接口，处理I/O事件或拦截I/O操作，并将其转发到其ChannelPipeline(业务处理链)中的下一个处理程序。</p>
+<h3 id="channelhandlercontext">ChannelHandlerContext</h3>
+<p>保存Channel相关的所有上下文信息，同时关联一个ChannelHandler对象</p>
+<h3 id="channelpipline">ChannelPipline</h3>
+<p>保存ChannelHandler的List，用于处理或拦截Channel的入站事件和出站操作。 ChannelPipeline实现了一种高级形式的拦截过滤器模式，使用户可以完全控制事件的处理方式，以及Channel中各个的ChannelHandler如何相互交互。</p>
+<h2 id="资料">资料</h2>
+<ul>
+<li><a href="https://github.com/smltq/spring-boot-demo/blob/master/netty">netty 示例源码</a></li>
+<li><a href="https://netty.io/">netty官网</a></li>
+<li><p><a href="https://juejin.im/post/5bea1d2e51882523d3163657">参考</a></p>
+<blockquote>
+<p><a href="https://github.com/smltq/spring-boot-demo">Spring Boot、Cloud 学习项目</a></p>
+</blockquote></li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

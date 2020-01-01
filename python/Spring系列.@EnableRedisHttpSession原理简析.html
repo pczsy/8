@@ -1,0 +1,222 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring系列.@EnableRedisHttpSession原理简析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring系列.@EnableRedisHttpSession原理简析</center></div><div class='banquan'>原文出处:本文由博客园博主写代码的木公提供。<br/>
+原文连接:https://www.cnblogs.com/54chensongxia/p/12096493.html</div><br>
+    <hr />
+<p>在集群系统中，经常会需要将Session进行共享。不然会出现这样一个问题：用户在系统A上登陆以后，假如后续的一些操作被负载均衡到系统B上面，系统B发现本机上没有这个用户的Session，会强制让用户重新登陆。此时用户会很疑惑，自己明明登陆过了，为什么还要自己重新登陆。</p>
+<hr />
+<h2 id="什么是session">什么是Session</h2>
+<p>这边再普及下Session的概念：Session是服务器端的一个key-value的数据结构，经常被用户和cookie配合，保持用户的登陆回话。客户端在第一次访问服务端的时候，服务端会响应一个sessionId并且将它存入到本地cookie中，在之后的访问会将cookie中的sessionId放入到请求头中去访问服务器，如果通过这个sessionid没有找到对应的数据那么服务器会创建一个新的sessionid并且响应给客户端。</p>
+<h2 id="分布式session的解决方案">分布式Session的解决方案</h2>
+<ul>
+<li>使用cookie来完成（很明显这种不安全的操作并不可靠）</li>
+<li>使用Nginx中的ip绑定策略，同一个ip只能在指定的同一个机器访问（不支持负载均衡）</li>
+<li>利用数据库同步session（效率不高）</li>
+<li>使用tomcat内置的session同步（同步可能会产生延迟）</li>
+<li>使用token代替session</li>
+<li><strong>我们使用spring-session以及集成好的解决方案，存放在Redis中</strong></li>
+</ul>
+<p>最后一种方案是本文要介绍的重点。</p>
+<h2 id="spring-session使用方式">Spring Session使用方式</h2>
+<p>添加依赖</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-session-data-redis&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-session&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+<p>添加注解@EnableRedisHttpSession</p>
+<pre class="java"><code>@Configuration
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 86400*30)
+public class RedisSessionConfig {
+}</code></pre>
+<p>maxInactiveIntervalInSeconds: 设置 Session 失效时间，使用 Redis Session 之后，原 Spring Boot 的 server.session.timeout 属性不再生效。</p>
+<p>经过上面的配置后，Session调用就会自动去Redis存取。另外，想要达到Session共享的目的，只需要在其他的系统上做同样的配置即可。</p>
+<h2 id="spring-session-redis的原理简析">4. Spring Session Redis的原理简析</h2>
+<p>看了上面的配置，我们知道开启Redis Session的“秘密”在@EnableRedisHttpSession这个注解上。打开@EnableRedisHttpSession的源码：</p>
+<pre class="java"><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+@Import(RedisHttpSessionConfiguration.class)
+@Configuration
+public @interface EnableRedisHttpSession {
+    //Session默认过期时间,秒为单位，默认30分钟
+    int maxInactiveIntervalInSeconds() default MapSession.DEFAULT_MAX_INACTIVE_INTERVAL_SECONDS;
+    //配置key的namespace，默认的是spring:session，如果不同的应用共用一个redis，应该为应用配置不同的namespace，这样才能区分这个Session是来自哪个应用的
+    String redisNamespace() default RedisOperationsSessionRepository.DEFAULT_NAMESPACE;
+    //配置刷新Redis中Session的方式，默认是ON_SAVE模式，只有当Response提交后才会将Session提交到Redis
+    //这个模式也可以配置成IMMEDIATE模式，这样的话所有对Session的更改会立即更新到Redis
+    RedisFlushMode redisFlushMode() default RedisFlushMode.ON_SAVE;
+    //清理过期Session的定时任务默认一分钟一次。
+    String cleanupCron() default RedisHttpSessionConfiguration.DEFAULT_CLEANUP_CRON;
+}</code></pre>
+<p>这个注解的主要作用是注册一个SessionRepositoryFilter，这个Filter会拦截到所有的请求，对Session进行操作，具体的操作细节会在后面讲解，这边主要了解这个注解的作用是注册SessionRepositoryFilter就行了。注入SessionRepositoryFilter的代码在RedisHttpSessionConfiguration这个类中。</p>
+<pre class="java"><code>@Configuration
+@EnableScheduling
+public class RedisHttpSessionConfiguration extends SpringHttpSessionConfiguration
+        implements BeanClassLoaderAware, EmbeddedValueResolverAware, ImportAware,
+        SchedulingConfigurer {
+            ...
+        }</code></pre>
+<p>RedisHttpSessionConfiguration继承了SpringHttpSessionConfiguration，SpringHttpSessionConfiguration中注册了SessionRepositoryFilter。见下面代码。</p>
+<pre class="java"><code>@Configuration
+public class SpringHttpSessionConfiguration implements ApplicationContextAware {
+    ...
+     @Bean
+    public &lt;S extends Session&gt; SessionRepositoryFilter&lt;? extends Session&gt; springSessionRepositoryFilter(
+            SessionRepository&lt;S&gt; sessionRepository) {
+        SessionRepositoryFilter&lt;S&gt; sessionRepositoryFilter = new SessionRepositoryFilter&lt;&gt;(
+                sessionRepository);
+        sessionRepositoryFilter.setServletContext(this.servletContext);
+        sessionRepositoryFilter.setHttpSessionIdResolver(this.httpSessionIdResolver);
+        return sessionRepositoryFilter;
+    }
+     ...
+}</code></pre>
+<p>我们发现注册SessionRepositoryFilter时需要一个SessionRepository参数，这个参数是在RedisHttpSessionConfiguration中被注入进入的。</p>
+<pre class="java"><code>@Configuration
+@EnableScheduling
+public class RedisHttpSessionConfiguration extends SpringHttpSessionConfiguration
+        implements BeanClassLoaderAware, EmbeddedValueResolverAware, ImportAware,
+        SchedulingConfigurer {
+            ...
+            @Bean
+    public RedisOperationsSessionRepository sessionRepository() {
+        RedisTemplate&lt;Object, Object&gt; redisTemplate = createRedisTemplate();
+        RedisOperationsSessionRepository sessionRepository = new RedisOperationsSessionRepository(
+                redisTemplate);
+        sessionRepository.setApplicationEventPublisher(this.applicationEventPublisher);
+        if (this.defaultRedisSerializer != null) {
+            sessionRepository.setDefaultSerializer(this.defaultRedisSerializer);
+        }
+        sessionRepository
+                .setDefaultMaxInactiveInterval(this.maxInactiveIntervalInSeconds);
+        if (StringUtils.hasText(this.redisNamespace)) {
+            sessionRepository.setRedisKeyNamespace(this.redisNamespace);
+        }
+        sessionRepository.setRedisFlushMode(this.redisFlushMode);
+        int database = resolveDatabase();
+        sessionRepository.setDatabase(database);
+        return sessionRepository;
+    }    
+          ...
+        }</code></pre>
+<p>请求进来的时候拦截器会先将request和response拦截住，然后将这两个对象转换成Spring内部的包装类SessionRepositoryRequestWrapper和SessionRepositoryResponseWrapper对象。SessionRepositoryRequestWrapper类重写了原生的getSession方法。代码如下：</p>
+<pre class="java"><code>    @Override
+        public HttpSessionWrapper getSession(boolean create) {
+             //通过request的getAttribue方法查找CURRENT_SESSION属性，有直接返回
+            HttpSessionWrapper currentSession = getCurrentSession();
+            if (currentSession != null) {
+                return currentSession;
+            }
+             //查找客户端中一个叫SESSION的cookie，通过sessionRepository对象根据SESSIONID去Redis中查找Session
+            S requestedSession = getRequestedSession();
+            if (requestedSession != null) {
+                if (getAttribute(INVALID_SESSION_ID_ATTR) == null) {
+                    requestedSession.setLastAccessedTime(Instant.now());
+                    this.requestedSessionIdValid = true;
+                    currentSession = new HttpSessionWrapper(requestedSession, getServletContext());
+                    currentSession.setNew(false);
+                      //将Session设置到request属性中
+                    setCurrentSession(currentSession);
+                      //返回Session
+                    return currentSession;
+                }
+            }
+            else {
+                // This is an invalid session id. No need to ask again if
+                // request.getSession is invoked for the duration of this request
+                if (SESSION_LOGGER.isDebugEnabled()) {
+                    SESSION_LOGGER.debug(
+                            &quot;No session found by id: Caching result for getSession(false) for this HttpServletRequest.&quot;);
+                }
+                setAttribute(INVALID_SESSION_ID_ATTR, &quot;true&quot;);
+            }
+             //不创建Session就直接返回null
+            if (!create) {
+                return null;
+            }
+            if (SESSION_LOGGER.isDebugEnabled()) {
+                SESSION_LOGGER.debug(
+                        &quot;A new session was created. To help you troubleshoot where the session was created we provided a StackTrace (this is not an error). You can prevent this from appearing by disabling DEBUG logging for &quot;
+                                + SESSION_LOGGER_NAME,
+                        new RuntimeException(
+                                &quot;For debugging purposes only (not an error)&quot;));
+            }
+             //通过sessionRepository创建RedisSession这个对象，可以看下这个类的源代码，如果
+             //@EnableRedisHttpSession这个注解中的redisFlushMode模式配置为IMMEDIATE模式，会立即
+             //将创建的RedisSession同步到Redis中去。默认是不会立即同步的。
+            S session = SessionRepositoryFilter.this.sessionRepository.createSession();
+            session.setLastAccessedTime(Instant.now());
+            currentSession = new HttpSessionWrapper(session, getServletContext());
+            setCurrentSession(currentSession);
+            return currentSession;
+        }</code></pre>
+<p>当调用SessionRepositoryRequestWrapper对象的getSession方法拿Session的时候，会先从当前请求的属性中查找.CURRENT_SESSION属性，如果能拿到直接返回，这样操作能减少Redis操作，提升性能。</p>
+<p>到现在为止我们发现如果redisFlushMode配置为ON_SAVE模式的话，Session信息还没被保存到Redis中,那么这个同步操作到底是在哪里执行的呢？我们发现SessionRepositoryFilter的doFilterInternal方法最后有一个finally代码块，这个代码块的功能就是将Session同步到Redis。</p>
+<pre class="java"><code>    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+            HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        request.setAttribute(SESSION_REPOSITORY_ATTR, this.sessionRepository);
+
+        SessionRepositoryRequestWrapper wrappedRequest = new SessionRepositoryRequestWrapper(
+                request, response, this.servletContext);
+        SessionRepositoryResponseWrapper wrappedResponse = new SessionRepositoryResponseWrapper(
+                wrappedRequest, response);
+
+        try {
+            filterChain.doFilter(wrappedRequest, wrappedResponse);
+        }
+        finally {
+             //将Session同步到Redis，同时这个方法还会将当前的SESSIONID写到cookie中去，同时还会发布一
+             //SESSION创建事件到队列里面去
+            wrappedRequest.commitSession();
+        }
+    }</code></pre>
+<h2 id="总结">总结</h2>
+<p>主要的核心类有：</p>
+<ul>
+<li>@EnableRedisHttpSession：开启Session共享功能</li>
+<li>RedisHttpSessionConfiguration：配置类，一般不需要我们自己配置。主要功能是配置SessionRepositoryFilter和RedisOperationsSessionRepository这两个Bean</li>
+<li>SessionRepositoryFilter：拦截器</li>
+<li>RedisOperationsSessionRepository：可以认为是一个Redis操作的客户端，有在Redis中增删改查Session的功能</li>
+<li>SessionRepositoryRequestWrapper：Request的包装类，主要是重写了getSession方法</li>
+<li>SessionRepositoryResponseWrapper：Response的包装类。</li>
+</ul>
+<p>原理简要总结：</p>
+<p>当请求进来的时候，SessionRepositoryFilter会先拦截到请求，将request和Response对象转换成SessionRepositoryRequestWrapper和SessionRepositoryResponseWrapper。后续当第一次调用request的getSession方法时，会调用到SessionRepositoryRequestWrapper的getSession方法。这个方法的逻辑是先从request的属性中查找，如果找不到；再查找一个key值是&quot;SESSION&quot;的cookie，通过这个cookie拿到sessionId去redis中查找，如果查不到，就直接创建一个RedisSession对象，同步到Redis中（同步的时机根据配置来）。</p>
+<h2 id="遗留问题">遗留问题</h2>
+<ul>
+<li>什么时候写的cookie</li>
+<li>清理过期Session的功能怎么实现的</li>
+<li>自定义HttpSessionStrategy</li>
+</ul>
+<h2 id="参考">参考</h2>
+<ul>
+<li>https://www.cnblogs.com/SimpleWu/p/10118674.html</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

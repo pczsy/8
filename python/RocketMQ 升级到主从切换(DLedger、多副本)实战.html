@@ -1,0 +1,258 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修RocketMQ 升级到主从切换(DLedger、多副本)实战' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>RocketMQ 升级到主从切换(DLedger、多副本)实战</center></div><div class='banquan'>原文出处:本文由博客园博主中间件兴趣圈提供。<br/>
+原文连接:https://www.cnblogs.com/dingwpmz/p/12080372.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#rocketmq-dledger-多副本即主从切换核心配置参数详解">1、RocketMQ DLedger 多副本即主从切换核心配置参数详解</a></li>
+        <li><a href="#搭建主从同步环境">2、搭建主从同步环境</a></li>
+        <li><a href="#主从同步集群升级到dledger">3、主从同步集群升级到DLedger</a><ul>
+        <li><a href="#部署架构">3.1 部署架构</a></li>
+        <li><a href="#升级步骤">3.2 升级步骤</a></li>
+        <li><a href="#验证消息发送与消息查找">3.3 验证消息发送与消息查找</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<p>本文主要介绍如何将 RocketMQ 集群从原先的主从同步升级到主从切换。</p>
+<p>首先先介绍与 DLedger 多副本即 RocketMQ 主从切换相关的核心配置属性，然后尝试搭建一个主从同步集群，再从原先的 RocketMQ 集群平滑升级到 DLedger 集群的示例，并简单测试一下主从切换功能。</p>
+<p>@(本节目录)</p>
+<h2 id="rocketmq-dledger-多副本即主从切换核心配置参数详解">1、RocketMQ DLedger 多副本即主从切换核心配置参数详解</h2>
+<p>其主要的配置参数如下所示：</p>
+<ul>
+<li>enableDLegerCommitLog<br />
+是否启用 DLedger，即是否启用 RocketMQ 主从切换，默认值为 false。如果需要开启主从切换，则该值需要设置为 true 。</li>
+<li>dLegerGroup<br />
+节点所属的 raft 组，建议与 brokerName 保持一致，例如 broker-a。</li>
+<li>dLegerPeers<br />
+集群节点信息，示例配置如下：n0-127.0.0.1:40911;n1-127.0.0.1:40912;n2-127.0.0.1:40913，多个节点用英文冒号隔开，单个条目遵循 legerSlefId-ip:端口，这里的端口用作 dledger 内部通信。</li>
+<li>dLegerSelfId<br />
+当前节点id。取自 legerPeers 中条目的开头，即上述示例中的 n0，并且特别需要强调，只能第一个字符为英文，其他字符需要配置成数字。</li>
+<li>storePathRootDir<br />
+DLedger 日志文件的存储根目录，为了能够支持平滑升级，该值与 storePathCommitLog 设置为不同的目录。</li>
+</ul>
+<h2 id="搭建主从同步环境">2、搭建主从同步环境</h2>
+<p>首先先搭建一个传统意义上的主从同步架构，往集群中灌一定量的数据，然后升级到 DLedger 集群。</p>
+<p>在 Linux 服务器上搭建一个 rocketmq 主从同步集群我想不是一件很难的事情，故本文就不会详细介绍按照过程，只贴出相关配置。</p>
+<p>实验环境的部署结构采取 一主一次，其部署图如下：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战0.png" alt="在这里插入图片描述" /><br />
+下面我就重点贴一下 broker 的配置文件。<br />
+220 上的 broker 配置文件如下：</p>
+<pre><code><code>brokerClusterName = DefaultCluster
+brokerName = broker-a
+brokerId = 0
+deleteWhen = 04
+fileReservedTime = 48
+brokerRole = ASYNC_MASTER
+flushDiskType = ASYNC_FLUSH
+brokerIP1=192.168.0.220
+brokerIP2=192.168.0.220
+namesrvAddr=192.168.0.221:9876;192.168.0.220:9876
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store
+storePathCommitLog=/opt/application/rocketmq-all-4.5.2-bin-release/store/commitlog
+autoCreateTopicEnable=false
+autoCreateSubscriptionGroup=false</code></pre>
+<p>221 上 broker 的配置文件如下：</p>
+<pre><code><code>brokerClusterName = DefaultCluster
+brokerName = broker-a
+brokerId = 1
+deleteWhen = 04
+fileReservedTime = 48
+brokerRole = SLAVE
+flushDiskType = ASYNC_FLUSH
+brokerIP1=192.168.0.221
+brokerIP2=192.168.0.221
+namesrvAddr=192.168.0.221:9876;192.168.0.220:9876
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store
+storePathCommitLog=/opt/application/rocketmq-all-4.5.2-bin-release/store/commitlog
+autoCreateTopicEnable=false
+autoCreateSubscriptionGroup=false</code></pre>
+<p>相关的启动命令如下：</p>
+<pre><code><code>nohup bin/mqnamesrv  /dev/null  2&gt;&amp;1 &amp;
+nohup bin/mqbroker -c conf/broker.conf  /dev/null  2&gt;&amp;1 &amp;</code></pre>
+<p>安装后的集群信息如图所示：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战1.png" alt="在这里插入图片描述" /></p>
+<h2 id="主从同步集群升级到dledger">3、主从同步集群升级到DLedger</h2>
+<h3 id="部署架构">3.1 部署架构</h3>
+<p>DLedger 集群至少需要3台机器，故搭建 DLedger 还需要再引入一台机器，其部署结构图如下：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战2.png" alt="在这里插入图片描述" /><br />
+从主从同步集群升级到 DLedger 集群，用户最关心的还是升级后的集群是否能够兼容原先的数据，即原先存储在消息能否能被消息消费者消费端，甚至于能否查询到。<br />
+为了方便后续验证，首先我使用下述程序向 mq 集群中添加了一篇方便查询的消息（设置消息的key）。</p>
+<pre class="java"><code>public class Producer {
+    public static void main(String[] args) throws MQClientException, InterruptedException {
+        DefaultMQProducer producer = new DefaultMQProducer(&quot;producer_dw_test&quot;);
+        producer.setNamesrvAddr(&quot;192.168.0.220:9876;192.168.0.221:9876&quot;);
+        producer.start();
+        for(int i =600000; i &lt; 600100; i ++) {
+            try {
+                Message msg = new Message(&quot;topic_dw_test_by_order_01&quot;,null , &quot;m&quot; + i,(&quot;Hello RocketMQ&quot; + i ).getBytes(RemotingHelper.DEFAULT_CHARSET));
+                SendResult sendResult = producer.send(msg);
+               //System.out.printf(&quot;%s%n&quot;, sendResult);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Thread.sleep(1000);
+            }
+        }
+        producer.shutdown();
+        System.out.println(&quot;end&quot;);
+    }
+}</code></pre>
+<p>消息的查询结果示例如下：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战3.png" alt="在这里插入图片描述" /></p>
+<h3 id="升级步骤">3.2 升级步骤</h3>
+<p>Step1：将 192.168.0.220 的 rocketmq 拷贝到 192.168.0.222，可以使用如下命令进行操作。在 192.168.0.220 上敲如下命令：</p>
+<pre><code><code> scp -r rocketmq-all-4.5.2-bin-release/ root@192.168.0.222:/opt/application/rocketmq-all-4.5.2-bin-release</code></pre>
+<blockquote>
+<p>温馨提示：示例中由于版本是一样，实际过程中，版本需要升级，故需先下载最新的版本，然后将老集群中的 store 目录完整的拷贝到新集群的 store 目录。</p>
+</blockquote>
+<p>Step2：依次在三台服务器的 broker.conf 配置文件中添加与 dledger 相关的配置属性。</p>
+<p>192.168.0.220 broker配置文件如下：</p>
+<pre><code><code>brokerClusterName = DefaultCluster
+brokerId = 0
+deleteWhen = 04
+fileReservedTime = 48
+brokerRole = ASYNC_MASTER
+flushDiskType = ASYNC_FLUSH
+brokerIP1=192.168.0.220
+brokerIP2=192.168.0.220
+namesrvAddr=192.168.0.221:9876;192.168.0.220:9876
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store
+storePathCommitLog=/opt/application/rocketmq-all-4.5.2-bin-release/store/commitlog
+autoCreateTopicEnable=false
+autoCreateSubscriptionGroup=false
+# 与 dledger 相关的属性
+enableDLegerCommitLog=true
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store/dledger_store
+dLegerGroup=broker-a
+dLegerPeers=n0-192.168.0.220:40911;n1-192.168.0.221:40911;n2-192.168.0.222:40911
+dLegerSelfId=n0</code></pre>
+<p>192.168.0.221 broker配置文件如下：</p>
+<pre><code><code>brokerClusterName = DefaultCluster
+brokerName = broker-a
+brokerId = 1
+deleteWhen = 04
+fileReservedTime = 48
+brokerRole = SLAVE
+flushDiskType = ASYNC_FLUSH
+brokerIP1=192.168.0.221
+brokerIP2=192.168.0.221
+namesrvAddr=192.168.0.221:9876;192.168.0.220:9876
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store
+storePathCommitLog=/opt/application/rocketmq-all-4.5.2-bin-release/store/commitlog
+autoCreateTopicEnable=false
+autoCreateSubscriptionGroup=false
+# 与dledger 相关的配置属性
+enableDLegerCommitLog=true
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store/dledger_store
+dLegerGroup=broker-a
+dLegerPeers=n0-192.168.0.220:40911;n1-192.168.0.221:40911;n2-192.168.0.222:40911
+dLegerSelfId=n1</code></pre>
+<p>192.168.0.222 broker配置文件如下：</p>
+<pre><code><code>brokerClusterName = DefaultCluster
+brokerName = broker-a
+brokerId = 0
+deleteWhen = 04
+fileReservedTime = 48
+brokerRole = ASYNC_MASTER
+flushDiskType = ASYNC_FLUSH
+brokerIP1=192.168.0.222
+brokerIP2=192.168.0.222
+namesrvAddr=192.168.0.221:9876;192.168.0.220:9876
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store
+storePathCommitLog=/opt/application/rocketmq-all-4.5.2-bin-release/store/commitlog
+autoCreateTopicEnable=false
+autoCreateSubscriptionGroup=false
+# 与 dledger 相关的配置
+enableDLegerCommitLog=true
+storePathRootDir=/opt/application/rocketmq-all-4.5.2-bin-release/store/dledger_store
+dLegerGroup=broker-a
+dLegerPeers=n0-192.168.0.220:40911;n1-192.168.0.221:40911;n2-192.168.0.222:40911
+dLegerSelfId=n2</code></pre>
+<blockquote>
+<p>温馨提示：legerSelfId 分别为 n0、n1、n2。在真实的生产环境中，broker配置文件中的 storePathRootDir、storePathCommitLog 尽量使用单独的根目录，这样判断其磁盘使用率时才不会相互影响。</p>
+</blockquote>
+<p>Step3：将 store/config 下的 所有文件拷贝到 dledger store 的 congfig 目录下。</p>
+<pre><code><code>cd /opt/application/rocketmq-all-4.5.2-bin-release/store/
+cp config/* dledger_store/config/</code></pre>
+<blockquote>
+<p>温馨提示：该步骤按照各自按照时配置的目录进行复制即可。</p>
+</blockquote>
+<p>Step4：依次启动三台 broker。</p>
+<pre><code><code>nohup bin/mqbroker -c conf/broker.conf  /dev/null  2&gt;&amp;1 &amp;</code></pre>
+<p>如果启动成功，则在 rocketmq-console 中看到的集群信息如下：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战4.png" alt="在这里插入图片描述" /></p>
+<h3 id="验证消息发送与消息查找">3.3 验证消息发送与消息查找</h3>
+<p>首先我们先验证升级之前的消息是否能查询到，那我们还是查找key 为 m600000 的消息，查找结果如图所示：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战5.png" alt="在这里插入图片描述" /></p>
+<p>然后我们来测试一下消息发送。测试代码如下：</p>
+<pre class="java"><code>public class Producer {
+    public static void main(String[] args) throws MQClientException, InterruptedException {
+        DefaultMQProducer producer = new DefaultMQProducer(&quot;producer_dw_test&quot;);
+        producer.setNamesrvAddr(&quot;192.168.0.220:9876;192.168.0.221:9876&quot;);
+        producer.start();
+        for(int i =600200; i &lt; 600300; i ++) {
+            try {
+                Message msg = new Message(&quot;topic_dw_test_by_order_01&quot;,null , &quot;m&quot; + i,(&quot;Hello RocketMQ&quot; + i ).getBytes(RemotingHelper.DEFAULT_CHARSET));
+                SendResult sendResult = producer.send(msg);
+                System.out.printf(&quot;%s%n&quot;, sendResult);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Thread.sleep(1000);
+            }
+        }
+        producer.shutdown();
+        System.out.println(&quot;end&quot;);
+    }
+}</code></pre>
+<p>执行结果如下：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战6.png" alt="在这里插入图片描述" /><br />
+再去控制台查询一下消息，其结果也表明新的消息也能查询到。<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战7.png" alt="在这里插入图片描述" /><br />
+最后我们再来验证一下主节点宕机，消息发送是否会受影响。</p>
+<p>在消息发送的过程中，去关闭主节点，其截图如下：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战8.png" alt="在这里插入图片描述" /><img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战9.png" alt="在这里插入图片描述" /><img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战10.png" alt="在这里插入图片描述" />再来看一下集群的状态：<br />
+<img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战11.png" alt="在这里插入图片描述" /></p>
+<p>等待该复制组重新完成主服务器选举后，即可继续处理消息发送。</p>
+<blockquote>
+<p>温馨提示：由于本示例是一主一从，故在选举期间，消息不可用，但在真实的生产环境上，其部署架构是多主主从，即一个复制组在 leader 选举期间，其他复制组可以接替该复制组完成消息的发送，实现消息服务的高可用。</p>
+</blockquote>
+<p>与 DLedger 相关的日志，默认存储在 broker_default.log 文件中。</p>
+<p>本文就介绍到这里了，如果觉得文章对您有帮助的话，还希望帮忙点个赞，谢谢。</p>
+<hr />
+<p>推荐阅读：源码分析 RocketMQ DLedger 多副本即主从切换系列文章：<br />
+1、<a href="https://blog.csdn.net/prestigeding/article/details/99101912">RocketMQ 多副本前置篇：初探raft协议</a><br />
+2、<a href="https://blog.csdn.net/prestigeding/article/details/99697323">源码分析 RocketMQ DLedger 多副本之 Leader 选主</a><br />
+3、<a href="https://blog.csdn.net/prestigeding/article/details/100177780">源码分析 RocketMQ DLedger 多副本存储实现</a><br />
+4、<a href="https://blog.csdn.net/prestigeding/article/details/100835869">源码分析 RocketMQ DLedger(多副本) 之日志追加流程</a><br />
+5、<a href="https://blog.csdn.net/prestigeding/article/details/100836389">源码分析 RocketMQ DLedger(多副本) 之日志复制(传播)</a><br />
+6、<a href="https://blog.csdn.net/prestigeding/article/details/101629440">基于 raft 协议的 RocketMQ DLedger 多副本日志复制设计原理</a><br />
+7、<a href="https://blog.csdn.net/prestigeding/article/details/101984216">RocketMQ 整合 DLedger(多副本)即主从切换实现平滑升级的设计技巧</a><br />
+8、<a href="https://blog.csdn.net/prestigeding/article/details/102239892">源码分析 RocketMQ DLedger 多副本即主从切换实现原理</a></p>
+<hr />
+<blockquote>
+<p>作者介绍：丁威，《RocketMQ技术内幕》作者，RocketMQ 社区布道师，公众号：<a href="https://mp.weixin.qq.com/s/LB7k8A06BgssXy9bxfZC3w">中间件兴趣圈</a> 维护者，目前已陆续发表源码分析Java集合、Java 并发包(JUC)、Netty、Mycat、Dubbo、RocketMQ、Mybatis等源码专栏。可以点击链接加入<a href="https://t.zsxq.com/QbYNzZN">中间件知识星球</a> ，一起探讨高并发、分布式服务架构，交流源码。</p>
+</blockquote>
+<p><img src="./images/RocketMQ 升级到主从切换(DLedger、多副本)实战12.png" alt="在这里插入图片描述" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

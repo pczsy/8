@@ -1,0 +1,513 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修html小工具——文章注释编辑器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>html小工具——文章注释编辑器</center></div><div class='banquan'>原文出处:本文由博客园博主ljzc002提供。<br/>
+原文连接:https://www.cnblogs.com/ljzc002/p/12048895.html</div><br>
+    <p>在网上阅读文章时，读者时常会想针对某段文字写一些自己的感想，可惜大部分阅读网站并不提供这样的功能，读者往往只能将文本复制到本地或在线的编辑器中编辑注释，之后如果想在其他地方回顾这些注释也必须先本地安装或联网登录（云笔记）编辑器。如此操作，麻烦倒在其次，错过灵感才是最让人惋惜的，于是决定编写一个简单的小工具尝试解决这一问题，</p>
+<p>一、用法：</p>
+<p>用Chrome浏览器打开此工具</p>
+<p><img src="./images/html小工具——文章注释编辑器0.png" alt="" /></p>
+<p>点击&ldquo;选择文本文件&rdquo;选择txt文件，或者直接将纯文本粘贴到文本框中，点击确定则以绿色背景显示出文本内容，鼠标双击绿色正文段落即在下面弹出黄色注释段落，双击注释段落即可编辑注释内容（正文不可编辑），编辑时点击其他地方即可取消编辑，再次双击绿色正文段落则隐藏本段注释。</p>
+<p>点击导出html即可将正文和注释内容保存为一个html文档，用Chrome浏览器打开此html文档即可以查看已经录入的正文和注释，另外这个导出的html文档也具有本工具的所有特性，使用者可以继续编辑注释内容，或者完全替换性的加载新的文本，编辑完毕后又可以导出为新的html文档。</p>
+<p>二、编写方法：</p>
+<p>1、首先拼一个html结构出来：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">&lt;!</span><span style="color: #ff00ff;">DOCTYPE html</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 2</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">html </span><span style="color: #ff0000;">lang</span><span style="color: #0000ff;">="en"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">meta </span><span style="color: #ff0000;">charset</span><span style="color: #0000ff;">="UTF-8"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 5</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>实用版，处理事件问题<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">title</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">style</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 7</span>         <span style="background-color: #f5f5f5; color: #008000;">/*</span><span style="background-color: #f5f5f5; color: #008000;">通用属性</span><span style="background-color: #f5f5f5; color: #008000;">*/</span>
+<span style="color: #008080;"> 8</span> <span style="background-color: #f5f5f5; color: #800000;">        body</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">    margin</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 0</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    padding</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 0</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    border</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 0</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    text-align</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> center</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    overflow</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> hidden</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">width</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 100%</span><span style="background-color: #f5f5f5; color: #000000;">;</span>
+<span style="color: #008080;"> 9</span> <span style="background-color: #f5f5f5; color: #ff0000;">            height</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 100%</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">position</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> fixed</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    font-family</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> verdana,arial,sans-serif</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    touch-action</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> none</span><span style="background-color: #f5f5f5; color: #000000;">;</span>
+<span style="color: #008080;">10</span> <span style="background-color: #f5f5f5; color: #ff0000;">            -ms-touch-action</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> none</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">font-size</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 12px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">min-width</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 600px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">11</span> <span style="background-color: #f5f5f5; color: #800000;">        ul </span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">    list-style</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> none</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    margin</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 0</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    padding</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 0</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">12</span> <span style="background-color: #f5f5f5; color: #800000;">        li</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">    list-style</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> none</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    margin</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 0</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    padding</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 0</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">13</span> <span style="background-color: #f5f5f5; color: #800000;">        ul li </span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">    float</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> left</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">14</span> <span style="background-color: #f5f5f5; color: #800000;">        button</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">    cursor</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> pointer</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">    height</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 23px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">15</span> <span style="background-color: #f5f5f5; color: #800000;">        a:link</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">    text-decoration</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> none</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span> <span style="background-color: #f5f5f5; color: #800000;">        #div_top span,input,button,textarea</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">margin-left</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 20px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">float</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> left</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">18</span> <span style="background-color: #f5f5f5; color: #800000;">        .p_h1</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">font-size</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 24px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">font-weight</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> bolder</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">background-color</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> darkseagreen</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">19</span> <span style="background-color: #f5f5f5; color: #800000;">        .p_text</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">font-size</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 20px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">font-weight</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> normal</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">text-align</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> left</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">background-color</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> darkseagreen</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">20</span> 
+<span style="color: #008080;">21</span> <span style="background-color: #f5f5f5; color: #800000;">        .div_section</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">position</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;">relative</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">22</span> <span style="background-color: #f5f5f5; color: #800000;">        .p_a1</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">font-size</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 20px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">font-weight</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> normal</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">text-align</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> left</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">background-color</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> beige</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">margin-left</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 60px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">margin-right</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 60px</span><span style="background-color: #f5f5f5; color: #000000;">;</span>
+<span style="color: #008080;">23</span> <span style="background-color: #f5f5f5; color: #ff0000;">        ;min-height</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 80px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">display</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> block</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">word-break</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> break-all</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">overflow-wrap</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> break-word</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">white-space</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> pre-wrap</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">24</span> <span style="background-color: #f5f5f5; color: #800000;">        .p_a2</span><span style="background-color: #f5f5f5; color: #000000;">{</span><span style="background-color: #f5f5f5; color: #ff0000;">font-size</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> 20px</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">font-weight</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> normal</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">text-align</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> left</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">background-color</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;"> beige</span><span style="background-color: #f5f5f5; color: #000000;">;</span><span style="background-color: #f5f5f5; color: #ff0000;">margin-left</span><span style="background-color: #f5f5f5; color: #000000;">:</span><span style="background-color: #f5f5f5; color: #0000ff;">120px</span><span style="background-color: #f5f5f5; color: #000000;">}</span>
+<span style="color: #008080;">25</span>     <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">style</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">26</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">head</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">27</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">28</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="div_allbase"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="top:0px;bottom:0px;width:100%;height: 100%;position:relative;overflow-x: hidden;overflow-y: scroll
+</span><span style="color: #008080;">29</span> <span style="color: #0000ff;">        "</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">30</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="div_top"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="top:0px;left:0px;width:100%;height: 30px;position:absolute;"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">31</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span </span><span style="color: #ff0000;">style</span><span style="color: #0000ff;">="margin-left: 20px"</span><span style="color: #0000ff;">&gt;</span>选择文本文件<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">32</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">input </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="file"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="str_local"</span><span style="color: #ff0000;"> onchange</span><span style="color: #0000ff;">="ShowStr()"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="margin-left: 20px"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">33</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">span </span><span style="color: #ff0000;">style</span><span style="color: #0000ff;">="margin-left: 20px"</span><span style="color: #0000ff;">&gt;</span>粘贴文本<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">span</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">34</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">textarea </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="text"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="str_local2"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="word-break: break-all;overflow-wrap: break-word;white-space: pre-wrap;height:40px"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">textarea</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">35</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">onclick</span><span style="color: #0000ff;">="ShowStr2()"</span><span style="color: #0000ff;">&gt;</span>确定<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">36</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">button </span><span style="color: #ff0000;">onclick</span><span style="color: #0000ff;">="ExportHtml()"</span><span style="color: #0000ff;">&gt;</span>导出Html<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">button</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">37</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">38</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="div_main"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="top:30px;left:0px;width:100%;position:absolute;"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">39</span> 
+<span style="color: #008080;">40</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">41</span>     <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">42</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">body</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>其中div_top是上面的操作区，div_main用来存放正文段落和注释段落。这里文本框使用textarea标签而非input标签，因为input标签会自动将多行文本的换行符替换为空格，white-space: pre-wrap样式则负责告知textarea标签保留换行符，否则换行符也会被替换掉。</p>
+<p>2、将纯文本转换为正文段落：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">function</span><span style="color: #000000;"> ShowStr()//从文件读取文本
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">var</span> str_local=document.getElementById("str_local"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">var</span> file=str_local.files[0<span style="color: #000000;">];
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">var</span> reader=<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileReader();
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">        reader.readAsText(file);
+</span><span style="color: #008080;"> 7</span>         reader.onload=<span style="color: #0000ff;">function</span><span style="color: #000000;">(e)
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">var</span> str=<span style="color: #000000;">e.target.result;
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">            loadArticle(str);
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">13</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> ShowStr2()//从文本框读取文本
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">15</span>         <span style="color: #0000ff;">var</span> str_local=document.getElementById("str_local2"<span style="color: #000000;">);
+</span><span style="color: #008080;">16</span>         <span style="color: #0000ff;">var</span> str=<span style="color: #000000;">str_local.value;
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">        loadArticle(str);
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">19</span>     <span style="color: #0000ff;">var</span> currentSectionid=<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">20</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> loadArticle(str)
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">22</span>         <span style="color: #0000ff;">var</span> div_main=document.getElementById("div_main"<span style="color: #000000;">);
+</span><span style="color: #008080;">23</span>         div_main.innerHTML=""<span style="color: #000000;">;
+</span><span style="color: #008080;">24</span>         <span style="color: #0000ff;">var</span> arr_section=str.split("\r\n"<span style="color: #000000;">);
+</span><span style="color: #008080;">25</span>         <span style="color: #0000ff;">var</span> len=<span style="color: #000000;">arr_section.length;
+</span><span style="color: #008080;">26</span>         <span style="color: #0000ff;">if</span>(len==1<span style="color: #000000;">)//如果按\r\n分段后只有一段
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">28</span>             arr_section=str.split("\n"<span style="color: #000000;">);
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">30</span>         len=<span style="color: #000000;">arr_section.length;
+</span><span style="color: #008080;">31</span>         <span style="color: #0000ff;">var</span> count_p=0;<span style="color: #008000;">//</span><span style="color: #008000;">包含主标题在内一共分成几段</span>
+<span style="color: #008080;">32</span>         <span style="color: #0000ff;">var</span> arr_p=<span style="color: #000000;">[];
+</span><span style="color: #008080;">33</span>         <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=0;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">35</span>             <span style="color: #0000ff;">var</span> section=<span style="color: #000000;">arr_section[i];
+</span><span style="color: #008080;">36</span>             <span style="color: #0000ff;">if</span>(section.length&gt;0<span style="color: #000000;">)
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">38</span>                 let div_section=document.createElement("div"<span style="color: #000000;">);
+</span><span style="color: #008080;">39</span>                 div_section.className="div_section";<span style="color: #008000;">//</span><span style="color: #008000;">这样可以更方便的在段内插入元素</span>
+<span style="color: #008080;">40</span>                 div_section.id="div_section_"+<span style="color: #000000;">count_p;
+</span><span style="color: #008080;">41</span> 
+<span style="color: #008080;">42</span>                 let p=document.createElement("p"<span style="color: #000000;">);
+</span><span style="color: #008080;">43</span>                 <span style="color: #0000ff;">if</span>(count_p==0)<span style="color: #008000;">//</span><span style="color: #008000;">标题段</span>
+<span style="color: #008080;">44</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">45</span>                     p.className="p_h1"<span style="color: #000000;">;
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">47</span>                 <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">48</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">49</span>                     p.className="p_text"<span style="color: #000000;">;
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">51</span>                 p.innerHTML="    "+<span style="color: #000000;">section;
+</span><span style="color: #008080;">52</span>                 p.id="p_section_"+<span style="color: #000000;">count_p;
+</span><span style="color: #008080;">53</span> 
+<span style="color: #008080;">54</span>                 p.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">()
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">56</span> <span style="color: #000000;">                    addAnnotate(div_section.id);
+</span><span style="color: #008080;">57</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">58</span>                 count_p++<span style="color: #000000;">;
+</span><span style="color: #008080;">59</span> <span style="color: #000000;">                div_section.appendChild(p);
+</span><span style="color: #008080;">60</span> <span style="color: #000000;">                div_main.appendChild(div_section);
+</span><span style="color: #008080;">61</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">62</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">63</span>     }</pre>
+</div>
+<p>&nbsp;</p>
+<p>代码 并不复杂，根据\r\n对文本进行分段（从文本框读取时需要用\n分段），每一段生成对应的html文档插入dom中，每个&ldquo;section&rdquo;都有唯一的dom id。目前还没有调试好的是如何在导出导入html时保持每一段前面的四个空格，浏览器会自动将它们去掉。</p>
+<p>注意在为批量建立的标签设定事件响应时，需要用let型变量而非var型变量，否则同一循环中定义的所有事件响应都将以循环操作的最后一个标签为目标。</p>
+<p>3、双击正文段落时展开注释段落：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">function</span><span style="color: #000000;"> addAnnotate(id)
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">var</span> div_section=<span style="color: #000000;">document.getElementById(id);
+</span><span style="color: #008080;"> 4</span>         currentSectionid=<span style="color: #000000;">id;//这个好像没用到
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">var</span> children=<span style="color: #000000;">div_section.childNodes;
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">var</span> len=<span style="color: #000000;">children.length;
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">if</span>(len==1)<span style="color: #008000;">//</span><span style="color: #008000;">此时还没有第一级注释</span>
+<span style="color: #008080;"> 8</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 9</span>             let p_a1=document.createElement("p"<span style="color: #000000;">);
+</span><span style="color: #008080;">10</span>             p_a1.className="p_a1"<span style="color: #000000;">;
+</span><span style="color: #008080;">11</span>             <span style="color: #008000;">//</span><span style="color: #008000;">点击第一级注释，进行编辑</span>
+<span style="color: #008080;">12</span>             p_a1.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){openEdit(p_a1)};
+</span><span style="color: #008080;">13</span>             p_a1.onblur=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){closeEdit(p_a1)};//失去焦点时关闭注释段的编辑状态
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">            div_section.appendChild(p_a1)
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">16</span>         <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">17</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">18</span>             <span style="color: #0000ff;">if</span>(children[1].style.display=="none")<span style="color: #008000;">//</span><span style="color: #008000;">如果当前是隐藏状态</span>
+<span style="color: #008080;">19</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">20</span>                 <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=1;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">22</span>                     children[i].style.display="block"<span style="color: #000000;">;//显示注释段
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">25</span>             <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">26</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">27</span>                 <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=1;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">29</span>                     <span style="color: #0000ff;">var</span> child=<span style="color: #000000;">children[i];
+</span><span style="color: #008080;">30</span>                     child.style.display="none"<span style="color: #000000;">;//隐藏注释段
+</span><span style="color: #008080;">31</span>                     <span style="color: #0000ff;">if</span>(child.className=="p_a1"<span style="color: #000000;">)
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">                    {
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">                        closeEdit(child);
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">    }</span></pre>
+</div>
+<p>这里根据sectionid找到当前操作的正文段落div，将空白的注释段落插进去。</p>
+<p>4、编辑注释及关闭编辑状态：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">function</span><span style="color: #000000;"> openEdit(p)
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         p.style.border="2px solid cornflowerblue"<span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span>         p.style.borderRadius="5px"<span style="color: #000000;">;
+</span><span style="color: #008080;"> 5</span>         p.contentEditable="true"<span style="color: #000000;">;
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> closeEdit(p)
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 9</span>         p.style.border="0px"<span style="color: #000000;">;
+</span><span style="color: #008080;">10</span>         p.contentEditable="false"<span style="color: #000000;">;
+</span><span style="color: #008080;">11</span>         <span style="color: #008000;">//</span><span style="color: #008000;">Chrome的默认编辑模式会在p内插入一个div，这个div是用来分行的，空白的换行也会导致div！！</span>
+<span style="color: #008080;">12</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 但在重新导入之后（在取innerHTML导出时尚正常）浏览器会自动把这个div绘制在p的外面！！！！</span>
+<span style="color: #008080;">13</span>         <span style="color: #008000;">//</span><span style="color: #008000;">多次换行是嵌套的！！！！所以简单的替换还不行！！</span>
+<span style="color: #008080;">14</span>         p.innerHTML=p.innerHTML.replace(<span style="color: #0000ff;">new</span> RegExp(("&lt;[^&gt;]+&gt;"),"gm"),"@"<span style="color: #000000;">);//如果有连续的多个xml标签
+</span><span style="color: #008080;">15</span>         p.innerHTML=p.innerHTML.replace(<span style="color: #0000ff;">new</span> RegExp(("[@]+"),"gm"),"\r\n"<span style="color: #000000;">);
+</span><span style="color: #008080;">16</span>         <span style="color: #008000;">//</span><span style="color: #008000;">p.innerHTML=p.innerHTML.replace(new RegExp(("&lt;[^&gt;]+&gt;"),"gm"),"\r\n");</span>
+<span style="color: #008080;">17</span>         <span style="color: #008000;">//</span><span style="color: #008000;">p.innerHTML=p.innerHTML.replace(new RegExp(("&lt;[^/][\\S]{1,5}&gt;"),"gm"),"\r\n");</span>
+<span style="color: #008080;">18</span>         <span style="color: #008000;">//</span><span style="color: #008000;">p.innerHTML=p.innerHTML.replace(new RegExp(("&lt;/[\\S]{1,6}&gt;"),"gm"),"");</span>
+<span style="color: #008080;">19</span>     }</pre>
+</div>
+<p>这里使用了浏览器内置的&ldquo;contentEditable&rdquo;属性编辑p标签内容，这样做的一个缺点是浏览器会在用户编辑标签时不受用户控制的插入各种控制格式的标签，而同样的html再次导入浏览器时，又会按照不同的规则自动排列成别的顺序。（类似浏览器的CSS调试，只预期在运行时一次性使用？）</p>
+<p>为解决这一问题，我在关闭p标签的contentEditable状态时，用正则表达式清除了所有的xml标签，但这也将导致新的问题&mdash;&mdash;使用者希望写在注释中的xml标签（包括替换符号@）也会被清除掉，不知道有没有更好的方法解决这一问题。</p>
+<p>5、导出html文档：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">function</span><span style="color: #000000;"> ExportHtml()
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">var</span> str=str_head+window.document.body.outerHTML+"&lt;/html&gt;"<span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">var</span> blob=<span style="color: #0000ff;">new</span><span style="color: #000000;"> Blob([str],{//字符串转为二进制流
+</span><span style="color: #008080;"> 5</span>             type: "text/plain"
+<span style="color: #008080;"> 6</span> <span style="color: #000000;">        })
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">var</span> tmpa = document.createElement("a"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">var</span> p_h1=document.getElementsByClassName("p_h1")[0<span style="color: #000000;">];
+</span><span style="color: #008080;">10</span>         tmpa.download = (p_h1?p_h1.innerHTML:"test")+".html"<span style="color: #000000;">;//自动用标题作为文件名
+</span><span style="color: #008080;">11</span>         tmpa.href =<span style="color: #000000;"> URL.createObjectURL(blob);//用临时的a标签下载
+</span><span style="color: #008080;">12</span>         tmpa.click();<span style="color: #008000;">//</span><span style="color: #008000;">导出后事件需要重新绑定，或者直接使用innHTML定义？</span>
+<span style="color: #008080;">13</span>         setTimeout(<span style="color: #0000ff;">function</span><span style="color: #000000;"> () {
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">            URL.revokeObjectURL(blob);//释放掉流
+</span><span style="color: #008080;">15</span>         }, 100<span style="color: #000000;">);
+</span><span style="color: #008080;">16</span>     }</pre>
+</div>
+<p>其中str_head包含了html头部内容，加上目前正在编辑的body内容和html结束标签组成导出的html文档，然后转换为二进制文件流用临时a标签下载。</p>
+<p>注意，使用.onxx方式绑定的事件并不会随着html文档一起导出，可以选择在打开html时重新绑定事件，或者在建立标签时使用innerHTML而非appendChild方法，直接将事件响应写在innerHTML里</p>
+<p>6、重新打开导出的html文档时重新绑定事件：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> window.onload=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){
+</span><span style="color: #008080;"> 2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">处理导出html的事件有两种思路，一是使用innerHTML定义所有动态生成的标签，二是在每次打开网页时重新绑定事件</span>
+<span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">var</span> div_main=document.getElementById("div_main"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">var</span> arr_section=div_main.getElementsByClassName("div_section"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">var</span> len=<span style="color: #000000;">arr_section.length;
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=0;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 8</span>             let div_section=<span style="color: #000000;">arr_section[i];
+</span><span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">var</span> arr_p=div_section.getElementsByTagName("p"<span style="color: #000000;">);
+</span><span style="color: #008080;">10</span>             <span style="color: #0000ff;">var</span> len2=<span style="color: #000000;">arr_p.length;
+</span><span style="color: #008080;">11</span>             <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> j=0;j&lt;len2;j++<span style="color: #000000;">)
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">13</span>                 let p=<span style="color: #000000;">arr_p[j];
+</span><span style="color: #008080;">14</span>                 <span style="color: #0000ff;">if</span>(j==0<span style="color: #000000;">)
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">16</span>                     p.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">()
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">                    {
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">                        addAnnotate(div_section.id);
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">21</span>                 <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">22</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">23</span>                     p.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){openEdit(p)};
+</span><span style="color: #008080;">24</span>                     p.onblur=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){closeEdit(p)};
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">28</span>     }</pre>
+</div>
+<p>如此就完成了文章注释编辑器小工具的编写，下面是完整的代码，复制粘贴到一个空白的.html文件中即可使用。</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('54bca7f4-b333-4977-b71c-65ea603f2e3d')"><img id="code_img_closed_54bca7f4-b333-4977-b71c-65ea603f2e3d" class="code_img_closed" src="./images/html小工具——文章注释编辑器1.png" alt="" /><img id="code_img_opened_54bca7f4-b333-4977-b71c-65ea603f2e3d" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('54bca7f4-b333-4977-b71c-65ea603f2e3d',event)" src="./images/html小工具——文章注释编辑器2.png" alt="" />
+<div id="cnblogs_code_open_54bca7f4-b333-4977-b71c-65ea603f2e3d" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;">  1</span> &lt;!DOCTYPE html&gt;
+<span style="color: #008080;">  2</span> &lt;html lang="en"&gt;
+<span style="color: #008080;">  3</span> &lt;head&gt;
+<span style="color: #008080;">  4</span>     &lt;meta charset="UTF-8"&gt;
+<span style="color: #008080;">  5</span>     &lt;title&gt;实用版，处理事件问题&lt;/title&gt;
+<span style="color: #008080;">  6</span>     &lt;style&gt;
+<span style="color: #008080;">  7</span>         <span style="color: #008000;">/*</span><span style="color: #008000;">通用属性</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">  8</span>         body{    margin: 0;    padding: 0;    border: 0;    text-align: center;    overflow: hidden;width: 100%<span style="color: #000000;">;
+</span><span style="color: #008080;">  9</span>             height: 100%;position: fixed;    font-family: verdana,arial,sans-serif;    touch-<span style="color: #000000;">action: none;
+</span><span style="color: #008080;"> 10</span>             -ms-touch-action: none;font-size: 12px;min-<span style="color: #000000;">width: 600px;}
+</span><span style="color: #008080;"> 11</span>         ul {    list-style: none;    margin: 0;    padding: 0<span style="color: #000000;">;}
+</span><span style="color: #008080;"> 12</span>         li{    list-style: none;    margin: 0;    padding: 0<span style="color: #000000;">;}
+</span><span style="color: #008080;"> 13</span>         ul li {    <span style="color: #0000ff;">float</span><span style="color: #000000;">: left;}
+</span><span style="color: #008080;"> 14</span> <span style="color: #000000;">        button{    cursor: pointer;    height: 23px;}
+</span><span style="color: #008080;"> 15</span>         a:link{    text-<span style="color: #000000;">decoration: none;}
+</span><span style="color: #008080;"> 16</span> 
+<span style="color: #008080;"> 17</span>         #div_top span,input,button,textarea{margin-left: 20px;<span style="color: #0000ff;">float</span><span style="color: #000000;">: left;}
+</span><span style="color: #008080;"> 18</span>         .p_h1{font-size: 24px;font-weight: bolder;background-<span style="color: #000000;">color: darkseagreen}
+</span><span style="color: #008080;"> 19</span>         .p_text{font-size: 20px;font-weight: normal;text-align: left;background-<span style="color: #000000;">color: darkseagreen}
+</span><span style="color: #008080;"> 20</span> 
+<span style="color: #008080;"> 21</span> <span style="color: #000000;">        .div_section{position:relative}
+</span><span style="color: #008080;"> 22</span>         .p_a1{font-size: 20px;font-weight: normal;text-align: left;background-color: beige;margin-left: 60px;margin-<span style="color: #000000;">right: 60px;
+</span><span style="color: #008080;"> 23</span>         ;min-height: 80px;display: block;word-<span style="color: #0000ff;">break</span>: <span style="color: #0000ff;">break</span>-all;overflow-wrap: <span style="color: #0000ff;">break</span>-word;white-space: pre-<span style="color: #000000;">wrap}
+</span><span style="color: #008080;"> 24</span>         .p_a2{font-size: 20px;font-weight: normal;text-align: left;background-color: beige;margin-<span style="color: #000000;">left:120px}
+</span><span style="color: #008080;"> 25</span>     &lt;/style&gt;
+<span style="color: #008080;"> 26</span> &lt;/head&gt;
+<span style="color: #008080;"> 27</span> &lt;body&gt;
+<span style="color: #008080;"> 28</span>     &lt;div id="div_allbase" style="<span style="color: #000000;">top:0px;bottom:0px;width:100%;height: 100%;position:relative;overflow-x: hidden;overflow-y: scroll
+</span><span style="color: #008080;"> 29</span>         "&gt;
+<span style="color: #008080;"> 30</span>         &lt;div id="div_top" style="top:0px;left:0px;width:100%;height: 30px;position:absolute;"&gt;
+<span style="color: #008080;"> 31</span>             &lt;span style="margin-left: 20px"&gt;选择文本文件&lt;/span&gt;
+<span style="color: #008080;"> 32</span>             &lt;input type="file" id="str_local" onchange="ShowStr()" style="margin-left: 20px"&gt;
+<span style="color: #008080;"> 33</span>             &lt;span style="margin-left: 20px"&gt;粘贴文本&lt;/span&gt;
+<span style="color: #008080;"> 34</span>             &lt;textarea type="text" id="str_local2" style="word-break: break-all;overflow-wrap: break-word;white-space: pre-wrap;height:40px"&gt;&lt;/textarea&gt;
+<span style="color: #008080;"> 35</span>             &lt;button onclick="ShowStr2()"&gt;确定&lt;/button&gt;
+<span style="color: #008080;"> 36</span>             &lt;button onclick="ExportHtml()"&gt;导出Html&lt;/button&gt;
+<span style="color: #008080;"> 37</span>         &lt;/div&gt;
+<span style="color: #008080;"> 38</span>         &lt;div id="div_main" style="top:30px;left:0px;width:100%;position:absolute;"&gt;
+<span style="color: #008080;"> 39</span> 
+<span style="color: #008080;"> 40</span>         &lt;/div&gt;
+<span style="color: #008080;"> 41</span>     &lt;/div&gt;
+<span style="color: #008080;"> 42</span> &lt;/body&gt;
+<span style="color: #008080;"> 43</span> &lt;script&gt;
+<span style="color: #008080;"> 44</span> 
+<span style="color: #008080;"> 45</span>     window.onload=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){
+</span><span style="color: #008080;"> 46</span>         <span style="color: #008000;">//</span><span style="color: #008000;">处理导出html的事件有两种思路，一是使用innerHTML定义所有动态生成的标签，二是在每次打开网页时重新绑定事件</span>
+<span style="color: #008080;"> 47</span>         <span style="color: #0000ff;">var</span> div_main=document.getElementById("div_main"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 48</span>         <span style="color: #0000ff;">var</span> arr_section=div_main.getElementsByClassName("div_section"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 49</span>         <span style="color: #0000ff;">var</span> len=<span style="color: #000000;">arr_section.length;
+</span><span style="color: #008080;"> 50</span>         <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=0;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;"> 51</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 52</span>             let div_section=<span style="color: #000000;">arr_section[i];
+</span><span style="color: #008080;"> 53</span>             <span style="color: #0000ff;">var</span> arr_p=div_section.getElementsByTagName("p"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 54</span>             <span style="color: #0000ff;">var</span> len2=<span style="color: #000000;">arr_p.length;
+</span><span style="color: #008080;"> 55</span>             <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> j=0;j&lt;len2;j++<span style="color: #000000;">)
+</span><span style="color: #008080;"> 56</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;"> 57</span>                 let p=<span style="color: #000000;">arr_p[j];
+</span><span style="color: #008080;"> 58</span>                 <span style="color: #0000ff;">if</span>(j==0<span style="color: #000000;">)
+</span><span style="color: #008080;"> 59</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;"> 60</span>                     p.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">()
+</span><span style="color: #008080;"> 61</span> <span style="color: #000000;">                    {
+</span><span style="color: #008080;"> 62</span> <span style="color: #000000;">                        addAnnotate(div_section.id);
+</span><span style="color: #008080;"> 63</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;"> 64</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;"> 65</span>                 <span style="color: #0000ff;">else</span>
+<span style="color: #008080;"> 66</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;"> 67</span>                     p.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){openEdit(p)};
+</span><span style="color: #008080;"> 68</span>                     p.onblur=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){closeEdit(p)};
+</span><span style="color: #008080;"> 69</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;"> 70</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 71</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 72</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 73</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> ShowStr()
+</span><span style="color: #008080;"> 74</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 75</span>         <span style="color: #0000ff;">var</span> str_local=document.getElementById("str_local"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 76</span>         <span style="color: #0000ff;">var</span> file=str_local.files[0<span style="color: #000000;">];
+</span><span style="color: #008080;"> 77</span>         <span style="color: #0000ff;">var</span> reader=<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileReader();
+</span><span style="color: #008080;"> 78</span> <span style="color: #000000;">        reader.readAsText(file);
+</span><span style="color: #008080;"> 79</span>         reader.onload=<span style="color: #0000ff;">function</span><span style="color: #000000;">(e)
+</span><span style="color: #008080;"> 80</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 81</span>             <span style="color: #0000ff;">var</span> str=<span style="color: #000000;">e.target.result;
+</span><span style="color: #008080;"> 82</span> <span style="color: #000000;">            loadArticle(str);
+</span><span style="color: #008080;"> 83</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 84</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 85</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> ShowStr2()
+</span><span style="color: #008080;"> 86</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 87</span>         <span style="color: #0000ff;">var</span> str_local=document.getElementById("str_local2"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 88</span>         <span style="color: #0000ff;">var</span> str=<span style="color: #000000;">str_local.value;
+</span><span style="color: #008080;"> 89</span> <span style="color: #000000;">        loadArticle(str);
+</span><span style="color: #008080;"> 90</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 91</span>     <span style="color: #0000ff;">var</span> currentSectionid=<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 92</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> loadArticle(str)
+</span><span style="color: #008080;"> 93</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 94</span>         <span style="color: #0000ff;">var</span> div_main=document.getElementById("div_main"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 95</span>         div_main.innerHTML=""<span style="color: #000000;">;
+</span><span style="color: #008080;"> 96</span>         <span style="color: #0000ff;">var</span> arr_section=str.split("\r\n"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 97</span>         <span style="color: #0000ff;">var</span> len=<span style="color: #000000;">arr_section.length;
+</span><span style="color: #008080;"> 98</span>         <span style="color: #0000ff;">if</span>(len==1<span style="color: #000000;">)
+</span><span style="color: #008080;"> 99</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">100</span>             arr_section=str.split("\n"<span style="color: #000000;">);
+</span><span style="color: #008080;">101</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">102</span>         len=<span style="color: #000000;">arr_section.length;
+</span><span style="color: #008080;">103</span>         <span style="color: #0000ff;">var</span> count_p=0;<span style="color: #008000;">//</span><span style="color: #008000;">包含主标题在内一共分成几段</span>
+<span style="color: #008080;">104</span>         <span style="color: #0000ff;">var</span> arr_p=<span style="color: #000000;">[];
+</span><span style="color: #008080;">105</span>         <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=0;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;">106</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">107</span>             <span style="color: #0000ff;">var</span> section=<span style="color: #000000;">arr_section[i];
+</span><span style="color: #008080;">108</span>             <span style="color: #0000ff;">if</span>(section.length&gt;0<span style="color: #000000;">)
+</span><span style="color: #008080;">109</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">110</span>                 let div_section=document.createElement("div"<span style="color: #000000;">);
+</span><span style="color: #008080;">111</span>                 div_section.className="div_section";<span style="color: #008000;">//</span><span style="color: #008000;">这样可以更方便的在段内插入元素</span>
+<span style="color: #008080;">112</span>                 div_section.id="div_section_"+<span style="color: #000000;">count_p;
+</span><span style="color: #008080;">113</span> 
+<span style="color: #008080;">114</span>                 let p=document.createElement("p"<span style="color: #000000;">);
+</span><span style="color: #008080;">115</span>                 <span style="color: #0000ff;">if</span>(count_p==0)<span style="color: #008000;">//</span><span style="color: #008000;">标题段</span>
+<span style="color: #008080;">116</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">117</span>                     p.className="p_h1"<span style="color: #000000;">;
+</span><span style="color: #008080;">118</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">119</span>                 <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">120</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">121</span>                     p.className="p_text"<span style="color: #000000;">;
+</span><span style="color: #008080;">122</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">123</span>                 p.innerHTML="    "+<span style="color: #000000;">section;
+</span><span style="color: #008080;">124</span>                 p.id="p_section_"+<span style="color: #000000;">count_p;
+</span><span style="color: #008080;">125</span> 
+<span style="color: #008080;">126</span>                 p.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">()
+</span><span style="color: #008080;">127</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">128</span> <span style="color: #000000;">                    addAnnotate(div_section.id);
+</span><span style="color: #008080;">129</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">130</span>                 count_p++<span style="color: #000000;">;
+</span><span style="color: #008080;">131</span> <span style="color: #000000;">                div_section.appendChild(p);
+</span><span style="color: #008080;">132</span> <span style="color: #000000;">                div_main.appendChild(div_section);
+</span><span style="color: #008080;">133</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">134</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">135</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">136</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> addAnnotate(id)
+</span><span style="color: #008080;">137</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">138</span>         <span style="color: #0000ff;">var</span> div_section=<span style="color: #000000;">document.getElementById(id);
+</span><span style="color: #008080;">139</span>         currentSectionid=<span style="color: #000000;">id;
+</span><span style="color: #008080;">140</span>         <span style="color: #0000ff;">var</span> children=<span style="color: #000000;">div_section.childNodes;
+</span><span style="color: #008080;">141</span>         <span style="color: #0000ff;">var</span> len=<span style="color: #000000;">children.length;
+</span><span style="color: #008080;">142</span>         <span style="color: #0000ff;">if</span>(len==1)<span style="color: #008000;">//</span><span style="color: #008000;">此时还没有第一级注释</span>
+<span style="color: #008080;">143</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">144</span>             let p_a1=document.createElement("p"<span style="color: #000000;">);
+</span><span style="color: #008080;">145</span>             p_a1.className="p_a1"<span style="color: #000000;">;
+</span><span style="color: #008080;">146</span>             <span style="color: #008000;">//</span><span style="color: #008000;">点击第一级注释，进行编辑</span>
+<span style="color: #008080;">147</span>             p_a1.ondblclick=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){openEdit(p_a1)};
+</span><span style="color: #008080;">148</span>             p_a1.onblur=<span style="color: #0000ff;">function</span><span style="color: #000000;">(){closeEdit(p_a1)};
+</span><span style="color: #008080;">149</span> <span style="color: #000000;">            div_section.appendChild(p_a1)
+</span><span style="color: #008080;">150</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">151</span>         <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">152</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">153</span>             <span style="color: #0000ff;">if</span>(children[1].style.display=="none")<span style="color: #008000;">//</span><span style="color: #008000;">如果当前是隐藏状态</span>
+<span style="color: #008080;">154</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">155</span>                 <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=1;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;">156</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">157</span>                     children[i].style.display="block"<span style="color: #000000;">;
+</span><span style="color: #008080;">158</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">159</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">160</span>             <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">161</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">162</span>                 <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i=1;i&lt;len;i++<span style="color: #000000;">)
+</span><span style="color: #008080;">163</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">164</span>                     <span style="color: #0000ff;">var</span> child=<span style="color: #000000;">children[i];
+</span><span style="color: #008080;">165</span>                     child.style.display="none"<span style="color: #000000;">;
+</span><span style="color: #008080;">166</span>                     <span style="color: #0000ff;">if</span>(child.className=="p_a1"<span style="color: #000000;">)
+</span><span style="color: #008080;">167</span> <span style="color: #000000;">                    {
+</span><span style="color: #008080;">168</span> <span style="color: #000000;">                        closeEdit(child);
+</span><span style="color: #008080;">169</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">170</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">171</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">172</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">173</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">174</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> openEdit(p)
+</span><span style="color: #008080;">175</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">176</span>         p.style.border="2px solid cornflowerblue"<span style="color: #000000;">;
+</span><span style="color: #008080;">177</span>         p.style.borderRadius="5px"<span style="color: #000000;">;
+</span><span style="color: #008080;">178</span>         p.contentEditable="true"<span style="color: #000000;">;
+</span><span style="color: #008080;">179</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">180</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> closeEdit(p)
+</span><span style="color: #008080;">181</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">182</span>         p.style.border="0px"<span style="color: #000000;">;
+</span><span style="color: #008080;">183</span>         p.contentEditable="false"<span style="color: #000000;">;
+</span><span style="color: #008080;">184</span>         <span style="color: #008000;">//</span><span style="color: #008000;">Chrome的默认编辑模式会在p内插入一个div，这个div是用来分行的，空白的换行也会导致div！！</span>
+<span style="color: #008080;">185</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 但在重新导入之后（在取innerHTML导出时尚正常）浏览器会自动把这个div绘制在p的外面！！！！</span>
+<span style="color: #008080;">186</span>         <span style="color: #008000;">//</span><span style="color: #008000;">多次换行是嵌套的！！！！所以简单的替换还不行！！</span>
+<span style="color: #008080;">187</span>         p.innerHTML=p.innerHTML.replace(<span style="color: #0000ff;">new</span> RegExp(("&lt;[^&gt;]+&gt;"),"gm"),"@"<span style="color: #000000;">);
+</span><span style="color: #008080;">188</span>         p.innerHTML=p.innerHTML.replace(<span style="color: #0000ff;">new</span> RegExp(("[@]+"),"gm"),"\r\n"<span style="color: #000000;">);
+</span><span style="color: #008080;">189</span>         <span style="color: #008000;">//</span><span style="color: #008000;">p.innerHTML=p.innerHTML.replace(new RegExp(("&lt;[^&gt;]+&gt;"),"gm"),"\r\n");</span>
+<span style="color: #008080;">190</span>         <span style="color: #008000;">//</span><span style="color: #008000;">p.innerHTML=p.innerHTML.replace(new RegExp(("&lt;[^/][\\S]{1,5}&gt;"),"gm"),"\r\n");</span>
+<span style="color: #008080;">191</span>         <span style="color: #008000;">//</span><span style="color: #008000;">p.innerHTML=p.innerHTML.replace(new RegExp(("&lt;/[\\S]{1,6}&gt;"),"gm"),"");</span>
+<span style="color: #008080;">192</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">193</span> 
+<span style="color: #008080;">194</span>     <span style="color: #0000ff;">function</span><span style="color: #000000;"> ExportHtml()
+</span><span style="color: #008080;">195</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">196</span>         <span style="color: #0000ff;">var</span> str=str_head+window.document.body.outerHTML+"&lt;/html&gt;"<span style="color: #000000;">;
+</span><span style="color: #008080;">197</span>         <span style="color: #0000ff;">var</span> blob=<span style="color: #0000ff;">new</span><span style="color: #000000;"> Blob([str],{
+</span><span style="color: #008080;">198</span>             type: "text/plain"
+<span style="color: #008080;">199</span> <span style="color: #000000;">        })
+</span><span style="color: #008080;">200</span> 
+<span style="color: #008080;">201</span>         <span style="color: #0000ff;">var</span> tmpa = document.createElement("a"<span style="color: #000000;">);
+</span><span style="color: #008080;">202</span>         <span style="color: #0000ff;">var</span> p_h1=document.getElementsByClassName("p_h1")[0<span style="color: #000000;">];
+</span><span style="color: #008080;">203</span>         tmpa.download = (p_h1?p_h1.innerHTML:"test")+".html"<span style="color: #000000;">;
+</span><span style="color: #008080;">204</span>         tmpa.href =<span style="color: #000000;"> URL.createObjectURL(blob);
+</span><span style="color: #008080;">205</span>         tmpa.click();<span style="color: #008000;">//</span><span style="color: #008000;">导出后事件需要重新绑定，或者直接使用innHTML定义？</span>
+<span style="color: #008080;">206</span>         setTimeout(<span style="color: #0000ff;">function</span><span style="color: #000000;"> () {
+</span><span style="color: #008080;">207</span> <span style="color: #000000;">            URL.revokeObjectURL(blob);
+</span><span style="color: #008080;">208</span>         }, 100<span style="color: #000000;">);
+</span><span style="color: #008080;">209</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">210</span> 
+<span style="color: #008080;">211</span>     <span style="color: #0000ff;">var</span> str_head="&lt;!DOCTYPE html&gt;\n" +
+<span style="color: #008080;">212</span>         "&lt;html lang=\"en\"&gt;\n" +
+<span style="color: #008080;">213</span>         "&lt;head&gt;\n" +
+<span style="color: #008080;">214</span>         "    &lt;meta charset=\"UTF-8\"&gt;\n" +
+<span style="color: #008080;">215</span>         "    &lt;title&gt;实用版&lt;/title&gt;\n" +
+<span style="color: #008080;">216</span>         "    &lt;style&gt;\n" +
+<span style="color: #008080;">217</span>         "        /*通用属性*/\n" +
+<span style="color: #008080;">218</span>         "        body{    margin: 0;    padding: 0;    border: 0;    text-align: center;    overflow: hidden;width: 100%;\n" +
+<span style="color: #008080;">219</span>         "            height: 100%;position: fixed;    font-family: verdana,arial,sans-serif;    touch-action: none;\n" +
+<span style="color: #008080;">220</span>         "            -ms-touch-action: none;font-size: 12px;min-width: 600px;}\n" +
+<span style="color: #008080;">221</span>         "        ul {    list-style: none;    margin: 0;    padding: 0;}\n" +
+<span style="color: #008080;">222</span>         "        li{    list-style: none;    margin: 0;    padding: 0;}\n" +
+<span style="color: #008080;">223</span>         "        ul li {    float: left;}\n" +
+<span style="color: #008080;">224</span>         "        button{    cursor: pointer;    height: 23px;}\n" +
+<span style="color: #008080;">225</span>         "        a:link{    text-decoration: none;}\n" +
+<span style="color: #008080;">226</span>         "        \n" +
+<span style="color: #008080;">227</span>         "        #div_top span,input,button,textarea{margin-left: 20px;float: left;}\n" +
+<span style="color: #008080;">228</span>         "        .p_h1{font-size: 24px;font-weight: bolder;background-color: darkseagreen}\n" +
+<span style="color: #008080;">229</span>         "        .p_text{font-size: 20px;font-weight: normal;text-align: left;background-color: darkseagreen}\n" +
+<span style="color: #008080;">230</span>         "\n" +
+<span style="color: #008080;">231</span>         "        .div_section{position:relative}\n" +
+<span style="color: #008080;">232</span>         "        .p_a1{font-size: 20px;font-weight: normal;text-align: left;background-color: beige;margin-left: 60px;margin-right: 60px;\n" +
+<span style="color: #008080;">233</span>         "        ;min-height: 80px;display: block;word-break: break-all;overflow-wrap: break-word;white-space: pre-wrap}\n" +
+<span style="color: #008080;">234</span>         "        .p_a2{font-size: 20px;font-weight: normal;text-align: left;background-color: beige;left:120px}\n" +
+<span style="color: #008080;">235</span>         "    &lt;/style&gt;\n" +
+<span style="color: #008080;">236</span>         "&lt;/head&gt;"<span style="color: #000000;">;
+</span><span style="color: #008080;">237</span> &lt;/script&gt;
+<span style="color: #008080;">238</span> &lt;/html&gt;</pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>这个小工具代码不多，功能也不复杂，但我认为比较独特的一点是它像单细胞生物一样在一个文件中实现了信息的&ldquo;保持&rdquo;、&ldquo;显示&rdquo;、&ldquo;修改&rdquo;功能，应该具备一定的可发展性，也欢迎大家在此基础上开源更多功能。</p>
+<p>&nbsp;</p>
+<p>用作例子的文章是康德的《纯粹理性批判》（民国蓝公武译本）（<a href="http://book.sbkk8.com/waiguo/chuncuilixingpipan/">http://book.sbkk8.com/waiguo/chuncuilixingpipan/</a>）</p>
+<p>感觉这本书被崇拜者们过誉了，现在更适合作为历史和参考。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

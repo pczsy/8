@@ -1,0 +1,397 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修浅谈C#中的序列化与反序列化' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>浅谈C#中的序列化与反序列化</center></div><div class='banquan'>原文出处:本文由博客园博主萌萌丶小魔王提供。<br/>
+原文连接:https://www.cnblogs.com/xiaomowang/p/11976161.html</div><br>
+    <p><span style="font-size: 16px;">今天我利用这篇文章给大家讲解一下C#中的序列化与反序列化。这两个概念我们再开发中经常用到，但是我们绝大部分只用到了其中的一部分，剩下的部分很多开发人员并不清楚，甚至可以说是不知道。因此我希望通过这篇文章能让大家对序列化和反序列化的知识有更进一步的掌握。废话不多说，开始进入正题。</span></p>
+<p><strong><span style="font-size: 16px;">一、什么是序列化/反序列化</span></strong></p>
+<p><span style="font-size: 16px;">&nbsp;在所有的开发语言中都存在序列化和反序列化这个概念，所谓的序列化就是把一个对象信息转化为一个可以持久存储的数据形式，经过转化后就可以方便的保存和传输了，因此序列化主要用于平台之间的通讯。由于序列化我们可以反推出所谓的反序列化就是将持久存储的数据还原为对象。</span></p>
+<p><strong><span style="font-size: 16px;">二、C#中的序列化/反序列化</span></strong></p>
+<p><span style="font-size: 16px;">在C#中我们经常会对Json和Xml进行序列化和反序列化，但是还存在一种序列化/反序列化，那就是将对象序列化为二进制文件，将二进制文件反序列化为对象。下面我会对这三种序列化和反序列化进行解释。</span></p>
+<p><strong><span style="font-size: 16px;">1、Json</span></strong></p>
+<p><span style="font-size: 16px;">Json的英文全称是JavaScript Object Notation，是一种轻量级的数据交换格式，完全独立于语言的文本格式，易于人阅读和编写，同时也易于机器解析和生成。Json是目前互联网中主流的交换格式，同时也是很多开发语言配置文件的主流格式。</span></p>
+<p><span style="font-size: 16px;">在.Net中存在两个类对Json进行处理，分别是DataContractJsonSerializer和JavaScriptSerializer，这两种类的功能基本一致。DataContractJsonSerializer位于命名空间 System.Runtime.Serialization.Json下，他的特点是必须用DatContract以及DataMember属性标记成员。JavaScriptSerializer位于命名空间System.Web.Script.Serialization下，通过名字和他所在的命名空间我们可以得知他主要用在网络通信中，他可以序列化任何类型的对象。同样.Net中也存在一个强大的第三方Json序列化/反序列化库 Newtonsoft.Json，他比前两个类用起来方便很多。下面我们对这三个序列化/反序列化的方式分别进行讲解。</span></p>
+<p><strong><span style="font-size: 16px;">（1）DataContractJsonSerializer</span></strong></p>
+<p><span style="font-size: 16px;">首先我们需要在项目引用DataContractJsonSerializer所在的命名空间，这里主要注意的是我们不仅要在项目中添加System.Runtime.Serialization还需要添加引用System.ServiceModel.Web。将这两个命名空间添加到命名空间后就可以在代码中进入DataContractJsonSerializer的命名空间了。</span></p>
+<p><span style="font-size: 16px;">using System.Runtime.Serialization;</span><br /><span style="font-size: 16px;">using System.Runtime.Serialization.Json;</span></p>
+<p><span style="font-size: 16px;">引入命名空间后，我们开始编写序列化类</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span> <span style="color: #000000;">    [DataContract]
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Sex { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">public</span> Address Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> <span style="color: #000000;">    [DataContract]
+</span><span style="color: #008080;">15</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">18</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> City { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">20</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Road { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">21</span>     }</span></pre>
+</div>
+<p><span style="font-size: 16px;">在上述代码中，我们看到类的头部添加了DataContract特性，以及在类的属性上也增加了DataMenber特性，一旦一个类被声明为DataCOntract时，就代表着该类可以被序列化，并且可以在服务端和客户端传输。只有声明为DataContract的类型的对象可以被传送，而且只有成员属性会被传送，成员方法不会被传送。默认情况下类中的所有成员属性都不会被序列化传输出去，如果需要将成员数据传输出去就需要在属性头部加入DataMember。</span></p>
+<p><span style="font-size: 16px;">下面我们就利用DataContractJsonSerializer对对象进行序列化和反序列化，代码如下：</span></p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Program
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Main()
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">#region</span> 对象转Json字符串
+<span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">var</span> student = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;"> 9</span>                 Name = <span style="color: #800000;">"</span><span style="color: #800000;">小魔王</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">10</span>                 Age = <span style="color: #800080;">18</span><span style="color: #000000;">,
+</span><span style="color: #008080;">11</span>                 Sex = <span style="color: #800080;">1</span><span style="color: #000000;">,
+</span><span style="color: #008080;">12</span>                 Address = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">14</span>                     City = <span style="color: #800000;">"</span><span style="color: #800000;">SD</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">15</span>                     Road = <span style="color: #800000;">"</span><span style="color: #800000;">JS</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">16</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">            };
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>             <span style="color: #008000;">//</span><span style="color: #008000;">利用WriteObject方法序列化Json</span>
+<span style="color: #008080;">20</span>             DataContractJsonSerializer serializer = <span style="color: #0000ff;">new</span> DataContractJsonSerializer(<span style="color: #0000ff;">typeof</span><span style="color: #000000;">(Student));
+</span><span style="color: #008080;">21</span>             <span style="color: #0000ff;">var</span> stream = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MemoryStream();
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">            serializer.WriteObject(stream, student);
+</span><span style="color: #008080;">23</span>             <span style="color: #0000ff;">var</span> bytes = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[stream.Length];
+</span><span style="color: #008080;">24</span>             stream.Position = <span style="color: #800080;">0</span><span style="color: #000000;">;
+</span><span style="color: #008080;">25</span>             stream.Read(bytes, <span style="color: #800080;">0</span>, (<span style="color: #0000ff;">int</span><span style="color: #000000;">)stream.Length);
+</span><span style="color: #008080;">26</span>             <span style="color: #0000ff;">var</span> strJson =<span style="color: #000000;"> Encoding.UTF8.GetString(bytes);
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">            Console.WriteLine(strJson);
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">30</span> 
+<span style="color: #008080;">31</span>             <span style="color: #0000ff;">#region</span> Json字符串转对象
+<span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span>             stream = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MemoryStream(Encoding.UTF8.GetBytes(strJson));
+</span><span style="color: #008080;">34</span>             student =<span style="color: #000000;"> (Student)serializer.ReadObject(stream);
+</span><span style="color: #008080;">35</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Name:{student.Name}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">36</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Sex:{student.Sex}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">37</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Age:{student.Age}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">38</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Address:{student.Address.City}{student.Address.Road}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">39</span> 
+<span style="color: #008080;">40</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">41</span> 
+<span style="color: #008080;">42</span> <span style="color: #000000;">            Console.ReadKey();
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">45</span> 
+<span style="color: #008080;">46</span> <span style="color: #000000;">    [DataContract]
+</span><span style="color: #008080;">47</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;">48</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">49</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">50</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">51</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">52</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Sex { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">54</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">56</span>         <span style="color: #0000ff;">public</span> Address Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">57</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">58</span> 
+<span style="color: #008080;">59</span> <span style="color: #000000;">    [DataContract]
+</span><span style="color: #008080;">60</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">61</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">62</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">63</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> City { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">64</span> <span style="color: #000000;">        [DataMember]
+</span><span style="color: #008080;">65</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Road { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">66</span>     }</span></pre>
+</div>
+<p><span style="font-size: 16px;">结果：</span></p>
+<p><span style="font-size: 16px;"><img src="./images/浅谈C#中的序列化与反序列化0.png" alt="" /></span></p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;">&nbsp;<strong>（2）JavaScriptSerializer</strong></span></p>
+<p><span style="font-size: 16px;">我们利用前面定义的类，来看一下JavaScriptSerializer的使用方法，我们将前面定义的类中的DataContract和DataMember都去掉。我们如果要使用JavaScriptSerializer只需要引入System.Web.Script.Serialization命名空间即可。下面我们就利用JavaScriptSerializer对象进行序列化和反序列化，代码如下：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span>         <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Main()
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 3</span>             <span style="color: #0000ff;">#region</span> 对象转Json字符串
+<span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">var</span> student = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;"> 7</span>                 Name = <span style="color: #800000;">"</span><span style="color: #800000;">小魔王</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;"> 8</span>                 Age = <span style="color: #800080;">18</span><span style="color: #000000;">,
+</span><span style="color: #008080;"> 9</span>                 Sex = <span style="color: #800080;">1</span><span style="color: #000000;">,
+</span><span style="color: #008080;">10</span>                 Address = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">12</span>                     City = <span style="color: #800000;">"</span><span style="color: #800000;">SD</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">13</span>                     Road = <span style="color: #800000;">"</span><span style="color: #800000;">JS</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">14</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">            };
+</span><span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span>             <span style="color: #008000;">//</span><span style="color: #008000;">初始化</span>
+<span style="color: #008080;">18</span>             JavaScriptSerializer serializer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> JavaScriptSerializer();
+</span><span style="color: #008080;">19</span>             <span style="color: #0000ff;">var</span> strJson =<span style="color: #000000;"> serializer.Serialize(student);
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">            Console.WriteLine(strJson);
+</span><span style="color: #008080;">21</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>             <span style="color: #0000ff;">#region</span> Json字符串转对象
+<span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>             student = serializer.Deserialize&lt;Student&gt;<span style="color: #000000;">(strJson);
+</span><span style="color: #008080;">26</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Name:{student.Name}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">27</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Sex:{student.Sex}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">28</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Age:{student.Age}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">29</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Address:{student.Address.City}+{student.Address.Road}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">30</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">31</span> 
+<span style="color: #008080;">32</span> <span style="color: #000000;">            Console.ReadKey();
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">35</span> 
+<span style="color: #008080;">36</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">38</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">39</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Sex { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">40</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">41</span>         <span style="color: #0000ff;">public</span> Address Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">43</span> 
+<span style="color: #008080;">44</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">45</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">46</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> City { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">47</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Road { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">48</span>     }</span></pre>
+</div>
+<p><span style="font-size: 16px;">结果：</span></p>
+<p><span style="font-size: 16px;"><img src="./images/浅谈C#中的序列化与反序列化1.png" alt="" /></span></p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;">&nbsp;<strong>（3）Newtonsoft.Json</strong></span></p>
+<p><span style="font-size: 16px;">NewtonSoft.Json功能有很多，除了序列化和反序列化之外，还有 Linq To Json、Json Path、XML support等，我们这篇文章之讲解其中的序列化和反序列化，使用NewtonSoft.Json前首先我们需要在nuget中搜索并安装，安装完成后引入NewtonSoft.Json，下面我么你来看一下具体使用：</span></p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Program
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Main()
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">#region</span> 对象转XML字符串
+<span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">var</span> student = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;"> 9</span>                 Name = <span style="color: #800000;">"</span><span style="color: #800000;">小魔王</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">10</span>                 Age = <span style="color: #800080;">18</span><span style="color: #000000;">,
+</span><span style="color: #008080;">11</span>                 Sex = <span style="color: #800080;">1</span><span style="color: #000000;">,
+</span><span style="color: #008080;">12</span>                 Address = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">14</span>                     City = <span style="color: #800000;">"</span><span style="color: #800000;">SD</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">15</span>                     Road = <span style="color: #800000;">"</span><span style="color: #800000;">JS</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">16</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">            };
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>             <span style="color: #008000;">//</span><span style="color: #008000;">初始化</span>
+<span style="color: #008080;">20</span>             <span style="color: #0000ff;">var</span> strJson =<span style="color: #000000;"> JsonConvert.SerializeObject(student);
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">            Console.WriteLine(strJson);
+</span><span style="color: #008080;">22</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span>             <span style="color: #0000ff;">#region</span> Json字符串转对象
+<span style="color: #008080;">25</span> 
+<span style="color: #008080;">26</span>             student = JsonConvert.DeserializeObject&lt;Student&gt;<span style="color: #000000;">(strJson);
+</span><span style="color: #008080;">27</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Name:{student.Name}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">28</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Sex:{student.Sex}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">29</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Age:{student.Age}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">30</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Address:{student.Address.City}+{student.Address.Road}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">31</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span> <span style="color: #000000;">            Console.ReadKey();
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">36</span> 
+<span style="color: #008080;">37</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">39</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">40</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Sex { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">41</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">42</span>         <span style="color: #0000ff;">public</span> Address Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">44</span> 
+<span style="color: #008080;">45</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">47</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> City { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">48</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Road { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">49</span>     }</span></pre>
+</div>
+<p><span style="font-size: 16px;">结果：</span></p>
+<p><span style="font-size: 16px;"><img src="./images/浅谈C#中的序列化与反序列化2.png" alt="" /></span></p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;">&nbsp;从代码中我们可以看到 NewtonSoft.Json序列化和反序列化更加简单，简单到只需要一行代码就可以完成。</span></p>
+<p><strong><span style="font-size: 16px;">2、XML</span></strong></p>
+<p><span style="font-size: 16px;">在Json还没有出现之前，Xml是互联网上常用的数据交换格式和规范。.net中提供XmlSerializer类将对象序列化为XML和将XML反序列化为对象，使用方法是首先实例化，然后调用序列化/反序列化方法。下面我们依然使用最开始定义的那个类，来看看XmlSerializer的使用。使用前我们需要引入using System.Xml.Serialization命名空间。</span></p>
+<p><span style="font-size: 16px;">具体序列化与反序列化方法如下：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Program
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Main()
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">#region</span> 对象转XML字符串
+<span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">var</span> student = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;"> 9</span>                 Name = <span style="color: #800000;">"</span><span style="color: #800000;">小魔王</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">10</span>                 Age = <span style="color: #800080;">18</span><span style="color: #000000;">,
+</span><span style="color: #008080;">11</span>                 Sex = <span style="color: #800080;">1</span><span style="color: #000000;">,
+</span><span style="color: #008080;">12</span>                 Address = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">14</span>                     City = <span style="color: #800000;">"</span><span style="color: #800000;">SD</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">15</span>                     Road = <span style="color: #800000;">"</span><span style="color: #800000;">JS</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">16</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">            };
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>             <span style="color: #008000;">//</span><span style="color: #008000;">初始化</span>
+<span style="color: #008080;">20</span>             XmlSerializer xmlSerializer = <span style="color: #0000ff;">new</span> XmlSerializer(<span style="color: #0000ff;">typeof</span><span style="color: #000000;">(Student));
+</span><span style="color: #008080;">21</span>             <span style="color: #0000ff;">using</span> (<span style="color: #0000ff;">var</span> fs = <span style="color: #0000ff;">new</span> FileStream(<span style="color: #800000;">@"</span><span style="color: #800000;">F:\123.xml</span><span style="color: #800000;">"</span><span style="color: #000000;">, FileMode.OpenOrCreate))
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">                xmlSerializer.Serialize(fs, student);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">25</span>             Console.WriteLine(<span style="color: #800000;">"</span><span style="color: #800000;">序列化完成</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">26</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span>             <span style="color: #0000ff;">#region</span> Json字符串转对象
+<span style="color: #008080;">29</span> 
+<span style="color: #008080;">30</span>             <span style="color: #0000ff;">using</span> (<span style="color: #0000ff;">var</span> fs = <span style="color: #0000ff;">new</span> FileStream(<span style="color: #800000;">@"</span><span style="color: #800000;">F:\123.xml</span><span style="color: #800000;">"</span><span style="color: #000000;">, FileMode.OpenOrCreate))
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">32</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">XmlReader xmlReader = new XmlTextReader(fs);
+</span><span style="color: #008080;">33</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">student = xmlSerializer.Deserialize(xmlReader) as Student;</span>
+<span style="color: #008080;">34</span>                 student = xmlSerializer.Deserialize(fs) <span style="color: #0000ff;">as</span><span style="color: #000000;"> Student;
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">36</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Name:{student.Name}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">37</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Sex:{student.Sex}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">38</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Age:{student.Age}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">39</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Address:{student.Address.City}+{student.Address.Road}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">40</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">41</span> 
+<span style="color: #008080;">42</span> <span style="color: #000000;">            Console.ReadKey();
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">45</span> 
+<span style="color: #008080;">46</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">48</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">49</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Sex { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">50</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">51</span>         <span style="color: #0000ff;">public</span> Address Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">53</span> 
+<span style="color: #008080;">54</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">56</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> City { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">57</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Road { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">58</span>     }</span></pre>
+</div>
+<p><span style="font-size: 16px;">结果：</span></p>
+<p><span style="font-size: 16px;"><img src="./images/浅谈C#中的序列化与反序列化3.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">&nbsp;<img src="./images/浅谈C#中的序列化与反序列化4.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 16px;">&nbsp;3、二进制</span></strong></p>
+<p><span style="font-size: 16px;">序列化为二进制，在实际开发中真有不少用到，但是我觉得还是有必要讲一讲，他的使用方法和XmlSerializer序列化/反序列化类似，首先实例化，然后调用序列化/反序列化方法。在进行序列化/反序列化前，首先引入命名空间System.Runtime.Serialization.Formatters.Binary，同时修改对象类如下：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span> <span style="color: #000000;">    [Serializable]
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Sex { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">public</span> Address Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> <span style="color: #000000;">    [Serializable]
+</span><span style="color: #008080;">11</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">13</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> City { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">14</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Road { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">15</span>     }</span></pre>
+</div>
+<p><span style="font-size: 16px;">上述代码中我们在类的头部加入了Serializable特性，这代表着整个类对象都需要序列化，如果我们不需要序列化其中的某个属性的话，只需要在该属性上加上NonSerialized特性即可，下面我们来看一下序列化/反序列化代码：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">class</span><span style="color: #000000;"> Program
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> Main()
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">#region</span> 对象转XML字符串
+<span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">var</span> student = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;"> 9</span>                 Name = <span style="color: #800000;">"</span><span style="color: #800000;">小魔王</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">10</span>                 Age = <span style="color: #800080;">18</span><span style="color: #000000;">,
+</span><span style="color: #008080;">11</span>                 Sex = <span style="color: #800080;">1</span><span style="color: #000000;">,
+</span><span style="color: #008080;">12</span>                 Address = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">                {
+</span><span style="color: #008080;">14</span>                     City = <span style="color: #800000;">"</span><span style="color: #800000;">SD</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #008080;">15</span>                     Road = <span style="color: #800000;">"</span><span style="color: #800000;">JS</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">16</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">            };
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>             BinaryFormatter binaryFormatter = <span style="color: #0000ff;">new</span><span style="color: #000000;"> BinaryFormatter();
+</span><span style="color: #008080;">20</span>             <span style="color: #0000ff;">string</span> fileName = Path.Combine(<span style="color: #800000;">@"</span><span style="color: #800000;">F:\</span><span style="color: #800000;">"</span>, <span style="color: #800000;">@"</span><span style="color: #800000;">123.txt</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">21</span>             <span style="color: #0000ff;">using</span> (<span style="color: #0000ff;">var</span> stream = <span style="color: #0000ff;">new</span><span style="color: #000000;"> FileStream(fileName, FileMode.OpenOrCreate))
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">                binaryFormatter.Serialize(stream, student);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">25</span>             Console.WriteLine(<span style="color: #800000;">"</span><span style="color: #800000;">序列化完成</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">26</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span>             <span style="color: #0000ff;">#region</span> 字符串转对象
+<span style="color: #008080;">29</span> 
+<span style="color: #008080;">30</span>             <span style="color: #0000ff;">using</span> (<span style="color: #0000ff;">var</span> fs = <span style="color: #0000ff;">new</span> FileStream(<span style="color: #800000;">@"</span><span style="color: #800000;">F:\123.txt</span><span style="color: #800000;">"</span><span style="color: #000000;">, FileMode.OpenOrCreate))
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">            {
+</span><span style="color: #008080;">32</span>                 student = binaryFormatter.Deserialize(fs) <span style="color: #0000ff;">as</span><span style="color: #000000;"> Student;
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">34</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Name:{student.Name}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">35</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Sex:{student.Sex}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">36</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Age:{student.Age}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">37</span>             Console.WriteLine($<span style="color: #800000;">"</span><span style="color: #800000;">Address:{student.Address.City}+{student.Address.Road}</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">38</span>             <span style="color: #0000ff;">#endregion</span>
+<span style="color: #008080;">39</span> 
+<span style="color: #008080;">40</span> <span style="color: #000000;">            Console.ReadKey();
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">43</span> 
+<span style="color: #008080;">44</span> <span style="color: #000000;">    [Serializable]
+</span><span style="color: #008080;">45</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">47</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">48</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Sex { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">49</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">50</span>         <span style="color: #0000ff;">public</span> Address Address { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">51</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">52</span> 
+<span style="color: #008080;">53</span> <span style="color: #000000;">    [Serializable]
+</span><span style="color: #008080;">54</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Address
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">56</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> City { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">57</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Road { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+</span><span style="color: #008080;">58</span>     }</span></pre>
+</div>
+<p><span style="font-size: 16px;">这篇文章详细的讲述了.Net中序列化与反序列化的相关知识和使用，序列化和反序列化的相关知识还有很多，这里所讲的都是开发中常用到的。好了，今天的知识就分享到这里了。</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

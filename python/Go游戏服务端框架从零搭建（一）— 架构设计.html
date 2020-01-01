@@ -1,0 +1,39 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Go游戏服务端框架从零搭建（一）— 架构设计' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Go游戏服务端框架从零搭建（一）— 架构设计</center></div><div class='banquan'>原文出处:本文由博客园博主五邑隐侠提供。<br/>
+原文连接:https://www.cnblogs.com/niudanshui/p/11864281.html</div><br>
+    <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #888888;">五邑隐侠，本名关健昌，10年游戏生涯，现隐居海边。</span></p>
+<p><span style="color: #888888;">　　<span style="color: #000000; font-size: 14px;">本教程以Go语言分区游戏服务端框架搭建为例。</span></span></p>
+<p><span style="color: #888888; font-size: 14px;"><span style="color: #000000;">　　Go语言是Google开发的一种静态强类型、编译型、并发型、具有垃圾回收功能的编程语言。语法上近似C语言，支持接口、可通过struct包含另一个struct方式实现继承等面向对象的概念。性能上媲美C/C++，相比C/C++更健壮，更易开发并发程序。我以前也写C++服务端，接触Go后，更倾向用Go做游戏服务端开发。</span></span></p>
+<p><span style="color: #888888; font-size: 14px;">　　<span style="color: #000000;">所谓分区游戏，指游戏将分为很多个区，不同区之间玩家不能互动或只有少量互动。玩家进入游戏需要选择分区，进入指定分区进行游戏，一个玩家可以同时在不同分区有角色。目前市面上大多中重度网络游戏都采用这种模式，分区游戏适合不需要大DAU互动的游戏，如卡牌、MMORPG、SLG等。从技术层面，分区属于集群扩容的一种手段；运营上，有利于分区精细运营，滚服运营已经是比较成熟的游戏运营手段。相对分区游戏，也存在不分区的社交游戏，这类游戏核心玩法是匹配对抗，例如COC。如果把分区游戏的分区，映射为该类游戏的节点服，广播服映射为匹配服，对不分区游戏的架构也就很好理解。</span></span></p>
+<p><span style="font-size: 14px;"><span style="color: #888888;"><span style="color: #000000;">　　本教程主要讲分区游戏服务端框架搭建。</span></span><span style="color: #888888;"><span style="color: #000000;">总体设计如下：</span></span></span></p>
+<p><span style="color: #888888; font-size: 13px;"><span style="color: #000000;"><img src="./images/Go游戏服务端框架从零搭建（一）— 架构设计0.png" alt="" width="591" height="594" /></span></span></p>
+<p><span style="color: #888888; font-size: 13px;"><span style="color: #000000;">　　<span style="font-size: 14px;">分区游戏，玩家先登录游戏，然后进入指定分区。所以首先要有一个登录服务器，提供全局的登录服务。登录服务器的核心数据是玩家账号，核心业务是对玩家进行登录校验，包括使用自有账号系统、第三方账号登录。账号数据需要落地长期存储，所以在该服务器配套一个MySQL数据库，用于保存玩家账号信息。有一到多个登录服务进程，进行游戏登录校验。登录服务是一个短连接服务，使用http协议，对外通过nginx提供统一访问地址，对多个登录服务进程做负载均衡。通常，登录接口还会返回分区信息、玩家各分区角色简要信息、客户端最新版本号、配置版本、资源版本、公告等，这些信息可以通过gm服务（后面会介绍）动态更新，登录服在响应请求时获取并返回给客户端。所以在登录服务器会配套一个redis服务，用于这些数据的缓存。</span><br /></span></span></p>
+<p><span style="font-size: 14px;"><span style="color: #888888;"><span style="color: #000000;">　　玩家登录游戏成功后，将进入选定游戏分区。分区是一组服务进程。大部分游戏分区都采用长连接通信，如果同时兼顾现在热门的h5游戏、微信小游戏，考虑选用websocket做通信（以前使用socket）。考虑到游戏中会有广播的需求，广播数据和分区游戏数据都希望从同一个连接返回给客户端，有必要提供一个统一的分区入口网关服，网关服进程对客户端提供统一的分区地址和端口，对内做数据转发。分区的逻辑业务可以集中放在一个游戏服进程里。以前一些游戏，游戏服在线数据会保存在进程内存里，由于游戏数据变化太频繁，MySQL 频繁读写性能不高，所以会隔一定时间才保存到MySQL。但分区内</span></span>游戏服是一个单点，一旦崩掉，游戏服的内存数据就会丢失，回档到上一次保存的时间。后来一些游戏为了减少这种风险，把在线数据保存到共享内存，再定时保存到MySQL。共享内存依赖系统和语言，目前发现Go没有直接支持。再后来有了memcached和redis，部分游戏选择用这种缓存系统做缓存，游戏服崩掉，数据还在缓存里不会丢失，可以快速启动游戏服恢复服务。我选用redis作为缓存，缓存活跃玩家数据。隔一定时间，把变化数据保存到MySQL。redis数据主要使用key-value方式保存数据，每次业务处理都需要读取、解析，再使用。对业务开发不是很友好。游戏服进程内存还是会保存在线玩家数据，玩家进入分区时从redis读取到游戏服内存，redis不命中则发布消息给数据服进行数据预热，预热成功后从redis读取。后面的请求可以直接通过内存数据做业务判断、处理，更改数据以事务方式保存到redis，成功后响应给客户端。这样内存数据跟redis数据一致，而且可以把玩家数据拆成更细的单元，减少跟redis间的通信。玩家下线后清除游戏服内存数据。所以分区内配套一个redis、一个MySQL。为了建立定时保存数据这个机制，且不会因游戏服崩溃而受影响，配备一个功能很简单的数据服，通过redis的发布订阅机制、消息队列，负责数据的定时落地固化、玩家注册、数据预热。</span></p>
+<p><span style="font-size: 14px;">　　前面提到广播服，广播服顾名思义主要负责广播，例如跑马灯广播、世界聊天、世界boss。广播服通过各个分区的网关服将数据广播给玩家，因此广播服将连接各个分区网关。广播任务通过消息队列进行缓存，这样每个分区的广播操作在写到队列后就可以响应客户端。消息队列采用redis实现。广播服是一个全局的服务，为了避免单点风险，可以做成主从，通过redis的订阅发布机制，启动时订阅redis，如果一定时间没有收到发布消息，认为主服务不存在，切换为主服务，取消消息订阅，连接各分区网关，定时向redis发布消息报活。</span></p>
+<p><span style="font-size: 14px;">　　除了业务相关的服务，需要对整个服务体系提供管理。例如开服、停服、更新配置/资源版本、发邮件、发公告、发放道具、踢人等。提供一个全局的gm服，各分区服务启动后，游戏服进程连接到gm服并保持心跳，以通知gm服开/停服。gm服将这些变更信息更新到登录服的redis，这样玩家登录游戏就知道各个服的状态。gm服还可以通过向redis发消息通知登录服进行封号等操作。由于各个游戏服都连接到gm服，这样就可以对各个分区发gm命令。gm服可以通过向广播服的消息队列写消息发全员广播。gm服的功能由运营人员进行操作，所以需要提供http服务，方便在网页上访问。gm服有道具发放的功能，所以第三方支付回调可以通过gm服的http接口请求发货。</span></p>
+<p><span style="font-size: 14px;">　　为了给运营提供决策，还需要提供统计后台，对游戏数据日志进行收集、统计。由于登录服、各分区的游戏服、gm服都会上报数据，数据来源广，数据量大，需要做消息队列。因此登录服、游戏服、gm服都通过redis的消息队列进行上报。统计服从redis读取消息，保存数据日志到MySQL。因此需要配套一个redis、一个MySQL。统计服的功能由运营人员使用，需要提供http服务，方便在网页上访问。统计服的http接口还支持客户端进行数据上报。</span></p>
+<p><span style="font-size: 14px;">　　为了合并运营人员的页面，gm服、统计服通过nginx提供统一的http地址。</span></p>
+<p><span style="font-size: 14px;">　　这样就得到了如前面设计图的整个服务框架。&nbsp;</span></p>
+<p><span style="font-size: 14px;">　　本篇介绍到这里，接下来会详细介绍各个服务的实现。在此之前，下一篇先介绍一些通用的基础机制设计和实现。</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

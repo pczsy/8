@@ -1,0 +1,136 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【重学Node.js 第3篇】mongodb以及mongoose的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【重学Node.js 第3篇】mongodb以及mongoose的使用</center></div><div class='banquan'>原文出处:本文由博客园博主张小然提供。<br/>
+原文连接:https://www.cnblogs.com/zhangran/p/12032266.html</div><br>
+    <h1 id="mongodb以及mongoose的使用">mongodb以及mongoose的使用</h1>
+<p>课程介绍看这里：<a href="https://www.cnblogs.com/zhangran/p/11963616.html" class="uri">https://www.cnblogs.com/zhangran/p/11963616.html</a><br />
+项目github地址：<a href="https://github.com/hellozhangran/happy-egg-server" class="uri">https://github.com/hellozhangran/happy-egg-server</a></p>
+<h2 id="mongodb">mongodb</h2>
+<p>mongodb是典型的非关系型数据库，关于它的背景介绍和优势劣势这里就不赘述，我们直接讲实操或者说最有可能用到的部分。</p>
+<h2 id="mongodb常用指令">mongodb常用指令</h2>
+<ul>
+<li><code>mongod --config /opt/mongodb/mongod.conf</code> 启动mongod服务。
+<ul>
+<li>如果想在后台启动，需要修改mongod.conf，添加fork=true，然后再启动。</li>
+<li>想关掉后台运行的mongod服务，先查看所有后台运行的服务 <code>lsof -i</code>，找到mongod的pid号，<code>kill yourpid</code></li>
+</ul></li>
+<li><code>mongo</code> 进入 mongo 环境</li>
+<li><code>show dbs</code> 查看所有的数据库</li>
+<li><code>use test</code> 进入test数据库</li>
+<li><code>db.createCollection('user')</code> 创建一个<code>user</code>集合
+<ul>
+<li>这里简单介绍一下集合的概念，mongo 是非关系型数据库，不存在表的概念，与表相对应的是集合。当然集合不是表，与表相差很大，没有表的行列结构，可以简单的把集合当成一个 list，而 list 里面会放一个个对象。有没有发现这像极了json数据格式。</li>
+</ul></li>
+<li><code>db.user.insert({name: 'zhangsan', age: 21, sex: 'male'})</code> 在集合中插入一条数据</li>
+<li><code>db.user.find()</code> 查看集合user中的所有数据</li>
+<li><code>db.user.find().pretty()</code> 以一个漂亮点的格式显示数据</li>
+<li><code>db.user.find({name: 'zhangsan'})</code> find的第一个参数是where选择条件，显示符合name='zhangsan'的整条数据</li>
+<li><code>db.user.find({name: 'zhangsan'}, {name: 1})</code> find的第一个参数是指定显示内容，显示符合条件的name，1是显示，0是不显示。</li>
+</ul>
+<h2 id="使用mongoose">使用mongoose</h2>
+<p>mongoose是一个nodejs工具库，方便使用nodejs操作mongodb</p>
+<h3 id="首先使用mongoose连接mongodb数据库">1. 首先使用mongoose连接mongodb数据库</h3>
+<pre><code><code>const mongoose = require(&#39;mongoose&#39;);
+
+// 创建一个连接，并监听各种事件，在执行connect操作时，各事件会视具体情况而触发。
+mongoose.connection
+.on(&#39;error&#39;, function (err) {
+    // 数据库连接失败时触发
+    console.log(&#39;connect error: &#39;, err);
+})
+.on(&#39;disconnected&#39;, function () {
+    // 数据库断开时触发，断开重连的逻辑可以放在这里。
+})
+.once(&#39;open&#39;, function () {
+    // 数据库连接成功时触发，express开启listen的逻辑可以放在这里。
+});
+
+// 启动mongod服务默认是运行在127.0.0.1上，所以下面路径是localhost
+// test是数据库名，如果有则连接，如果无则创建
+mongoose.connect(&#39;mongodb://localhost/test&#39;, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+</code></pre>
+<h3 id="schema与model">2. Schema与Model</h3>
+<p>在mongoose中Schema、Model是非常重要的概念。Model对应mongodb中的集合 <code>collection</code>，而Schema对应集合的结构，也就是结合都有哪些字段、字段的类型、是否必填、是否有缺省值等。</p>
+<pre><code><code>const UserSchema = mongoose.Schema({
+    name: String,
+    age: Number,
+    sex: Boolean
+});
+
+// Schema的静态方法
+UserSchema.statics.findUserByAge = function (age) {
+    // 用then来拿到结果，如findUserByAge(21).then((res) =&gt; {})。
+    // 也可以在find第二个参数传回调函数
+    return this.find({&#39;age&#39;: age});
+}
+
+// Schema的实例方法
+UserSchema.methods.findUserByName = function(name) {
+    return this.model(&#39;User&#39;).find({ name: name });
+};
+
+// 创建一个Model，第三参数指定mongodb中collection的名字，如果不传则默认为变为复数（即Users）
+const User = mongoose.model(&#39;User&#39;, UserSchema, &#39;user&#39;);
+
+// 创建一条数据
+// 1. 直接用User创建
+User.create({name: &#39;zhangsan&#39;, age: 27, sex: true}, function(err, info) {
+    console.log(info);
+});
+
+// 2. 新创建一个对象再添加数据到数据库
+// 再次说明下现在mongoose默认是支持promise方式的，可以使用then 或 回调函数的方式
+var person = new User({name: &#39;lisi&#39;, age: 20, sex: false});
+person.save().then(res =&gt; {
+    console.log(res);
+})
+
+// 调用Schema中定义的静态方法，可以通过User直接调
+User.findUserByAge(21);
+
+// 调用Schema中定义的实例方法方法，先实例化再调
+const user = new User();
+user.findUserByName(&#39;zhangsan&#39;);
+
+// 删除数据，删除符合条件的一条
+User.deleteOne({name: &#39;lisi&#39;}).then();
+
+// 删除符合条件的所有数据
+User.deleteMany({age: 20}).then();
+
+// 注意：remove()方法已经被弃用了！</code></pre>
+<p>最后附上mongoose的api文档，其他的使用方法不一一列举：</p>
+<blockquote>
+<p><a href="http://www.mongoosejs.net/docs/api.html" class="uri">http://www.mongoosejs.net/docs/api.html</a></p>
+</blockquote>
+<h2 id="todo">TODO</h2>
+<p>上面讲的是目前项目中已经用到的，后续可能会继续拓展的：</p>
+<ul>
+<li>docker与mongodb</li>
+<li>mongodb复制集之自动容灾</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

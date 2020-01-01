@@ -1,0 +1,124 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修迭代器的一些理解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>迭代器的一些理解</center></div><div class='banquan'>原文出处:本文由博客园博主二进制的弗洛伊德提供。<br/>
+原文连接:https://www.cnblogs.com/levylovepage/p/11419509.html</div><br>
+    <h3 id="可迭代对象与迭代器">可迭代对象与迭代器</h3>
+<p>  可迭代对象不一定是迭代器，而迭代器一定是可迭代对象.在Python中，list序列类型等，通过for...in我们可以遍历其中的数据。我们称其为可迭代对象(Iterable)。迭代对象只要实现__iter__()或者__getitem__()即可，迭代器还必须实现__next__()。</p>
+<pre><code><code>from collections.abc import Iterable, Iterator
+my_list = [1, 2, 3]
+my_itorlist = iter(my_list)
+print(isinstance(my_list, Iterator))
+print(isinstance(my_itorlist, Iterator))
+pass</code></pre>
+<p>  我们可以看到list并不是迭代器类型，iter()函数可以将可迭代对象变为迭代器对象。<br />
+<img src="./images/迭代器的一些理解0.png" /><br />
+<img src="./images/迭代器的一些理解1.png" /><br />
+  将可迭代对象变为迭代器对象后，我们可以通过next()实现顺序访问元素。下图为可迭代对象到迭代器的转换以及访问元素的方法。访问完所有元素后，会抛出StopIteration异常。<br />
+<img src="./images/迭代器的一些理解2.png" /></p>
+<pre><code><code>my_list = [1,2,3]
+my_itorlist = iter(my_list)
+print(next(my_itorlist))
+print(next(my_itorlist))
+print(next(my_itorlist))
+print(next(my_itorlist))
+</code></pre>
+<p><img src="./images/迭代器的一些理解3.png" /></p>
+<h3 id="为什么我们需要迭代器">为什么我们需要迭代器？</h3>
+<p>  斐波那契数列指的是这样一个数列：1、1、2、3、5、8、13、21、34。在遇到斐波那契数列需要打印前100个数字的问题，我们最常用的解决办法就是使用如下的while循环。</p>
+<pre><code><code>def fib(index):
+    re_list = []
+    n,a,b = 0,0,1
+    while n&lt;index:
+        re_list.append(b)
+        a,b = b, a+b
+        n += 1
+    return re_list</code></pre>
+<p>  不可否认这是一个较好的解决办法，但是面对打印海量斐波那契数列的时候，我们就会面对一个内存开销大大增加的问题。我们总不可能把一千万个数据全部存储到列表中吧！这时候迭代器的优点就体现出来了。迭代器只返回下一个数字，并且不会记录上一个数据，在我们需要打印的时候才会计算（惰性计计算)。使用迭代器解决斐波拉契数列的问题，我们即使面对大量的数据，也可以不需要担心内存的占用问题。</p>
+<pre><code><code>class Fb:
+
+    def __init__(self, n):
+        self.n = n #打印的数个数
+        self.current = 0
+        self.a = 0
+        self.b = 1
+
+    def __next__(self):
+        if self.current &lt; self.n:
+            &quot;&quot;&quot;
+            a=b
+            b=a+b
+            &quot;&quot;&quot;
+            self.a, self.b = self.b, self.a + self.b
+            self.current += 1
+            return self.a
+        else:
+            raise StopIteration
+
+    def __iter__(self):
+        return self
+
+
+if __name__ == &#39;__main__&#39;:
+    fib_print = Fb(1000)
+    for num in fib_print:
+        print(num)</code></pre>
+<h3 id="自定义迭代器">自定义迭代器</h3>
+<p>  通过自定义一个迭代器，我们可以更好地理解迭代器到底是个什么东西。</p>
+<pre><code><code>from collections.abc import Iterator#导入迭代器的抽象基类
+
+class Company(object):
+    def __init__(self, employee_list):
+        self.employee = employee_list
+
+    def __iter__(self):
+        return LevyIterator(self.employee)
+
+
+
+class LevyIterator(Iterator):#自定义的迭代器
+    def __init__(self,employee_list):
+        self.iter_employee = employee_list
+        self.index = 0
+
+    def __next__(self):
+        try:
+            next_obj = self.iter_employee[self.index]
+        except IndexError:#捕捉Index异常
+            raise StopIteration#抛出迭代器的异常StopIteration
+        self.index +=1
+        return next_obj
+if __name__ == &quot;__main__&quot;:
+    company = Company([&quot;tom&quot;, &quot;bob&quot;, &quot;jane&quot;])
+    my_itor = iter(company) #变为迭代器对象
+    while True:
+        try:
+            print (next(my_itor))
+        except StopIteration:
+            break
+
+    # for item in  company:
+    #     print(item)
+</code></pre>
+<p>  上述代码中，main中的while....break代码是我们迭代输出的部分，这一点其实就是for...in输出的本质:先通过obj.__iter__()将对象变为迭代器类型，然后通过不断的next(obj)输出元素。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

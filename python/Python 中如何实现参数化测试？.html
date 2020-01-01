@@ -1,0 +1,161 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python 中如何实现参数化测试？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python 中如何实现参数化测试？</center></div><div class='banquan'>原文出处:本文由博客园博主豌豆花下猫提供。<br/>
+原文连接:https://www.cnblogs.com/pythonista/p/12013811.html</div><br>
+    <h2 id="python-中如何实现参数化测试">Python 中如何实现参数化测试？</h2>
+<p>之前，我曾转过一个单元测试框架系列的文章，里面介绍了 unittest、nose/nose2 与 pytest 这三个最受人欢迎的 Python 测试框架。</p>
+<p>本文想针对测试中一种很常见的测试场景，即参数化测试，继续聊聊关于测试的话题，并尝试将这几个测试框架串联起来，做一个横向的比对，加深理解。</p>
+<h2 id="什么是参数化测试">1、什么是参数化测试？</h2>
+<p>对于普通测试来说，一个测试方法只需要运行一遍，而参数化测试对于一个测试方法，可能需要传入一系列参数，然后进行多次测试。</p>
+<p>比如，我们要测试某个系统的登录功能，就可能要分别传入不同的用户名与密码，进行测试：使用包含非法字符的用户名、使用未注册的用户名、使用超长的用户名、使用错误的密码、使用合理的数据等等。</p>
+<p>参数化测试是一种“数据驱动测试”（Data-Driven Test），在同一个方法上测试不同的参数，以覆盖所有可能的预期分支的结果。它的测试数据可以与测试行为分离，被放入文件、数据库或者外部介质中，再由测试程序读取。</p>
+<h2 id="参数化测试的实现思路">2、参数化测试的实现思路？</h2>
+<p>通常而言，一个测试方法就是一个最小的测试单元，其功能应该尽量地原子化和单一化。</p>
+<p>先来看看两种实现参数化测试的思路：一种是写一个测试方法，在其内部对所有测试参数进行遍历；另一种是在测试方法之外写遍历参数的逻辑，然后依次调用该测试方法。</p>
+<p>这两种思路都能达到测试目的，在简单业务中，没有毛病。然而，实际上它们都只有一个测试单元，在统计测试用例数情况，或者生成测试报告的时候，并不乐观。可扩展性也是个问题。</p>
+<p>那么，现有的测试框架是如何解决这个问题的呢？</p>
+<p>它们都借助了装饰器，主要的思路是：<strong>利用原测试方法（例如 test()），来生成多个新的测试方法（例如 test1()、test2()……），并将参数依次赋值给它们。</strong></p>
+<p>由于测试框架们通常把一个测试单元统计为一个“test”，所以这种“由一生多”的思路相比前面的两种思路，在统计测试结果时，就具有很大的优势。</p>
+<h2 id="参数化测试的使用方法">3、参数化测试的使用方法？</h2>
+<p>Python 标准库中的<code>unittest</code> 自身不支持参数化测试，为了解决这个问题，有人专门开发了两个库：一个是<code>ddt</code> ，一个是<code>parameterized</code> 。</p>
+<p>ddt 正好是“Data-Driven Tests”（数据驱动测试）的缩写。典型用法：</p>
+<pre><code><code>import unittest
+from ddt import ddt,data,unpack
+
+@ddt
+class MyTest(unittest.TestCase):
+    @data((3, 1), (-1, 0), (1.2, 1.0))
+    @unpack
+    def test_values(self, first, second):
+        self.assertTrue(first &gt; second)
+
+unittest.main(verbosity=2)</code></pre>
+<p>运行的结果如下：</p>
+<pre><code><code>test_values_1__3__1_ (__main__.MyTest) ... ok
+test_values_2___1__0_ (__main__.MyTest) ... FAIL
+test_values_3__1_2__1_0_ (__main__.MyTest) ... ok
+
+==================================================
+FAIL: test_values_2___1__0_ (__main__.MyTest)
+--------------------------------------------------
+Traceback (most recent call last):
+  File &quot;C:\Python36\lib\site-packages\ddt.py&quot;, line 145, in wrapper
+    return func(self, *args, **kwargs)
+  File &quot;C:/Users/pythoncat/PycharmProjects/study/testparam.py&quot;, line 9, in test_values
+    self.assertTrue(first &gt; second)
+AssertionError: False is not true
+
+----------------------------------------------
+Ran 3 tests in 0.001s
+
+FAILED (failures=1)</code></pre>
+<p>结果显示有 3 个 tests，并详细展示了运行状态以及断言失败的信息。</p>
+<p>需要注意的是，这 3 个 test 分别有一个名字，名字中还携带了其参数的信息，而原来的 test_values 方法则不见了，已经被一拆为三。</p>
+<p>在上述例子中，ddt 库使用了三个装饰器（@ddt、@data、@unpack），实在是很丑陋。下面看看相对更好用的 parameterized 库：</p>
+<pre><code><code>import unittest
+from parameterized import parameterized
+
+class MyTest(unittest.TestCase):
+    @parameterized.expand([(3,1), (-1,0), (1.5,1.0)])
+    def test_values(self, first, second):
+        self.assertTrue(first &gt; second)
+
+unittest.main(verbosity=2) </code></pre>
+<p>测试结果如下：</p>
+<pre><code><code>test_values_0 (__main__.MyTest) ... ok
+test_values_1 (__main__.MyTest) ... FAIL
+test_values_2 (__main__.MyTest) ... ok
+
+=========================================
+FAIL: test_values_1 (__main__.MyTest)
+-----------------------------------------
+Traceback (most recent call last):
+  File &quot;C:\Python36\lib\site-packages\parameterized\parameterized.py&quot;, line 518, in standalone_func
+    return func(*(a + p.args), **p.kwargs)
+  File &quot;C:/Users/pythoncat/PycharmProjects/study/testparam.py&quot;, line 7, in test_values
+    self.assertTrue(first &gt; second)
+AssertionError: False is not true
+
+----------------------------------------
+Ran 3 tests in 0.000s
+
+FAILED (failures=1)</code></pre>
+<p>这个库只用了一个装饰器 @parameterized.expand，写法上可就清爽多了。</p>
+<p>同样提醒下，原来的测试方法已经消失了，取而代之的是三个新的测试方法，只是新方法的命名规则与 ddt 的例子不同罢了。</p>
+<p>介绍完 unittest，接着看已经死翘翘了的<code>nose</code> 以及新生的<code>nose2</code> 。nose 系框架是带了插件（plugins）的 unittest，以上的用法是相通的。</p>
+<p>另外，nose2 中还提供了自带的参数化实现：</p>
+<pre><code><code>import unittest
+from nose2.tools import params
+
+@params(1, 2, 3)
+def test_nums(num):
+    assert num &lt; 4
+
+class Test(unittest.TestCase):
+    @params((1, 2), (2, 3), (4, 5))
+    def test_less_than(self, a, b):
+    assert a &lt; b</code></pre>
+<p>最后，再来看下 pytest 框架，它这样实现参数化测试：</p>
+<pre><code><code>import pytest
+
+@pytest.mark.parametrize(&quot;first,second&quot;, [(3,1), (-1,0), (1.5,1.0)])
+def test_values(first, second):
+    assert(first &gt; second)</code></pre>
+<p>测试结果如下：</p>
+<pre><code><code>==================== test session starts ====================
+platform win32 -- Python 3.6.1, pytest-5.3.1, py-1.8.0, pluggy-0.13.1
+rootdir: C:\Users\pythoncat\PycharmProjects\study collected 3 items
+
+testparam.py .F
+testparam.py:3 (test_values[-1-0])
+first = -1, second = 0
+
+    @pytest.mark.parametrize(&quot;first,second&quot;, [(3,1), (-1,0), (1.5,1.0)])
+    def test_values(first, second):
+&gt;       assert(first &gt; second)
+E       assert -1 &gt; 0
+
+testparam.py:6: AssertionError
+.                                                         [100%]
+
+========================= FAILURES ==========================
+_________________________ test_values[-1-0] _________________________
+
+first = -1, second = 0
+
+    @pytest.mark.parametrize(&quot;first,second&quot;, [(3,1), (-1,0), (1.5,1.0)])
+    def test_values(first, second):
+&gt;       assert(first &gt; second)
+E       assert -1 &gt; 0
+
+testparam.py:6: AssertionError
+===================== 1 failed, 2 passed in 0.08s =====================
+Process finished with exit code 0</code></pre>
+<p>依然要提醒大伙注意，pytest 也做到了由一变三，然而我们却看不到有新命名的方法的信息。这是否意味着它并没有产生新的测试方法呢？或者仅仅是把新方法的信息隐藏起来了？</p>
+<h2 id="最后小结">4、最后小结</h2>
+<p>上文中介绍了参数化测试的概念、实现思路，以及在三个主流的 Python 测试框架中的使用方法。我只用了最简单的例子，为的是快速科普（言多必失）。</p>
+<p>但是，这个话题其实还没有结束。对于我们提到的几个能实现参数化的库，抛去写法上大同小异的区别，它们在具体代码层面上，又会有什么样的差异呢？</p>
+<p><strong>具体来说，它们是如何做到把一个方法变成多个方法，并且将每个方法与相应的参数绑定起来的呢？在实现中，需要解决哪些棘手的问题？</strong></p>
+<p>在分析一些源码的时候，我发现这个话题还挺有意思，所以准备另外写一篇文章。那么，本文就到此为止了，谢谢阅读。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

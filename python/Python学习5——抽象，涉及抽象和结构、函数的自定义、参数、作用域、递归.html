@@ -1,0 +1,473 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python学习5——抽象，涉及抽象和结构、函数的自定义、参数、作用域、递归' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python学习5——抽象，涉及抽象和结构、函数的自定义、参数、作用域、递归</center></div><div class='banquan'>原文出处:本文由博客园博主JiaMeng991010提供。<br/>
+原文连接:https://www.cnblogs.com/jiameng991010/p/11227584.html</div><br>
+    <p>此处将抽象和结构、自定义函数、参数的使用、作用域、递归放在一起学习，看起来很怪是不是？</p>
+<p>但实际上这几者之间是有紧密联系的，不然Python基础教程（第三版）的作者为什么会把它们放在一起哪？手动滑稽</p>
+<p>好了，不说废话了，不乱想了，上硬货！！！</p>
+<p><strong>1、抽象和结构</strong></p>
+<p>抽象的目的是节省人力，实际上，抽象虽然看起来更高，但实际上抽象是程序能被人们更好地理解的关键所在。</p>
+<div class="cnblogs_code">
+<pre><code>page=<span style="color: #000000;">download_page()
+freqs</span>=<span style="color: #000000;">compute_frequence(page)
+</span><span style="color: #0000ff;">for</span> word ,freq <span style="color: #0000ff;">in</span><span style="color: #000000;"> freqs:
+    </span><span style="color: #0000ff;">print</span>(word, freq)</pre>
+</div>
+<p>这些代码，一看上去就知道要干什么，但具体如何去做，你什么也没说，只是让计算机去下载网页并计算使用频率。至于这些操作的细节，将在其他地方（函数的定义）中给出，之看上去非常易懂，更好理解。</p>
+<p><strong>2、自定义函数</strong></p>
+<p>函数执行特定的一些操作序列，或许还会返回一个值，你可以调用这个函数（有时候需要提供一些参数，放在函数的参数列表中）。</p>
+<p>有的时候，你想调用某个对象，但这可能是非法的，你可以通过<strong>callable</strong>函数来判断这个对象是否可以被调用。</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; x=1
+&gt;&gt;&gt;<span style="color: #000000;"> callable(x)#x无法被调用
+False</span></pre>
+</div>
+<p><strong>函数是结构化编程的核心</strong>。但如何去定义函数哪？，使用&nbsp;<strong>def&nbsp;</strong>语句！</p>
+<p>最简单的自定义函数示例:</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> hello(name):
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">Hello,</span><span style="color: #800000;">'</span>+name+<span style="color: #800000;">'</span><span style="color: #800000;">!</span><span style="color: #800000;">'</span>
+
+&gt;&gt;&gt; <span style="color: #0000ff;">print</span>(hello(<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span><span style="color: #000000;">))
+Hello,jiameng!</span></pre>
+</div>
+<p>再稍微复杂一点：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> fibs(num):
+    result</span>=[0,1<span style="color: #000000;">]
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(num-2<span style="color: #000000;">):
+        result.append(result[</span>-2]+result[-1<span style="color: #000000;">])#f(n)=f(n-1)+f（n-2)，此处获取的是数列，因此要把新的加上，而且最后连个的索引是-1和-2
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result
+
+</span>&gt;&gt;&gt; fibs(8<span style="color: #000000;">)
+[0, </span>1, 1, 2, 3, 5, 8, 13<span style="color: #000000;">]
+</span>&gt;&gt;&gt; fibs(20<span style="color: #000000;">)
+[0, </span>1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181]<br /><br />#解释一下上边的程序：获取斐波那契数列，获取的列表为result ,</pre>
+</div>
+<p><strong>2.1给函数编写文档</strong></p>
+<p>有的时候编写的函数并不是那么的简单易懂，这个时候就需要给函数增加一些解释性的语句，以方便理解和使用。</p>
+<p>一种方法是添加注释（以#字打头的语句）</p>
+<p>另一种方法则是添加独立的字符串，放在函数开头的字符串称为<strong>文档字符串</strong>，将作为函数的一部分存储起来。</p>
+<p>示例</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> square(n):
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">Calcuates the square of the number n</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">return</span> n*<span style="color: #000000;">n
+
+</span>&gt;&gt;&gt; square.<span style="color: #800080;">__doc__</span><span style="color: #008000;">#</span><span style="color: #008000;">注意是双下划线</span>
+<span style="color: #800000;">'</span><span style="color: #800000;">Calcuates the square of the number n</span><span style="color: #800000;">'</span>
+&gt;&gt;&gt; help(square)<span style="color: #008000;">#</span><span style="color: #008000;">help是内置函数，可使用它来获取有关函数的信息</span>
+Help on function square <span style="color: #0000ff;">in</span> module <span style="color: #800080;">__main__</span><span style="color: #000000;">:
+
+square(n)
+    Calcuates the square of the number n</span></pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>3、神奇的参数</strong></p>
+<p>好了，函数的使用和自定义也不过尔尔嘛，但一用上参数，要想理解<strong>参数的工作原理</strong>就很困难了！</p>
+<p><strong>3.1对参数的修改</strong></p>
+<p>函数通过参数获取一系列的值，但是参数可以进行修改吗？</p>
+<p>参数也不过是变量而已，在函数内部给参数赋值对外部没有任何的影响，看一个例子：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> change(name):
+    nmae</span>=<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span>
+
+    
+&gt;&gt;&gt; name=<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.jia</span><span style="color: #800000;">'</span>
+&gt;&gt;&gt;<span style="color: #000000;"> change(name)
+</span>&gt;&gt;&gt;<span style="color: #000000;"> name
+</span><span style="color: #800000;">'</span><span style="color: #800000;">Mrs.jia</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>参数存储在<strong>局部作用域中</strong>，关于作用于的内容将在后续内容中继续学习。</p>
+<p>对于字符串和元组来说，他们是不可变的，这意味着他们无法被修改（只能替换为新值）。所以它们做参数没有什么需要讨论的，但如果是可变的数据类型，例如列表哪？看一个例子：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> change(n):
+    n[0]</span>=<span style="color: #800000;">'</span><span style="color: #800000;">Mr.jia</span><span style="color: #800000;">'</span>
+
+    
+&gt;&gt;&gt; names=[<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Wang</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt;<span style="color: #000000;"> change(names)
+</span>&gt;&gt;&gt;<span style="color: #000000;"> names
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">Mr.jia</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span>]</pre>
+</div>
+<p>这个例子中，也是在函数中修改了参数，但结果却对外部数据产生了修改，这是为什么哪？实际上，这个例子和上一个示例存在着根本的区别。这个示例中，修改了变量关联的列表。为什么会这样哪？实际上，上面的示例等同于下方不使用函数的示例：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; names=[<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Wang</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt; n=names   <span style="color: #008000;">#</span><span style="color: #008000;">此处假装传递名字作为参数</span>
+&gt;&gt;&gt; n[0]=<span style="color: #800000;">'</span><span style="color: #800000;">Mr.jia</span><span style="color: #800000;">'</span><span style="color: #008000;">#</span><span style="color: #008000;">修改列表</span>
+&gt;&gt;&gt;<span style="color: #000000;"> names
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">Mr.jia</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span>]</pre>
+</div>
+<p>这种情况就是将同一个列表赋值给两个变量时，这两个变量将同时指向这个列表。因此，修改任何一个都会导致这个列表发生变化。要避免这种情况，就要创建列表的副本。在对序列进行切片操作时，返回的切片都是副本，因此可以创建一个覆盖整个列表的切片，得到的就是列本的副本。下方示例就是对列表副本的操作：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; names=[<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Wang</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt; n=<span style="color: #000000;">names[:]
+</span>&gt;&gt;&gt;<span style="color: #000000;"> n
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Wang</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt; n[0]=<span style="color: #800000;">'</span><span style="color: #800000;">Mr.jia</span><span style="color: #800000;">'</span>
+&gt;&gt;&gt;<span style="color: #000000;"> n
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">Mr.jia</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt;<span style="color: #000000;"> names
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Wang</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt; </pre>
+</div>
+<p>使用函数对副本进行操作：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt;<span style="color: #000000;"> change(nmaes[:])
+</span>&gt;&gt;&gt;<span style="color: #000000;"> names
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Wang</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Li</span><span style="color: #800000;">'</span>]</pre>
+</div>
+<p>这下好了，不会对元件产生影响。</p>
+<p><strong>3.2为什么要修改参数</strong></p>
+<p>好了，现在已经对基本的参数修改有了了解，但我们为什么要修改参数哪？这是个问题......</p>
+<p>&nbsp;在提高程序的抽象程度方面，使用函数来修改数据结构（如列表或字典）是一种不错的方式。</p>
+<p>&nbsp;</p>
+<p>但如果参数是不可变的（如数）哪？</p>
+<p>那不好意思，在这种情况下，应从函数返回有需要的值（如果要返回多个值，可以以元组的形式返回它们）。</p>
+<p>如果一定要返回参数，可以玩的花一点&mdash;&mdash;比如将数放在列表中</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> inc(x):
+    x[0]</span>=x[0]+1
+   
+&gt;&gt;&gt; foo=[10<span style="color: #000000;">]
+</span>&gt;&gt;&gt;<span style="color: #000000;"> inc(foo)
+</span>&gt;&gt;&gt;<span style="color: #000000;"> foo
+[</span>11]</pre>
+</div>
+<p><strong>3.3关键字参数和默认值</strong></p>
+<p>前面使用的参数都是<strong>位置参数</strong>，因为它们的位置至关重要&mdash;&mdash;事实上比名称还关键，此处介绍的内容能够让你完全忽略位置。</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> hello_1(name,gretting):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{},{}!</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(gretting,name))
+
+    
+</span>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> hello_2(name,gretting):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{},{}!</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(name,gretting))
+
+    
+</span>&gt;&gt;&gt; hello_1(<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+hello,jiameng!
+</span>&gt;&gt;&gt; hello_2(<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+hello,jiameng!</span></pre>
+</div>
+<p>上边的两个函数功能一样，区别只在于参数的位置不同而已。</p>
+<p>有的时候参数数量很多，无法完全记住参数的顺序，这个时候极易出错，所以为了简化函数的调用，可以指定参数的<strong>名称。</strong></p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; hello_1(gretting=<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>,name=<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+hello,jiameng!</span></pre>
+</div>
+<p>上方代码对于函数的调用，在这里，参数的顺序无所谓，不过名称很重要。</p>
+<p>像这样使用名称指定的参数称为<strong>关键字参数</strong>，主要优点是有助于澄清各个参数的作用，虽然输入可能会复杂一些，但每个参数的作用会更加明了。</p>
+<p>但是，<strong>关键字参数最大的作用是可以指定默认值</strong></p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> hello_3(gretting=<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>,name=<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{},{}!</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(gretting, name))
+
+    
+</span>&gt;&gt;&gt;<span style="color: #000000;"> hello_3()
+hello,jiameng!</span></pre>
+</div>
+<p>你可以像上方代码中函数一样指定默认值之后，调用函数时可以不提供它！根据需要可以一个参数值也不提供，也可以提供部分参数值或者全部参数值。</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> hello_3(gretting=<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>,name=<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{},{}!</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(gretting, name))
+
+    
+</span>&gt;&gt;&gt; hello_3(<span style="color: #800000;">'</span><span style="color: #800000;">Hello</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+Hello,jiameng!
+</span>&gt;&gt;&gt; hello_3(<span style="color: #800000;">'</span><span style="color: #800000;">Hello</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">JiaMeng</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+Hello,JiaMeng!</span></pre>
+</div>
+<p>有的时候你甚至可以结合使用位置参数和关键字参数，但通常你不应这样做，除非你知道这样做的结果。一般而言，除非必不可少的参数很少，而带默认值的可选参数很多，否则不应结合使用位置参数和关键字参数。</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> hello_4(name,gretting=<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>,punctuation=<span style="color: #800000;">'</span><span style="color: #800000;">!</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{},{}{}</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(gretting,name,punctuation))
+
+    
+</span>&gt;&gt;&gt; hello_4(<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+hello,jiameng!
+</span>&gt;&gt;&gt; hello_4(<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">HELLO</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+HELLO,jiameng!
+</span>&gt;&gt;&gt; hello_4(<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">HELLO</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">!!!!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+HELLO,jiameng!!!!
+</span>&gt;&gt;&gt; hello_4(<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span>,gretting=<span style="color: #800000;">'</span><span style="color: #800000;">Top of the morning to ya</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+Top of the morning to ya,jiameng!</span></pre>
+</div>
+<p>这样使用是非常灵活的。</p>
+<p>&nbsp;</p>
+<p><strong>3.4收集参数</strong></p>
+<p>实际上我们之前就已经使用到了关于参数的收集，*params，是不是还有印象？</p>
+<p>对的，这里就是使用了带星号的参数来进行对参数的收集。</p>
+<p>不过这和之前赋值时带星号的变量收集多余的值不同的是，这里将收集到的值存放在元组而不是列表中去。下面看一下例子：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> print_params(title,*<span style="color: #000000;">params):
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(title)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(params)
+
+    
+</span>&gt;&gt;&gt; print_params(<span style="color: #800000;">'</span><span style="color: #800000;">params</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">1,2,3,4,5,6</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+params
+(</span><span style="color: #800000;">'</span><span style="color: #800000;">1,2,3,4,5,6</span><span style="color: #800000;">'</span><span style="color: #000000;">,)
+</span>&gt;&gt;&gt; print_params(<span style="color: #800000;">'</span><span style="color: #800000;">Nothing:</span><span style="color: #800000;">'</span>)<span style="color: #008000;">#</span><span style="color: #008000;">无参数可收集，将是一个空元组</span>
+<span style="color: #000000;">Nothing:
+()</span></pre>
+</div>
+<p>同时与赋值一样，带星号的参数也可以放在其他位置，而不一定非要放在末尾，不过，这种情况下，你需要多做一些工作：使用名称来指定后续参数。</p>
+<p>&nbsp;下边的代码给出了错误示例以及正确示例：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> in_the_middle(x,*<span style="color: #000000;">y,z):
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(x,y,z)
+
+    
+</span>&gt;&gt;&gt; in_the_middle(1,2,3,4,5,6,7,8,9<span style="color: #000000;">)
+Traceback (most recent call last):
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">&lt;pyshell#74&gt;</span><span style="color: #800000;">"</span>, line 1, <span style="color: #0000ff;">in</span> &lt;module&gt;<span style="color: #000000;">
+    in_the_middle(</span>1,2,3,4,5,6,7,8,9<span style="color: #000000;">)
+TypeError: in_the_middle() missing </span>1 required keyword-only argument: <span style="color: #800000;">'</span><span style="color: #800000;">z</span><span style="color: #800000;">'</span>
+
+
+&gt;&gt;&gt; in_the_middle(1,2,3,4,5,6,z=7,8,9<span style="color: #000000;">)
+SyntaxError: positional argument follows keyword argument
+
+
+</span>&gt;&gt;&gt; in_the_middle(1,2,3,4,5,6,7,8,z=9<span style="color: #000000;">)
+</span>1 (2, 3, 4, 5, 6, 7, 8) 9</pre>
+</div>
+<p><strong>星号不会收集关键字参数，要收集关键字参数，可以使用两个星号。</strong></p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> print_params_3(**<span style="color: #000000;">params):
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(params)
+
+    
+</span>&gt;&gt;&gt; print_params_3(x=1,y=2,z=3<span style="color: #000000;">)
+{</span><span style="color: #800000;">'</span><span style="color: #800000;">x</span><span style="color: #800000;">'</span>: 1, <span style="color: #800000;">'</span><span style="color: #800000;">y</span><span style="color: #800000;">'</span>: 2, <span style="color: #800000;">'</span><span style="color: #800000;">z</span><span style="color: #800000;">'</span>: 3}</pre>
+</div>
+<p>如代码运行结果得到的不是一个元组，<strong>而是一个字典</strong></p>
+<p>综合运用获取参数的技术，我们给出了以下示例：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> print_params(x,y,z=3,*pospar,**<span style="color: #000000;">keypar):
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(x,y,z)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(pospar)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(keypar)
+
+    
+</span>&gt;&gt;&gt; print_params(1,2,3,4,5,6,foo=1,bar=2<span style="color: #000000;">)
+</span>1 2 3<span style="color: #000000;">
+(</span>4, 5, 6<span style="color: #000000;">)
+{</span><span style="color: #800000;">'</span><span style="color: #800000;">foo</span><span style="color: #800000;">'</span>: 1, <span style="color: #800000;">'</span><span style="color: #800000;">bar</span><span style="color: #800000;">'</span>: 2}</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong>3.5分配参数&nbsp;</strong></p>
+<p>前面介绍了如何将参数收集到元组和字典中，但同样使用两个运算符（*和**）同样可以执行相反的操作（将元组或者字典中的对象分配给参数）</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> add(x,y):
+    </span><span style="color: #0000ff;">return</span> x+<span style="color: #000000;">y
+
+</span>&gt;&gt;&gt; params=[1,2<span style="color: #000000;">]
+</span>&gt;&gt;&gt; add(*<span style="color: #000000;">params)
+</span>3</pre>
+</div>
+<p>对于字典也同样适用</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> hello_3(gretting=<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>,name=<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span><span style="color: #000000;">):
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">{},{}!</span><span style="color: #800000;">'</span><span style="color: #000000;">.format(gretting, name))
+
+    
+</span>&gt;&gt;&gt; params={<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">Mrs.Wang</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">gretting</span><span style="color: #800000;">'</span>:<span style="color: #800000;">"</span><span style="color: #800000;">I'm glad to see you</span><span style="color: #800000;">"</span><span style="color: #000000;">}
+</span>&gt;&gt;&gt; hello_3(**<span style="color: #000000;">params)
+I</span><span style="color: #800000;">'</span><span style="color: #800000;">m glad to see you,Mrs.Wang!</span></pre>
+</div>
+<p>如果在定义和调用时都使用*或者**，将只传递元组或者字典，这样还不如不使用它们，这样还会省去很多麻烦。</p>
+<p>因此，只有在定义函数（允许可变数量的参数）或调用函数（拆分字典或者序列）时使用，星号才会发挥作用。</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> with_start(**<span style="color: #000000;">keds):
+    </span><span style="color: #0000ff;">print</span>(keds[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>],<span style="color: #800000;">'</span><span style="color: #800000;">is</span><span style="color: #800000;">'</span>,keds[<span style="color: #800000;">'</span><span style="color: #800000;">age</span><span style="color: #800000;">'</span>],<span style="color: #800000;">'</span><span style="color: #800000;">year old.</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+    
+
+</span>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> without_start(keds):
+    </span><span style="color: #0000ff;">print</span>(keds[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>],<span style="color: #800000;">'</span><span style="color: #800000;">is</span><span style="color: #800000;">'</span>,keds[<span style="color: #800000;">'</span><span style="color: #800000;">age</span><span style="color: #800000;">'</span>],<span style="color: #800000;">'</span><span style="color: #800000;">year old.</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+
+</span>&gt;&gt;&gt; args={<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">jiameng</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">age</span><span style="color: #800000;">'</span>:20<span style="color: #000000;">}
+</span>&gt;&gt;&gt; with_start(**<span style="color: #000000;">args)
+jiameng </span><span style="color: #0000ff;">is</span> 20<span style="color: #000000;"> year old.
+</span>&gt;&gt;&gt;<span style="color: #000000;"> with_start(args)
+Traceback (most recent call last):
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">&lt;pyshell#118&gt;</span><span style="color: #800000;">"</span>, line 1, <span style="color: #0000ff;">in</span> &lt;module&gt;<span style="color: #000000;">
+    with_start(args)
+TypeError: with_start() takes 0 positional arguments but </span>1<span style="color: #000000;"> was given
+
+</span>&gt;&gt;&gt;<span style="color: #000000;"> without_start(args)
+jiameng </span><span style="color: #0000ff;">is</span> 20 year old.</pre>
+</div>
+<p><strong>使用这些拆分运算符来传递参数很有用，因为这样无需担心参数个数的问题。这在调用超类的构造函数时很有用，这些具体的内容将在后续章节继续学习！！！</strong></p>
+<p>&nbsp;</p>
+<p><strong>4、作用域</strong></p>
+<p>&nbsp;变量到底是什么？可以将变量视为指向值的名称。</p>
+<p>执行赋值语句x=1，名称x指向值1，这几乎和使用字典一模一样，只是你使用的是看不见的&ldquo;字典&rdquo;，有一个名为vars的内置函数，它返回这个看不见的字典：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; x=1<span style="color: #000000;">;
+</span>&gt;&gt;&gt; scope=<span style="color: #000000;">vars()
+</span>&gt;&gt;&gt; scope[<span style="color: #800000;">'</span><span style="color: #800000;">x</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>1
+&gt;&gt;&gt; scope[<span style="color: #800000;">'</span><span style="color: #800000;">x</span><span style="color: #800000;">'</span>]+=1
+&gt;&gt;&gt;<span style="color: #000000;"> x
+</span>2</pre>
+</div>
+<p>这种&rdquo;看不见的字典&ldquo;称为<strong>命名空间</strong>或者<strong>作用域</strong>。那有多少个命名空间哪？除全局作用域外，每一个函数调用都将创建一个。</p>
+<p>在函数内部使用的变量称为<strong>局部变量</strong></p>
+<p>如果要在函数内部访问全局变量，如果只是简单地读取这个变量的值，而不重新关联他，通常不会有任何问题。</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> combine(parameter):
+    </span><span style="color: #0000ff;">print</span>(parameter+<span style="color: #000000;">exteral)
+
+    
+</span>&gt;&gt;&gt; exteral=<span style="color: #800000;">'</span><span style="color: #800000;">berry</span><span style="color: #800000;">'</span>
+&gt;&gt;&gt; combine(<span style="color: #800000;">'</span><span style="color: #800000;">shrub</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+shrubberry
+</span>&gt;&gt;&gt;<span style="color: #000000;"> exteral
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">像这样访问全局变量通常是bug的根源。一定要谨慎使用全局变量</span></pre>
+</div>
+<p>变量还存在<strong>遮盖问题</strong>：及局部变量遮盖全局变量</p>
+<p>重现关联全局变量（使其指向新值）是另一码事。在函数内部给变量赋值时，该变量默认是局部变量，除非你声明它是全局变量，那么如何告诉Python它是全局变量哪？很简单</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> change():
+    </span><span style="color: #0000ff;">global</span><span style="color: #000000;"> x
+    x</span>+=1
+
+    
+&gt;&gt;&gt;<span style="color: #000000;"> change()
+</span>&gt;&gt;&gt;<span style="color: #000000;"> x
+</span>2</pre>
+</div>
+<p>是不是感觉很怪异，但事实上就是这样！！！</p>
+<p>另一个就是作用于的嵌套问题，Python函数可以嵌套，嵌套通常作用不大，但有一个很突出的作用就是：使用一个函数来创建另一个函数，可以看一下下面这个例子：</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> multiplier(factor):
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> multiplierByFactor(number):
+        </span><span style="color: #0000ff;">return</span> number*<span style="color: #000000;">factor
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> multiplierByFactor
+
+</span>&gt;&gt;&gt; double =multiplier(2<span style="color: #000000;">)
+</span>&gt;&gt;&gt; double(5<span style="color: #000000;">)
+</span>25
+&gt;&gt;&gt; triple=multiplier(3<span style="color: #000000;">)
+</span>&gt;&gt;&gt; triple(3<span style="color: #000000;">)
+</span>9
+&gt;&gt;&gt; multiplier(5)(4<span style="color: #000000;">)
+</span>16
+
+&gt;&gt;&gt; multiplier(5)(4<span style="color: #000000;">)
+</span>20</pre>
+</div>
+<p>在这里，一个函数位于另一个函数内布，且外边的函数返回里边的函数。也就是说返回也个函数而不是调用它。重要的是，返回的函数能够访问其定义所在的作用域，换而言之，他携带者自己所在的环境（和相关的局部变量）。</p>
+<p>像&nbsp;&nbsp;multiplierByFactor&nbsp; 这样存储其所在作用于的函数称之为<strong>闭包</strong></p>
+<p>随之而来的就是作用于的问题，实际上作用域也是可以嵌套的，存储在</p>
+<p><strong>5、递归</strong>：递归的使用太多了，这里就不再详细讲述递归的定义等，此处给出二分查找的Python代码</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; <span style="color: #0000ff;">def</span> search(sequence, number, lower=0, upper=<span style="color: #000000;">None):
+    </span><span style="color: #0000ff;">if</span> upper==<span style="color: #000000;">None:
+        upper</span>=len(sequence)-1
+    <span style="color: #0000ff;">if</span> lower==<span style="color: #000000;">upper:
+        </span><span style="color: #0000ff;">assert</span> number==<span style="color: #000000;">sequence[upper]
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> upper
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> :
+        middle</span>=(lower+upper)//2
+        <span style="color: #0000ff;">if</span>(number&gt;<span style="color: #000000;">sequence[middle]):
+            </span><span style="color: #0000ff;">return</span> search(sequence, number, middle+1<span style="color: #000000;">, upper)
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> :
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> search(sequence, number, lower, middle)
+
+        
+</span>&gt;&gt;&gt; list1=[1,3,5,7,9,11,23,25,59]
+&gt;&gt;&gt; search(list1,7<span style="color: #000000;">)
+</span>3<br />&gt;&gt;&gt;</pre>
+<p>&nbsp; &gt;&gt;&gt; search(2)<br />&nbsp; Traceback (most recent call last):<br />&nbsp; File "&lt;pyshell#187&gt;", line 1, in &lt;module&gt;<br />&nbsp; &nbsp; &nbsp;earch(2)<br />&nbsp; TypeError: search() missing 1 required positional argument: 'number'</p>
+
+</div>
+<p>事实上这里仍有几个需要注意的点：</p>
+<p>（1）、//，整除</p>
+<p>（2）、如果查找不到怎么办？会出现什么样的结果?为什么会这样哪？</p>
+<p><strong>函数式编程：</strong></p>
+<p>至此，你可能已经熟悉使用函数来完成自己的任务。</p>
+<p>Python提供了一些有助于进行这种函数式编程的函数，包括:map 、 filter和reduce。</p>
+<p>你可以使用map将序列中所有元素传递给函数</p>
+<p>你也可以使用filter个根据布尔函数的返回值来对元素进行过滤</p>
+<p>你也可以使用reduce来将序列的前两个元素合二为一，再将结果与第三个元素合二为一，直至处理完整个序列并得到一个结果。</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; list(map(str,range(10)))<span style="color: #008000;">#</span><span style="color: #008000;">与[str(i) for i in range(10)]等效</span>
+[<span style="color: #800000;">'</span><span style="color: #800000;">0</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">1</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">2</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">3</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">4</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">5</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">6</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">7</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">8</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">9</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt; <span style="color: #0000ff;">def</span><span style="color: #000000;"> func(x):
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> x.isalnum()
+
+</span>&gt;&gt;&gt; seq=[<span style="color: #800000;">"</span><span style="color: #800000;">foo</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">x42</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">?!</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">***</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+</span>&gt;&gt;&gt;<span style="color: #000000;"> list(filter(func,seq))
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">foo</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">x42</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+</span><span style="color: #008000;">#</span><span style="color: #008000;">就这个示例来言，使用列表推导更为简单</span>
+&gt;&gt;&gt; [x <span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span> seq <span style="color: #0000ff;">if</span><span style="color: #000000;"> x.isalnum()]
+[</span><span style="color: #800000;">'</span><span style="color: #800000;">foo</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">x42</span><span style="color: #800000;">'</span>]</pre>
+</div>
+<p>事实上，Python提供了一个名为lambda的内置函数，用来创建内嵌的简单的函数（主要供map 、filter、reduce来使用）</p>
+<div class="cnblogs_code">
+<pre><code>&gt;&gt;&gt; number=[1,2,3,4,5,6,7,8,9,10,11,12,13<span style="color: #000000;">]
+</span>&gt;&gt;&gt; <span style="color: #0000ff;">from</span> functools <span style="color: #0000ff;">import</span><span style="color: #000000;"> reduce
+</span>&gt;&gt;&gt; reduce(<span style="color: #0000ff;">lambda</span> x,y:x+<span style="color: #000000;">y,number)
+</span>91</pre>
+</div>
+<p><strong>小结：抽象、函数定义、参数、作用域、递归、函数式编程</strong></p>
+<p><strong>新学函数：</strong></p>
+<table style="width: 608px; height: 169px;" border="0">
+<tbody>
+<tr>
+<td><strong>函数</strong></td>
+<td><strong>描述</strong></td>
+</tr>
+<tr>
+<td><strong>map(func,seq[, seq, ...])</strong></td>
+<td><strong>对序列中所有元素执行函数</strong></td>
+</tr>
+<tr>
+<td><strong>filter(func , seq)</strong></td>
+<td><strong>返回一个列表，其中包含对其执行函数时结果为真的所有元素</strong></td>
+</tr>
+<tr>
+<td><strong>reduce(func, seq[, initial])</strong></td>
+<td><strong>等价于func(func(func(seq[0], seq[1]), seq[2]) ,...)</strong></td>
+</tr>
+<tr>
+<td><strong>sum(seq)</strong></td>
+<td><strong>返回seq所有元素的和</strong></td>
+</tr>
+<tr>
+<td><strong>apply(func[, args[, kwargs]])</strong></td>
+<td><strong>调用函数（还提供要传递给函数的参数）</strong></td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>&nbsp;</strong></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

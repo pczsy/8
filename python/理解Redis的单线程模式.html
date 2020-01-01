@@ -1,0 +1,239 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修理解Redis的单线程模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>理解Redis的单线程模式</center></div><div class='banquan'>原文出处:本文由博客园博主后端技术指南针提供。<br/>
+原文连接:https://www.cnblogs.com/backnullptr/p/12010391.html</div><br>
+    <p><span style="font-size: 18px;"><strong>0.概述</strong></span></p>
+<p>本文基于的Redis版本为4.0以下，在Redis更高版本中并不是完全的单线程了，<strong>增加了BIO线程</strong>，本文主要讲述主工作线程的单线程模式。</p>
+<p>通过本文将了解到以下内容：</p>
+<ol>
+<li>Redis服务器采用单线程模型的原因</li>
+<li>Redis单线程处理文件事件和时间事件</li>
+<li>Redis事件的执行和调度</li>
+</ol>
+<p><span style="font-size: 18px;"><strong>1.Redis的单线程模式</strong></span></p>
+<ul>
+<li><strong>单线程的现状</strong></li>
+</ul>
+<p>本质上Redis并不是单纯的单线程服务模型，一些辅助工作比如持久化刷盘、惰性删除等任务是由BIO线程来完成的，这里说的单线程主要是说与客户端交互完成命令请求和回复的工作线程。</p>
+<ul>
+<li><strong>单线程的原因</strong></li>
+</ul>
+<p>至于Antirez大佬当时是怎么想的设计为单线程不得而知，只能从几个角度来分析，来确定单线程模型的选择原因：</p>
+<ul>
+<li><strong><em>CPU并非瓶颈</em></strong></li>
+</ul>
+<p>多线程模型主要是为了充分利用多核CPU，让线程在IO阻塞时被挂起让出CPU使用权交给其他线程，充分提高CPU的使用率，但是这个场景在Redis并不明显，因为CPU并不是Redis的瓶颈，Redis的所有操作都是基于内存的，处理事件极快，因此使用多线程来切换线程提高CPU利用率的需求并不强烈；</p>
+<ul>
+<li><strong><em>内存才是瓶颈</em></strong></li>
+</ul>
+<p>单个Redis实例对单核的利用已经很好了，但是Redis的瓶颈在于内存，设想64核的机器假如内存只有16GB，那么多线程Redis有什么用武之地？</p>
+<ul>
+<li><strong><em>复杂的Value类型</em></strong></li>
+</ul>
+<p>Redis有丰富的数据结构，并不是简单的Key-Value型的NoSQL，这也是Redis备受欢迎的原因，其中常用的Hash、Zset、List等结构在value很大时，CURD的操作会很复杂，</p>
+<p>如果采用多线程模式在进行相同key操作时就需要加锁来进行同步，这样就可能造成死锁问题。</p>
+<p>这时候你会问：将key做hash分配给相同的线程来处理就可以解决呀，确实是这样的，这样的话就需要在Redis中增加key的hash处理以及多线程负载均衡的处理，</p>
+<p>从而Redis的实现就成为多线程模式了，好像确实也没有什么问题，但是Antirez并没有这么做，大神这么做肯定是有原因的，果不其然，我们见到了集群化的Redis；</p>
+<ul>
+<li><strong><em>集群化扩展</em></strong></li>
+</ul>
+<p>目前的机器都是多核的，但是内存一般128GB/64GB算是比较普遍了，但是Redis在使用内存60%以上稳定性就不如50%的性能了(至少笔者在使用集群化Redis时超过70%时，集群failover的频率会更高)，</p>
+<p>因此在数据较大时，当Redis作为主存，就必须使用多台机器构建集群化的Redis数据库系统，这样以来Redis的单线程模式又被集群化的处理所扩展了；</p>
+<ul>
+<li><strong><em>软件工程角度</em></strong></li>
+</ul>
+<p>单线程无论从开发和维护都比多线程要容易非常多，并且也能提高服务的稳定性，无锁化处理让单线程的Redis在开发和维护上都具备相当大的优势；</p>
+<ul>
+<li><strong><em>类Redis系统：</em></strong></li>
+</ul>
+<p>Redis的设计秉承实用第一和工程化，虽然有很多理论上优秀的设计模式，但是并不一定适用自己，软件设计过程就是权衡的过程。</p>
+<p>业内也有许多类Redis的NoSQL，比如360基础架构组开发的Pika系统，基于SSD和Rocks存储引擎，上层封装一层协议转换，来实现Redis所有功能的模拟，感兴趣的可以研究和使用。</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>2.单线程的文件事件和时间事件</strong></span></p>
+<p>Redis作为单线程服务要处理的工作一点也不少，Redis是事件驱动的服务器，主要的事件类型就是：</p>
+<ol>
+<li><strong>文件事件类型</strong></li>
+<li><strong>时间事件类型</strong></li>
+</ol>
+<p>其中，时间事件是理解单线程逻辑模型的关键。</p>
+<ul>
+<li><strong>时间事件</strong></li>
+</ul>
+<p>Redis的时间事件分为两类：</p>
+<ol>
+<li>定时事件：任务在等待指定大小的等待时间之后就执行，执行完成就不再执行，只触发一次；</li>
+<li>周期事件：任务每隔一定时间就执行，执行完成之后等待下一次执行，会周期性的触发；</li>
+<li>周期性时间事件</li>
+</ol>
+<p>Redis中大部分是周期事件，周期事件主要是服务器定期对自身运行情况进行检测和调整，从而保证稳定性HA，这项工作主要是ServerCron函数来完成的，周期事件的内容主要包括：</p>
+<ol>
+<li>删除数据库的key</li>
+<li>触发RDB和AOF持久化</li>
+<li>主从同步</li>
+<li>集群化保活</li>
+<li>关闭清理死客户端链接</li>
+<li>统计更新服务器的内存、key数量等信息</li>
+</ol>
+<p>可见 Redis的周期性事件虽然主要处理辅助任务，但是对整个服务的稳定运行，起到至关重要的作用。</p>
+<ul>
+<li><strong>时间事件的无序链表</strong></li>
+</ul>
+<p>Redis的每个时间事件分为三个部分：</p>
+<ol>
+<li>事件ID 全局唯一 依次递增</li>
+<li>触发时间戳 ms级精度</li>
+<li>事件处理函数 事件回调函数</li>
+</ol>
+<p>时间事件Time_Event结构：</p>
+<p><img class="content_image lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/理解Redis的单线程模式0.png" alt="" width="339" data-caption="" data-size="normal" data-rawwidth="339" data-rawheight="395" data-actualsrc="https://pic1.zhimg.com/v2-66a3964021630da060c9b319a94148b4_b.jpg" data-lazy-status="ok" /></p>
+<p>Redis的时间事件是存储在链表中的，<strong>并且是按照ID存储的，新事件在头部旧事件在尾部，但是并不是按照即将被执行的顺序存储的</strong>。</p>
+<p>也就是第一个元素50ms后执行，但是第三个可能30ms后执行，这样的话Redis每次从链表中获取最近要执行的事件时，<strong>都需要进行O(N)遍历</strong>，</p>
+<p>显然性能不是最好的，最好的情况肯定是类似于最小栈MinStack的思路，然而Antirez大佬却选择了无序链表的方式。</p>
+<p><strong>选择无序链表也是适合Redis场景的，因为Redis中的时间事件数量并不多，即使进行O(N)遍历性能损失也微乎其微，也就不必每次插入新事件时进行链表重排。</strong></p>
+<p>Redis存储时间事件的无序链表如图：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/理解Redis的单线程模式1.png" alt="" width="859" data-caption="" data-size="normal" data-rawwidth="859" data-rawheight="248" data-original="https://pic1.zhimg.com/v2-6b5a590164efc7429dfc899dec51a5b8_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-6b5a590164efc7429dfc899dec51a5b8_b.jpg" data-lazy-status="ok" /></p>
+<p><span style="font-size: 18px;"><strong>3.单线程下事件的调度和执行</strong></span></p>
+<p>Redis服务中因为包含了时间事件和文件事件，事情也就变得复杂了，服务器要决定何时处理文件事件、何时处理时间事件、并且还要明确知道处理时间的时间长度，因此事件的执行和调度就成为重点。</p>
+<p>Redis服务器会<strong>轮流处理文件事件和时间事件</strong>，这两种事件的处理都是同步、有序、原子地执行的，服务器也不会终止正在执行的事件，也不会对事件进行抢占。</p>
+<p><strong>这个调度过程还是比较有意思的</strong>，我们来一起看下：</p>
+<ul>
+<li><strong>事件执行调度规则</strong></li>
+</ul>
+<p>文件事件是随机出现的，如果处理完成一次文件事件后，仍然没有其他文件事件到来，服务器将继续等待，</p>
+<p>在文件事件的不断执行中，时间会逐渐向最早的时间事件所设置的到达时间逼近并最终来到到达时间，</p>
+<p>这时服务器就可以开始处理到达的时间事件了。由于时间事件在文件事件之后执行，并且事件之间不会出现抢占，</p>
+<p>所以时间事件的实际处理时间一般会比设定的时间稍晚一些。</p>
+<ul>
+<li><strong>事件执行调度的代码实现</strong></li>
+</ul>
+<p>Redis源码ae.c中对事件调度和执行的详细过程在aeProcessEvents中实现的，具体的代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">int</span> aeProcessEvents(aeEventLoop *eventLoop, <span style="color: #0000ff;">int</span><span style="color: #000000;"> flags)
+{
+  </span><span style="color: #0000ff;">int</span> processed = <span style="color: #800080;">0</span><span style="color: #000000;">, numevents;
+  </span><span style="color: #0000ff;">if</span> (!(flags &amp; AE_TIME_EVENTS) &amp;&amp; !(flags &amp;<span style="color: #000000;"> AE_FILE_EVENTS))
+    </span><span style="color: #0000ff;">return</span> <span style="color: #800080;">0</span><span style="color: #000000;">;
+
+  </span><span style="color: #0000ff;">if</span> (eventLoop-&gt;maxfd != -<span style="color: #800080;">1</span> ||<span style="color: #000000;">
+    ((flags </span>&amp; AE_TIME_EVENTS) &amp;&amp; !(flags &amp;<span style="color: #000000;"> AE_DONT_WAIT))) {
+    </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> j;
+    aeTimeEvent </span>*shortest =<span style="color: #000000;"> NULL;
+    </span><span style="color: #0000ff;">struct</span> timeval tv, *<span style="color: #000000;">tvp;
+
+    </span><span style="color: #0000ff;">if</span> (flags &amp; AE_TIME_EVENTS &amp;&amp; !(flags &amp;<span style="color: #000000;"> AE_DONT_WAIT))
+      shortest </span>=<span style="color: #000000;"> aeSearchNearestTimer(eventLoop);
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (shortest) {
+      </span><span style="color: #0000ff;">long</span><span style="color: #000000;"> now_sec, now_ms;
+      aeGetTime(</span>&amp;now_sec, &amp;<span style="color: #000000;">now_ms);
+      tvp </span>= &amp;<span style="color: #000000;">tv;
+      </span><span style="color: #0000ff;">long</span> <span style="color: #0000ff;">long</span> ms =<span style="color: #000000;">
+        (shortest</span>-&gt;when_sec - now_sec)*<span style="color: #800080;">1000</span> +<span style="color: #000000;">
+        shortest</span>-&gt;when_ms -<span style="color: #000000;"> now_ms;
+
+      </span><span style="color: #0000ff;">if</span> (ms &gt; <span style="color: #800080;">0</span><span style="color: #000000;">) {
+        tvp</span>-&gt;tv_sec = ms/<span style="color: #800080;">1000</span><span style="color: #000000;">;
+        tvp</span>-&gt;tv_usec = (ms % <span style="color: #800080;">1000</span>)*<span style="color: #800080;">1000</span><span style="color: #000000;">;
+      } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        tvp</span>-&gt;tv_sec = <span style="color: #800080;">0</span><span style="color: #000000;">;
+        tvp</span>-&gt;tv_usec = <span style="color: #800080;">0</span><span style="color: #000000;">;
+      }
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+      </span><span style="color: #0000ff;">if</span> (flags &amp;<span style="color: #000000;"> AE_DONT_WAIT) {
+        tv.tv_sec </span>= tv.tv_usec = <span style="color: #800080;">0</span><span style="color: #000000;">;
+        tvp </span>= &amp;<span style="color: #000000;">tv;
+      } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        tvp </span>= NULL; <span style="color: #008000;">/*</span><span style="color: #008000;"> wait forever </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+      }
+    }
+    numevents </span>=<span style="color: #000000;"> aeApiPoll(eventLoop, tvp);
+    </span><span style="color: #0000ff;">if</span> (eventLoop-&gt;aftersleep != NULL &amp;&amp; flags &amp;<span style="color: #000000;"> AE_CALL_AFTER_SLEEP)
+      eventLoop</span>-&gt;<span style="color: #000000;">aftersleep(eventLoop);
+
+    </span><span style="color: #0000ff;">for</span> (j = <span style="color: #800080;">0</span>; j &lt; numevents; j++<span style="color: #000000;">) {
+      aeFileEvent </span>*fe = &amp;eventLoop-&gt;events[eventLoop-&gt;<span style="color: #000000;">fired[j].fd];
+      </span><span style="color: #0000ff;">int</span> mask = eventLoop-&gt;<span style="color: #000000;">fired[j].mask;
+      </span><span style="color: #0000ff;">int</span> fd = eventLoop-&gt;<span style="color: #000000;">fired[j].fd;
+      </span><span style="color: #0000ff;">int</span> fired = <span style="color: #800080;">0</span><span style="color: #000000;">;
+      </span><span style="color: #0000ff;">int</span> invert = fe-&gt;mask &amp;<span style="color: #000000;"> AE_BARRIER;
+      </span><span style="color: #0000ff;">if</span> (!invert &amp;&amp; fe-&gt;mask &amp; mask &amp;<span style="color: #000000;"> AE_READABLE) {
+        fe</span>-&gt;rfileProc(eventLoop,fd,fe-&gt;<span style="color: #000000;">clientData,mask);
+        fired</span>++<span style="color: #000000;">;
+      }
+      </span><span style="color: #0000ff;">if</span> (fe-&gt;mask &amp; mask &amp;<span style="color: #000000;"> AE_WRITABLE) {
+        </span><span style="color: #0000ff;">if</span> (!fired || fe-&gt;wfileProc != fe-&gt;<span style="color: #000000;">rfileProc) {
+          fe</span>-&gt;wfileProc(eventLoop,fd,fe-&gt;<span style="color: #000000;">clientData,mask);
+          fired</span>++<span style="color: #000000;">;
+        }
+      }
+      </span><span style="color: #0000ff;">if</span> (invert &amp;&amp; fe-&gt;mask &amp; mask &amp;<span style="color: #000000;"> AE_READABLE) {
+        </span><span style="color: #0000ff;">if</span> (!fired || fe-&gt;wfileProc != fe-&gt;<span style="color: #000000;">rfileProc) {
+          fe</span>-&gt;rfileProc(eventLoop,fd,fe-&gt;<span style="color: #000000;">clientData,mask);
+          fired</span>++<span style="color: #000000;">;
+        }
+      }
+      processed</span>++<span style="color: #000000;">;
+    }
+  }
+  </span><span style="color: #008000;">/*</span><span style="color: #008000;"> Check time events </span><span style="color: #008000;">*/</span>
+  <span style="color: #0000ff;">if</span> (flags &amp;<span style="color: #000000;"> AE_TIME_EVENTS)
+    processed </span>+=<span style="color: #000000;"> processTimeEvents(eventLoop);
+  </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> processed;
+}</span></pre>
+</div>
+<ul>
+<li><strong>事件执行和调度的伪码</strong></li>
+</ul>
+<p>上面的源码可能读起来并不直观，在《Redis设计与实现》书中给出了伪代码实现：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">def aeProcessEvents()
+  #获取当前最近的待执行的时间事件
+  time_event </span>=<span style="color: #000000;"> aeGetNearestTimer()
+  #计算最近执行事件与当前时间的差值
+  remain_gap_time </span>= time_event.when -<span style="color: #000000;"> uinx_time_now()
+  #判断时间事件是否已经到期 则重置 马上执行
+  </span><span style="color: #0000ff;">if</span> remain_gap_time &lt; <span style="color: #800080;">0</span><span style="color: #000000;">:
+    remain_gap_time </span>= <span style="color: #800080;">0</span><span style="color: #000000;">
+  #阻塞等待文件事件 具体的阻塞等待时间由remain_gap_time决定
+  #如果remain_gap_time为0 那么不阻塞立刻返回
+  aeApiPoll(remain_gap_time)
+  #处理所有文件事件
+  ProcessAllFileEvent()
+  #处理所有时间事件
+  ProcessAllTimeEvent()</span></pre>
+</div>
+<p>可以看到Redis服务器是边阻塞边执行的，具体的阻塞事件由最近待执行时间事件的等待时间决定的，在阻塞该最小等待时间返回之后，开始处理事件任务，</p>
+<p>并且先执行文件事件、再执行时间事件，所有即使时间事件要即刻执行，也需要等待文件事件完成之后再执行时间事件，所以比预期的稍晚。</p>
+<ul>
+<li><strong>事件调度和执行流程</strong></li>
+</ul>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/理解Redis的单线程模式2.png" alt="" width="449" height="544" data-caption="" data-size="normal" data-rawwidth="538" data-rawheight="652" data-original="https://pic1.zhimg.com/v2-2399c9f4e37d2273fbe4700aafdecaec_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-2399c9f4e37d2273fbe4700aafdecaec_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>4.参考资料</strong></span></p>
+<ul>
+<ul>
+<li>深入了解Redis之事件原理和实现</li>
+<li>《Redis设计与实现》黄健宏</li>
+</ul>
+</ul>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,538 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Kombu源码分析(一)概述' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Kombu源码分析(一)概述</center></div><div class='banquan'>原文出处:本文由博客园博主再见紫罗兰提供。<br/>
+原文连接:https://www.cnblogs.com/linxiyue/p/11357285.html</div><br>
+    <p>Celery是Python中最流行的异步消息队列框架，支持RabbitMQ、Redis、ZoopKeeper等作为Broker，而对这些消息队列的抽象，都是通过<a href="https://github.com/celery/kombu">Kombu</a>实现的。Kombu实现了对AMQP transport和non-AMQP transports(Redis、Amazon SQS、ZoopKeeper等)的兼容。<a id="user-content-kombu源码分析一概述" class="anchor" href="#kombu源码分析一概述"></a></p>
+<p>AMQP中的各种概念，Message、Producer、Exchange、Queue、Consumer、Connection、Channel在Kombu中都相应做了实现，另外Kombu还实现了Transport，就是存储和发送消息的实体，用来区分底层消息队列是用amqp、Redis还是其它实现的。</p>
+<ul>
+<li>Message：消息，发送和消费的主体</li>
+<li>Producer: 消息发送者</li>
+<li>Consumer：消息接收者</li>
+<li>Exchange：交换机，消息发送者将消息发至Exchange，Exchange负责将消息分发至队列</li>
+<li>Queue：消息队列，存储着即将被应用消费掉的消息，Exchange负责将消息分发Queue，消费者从Queue接收消息</li>
+<li>Connection：对消息队列连接的抽象</li>
+<li>Channel：与AMQP中概念类似，可以理解成共享一个Connection的多个轻量化连接</li>
+<li>Transport：真实的MQ连接，区分底层消息队列的实现</li>
+</ul>
+<p>对于不同的Transport的支持：</p>
+<p><a href="/hungerr/articles/blob/master/docs/mq/images/kombu-1.png" rel="noopener noreferrer" target="_blank"><img style="max-width: 100%;" src="/hungerr/articles/raw/master/docs/mq/images/kombu-1.png" alt="" /></a></p>
+<h3><a id="user-content-代码示例" class="anchor" href="#代码示例"></a>代码示例</h3>
+<p>先从官网示例代码开始:</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">from</span> kombu <span class="pl-k">import</span> Connection, Exchange, Queue
+
+media_exchange <span class="pl-k">=</span> Exchange(<span class="pl-s"><span class="pl-pds">'</span>media<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>direct<span class="pl-pds">'</span></span>, <span class="pl-v">durable</span><span class="pl-k">=</span><span class="pl-c1">True</span>)
+video_queue <span class="pl-k">=</span> Queue(<span class="pl-s"><span class="pl-pds">'</span>video<span class="pl-pds">'</span></span>, <span class="pl-v">exchange</span><span class="pl-k">=</span>media_exchange, <span class="pl-v">routing_key</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>video<span class="pl-pds">'</span></span>)
+
+<span class="pl-k">def</span> <span class="pl-en">process_media</span>(<span class="pl-smi">body</span>, <span class="pl-smi">message</span>):
+    <span class="pl-c1">print</span> body
+    message.ack()
+
+<span class="pl-c"><span class="pl-c">#</span> connections</span>
+<span class="pl-k">with</span> Connection(<span class="pl-s"><span class="pl-pds">'</span>amqp://guest:guest@localhost//<span class="pl-pds">'</span></span>) <span class="pl-k">as</span> conn:
+
+    <span class="pl-c"><span class="pl-c">#</span> produce</span>
+    producer <span class="pl-k">=</span> conn.Producer(<span class="pl-v">serializer</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>json<span class="pl-pds">'</span></span>)
+    producer.publish({<span class="pl-s"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>/tmp/lolcat1.avi<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>size<span class="pl-pds">'</span></span>: <span class="pl-c1">1301013</span>},
+                      <span class="pl-v">exchange</span><span class="pl-k">=</span>media_exchange, <span class="pl-v">routing_key</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>video<span class="pl-pds">'</span></span>,
+                      <span class="pl-v">declare</span><span class="pl-k">=</span>[video_queue])
+
+    <span class="pl-c"><span class="pl-c">#</span> the declare above, makes sure the video queue is declared</span>
+    <span class="pl-c"><span class="pl-c">#</span> so that the messages can be delivered.</span>
+    <span class="pl-c"><span class="pl-c">#</span> It's a best practice in Kombu to have both publishers and</span>
+    <span class="pl-c"><span class="pl-c">#</span> consumers declare the queue. You can also declare the</span>
+    <span class="pl-c"><span class="pl-c">#</span> queue manually using:</span>
+    <span class="pl-c"><span class="pl-c">#</span>     video_queue(conn).declare()</span>
+
+    <span class="pl-c"><span class="pl-c">#</span> consume</span>
+    <span class="pl-k">with</span> conn.Consumer(video_queue, <span class="pl-v">callbacks</span><span class="pl-k">=</span>[process_media]) <span class="pl-k">as</span> consumer:
+        <span class="pl-c"><span class="pl-c">#</span> Process messages and handle events on all channels</span>
+        <span class="pl-k">while</span> <span class="pl-c1">True</span>:
+            conn.drain_events()
+
+<span class="pl-c"><span class="pl-c">#</span> Consume from several queues on the same channel:</span>
+video_queue <span class="pl-k">=</span> Queue(<span class="pl-s"><span class="pl-pds">'</span>video<span class="pl-pds">'</span></span>, <span class="pl-v">exchange</span><span class="pl-k">=</span>media_exchange, <span class="pl-v">key</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>video<span class="pl-pds">'</span></span>)
+image_queue <span class="pl-k">=</span> Queue(<span class="pl-s"><span class="pl-pds">'</span>image<span class="pl-pds">'</span></span>, <span class="pl-v">exchange</span><span class="pl-k">=</span>media_exchange, <span class="pl-v">key</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>image<span class="pl-pds">'</span></span>)
+
+<span class="pl-k">with</span> connection.Consumer([video_queue, image_queue],
+                         <span class="pl-v">callbacks</span><span class="pl-k">=</span>[process_media]) <span class="pl-k">as</span> consumer:
+    <span class="pl-k">while</span> <span class="pl-c1">True</span>:
+        connection.drain_events()</pre>
+</div>
+<p>基本上，各种角色都出场了。各种角色的使用都要从建立Connection开始。</p>
+<h3><a id="user-content-connection" class="anchor" href="#connection"></a>Connection</h3>
+<p>获取连接很简单：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">from</span> kombu <span class="pl-k">import</span> Connection
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> connection <span class="pl-k">=</span> Connection(<span class="pl-s"><span class="pl-pds">'</span>amqp://guest:guest@localhost:5672//<span class="pl-pds">'</span></span>)</pre>
+</div>
+<p>现在的连接其实并未真正建立，只有在需要使用的时候才真正建立连接并将连接缓存：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-en">@</span><span class="pl-c1">property</span>
+<span class="pl-k">def</span> <span class="pl-en">connection</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>The underlying connection object.</span>
+<span class="pl-s">    Warning:</span>
+<span class="pl-s">        This instance is transport specific, so do not</span>
+<span class="pl-s">        depend on the interface of this object.</span>
+<span class="pl-s">    <span class="pl-pds">"""</span></span>
+    <span class="pl-k">if</span> <span class="pl-k">not</span> <span class="pl-c1">self</span>._closed:
+        <span class="pl-k">if</span> <span class="pl-k">not</span> <span class="pl-c1">self</span>.connected:
+            <span class="pl-c1">self</span>.declared_entities.clear()
+            <span class="pl-c1">self</span>._default_channel <span class="pl-k">=</span> <span class="pl-c1">None</span>
+            <span class="pl-c1">self</span>._connection <span class="pl-k">=</span> <span class="pl-c1">self</span>._establish_connection()
+            <span class="pl-c1">self</span>._closed <span class="pl-k">=</span> <span class="pl-c1">False</span>
+        <span class="pl-k">return</span> <span class="pl-c1">self</span>._connection</pre>
+</div>
+<p>也可以主动连接：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> connection.connect()</pre>
+</div>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">connect</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Establish connection to server immediately.<span class="pl-pds">"""</span></span>
+    <span class="pl-c1">self</span>._closed <span class="pl-k">=</span> <span class="pl-c1">False</span>
+    <span class="pl-k">return</span> <span class="pl-c1">self</span>.connection</pre>
+</div>
+<p>当然，连接底层是由各自使用的不同的<code>Transport</code>建立的：</p>
+<div class="highlight highlight-source-python">
+<pre><code>conn <span class="pl-k">=</span> <span class="pl-c1">self</span>.transport.establish_connection() </pre>
+</div>
+<p>连接需要显式的关闭：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> connection.release()</pre>
+</div>
+<p>由于<code>Connection</code>实现了上下文生成器：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-c1">__enter__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+    <span class="pl-k">return</span> <span class="pl-c1">self</span>
+
+<span class="pl-k">def</span> <span class="pl-c1">__exit__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-k">*</span><span class="pl-smi">args</span>):
+    <span class="pl-c1">self</span>.release()</pre>
+</div>
+<p>所以可以使用with语句，以免忘记关闭连接：</p>
+<pre><code><code>with Connection() as connection:
+    # work with connection
+</code></pre>
+<p>可以使用<code>Connection</code>直接建立<code>Procuder</code>和<code>Consumer</code>，其实就是调用了各自的创建类：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">Producer</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">channel</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-k">*</span><span class="pl-smi">args</span>, <span class="pl-k">**</span><span class="pl-smi">kwargs</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Create new :class:`kombu.Producer` instance.<span class="pl-pds">"""</span></span>
+    <span class="pl-k">from</span> .messaging <span class="pl-k">import</span> Producer
+    <span class="pl-k">return</span> Producer(channel <span class="pl-k">or</span> <span class="pl-c1">self</span>, <span class="pl-k">*</span>args, <span class="pl-k">**</span>kwargs)
+
+<span class="pl-k">def</span> <span class="pl-en">Consumer</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">queues</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">channel</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-k">*</span><span class="pl-smi">args</span>, <span class="pl-k">**</span><span class="pl-smi">kwargs</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Create new :class:`kombu.Consumer` instance.<span class="pl-pds">"""</span></span>
+    <span class="pl-k">from</span> .messaging <span class="pl-k">import</span> Consumer
+    <span class="pl-k">return</span> Consumer(channel <span class="pl-k">or</span> <span class="pl-c1">self</span>, queues, <span class="pl-k">*</span>args, <span class="pl-k">**</span>kwargs)</pre>
+</div>
+<h3><a id="user-content-producer" class="anchor" href="#producer"></a>Producer</h3>
+<p>连接创建后，可以使用连接创建<code>Producer</code>：</p>
+<pre><code><code>producer = conn.Producer(serializer='json')
+</code></pre>
+<p>也可以直接使用Channel创建：</p>
+<pre><code><code>with connection.channel() as channel:
+    producer = Producer(channel, ...)
+</code></pre>
+<p><code>Producer</code>实例初始化的时候会检查第一个<code>channel</code>参数：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-c1">self</span>.revive(<span class="pl-c1">self</span>.channel)
+channel <span class="pl-k">=</span> <span class="pl-c1">self</span>.channel <span class="pl-k">=</span> maybe_channel(channel)</pre>
+</div>
+<p>这里会检查<code>channel</code>是不是<code>Connection</code>实例，是的话会将其替换为<code>Connection</code>实例的<code>default_channel</code>属性：</p>
+<pre><code><code>def maybe_channel(channel):
+    """Get channel from object.
+    Return the default channel if argument is a connection instance,
+    otherwise just return the channel given.
+    """
+    if is_connection(channel):
+        return channel.default_channel
+    return channel
+</code></pre>
+<p>所以<code>Producer</code>还是与<code>Channel</code>联系在一起的。</p>
+<p><code>Producer</code>发送消息：</p>
+<div class="highlight highlight-source-python">
+<pre><code>producer.publish({<span class="pl-s"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>/tmp/lolcat1.avi<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>size<span class="pl-pds">'</span></span>: <span class="pl-c1">1301013</span>},
+                  <span class="pl-v">exchange</span><span class="pl-k">=</span>media_exchange, <span class="pl-v">routing_key</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>video<span class="pl-pds">'</span></span>,
+                  <span class="pl-v">declare</span><span class="pl-k">=</span>[video_queue])</pre>
+</div>
+<p><code>pulish</code>做的事情，主要是由<code>Channel</code>完成的：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_publish</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">body</span>, <span class="pl-smi">priority</span>, <span class="pl-smi">content_type</span>, <span class="pl-smi">content_encoding</span>,
+┆   ┆   ┆   ┆<span class="pl-smi">headers</span>, <span class="pl-smi">properties</span>, <span class="pl-smi">routing_key</span>, <span class="pl-smi">mandatory</span>,
+┆   ┆   ┆   ┆<span class="pl-smi">immediate</span>, <span class="pl-smi">exchange</span>, <span class="pl-smi">declare</span>):
+┆   channel <span class="pl-k">=</span> <span class="pl-c1">self</span>.channel
+┆   message <span class="pl-k">=</span> channel.prepare_message(
+┆   ┆   body, priority, content_type,
+┆   ┆   content_encoding, headers, properties,
+┆   )   
+┆   <span class="pl-k">if</span> declare:
+┆   ┆   maybe_declare <span class="pl-k">=</span> <span class="pl-c1">self</span>.maybe_declare
+┆   ┆   [maybe_declare(entity) <span class="pl-k">for</span> entity <span class="pl-k">in</span> declare]
+
+┆   <span class="pl-c"><span class="pl-c">#</span> handle autogenerated queue names for reply_to</span>
+┆   reply_to <span class="pl-k">=</span> properties.get(<span class="pl-s"><span class="pl-pds">'</span>reply_to<span class="pl-pds">'</span></span>)
+┆   <span class="pl-k">if</span> <span class="pl-c1">isinstance</span>(reply_to, Queue):
+┆   ┆   properties[<span class="pl-s"><span class="pl-pds">'</span>reply_to<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> reply_to.name
+┆   <span class="pl-k">return</span> channel.basic_publish(
+┆   ┆   message,
+┆   ┆   <span class="pl-v">exchange</span><span class="pl-k">=</span>exchange, <span class="pl-v">routing_key</span><span class="pl-k">=</span>routing_key,
+┆   ┆   <span class="pl-v">mandatory</span><span class="pl-k">=</span>mandatory, <span class="pl-v">immediate</span><span class="pl-k">=</span>immediate,
+┆   )</pre>
+</div>
+<p><code>Channel</code>组装消息<code>prepare_message</code>，并且发送消息<code>basic_publish</code>。</p>
+<p>而<code>Channel</code>又是<code>Transport</code>创建的：</p>
+<div class="highlight highlight-source-python">
+<pre><code>chan <span class="pl-k">=</span> <span class="pl-c1">self</span>.transport.create_channel(<span class="pl-c1">self</span>.connection)</pre>
+</div>
+<h3><a id="user-content-transport" class="anchor" href="#transport"></a>Transport</h3>
+<p>当创建<code>Connection</code>时，需要传入<code>hostname</code>，类似于：</p>
+<pre><code><code>amqp://guest:guest@localhost:5672//
+</code></pre>
+<p>然后获取<code>hostname</code>的<code>scheme</code>，比如<code>redis</code>:</p>
+<div class="highlight highlight-source-python">
+<pre><code>transport <span class="pl-k">=</span> transport <span class="pl-k">or</span> urlparse(hostname).scheme</pre>
+</div>
+<p>以此来区分创建的<code>Transport</code>的类型。</p>
+<p>创建过程：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-c1">self</span>.transport_cls <span class="pl-k">=</span> transport
+
+transport_cls <span class="pl-k">=</span> get_transport_cls(transport_cls)
+
+<span class="pl-k">def</span> <span class="pl-en">get_transport_cls</span>(<span class="pl-smi">transport</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Get transport class by name.</span>
+
+<span class="pl-s">    The transport string is the full path to a transport class, e.g.::</span>
+
+<span class="pl-s">    ┆   "kombu.transport.pyamqp:Transport"</span>
+
+<span class="pl-s">    If the name does not include `"."` (is not fully qualified),</span>
+<span class="pl-s">    the alias table will be consulted.</span>
+<span class="pl-s">    <span class="pl-pds">"""</span></span>
+    <span class="pl-k">if</span> transport <span class="pl-k">not</span> <span class="pl-k">in</span> _transport_cache:
+    ┆   _transport_cache[transport] <span class="pl-k">=</span> resolve_transport(transport)
+    <span class="pl-k">return</span> _transport_cache[transport]
+
+transport <span class="pl-k">=</span> <span class="pl-c1">TRANSPORT_ALIASES</span>[transport]
+
+<span class="pl-c1">TRANSPORT_ALIASES</span> <span class="pl-k">=</span> {
+    <span class="pl-c1">...</span>
+
+    <span class="pl-s"><span class="pl-pds">'</span>redis<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>kombu.transport.redis:Transport<span class="pl-pds">'</span></span>,
+    
+    <span class="pl-c1">...</span>
+}</pre>
+</div>
+<p>以<code>Redis</code>为例，<code>Transport</code>类在<code>/kombu/transport/redis.py</code>文件，继承自<code>/kombu/transport/virtual/base.py</code>中的<code>Transport</code>类。</p>
+<p>创建<code>Channel</code>:</p>
+<pre><code><code>channel = self.Channel(connection)
+</code></pre>
+<p>然后<code>Channel</code>组装消息<code>prepare_message</code>，并且发送消息<code>basic_publish</code>。</p>
+<h3><a id="user-content-channel" class="anchor" href="#channel"></a>Channel</h3>
+<p><code>Channel</code>实例有几个属性关联着Consumer、Queue等，<code>virtual.Channel</code>：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">class</span> <span class="pl-en">Channel</span>(<span class="pl-e">AbstractChannel</span>, <span class="pl-e">base</span>.<span class="pl-e">StdChannel</span>):
+    <span class="pl-k">def</span> <span class="pl-c1">__init__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">connection</span>, <span class="pl-k">**</span><span class="pl-smi">kwargs</span>):
+        <span class="pl-c1">self</span>.connection <span class="pl-k">=</span> connection
+        <span class="pl-c1">self</span>._consumers <span class="pl-k">=</span> <span class="pl-c1">set</span>()
+        <span class="pl-c1">self</span>._cycle <span class="pl-k">=</span> <span class="pl-c1">None</span> 
+        <span class="pl-c1">self</span>._tag_to_queue <span class="pl-k">=</span> {} 
+        <span class="pl-c1">self</span>._active_queues <span class="pl-k">=</span> [] 
+        <span class="pl-c1">...</span> </pre>
+</div>
+<p>其中，<code>_consumers</code>是相关联的消费者标签集合，<code>_active_queues</code>是相关联的Queue列表，<code>_tag_to_queue</code>则是消费者标签与Queue的映射：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-c1">self</span>._tag_to_queue[consumer_tag] <span class="pl-k">=</span> queue
+<span class="pl-c1">self</span>._consumers.add(consumer_tag)
+<span class="pl-c1">self</span>._active_queues.append(queue)</pre>
+</div>
+<p><code>Channel</code>对于不同的底层消息队列，也有不同的实现，以<code>Redis</code>为例：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">class</span> <span class="pl-en">Channel</span>(<span class="pl-e">virtual</span>.<span class="pl-e">Channel</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Redis Channel.<span class="pl-pds">"""</span></span>
+</pre>
+</div>
+<p>继承自<code>virtual.Channel</code>。</p>
+<p>组装消息函数<code>prepare_message</code>:</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">prepare_message</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">body</span>, <span class="pl-smi">priority</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">content_type</span><span class="pl-k">=</span><span class="pl-c1">None</span>,
+┆   ┆   ┆   ┆   ┆   <span class="pl-smi">content_encoding</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">headers</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">properties</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+┆   <span class="pl-s"><span class="pl-pds">"""</span>Prepare message data.<span class="pl-pds">"""</span></span>
+┆   properties <span class="pl-k">=</span> properties <span class="pl-k">or</span> {}
+┆   properties.setdefault(<span class="pl-s"><span class="pl-pds">'</span>delivery_info<span class="pl-pds">'</span></span>, {})
+┆   properties.setdefault(<span class="pl-s"><span class="pl-pds">'</span>priority<span class="pl-pds">'</span></span>, priority <span class="pl-k">or</span> <span class="pl-c1">self</span>.default_priority)
+
+┆   <span class="pl-k">return</span> {<span class="pl-s"><span class="pl-pds">'</span>body<span class="pl-pds">'</span></span>: body,
+┆   ┆   ┆   <span class="pl-s"><span class="pl-pds">'</span>content-encoding<span class="pl-pds">'</span></span>: content_encoding,
+┆   ┆   ┆   <span class="pl-s"><span class="pl-pds">'</span>content-type<span class="pl-pds">'</span></span>: content_type,
+┆   ┆   ┆   <span class="pl-s"><span class="pl-pds">'</span>headers<span class="pl-pds">'</span></span>: headers <span class="pl-k">or</span> {},
+┆   ┆   ┆   <span class="pl-s"><span class="pl-pds">'</span>properties<span class="pl-pds">'</span></span>: properties <span class="pl-k">or</span> {}}</pre>
+</div>
+<p>基本上是为消息添加各种属性。</p>
+<p>发送消息<code>basic_publish</code>方法是调用<code>_put</code>方法：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_put</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">queue</span>, <span class="pl-smi">message</span>, <span class="pl-k">**</span><span class="pl-smi">kwargs</span>):
+┆   <span class="pl-s"><span class="pl-pds">"""</span>Deliver message.<span class="pl-pds">"""</span></span>
+┆   pri <span class="pl-k">=</span> <span class="pl-c1">self</span>._get_message_priority(message, <span class="pl-v">reverse</span><span class="pl-k">=</span><span class="pl-c1">False</span>)
+
+┆   <span class="pl-k">with</span> <span class="pl-c1">self</span>.conn_or_acquire() <span class="pl-k">as</span> client:
+┆   ┆   client.lpush(<span class="pl-c1">self</span>._q_for_pri(queue, pri), dumps(message))
+</pre>
+</div>
+<p><code>client</code>是一个<code>redis.StrictRedis</code>连接：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_create_client</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">asynchronous</span><span class="pl-k">=</span><span class="pl-c1">False</span>):
+┆   <span class="pl-k">if</span> asynchronous:
+┆   ┆   <span class="pl-k">return</span> <span class="pl-c1">self</span>.Client(<span class="pl-v">connection_pool</span><span class="pl-k">=</span><span class="pl-c1">self</span>.async_pool)
+┆   <span class="pl-k">return</span> <span class="pl-c1">self</span>.Client(<span class="pl-v">connection_pool</span><span class="pl-k">=</span><span class="pl-c1">self</span>.pool)
+
+<span class="pl-c1">self</span>.Client <span class="pl-k">=</span> <span class="pl-c1">self</span>._get_client()
+
+<span class="pl-k">def</span> <span class="pl-en">_get_client</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+┆   <span class="pl-k">if</span> redis.<span class="pl-c1">VERSION</span> <span class="pl-k">&lt;</span> (<span class="pl-c1">3</span>, <span class="pl-c1">2</span>, <span class="pl-c1">0</span>):
+┆   ┆   <span class="pl-k">raise</span> VersionMismatch(
+┆   ┆   ┆   <span class="pl-s"><span class="pl-pds">'</span>Redis transport requires redis-py versions 3.2.0 or later. <span class="pl-pds">'</span></span>
+┆   ┆   ┆   <span class="pl-s"><span class="pl-pds">'</span>You have <span class="pl-c1">{0.__version__}</span><span class="pl-pds">'</span></span>.format(redis))
+┆   <span class="pl-k">return</span> redis.StrictRedis</pre>
+</div>
+<p><code>Redis</code>将消息置于某个列表(lpush)中。还会根据是否异步的选项选择不同的<code>connection_pool</code>。</p>
+<h3><a id="user-content-consumer" class="anchor" href="#consumer"></a>Consumer</h3>
+<p>现在消息已经被放置与队列中，那么消息又被如何使用呢？</p>
+<p><code>Consumer</code>初始化需要声明<code>Channel</code>和要消费的队列列表以及处理消息的回调函数列表：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">with</span> Consumer(connection, queues, <span class="pl-v">callbacks</span><span class="pl-k">=</span>[process_media], <span class="pl-v">accept</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>json<span class="pl-pds">'</span></span>]):
+    connection.drain_events(<span class="pl-v">timeout</span><span class="pl-k">=</span><span class="pl-c1">1</span>)</pre>
+</div>
+<p>当<code>Consumer</code>实例被当做上下文管理器使用时，会调用<code>consume</code>方法：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-c1">__enter__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+    <span class="pl-c1">self</span>.consume()
+    <span class="pl-k">return</span> <span class="pl-c1">self</span></pre>
+</div>
+<p><code>consume</code>方法代码：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">consume</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">no_ack</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Start consuming messages.</span>
+
+<span class="pl-s">    Can be called multiple times, but note that while it</span>
+<span class="pl-s">    will consume from new queues added since the last call,</span>
+<span class="pl-s">    it will not cancel consuming from removed queues (</span>
+<span class="pl-s">    use :meth:`cancel_by_queue`).</span>
+
+<span class="pl-s">    Arguments:</span>
+<span class="pl-s">        no_ack (bool): See :attr:`no_ack`.</span>
+<span class="pl-s">    <span class="pl-pds">"""</span></span>
+    queues <span class="pl-k">=</span> <span class="pl-c1">list</span>(values(<span class="pl-c1">self</span>._queues))
+    <span class="pl-k">if</span> queues:
+        no_ack <span class="pl-k">=</span> <span class="pl-c1">self</span>.no_ack <span class="pl-k">if</span> no_ack <span class="pl-k">is</span> <span class="pl-c1">None</span> <span class="pl-k">else</span> no_ack
+
+        H, T <span class="pl-k">=</span> queues[:<span class="pl-k">-</span><span class="pl-c1">1</span>], queues[<span class="pl-k">-</span><span class="pl-c1">1</span>]
+        <span class="pl-k">for</span> queue <span class="pl-k">in</span> H:
+            <span class="pl-c1">self</span>._basic_consume(queue, <span class="pl-v">no_ack</span><span class="pl-k">=</span>no_ack, <span class="pl-v">nowait</span><span class="pl-k">=</span><span class="pl-c1">True</span>)
+        <span class="pl-c1">self</span>._basic_consume(T, <span class="pl-v">no_ack</span><span class="pl-k">=</span>no_ack, <span class="pl-v">nowait</span><span class="pl-k">=</span><span class="pl-c1">False</span>)</pre>
+</div>
+<p>使用<code>_basic_consume</code>方法处理相关的队列列表中的每一项，其中处理最后一个Queue时设置标志<code>nowait=False</code>。</p>
+<p><code>_basic_consume</code>方法代码：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_basic_consume</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">queue</span>, <span class="pl-smi">consumer_tag</span><span class="pl-k">=</span><span class="pl-c1">None</span>,
+                   <span class="pl-smi">no_ack</span><span class="pl-k">=</span>no_ack, <span class="pl-smi">nowait</span><span class="pl-k">=</span><span class="pl-c1">True</span>):
+    tag <span class="pl-k">=</span> <span class="pl-c1">self</span>._active_tags.get(queue.name)
+    <span class="pl-k">if</span> tag <span class="pl-k">is</span> <span class="pl-c1">None</span>:
+        tag <span class="pl-k">=</span> <span class="pl-c1">self</span>._add_tag(queue, consumer_tag)
+        queue.consume(tag, <span class="pl-c1">self</span>._receive_callback,
+                      <span class="pl-v">no_ack</span><span class="pl-k">=</span>no_ack, <span class="pl-v">nowait</span><span class="pl-k">=</span>nowait)
+    <span class="pl-k">return</span> tag</pre>
+</div>
+<p>是将消费者标签以及回调函数传给<code>Queue</code>的<code>consume</code>方法。</p>
+<p><code>Queue</code>的<code>consume</code>方法代码：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">consume</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">consumer_tag</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>, <span class="pl-smi">callback</span><span class="pl-k">=</span><span class="pl-c1">None</span>, 
+            <span class="pl-smi">no_ack</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">nowait</span><span class="pl-k">=</span><span class="pl-c1">False</span>):     
+    <span class="pl-s"><span class="pl-pds">"""</span>Start a queue consumer.      </span>
+
+<span class="pl-s">    Consumers last as long as the channel they were created on, or</span>
+<span class="pl-s">    until the client cancels them.</span>
+
+<span class="pl-s">    Arguments:             </span>
+<span class="pl-s">        consumer_tag (str): Unique identifier for the consumer.</span>
+<span class="pl-s">            The consumer tag is local to a connection, so two clients</span>
+<span class="pl-s">            can use the same consumer tags. If this field is empty</span>
+<span class="pl-s">            the server will generate a unique tag.</span>
+
+<span class="pl-s">        no_ack (bool): If enabled the broker will automatically</span>
+<span class="pl-s">            ack messages.</span>
+
+<span class="pl-s">        nowait (bool): Do not wait for a reply.</span>
+
+<span class="pl-s">        callback (Callable): callback called for each delivered message.</span>
+<span class="pl-s">    <span class="pl-pds">"""</span></span>
+    <span class="pl-k">if</span> no_ack <span class="pl-k">is</span> <span class="pl-c1">None</span>:
+        no_ack <span class="pl-k">=</span> <span class="pl-c1">self</span>.no_ack            
+    <span class="pl-k">return</span> <span class="pl-c1">self</span>.channel.basic_consume(
+        <span class="pl-v">queue</span><span class="pl-k">=</span><span class="pl-c1">self</span>.name,
+        <span class="pl-v">no_ack</span><span class="pl-k">=</span>no_ack,
+        <span class="pl-v">consumer_tag</span><span class="pl-k">=</span>consumer_tag <span class="pl-k">or</span> <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>,
+        <span class="pl-v">callback</span><span class="pl-k">=</span>callback,
+        <span class="pl-v">nowait</span><span class="pl-k">=</span>nowait,
+        <span class="pl-v">arguments</span><span class="pl-k">=</span><span class="pl-c1">self</span>.consumer_arguments)</pre>
+</div>
+<p>又回到了<code>Channel</code>，<code>Channel</code>的<code>basic_consume</code>代码：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">basic_consume</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">queue</span>, <span class="pl-smi">no_ack</span>, <span class="pl-smi">callback</span>, <span class="pl-smi">consumer_tag</span>, <span class="pl-k">**</span><span class="pl-smi">kwargs</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Consume from `queue`.<span class="pl-pds">"""</span></span>     
+    <span class="pl-c1">self</span>._tag_to_queue[consumer_tag] <span class="pl-k">=</span> queue
+    <span class="pl-c1">self</span>._active_queues.append(queue)
+
+    <span class="pl-k">def</span> <span class="pl-en">_callback</span>(<span class="pl-smi">raw_message</span>):         
+        message <span class="pl-k">=</span> <span class="pl-c1">self</span>.Message(raw_message, <span class="pl-v">channel</span><span class="pl-k">=</span><span class="pl-c1">self</span>)
+        <span class="pl-k">if</span> <span class="pl-k">not</span> no_ack:
+            <span class="pl-c1">self</span>.qos.append(message, message.delivery_tag)
+        <span class="pl-k">return</span> callback(message)
+
+    <span class="pl-c1">self</span>.connection._callbacks[queue] <span class="pl-k">=</span> _callback
+    <span class="pl-c1">self</span>._consumers.add(consumer_tag)
+
+    <span class="pl-c1">self</span>._reset_cycle()   </pre>
+</div>
+<p><code>Channel</code>将<code>Consumer</code>标签，<code>Consumer</code>要消费的队列，以及标签与队列的映射关系都记录下来，等待循环调用。另外，还通过<code>Transport</code>将队列与回调函数列表的映射关系记录下来，以便于从队列中取出消息后执行回调函数。</p>
+<p>真正的调用是下面这行代码实现的：</p>
+<pre><code><code>connection.drain_events(timeout=1)
+</code></pre>
+<p>现在来到<code>Transport</code>的<code>drain_events</code>方法：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">drain_events</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">connection</span>, <span class="pl-smi">timeout</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+    time_start <span class="pl-k">=</span> monotonic()
+    get <span class="pl-k">=</span> <span class="pl-c1">self</span>.cycle.get
+    polling_interval <span class="pl-k">=</span> <span class="pl-c1">self</span>.polling_interval
+    <span class="pl-k">if</span> timeout <span class="pl-k">and</span> polling_interval <span class="pl-k">and</span> polling_interval <span class="pl-k">&gt;</span> timeout:
+        polling_interval <span class="pl-k">=</span> timeout
+    <span class="pl-k">while</span> <span class="pl-c1">1</span>:
+        <span class="pl-k">try</span>: 
+            get(<span class="pl-c1">self</span>._deliver, <span class="pl-v">timeout</span><span class="pl-k">=</span>timeout)
+        <span class="pl-k">except</span> Empty:
+            <span class="pl-k">if</span> timeout <span class="pl-k">is</span> <span class="pl-k">not</span> <span class="pl-c1">None</span> <span class="pl-k">and</span> monotonic() <span class="pl-k">-</span> time_start <span class="pl-k">&gt;=</span> timeout:
+                <span class="pl-k">raise</span> socket.timeout()
+            <span class="pl-k">if</span> polling_interval <span class="pl-k">is</span> <span class="pl-k">not</span> <span class="pl-c1">None</span>:
+                sleep(polling_interval)
+        <span class="pl-k">else</span>:
+            <span class="pl-k">break</span></pre>
+</div>
+<p>看上去是在无限执行<code>get(self._deliver, timeout=timeout)</code></p>
+<p><code>get</code>是<code>self.cycle</code>的一个方法，<code>cycle</code>是一个<code>FairCycle</code>实例：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-c1">self</span>.cycle <span class="pl-k">=</span> <span class="pl-c1">self</span>.Cycle(<span class="pl-c1">self</span>._drain_channel, <span class="pl-c1">self</span>.channels, Empty)
+
+<span class="pl-en">@python_2_unicode_compatible</span>
+<span class="pl-k">class</span> <span class="pl-en">FairCycle</span>(<span class="pl-c1">object</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Cycle between resources.</span>
+
+<span class="pl-s">    Consume from a set of resources, where each resource gets</span>
+<span class="pl-s">    an equal chance to be consumed from.</span>
+
+<span class="pl-s">    Arguments: </span>
+<span class="pl-s">        fun (Callable): Callback to call.</span>
+<span class="pl-s">        resources (Sequence[Any]): List of resources.</span>
+<span class="pl-s">        predicate (type): Exception predicate.</span>
+<span class="pl-s">    <span class="pl-pds">"""</span></span>
+
+    <span class="pl-k">def</span> <span class="pl-c1">__init__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">fun</span>, <span class="pl-smi">resources</span>, <span class="pl-smi">predicate</span><span class="pl-k">=</span><span class="pl-c1">Exception</span>):
+        <span class="pl-c1">self</span>.fun <span class="pl-k">=</span> fun
+        <span class="pl-c1">self</span>.resources <span class="pl-k">=</span> resources
+        <span class="pl-c1">self</span>.predicate <span class="pl-k">=</span> predicate
+        <span class="pl-c1">self</span>.pos <span class="pl-k">=</span> <span class="pl-c1">0</span>
+
+    <span class="pl-k">def</span> <span class="pl-en">_next</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-k">while</span> <span class="pl-c1">1</span>:
+            <span class="pl-k">try</span>:
+                resource <span class="pl-k">=</span> <span class="pl-c1">self</span>.resources[<span class="pl-c1">self</span>.pos]
+                <span class="pl-c1">self</span>.pos <span class="pl-k">+=</span> <span class="pl-c1">1</span>
+                <span class="pl-k">return</span> resource
+            <span class="pl-k">except</span> <span class="pl-c1">IndexError</span>:
+                <span class="pl-c1">self</span>.pos <span class="pl-k">=</span> <span class="pl-c1">0</span>
+                <span class="pl-k">if</span> <span class="pl-k">not</span> <span class="pl-c1">self</span>.resources:
+                    <span class="pl-k">raise</span> <span class="pl-c1">self</span>.predicate()
+
+    <span class="pl-k">def</span> <span class="pl-en">get</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">callback</span>, <span class="pl-k">**</span><span class="pl-smi">kwargs</span>):
+        <span class="pl-s"><span class="pl-pds">"""</span>Get from next resource.<span class="pl-pds">"""</span></span>
+        <span class="pl-k">for</span> tried <span class="pl-k">in</span> count(<span class="pl-c1">0</span>):  <span class="pl-c"><span class="pl-c">#</span> for infinity</span>
+            resource <span class="pl-k">=</span> <span class="pl-c1">self</span>._next()
+            <span class="pl-k">try</span>:
+                <span class="pl-k">return</span> <span class="pl-c1">self</span>.fun(resource, callback, <span class="pl-k">**</span>kwargs)
+            <span class="pl-k">except</span> <span class="pl-c1">self</span>.predicate:
+                <span class="pl-c"><span class="pl-c">#</span> reraise when retries exchausted.</span>
+                <span class="pl-k">if</span> tried <span class="pl-k">&gt;=</span> <span class="pl-c1">len</span>(<span class="pl-c1">self</span>.resources) <span class="pl-k">-</span> <span class="pl-c1">1</span>:
+                    <span class="pl-k">raise</span></pre>
+</div>
+<p><code>FairCycle</code>接受两个参数，<code>fun</code>是要执行的函数<code>fun</code>，而<code>resources</code>作为一个迭代器，每次提供一个item供<code>fun</code>调用。</p>
+<p>此处的<code>fun</code>是<code>_drain_channel</code>，<code>resources</code>是<code>channels</code>:</p>
+<pre><code><code>def _drain_channel(self, channel, callback, timeout=None):
+    return channel.drain_events(callback=callback, timeout=timeout)
+</code></pre>
+<p><code>Transport</code>相关联的每一个channel都要执行<code>drain_events</code>。</p>
+<p><code>Channel</code>的<code>drain_events</code>代码：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">drain_events</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">timeout</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">callback</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+    callback <span class="pl-k">=</span> callback <span class="pl-k">or</span> <span class="pl-c1">self</span>.connection._deliver
+    <span class="pl-k">if</span> <span class="pl-c1">self</span>._consumers <span class="pl-k">and</span> <span class="pl-c1">self</span>.qos.can_consume():
+        <span class="pl-k">if</span> <span class="pl-c1">hasattr</span>(<span class="pl-c1">self</span>, <span class="pl-s"><span class="pl-pds">'</span>_get_many<span class="pl-pds">'</span></span>):
+            <span class="pl-k">return</span> <span class="pl-c1">self</span>._get_many(<span class="pl-c1">self</span>._active_queues, <span class="pl-v">timeout</span><span class="pl-k">=</span>timeout)
+        <span class="pl-k">return</span> <span class="pl-c1">self</span>._poll(<span class="pl-c1">self</span>.cycle, callback, <span class="pl-v">timeout</span><span class="pl-k">=</span>timeout)
+    <span class="pl-k">raise</span> Empty()</pre>
+</div>
+<p><code>_poll</code>代码：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_poll</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">cycle</span>, <span class="pl-smi">callback</span>, <span class="pl-smi">timeout</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Poll a list of queues for available messages.<span class="pl-pds">"""</span></span>
+    <span class="pl-k">return</span> cycle.get(callback)</pre>
+</div>
+<p>又回到了<code>FairCycle</code>，<code>Channel</code>的<code>FairCycle</code>实例：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_reset_cycle</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+    <span class="pl-c1">self</span>._cycle <span class="pl-k">=</span> FairCycle(
+        <span class="pl-c1">self</span>._get_and_deliver, <span class="pl-c1">self</span>._active_queues, Empty)</pre>
+</div>
+<p><code>_get_and_deliver</code>方法从队列中取出消息，然后调用<code>Transport</code>传递过来的<code>_deliver</code>方法：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_get_and_deliver</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">queue</span>, <span class="pl-smi">callback</span>):
+    message <span class="pl-k">=</span> <span class="pl-c1">self</span>._get(queue)
+    callback(message, queue)</pre>
+</div>
+<p><code>_deliver</code>代码：</p>
+<div class="highlight highlight-source-python">
+<pre><code><span class="pl-k">def</span> <span class="pl-en">_deliver</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">message</span>, <span class="pl-smi">queue</span>):
+    <span class="pl-k">if</span> <span class="pl-k">not</span> queue:
+        <span class="pl-k">raise</span> <span class="pl-c1">KeyError</span>(
+            <span class="pl-s"><span class="pl-pds">'</span>Received message without destination queue: <span class="pl-c1">{0}</span><span class="pl-pds">'</span></span>.format(
+                message))
+    <span class="pl-k">try</span>:
+        callback <span class="pl-k">=</span> <span class="pl-c1">self</span>._callbacks[queue]
+    <span class="pl-k">except</span> <span class="pl-c1">KeyError</span>:
+        logger.warning(<span class="pl-c1">W_NO_CONSUMERS</span>, queue)
+        <span class="pl-c1">self</span>._reject_inbound_message(message)
+    <span class="pl-k">else</span>:
+        callback(message)</pre>
+</div>
+<p>做的事情是根据队列取出注册到此队列的回调函数列表，然后对消息执行列表中的所有回调函数。</p>
+<h3><a id="user-content-回顾" class="anchor" href="#回顾"></a>回顾</h3>
+<p>可见，Kombu中<code>Channel</code>和<code>Transport</code>非常重要，<code>Channel</code>记录了队列列表、消费者列表以及两者的映射关系，而<code>Transport</code>记录了队列与回调函数的映射关系。Kombu对所有需要监听的队列<code>_active_queues</code>都查询一遍，直到查询完毕或者遇到一个可以使用的Queue，然后就获取消息，回调此队列对应的callback。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

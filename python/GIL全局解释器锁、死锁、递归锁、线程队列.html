@@ -1,0 +1,356 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修GIL全局解释器锁、死锁、递归锁、线程队列' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>GIL全局解释器锁、死锁、递归锁、线程队列</center></div><div class='banquan'>原文出处:本文由博客园博主SetCreed提供。<br/>
+原文连接:https://www.cnblogs.com/setcreed/p/11729265.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#gil全局解释锁">GIL全局解释锁</a></li>
+        <li><a href="#多线程的作用">多线程的作用</a><ul>
+        <li><a href="#测试计算密集型">测试计算密集型</a></li>
+        <li><a href="#io密集型">IO密集型</a></li>
+        </ul></li>
+        <li><a href="#死锁现象">死锁现象</a></li>
+        <li><a href="#递归锁">递归锁</a></li>
+        <li><a href="#信号量了解">信号量(了解)</a></li>
+        <li><a href="#线程队列">线程队列</a></li>
+        </ul>
+    </div>
+</div>
+<h1 id="gil全局解释锁">GIL全局解释锁</h1>
+<ol>
+<li>GIL本质上是一个互斥锁。</li>
+<li>GIL是为了阻止同一个进程内多个进程同时执行(并行)
+<ul>
+<li>单个进程下的多个线程无法实现并行,但能实现并发</li>
+</ul></li>
+<li><p>这把锁主要是因为Cpython的内存管理不是线程安全的</p>
+<ul>
+<li>保证线程在执行任务时不会被垃圾回收机制回收</li>
+</ul></li>
+</ol>
+<pre><code><code>from threading import Thread
+import time
+
+num = 100
+
+
+def task():
+    global num
+    num2 = num
+    time.sleep(1)
+    num = num2 - 1
+    print(num)
+
+
+for line in range(100):
+    t = Thread(target=task)
+    t.start()
+    
+# 这里的运行结果都是99, 加了IO操作,所有线程都对num进行了减值操作,由于GIL锁的存在,没有修改成功,都是99</code></pre>
+<h1 id="多线程的作用">多线程的作用</h1>
+<ol>
+<li>计算密集型, 有四个任务,每个任务需要10s</li>
+</ol>
+<p>单核:</p>
+<ul>
+<li>开启进程
+<ul>
+<li>消耗资源过大</li>
+<li>4个进程: 40s</li>
+</ul></li>
+<li>开启线程
+<ul>
+<li>消耗资源远小于进程</li>
+<li>4个线程: 40s</li>
+</ul></li>
+</ul>
+<p>多核:</p>
+<ul>
+<li>开启进程
+<ul>
+<li>并行执行, 效率比较高</li>
+<li>4个进程: 10s</li>
+</ul></li>
+<li>开启线程
+<ul>
+<li>并发执行,执行效率低</li>
+<li>4个线程: 40s</li>
+</ul></li>
+</ul>
+<ol>
+<li>IO密集型, 四个任务, 每个任务需要10s</li>
+</ol>
+<p>单核:</p>
+<ul>
+<li>开启进程
+<ul>
+<li>消耗资源过大</li>
+<li>4个进程: 40s</li>
+</ul></li>
+<li>开启线程
+<ul>
+<li>消耗资源远小于进程</li>
+<li>4个线程: 40s</li>
+</ul></li>
+</ul>
+<p>多核:</p>
+<ul>
+<li>开启进程
+<ul>
+<li>并行执行, 效率小于多线程, 但是遇到IO会立马切换CPU的执行权限</li>
+<li>4个进程: 40s + 开启进程消耗的额外时间</li>
+</ul></li>
+<li>开启线程
+<ul>
+<li>并发执行,执行效率高于多进程</li>
+<li>4个线程: 40s</li>
+</ul></li>
+</ul>
+<h2 id="测试计算密集型">测试计算密集型</h2>
+<pre><code><code>from threading import Thread
+from multiprocessing import Process
+import time
+import os
+
+
+# 计算密集型
+def work1():
+    number = 0
+    for line in range(100000000):
+        number += 1
+
+# IO密集型
+def work2():
+    time.sleep(2)
+
+
+if __name__ == &#39;__main__&#39;:
+    # 测试计算密集型
+    print(os.cpu_count())   # 4核cpu
+
+    start = time.time()
+    list1 = []
+    for line in range(6):
+
+        p = Process(target=work1)  # 程序执行时间8.756593704223633
+        # p = Thread(target=work1)   # 程序执行时间31.78555393218994
+        list1.append(p)
+        p.start()
+    for p in list1:
+        p.join()
+    end = time.time()
+    print(f&#39;程序执行时间{end - start}&#39;)</code></pre>
+<h2 id="io密集型">IO密集型</h2>
+<pre><code><code>from threading import Thread
+from multiprocessing import Process
+import time
+import os
+
+# 计算密集型
+def work1():
+    number = 0
+    for line in range(100000000):
+        number += 1
+
+# IO密集型
+def work2():
+    time.sleep(1)
+
+
+if __name__ == &#39;__main__&#39;:
+    # 测试计算密集型
+    print(os.cpu_count())   # 4核cpu
+
+    start = time.time()
+    list1 = []
+    for line in range(100):
+
+        # p = Process(target=work2)  # 程序执行时间15.354223251342773
+        p = Thread(target=work2)   # 程序执行时间1.0206732749938965
+        list1.append(p)
+        p.start()
+    for p in list1:
+        p.join()
+    end = time.time()
+    print(f&#39;程序执行时间{end - start}&#39;)</code></pre>
+<p>结论:</p>
+<ul>
+<li>在计算密集型的情况下, 使用多进程</li>
+<li>在IO密集型的情况下, 使用多线程</li>
+<li>高效执行多个进程, 内有多个IO密集型程序,使用多进程 + 多线程</li>
+</ul>
+<h1 id="死锁现象">死锁现象</h1>
+<p>指两个或两个以上的进程或线程在执行过程中,因争夺资源而造成的一种互相等待的现象,如无外力作用,它们都无法推进下去.此时称系统处于死锁状态</p>
+<p>以下就是死锁:</p>
+<pre><code><code>from threading import Thread, Lock
+from threading import current_thread
+import time
+
+mutex_a = Lock()
+mutex_b = Lock()
+
+
+class MyThread(Thread):
+
+    def run(self):
+        self.func1()
+        self.func2()
+
+    def func1(self):
+        mutex_a.acquire()
+        print(f&#39;用户{self.name}抢到锁a&#39;)
+        mutex_b.acquire()
+        print(f&#39;用户{self.name}抢到锁b&#39;)
+        mutex_b.release()
+        print(f&#39;用户{self.name}释放锁b&#39;)
+        mutex_a.release()
+        print(f&#39;用户{self.name}释放锁a&#39;)
+
+    def func2(self):
+        mutex_b.acquire()
+        print(f&#39;用户{self.name}抢到锁b&#39;)
+        time.sleep(1)
+        mutex_a.acquire()
+        print(f&#39;用户{self.name}抢到锁a&#39;)
+        mutex_a.release()
+        print(f&#39;用户{self.name}释放锁a&#39;)
+        mutex_b.release()
+        print(f&#39;用户{self.name}释放锁b&#39;)
+
+
+for line in range(10):
+    t = MyThread()
+    t.start()
+    
+    
+&#39;&#39;&#39;
+用户Thread-1抢到锁a
+用户Thread-1抢到锁b
+用户Thread-1释放锁b
+用户Thread-1释放锁a
+用户Thread-1抢到锁b
+用户Thread-2抢到锁a
+&#39;&#39;&#39;
+# 一直等待</code></pre>
+<h1 id="递归锁">递归锁</h1>
+<p>用于解决死锁问题</p>
+<p>RLock: 比喻成万能钥匙,可以提供给多个人使用</p>
+<p>但是第一个使用的时候,会对该锁做一个引用计数</p>
+<p>只有引用计数为0, 才能真正释放让一个人使用</p>
+<p>上面的例子中用RLock代替Lock, 就不会发生死锁现象</p>
+<pre><code><code>from threading import Thread, Lock, RLock
+from threading import current_thread
+import time
+
+# mutex_a = Lock()
+# mutex_b = Lock()
+
+mutex_a = mutex_b = RLock()
+
+class MyThread(Thread):
+
+    def run(self):
+        self.func1()
+        self.func2()
+
+    def func1(self):
+        mutex_a.acquire()
+        print(f&#39;用户{self.name}抢到锁a&#39;)
+        mutex_b.acquire()
+        print(f&#39;用户{self.name}抢到锁b&#39;)
+        mutex_b.release()
+        print(f&#39;用户{self.name}释放锁b&#39;)
+        mutex_a.release()
+        print(f&#39;用户{self.name}释放锁a&#39;)
+
+    def func2(self):
+        mutex_b.acquire()
+        print(f&#39;用户{self.name}抢到锁b&#39;)
+        time.sleep(1)
+        mutex_a.acquire()
+        print(f&#39;用户{self.name}抢到锁a&#39;)
+        mutex_a.release()
+        print(f&#39;用户{self.name}释放锁a&#39;)
+        mutex_b.release()
+        print(f&#39;用户{self.name}释放锁b&#39;)
+
+
+for line in range(10):
+    t = MyThread()
+    t.start()</code></pre>
+<h1 id="信号量了解">信号量(了解)</h1>
+<p>互斥锁: 比喻成一个家用马桶, 同一时间只能让一个人去使用</p>
+<p>信号比喻成公测多个马桶: 同一时间可以让多个人去使用</p>
+<pre><code><code>from threading import Semaphore
+from threading import Thread
+from threading import current_thread
+import time
+
+sm = Semaphore(5)
+
+def task():
+    sm.acquire()
+    print(f&#39;{current_thread().name}执行任务&#39;)
+    time.sleep(1)
+    sm.release()
+
+
+for i in range(20):
+    t = Thread(target=task)
+    t.start()</code></pre>
+<h1 id="线程队列">线程队列</h1>
+<p>线程Q: 就是线程队列 FIFO</p>
+<ul>
+<li>普通队列: 先进先出 FIFO</li>
+<li>特殊队列: 后进先出 LIFO</li>
+<li>优先级队列: 若传入一个元组,会依次判断参数的ASCII的数值大小</li>
+</ul>
+<pre><code><code>import queue
+
+# 普通的线程队列： 遵循先进先出
+q = queue.Queue()
+q.put(1)
+q.put(2)
+q.put(3)
+
+print(q.get())  # 1
+print(q.get())  # 2
+
+
+# LIFO队列  后进先出
+q = queue.LifoQueue()
+q.put(1)
+q.put(2)
+q.put(3)
+print(q.get())  # 3
+
+
+# 优先级队列：根据参数内
+q = queue.PriorityQueue()
+q.put((4, &#39;我&#39;))
+q.put((2, &#39;你&#39;))
+q.put((3, &#39;ta&#39;))
+print(q.get())   # (2, &#39;你&#39;)</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

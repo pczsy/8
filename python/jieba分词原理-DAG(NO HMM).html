@@ -1,0 +1,82 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修jieba分词原理-DAG(NO HMM)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>jieba分词原理-DAG(NO HMM)</center></div><div class='banquan'>原文出处:本文由博客园博主phantomSuying提供。<br/>
+原文连接:https://www.cnblogs.com/phsy/p/11787410.html</div><br>
+    <p>最近公司在做一个推荐系统,让我给论坛上的帖子找关键字,当时给我说让我用jieba分词,我周末回去看了看,感觉不错,还学习了一下具体的原理</p>
+<h2>首先,通过正则表达式,将文章内容切分,形成一个句子数组,这个比较好理解</h2>
+<h2>然后构造出句子的有向无环图(DAG)</h2>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_DAG(self, sentence):
+        self.check_initialized()
+        DAG </span>=<span style="color: #000000;"> {}
+        N </span>=<span style="color: #000000;"> len(sentence)
+        </span><span style="color: #0000ff;">for</span> k <span style="color: #0000ff;">in</span><span style="color: #000000;"> xrange(N):
+            tmplist </span>=<span style="color: #000000;"> []
+            i </span>=<span style="color: #000000;"> k
+            frag </span>=<span style="color: #000000;"> sentence[k]
+            </span><span style="color: #0000ff;">while</span> i &lt; N <span style="color: #0000ff;">and</span> frag <span style="color: #0000ff;">in</span> self.FREQ:<span style="color: #008000;">#</span><span style="color: #008000;">对每一个字从这个字开始搜索成词位置</span>
+                <span style="color: #0000ff;">if</span><span style="color: #000000;"> self.FREQ[frag]:
+                    tmplist.append(i)</span><span style="color: #008000;">#</span><span style="color: #008000;">如果可以成词就加入到DAG中</span>
+                i += 1<span style="color: #000000;">
+                frag </span>= sentence[k:i + 1<span style="color: #000000;">]
+            </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> tmplist:
+                tmplist.append(k)</span><span style="color: #008000;">#</span><span style="color: #008000;">如果找不到词语,就将自己加入DAG</span>
+            DAG[k] =<span style="color: #000000;"> tmplist
+        </span><span style="color: #0000ff;">return</span> DAG</pre>
+</div>
+<ol>
+<li>对句子中的每个字进行分析,从右边一位开始,看sentence[k:i+1]这个词语是否在预设的字典中,这个字典保存了常用的词语(和词语的一部分,但权重为0)和其权重.如果有,并且如果字典中的这个词的权值不等于0,那么就将i放到tmplist里,然后i+=1,继续下一轮循环,如果没有这个词,那就停下来,然后移动k,让k=k+1,找下一个字的成词位置<ol>
+<li>比如有这样一个句子:'我从海淀区搬到了朝阳区',一共11个字</li>
+<li>通过上面的计算,得到一个字典:&lt;class 'dict'&gt;: {0: [0], 1: [1], 2: [2, 3, 4], 3: [3, 4], 4: [4], 5: [5, 6], 6: [6], 7: [7], 8: [8, 9, 10], 9: [9], 10: [10]},字典键代表每个字在字符串中的位置,比如,0代表'我',1代表'从',而每个键对应一个数组,比如2对应[2,3,4],这个表示:'海'(2)/'海淀'(2-3)/'海淀区'(2-4),这三个字符串可以成为词语</li>
+<li>这样,我们就得到了所有可以成词的位置了</li>
+</ol></li>
+</ol>
+<h2>选出成词概率最大的位置</h2>
+<div class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">def</span><span style="color: #000000;"> calc(self, sentence, DAG, route):
+        N </span>=<span style="color: #000000;"> len(sentence)
+        route[N] </span>=<span style="color: #000000;"> (0, 0)
+        logtotal </span>=<span style="color: #000000;"> log(self.total)#常数值
+        </span><span style="color: #0000ff;">for</span> idx <span style="color: #0000ff;">in</span> xrange(N - 1, -1, -1<span style="color: #000000;">):#从后往前分析
+            route[idx] </span>= max((log(self.FREQ.get(sentence[idx:x + 1]) <span style="color: #0000ff;">or</span> 1) -<span style="color: #000000;">
+                              logtotal </span>+ route[x + 1][0], x) <span style="color: #0000ff;">for</span> x <span style="color: #0000ff;">in</span> DAG[idx])</pre>
+</div>
+<ol>
+<li>对于句子中的每一个字,计算候选位置中,哪个成词概率最大<ol>
+<li>比如2:[2,3,4],分别对2/3/4进行计算,计算公式:log(词的概率)-常数+下一个字的成词概率</li>
+<li>词语的概率还是用之前保存了所有常用词的字典(也可以自己定义字典),下一个字的成词概率是上一个循环计算出来的,我们要从末尾开始计算,得到的结果作为下一个循环的参数,这样我们就找到了最大成词概率的切分位置</li>
+<li>为什么要加上下一个字的成词概率的呢?因为下一个词的成词概率高的话,我们做出的切分就越正确,越有可能切成两个正确的词语,而不是左边的词语概率高,而右边根本不是一个正确的词语</li>
+</ol></li>
+</ol>
+<p><img src="./images/jieba分词原理-DAG(NO HMM)0.png" alt="" /></p>
+<p>如上图,蓝色圈中的部分,括号右边代表了成词的位置,比如2,括号的右边是4,说明2-4这个词的成词概率高,我们就切成'海淀区'</p>
+<p>切分的过程是这样的</p>
+<ol>
+<li>从头开始,寻找每个位置对应的成词位置,取出来</li>
+<li>跳到成词位置的下一个位置开始循环</li>
+</ol>
+<p>这样,我们就能得到:0/1/2-4/5/6/7/8-10</p>
+<p>具体为:我/从/海淀区/搬/到/了/朝阳区</p>
+<h2>到此为止整个过程就结束了</h2>
+<p>不过,官方默认算法还有个hmm,这次先不说了,请听下回分解</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

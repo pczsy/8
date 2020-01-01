@@ -1,0 +1,211 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Celery的使用完成异步任务与定时任务' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Celery的使用完成异步任务与定时任务</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11537147.html</div><br>
+    <h1 id="自我总结">0917自我总结</h1>
+<h1 id="celery的使用">Celery的使用</h1>
+<h2 id="一.官方文档">一.官方文档</h2>
+<p>Celery 官网：http://www.celeryproject.org/</p>
+<p>Celery 官方文档英文版：http://docs.celeryproject.org/en/latest/index.html</p>
+<p>Celery 官方文档中文版：http://docs.jinkan.org/docs/celery/</p>
+<h2 id="二.celery架构">二.Celery架构</h2>
+<p>Celery的架构由三部分组成，消息中间件（message broker）、任务执行单元（worker）和 任务执行结果存储（task result store）组成。</p>
+<h3 id="消息中间件">消息中间件</h3>
+<p>Celery本身不提供消息服务，但是可以方便的和第三方提供的消息中间件集成。包括，RabbitMQ, Redis等等</p>
+<h3 id="任务执行单元">任务执行单元</h3>
+<p>Worker是Celery提供的任务执行的单元，worker并发的运行在分布式的系统节点中。</p>
+<h3 id="任务结果存储">任务结果存储</h3>
+<p>Task result store用来存储Worker执行的任务的结果，Celery支持以不同方式存储任务的结果，包括AMQP, redis等</p>
+<h3 id="使用场景">使用场景</h3>
+<p>异步任务：将耗时操作任务提交给Celery去异步执行，比如发送短信/邮件、消息推送、音视频处理等等</p>
+<p>定时任务：定时执行某件事情，比如每天数据统计</p>
+<h2 id="三.celery的安装配置">三.Celery的安装配置</h2>
+<p>pip install celery</p>
+<p>消息中间件：RabbitMQ/Redis</p>
+<p>app=Celery('任务名', broker='xxx', backend='xxx')</p>
+<p>例如</p>
+<pre><code><code>broker = &#39;redis://127.0.0.1:6379/11&#39;   #存任务的仓库 redis数据库://ip:地址/第几个库
+backend = &#39;redis://127.0.0.1:6379/12&#39;  #执行结果存储
+include = [&#39;任务的上级目录.任务文件&#39;,]    #任务名传参方式用数组
+app = Celery(broker=broker, backend=backend, include=include)</code></pre>
+<h2 id="四.使用">四.使用</h2>
+<h3 id="目录结构">1.目录结构</h3>
+<pre><code><code>project
+    ├── celery_task # celery包 如果celery_task只是建了普通文件夹__init__可以没有,如果是包一定要有
+    │   ├── __init__.py # 包文件 看情况要不要存在
+    │   ├── celery.py   # celery连接和配置相关文件，且名字必须交celery.py
+    │   └── tasks.py    # 所有任务函数
+    ├── add_task.py     # 添加任务
+    └── get_result.py   # 获取结果</code></pre>
+<h3 id="创建工作任务">2.创建工作任务</h3>
+<p>tasks.py</p>
+<pre><code><code>import time
+@app.task
+def add(n, m):
+    print(n)
+    print(m)
+    time.sleep(10)
+    print(&#39;n+m的结果：%s&#39; % (n + m))
+    return n + m
+
+@app.task
+def low(n, m):
+    print(n)
+    print(m)
+    print(&#39;n-m的结果：%s&#39; % (n - m))
+    return n - m
+
+&#39;&#39;&#39;
+t1 = add.delay(10, 20)
+t2 = low.delay(100, 50)
+print(t1.id)   #添加在这里导入方法的时候直接运行方法
+&#39;&#39;&#39;</code></pre>
+<h3 id="配置任务">3.配置任务</h3>
+<p>celery.py</p>
+<pre><code><code>from celery import Celery
+
+broker = &#39;redis://127.0.0.1:6379/11&#39;   #存任务的仓库 redis数据库://ip:地址/第几个库
+backend = &#39;redis://127.0.0.1:6379/12&#39;  #执行结果存储
+include = [&#39;celery_task.tasks&#39;,]    #任务名传参方式用数组
+app = Celery(broker=broker, backend=backend, include=include)</code></pre>
+<h3 id="启动服务导入方法">4.启动服务导入方法</h3>
+<pre><code><code>#先要cd到根目录如上面的目录的结构移动至project
+# 非windows
+# 命令：celery worker -A celery_task -l info
+# windows：
+# pip3 install eventlet
+# celery worker -A celery_task -l info -P eventlet</code></pre>
+<h3 id="手动添加任务">5.手动添加任务</h3>
+<p><code>add_task.py</code></p>
+<pre><code><code>from  celery_task.tasks import *
+# 添加立即执行任务
+#如果add(10, 20)及在普通环境下运行,celery下运行必须下面的操作
+t1 = add.delay(10, 20)
+t2 = low.delay(100, 50)
+print(t1.id)  
+
+
+# 添加延迟任务
+from datetime import datetime, timedelta
+def eta_second(second):
+    ctime = datetime.now()
+    utc_ctime = datetime.utcfromtimestamp(ctime.timestamp())
+    time_delay = timedelta(seconds=second)
+    return utc_ctime + time_delay
+
+tasks.low.apply_async(args=(200, 50), eta=eta_second(10))</code></pre>
+<p><code>注意</code>:这个手动添加的任务文件千万别和配置任务文件和创建文件放同一目录,不然会发生循环导入</p>
+<h3 id="查看任务进行状态">6.查看任务进行状态</h3>
+<pre><code><code>from celery_task.celery import app
+
+from celery.result import AsyncResult
+
+id = &#39;21325a40-9d32-44b5-a701-9a31cc3c74b5&#39; #这个id可以在上述手动执行方法的结果.id显示出来
+if __name__ == &#39;__main__&#39;:
+    async = AsyncResult(id=id, app=app)
+    if async.successful():
+        result = async.get()
+        print(result)
+    elif async.failed():
+        print(&#39;任务失败&#39;)
+    elif async.status == &#39;PENDING&#39;:
+        print(&#39;任务等待中被执行&#39;)
+    elif async.status == &#39;RETRY&#39;:
+        print(&#39;任务异常后正在重试&#39;)
+    elif async.status == &#39;STARTED&#39;:
+        print(&#39;任务已经开始被执行&#39;)</code></pre>
+<h3 id="定时启动任务">7.定时启动任务</h3>
+<pre><code><code># 1）创建app + 任务
+
+# 2）启动celery(app)服务：
+# 非windows
+# 命令：celery worker -A celery_task -l info
+# windows：
+# pip3 install eventlet
+# celery worker -A celery_task -l info -P eventlet
+
+# 3）添加任务：自动添加任务，所以要启动一个添加任务的服务
+# 命令：celery beat -A celery_task -l info
+
+# 4）获取结果
+
+
+from celery import Celery
+
+broker = &#39;redis://127.0.0.1:6379/1&#39;
+backend = &#39;redis://127.0.0.1:6379/2&#39;
+app = Celery(broker=broker, backend=backend, include=[&#39;celery_task.tasks&#39;])
+
+
+# 时区
+app.conf.timezone = &#39;Asia/Shanghai&#39;
+# 是否使用UTC
+app.conf.enable_utc = False
+
+# 任务的定时配置
+from datetime import timedelta
+from celery.schedules import crontab
+app.conf.beat_schedule = {
+    &#39;low-task&#39;: {   #low-tast名字可以随意
+        &#39;task&#39;: &#39;celery_task.tasks.low&#39;,   #导入方法的路径
+        &#39;schedule&#39;: timedelta(seconds=3),
+        # &#39;schedule&#39;: crontab(hour=8, day_of_week=1),  # 每周一早八点
+        &#39;args&#39;: (300, 150), 
+    }
+}
+
+#上述文件均在配置文件中</code></pre>
+<h3 id="django中的使用">8.django中的使用</h3>
+<pre><code><code># 重点：要将 项目名.settings 所占的文件夹添加到环境变量
+# import sys
+# sys.path.append(r&#39;项目绝对路径&#39;)
+
+# 开启django支持
+import os
+os.environ.setdefault(&#39;DJANGO_SETTINGS_MODULE&#39;, &#39;项目名.settings&#39;)
+import django
+django.setup()
+#在配置文件中或者在导入的方法中,基本上都在配置文件中设置
+#如果下面正常配置报错,一般都是由于项目的setting没有找到,这时候我们要在上面方法配置
+# 将celery服务框架放在项目根目录下
+# import sys
+# sys.path.append(r&#39;项目的路径&#39;)
+
+
+# 1）创建app + 任务
+
+# 2）启动celery(app)服务：
+# 非windows
+# 命令：celery worker -A celery_task -l info
+# windows：
+# pip3 install eventlet
+# celery worker -A celery_task -l info -P eventlet
+
+# 3）添加任务：自动添加任务，所以要启动一个添加任务的服务
+# 命令：celery beat -A celery_task -l info
+
+# 4）获取结果
+
+}</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

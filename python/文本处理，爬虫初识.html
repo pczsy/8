@@ -1,0 +1,218 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修文本处理，爬虫初识' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>文本处理，爬虫初识</center></div><div class='banquan'>原文出处:本文由博客园博主SetCreed提供。<br/>
+原文连接:https://www.cnblogs.com/setcreed/p/11420109.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#文本处理">文本处理</a><ul>
+        <li><a href="#什么是文件">什么是文件</a></li>
+        <li><a href="#什么是文本">什么是文本</a></li>
+        </ul></li>
+        <li><a href="#文本处理-1">文本处理</a></li>
+        <li><a href="#文本处理高级应用">文本处理高级应用</a></li>
+        <li><a href="#文本处理词云">文本处理+词云</a></li>
+        <li><a href="#爬虫初识">爬虫初识</a><ul>
+        <li><a href="#爬取图片">爬取图片</a></li>
+        <li><a href="#爬取视频">爬取视频</a></li>
+        <li><a href="#爬取豆瓣电影信息">爬取豆瓣电影信息</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="文本处理">文本处理</h1>
+<h2 id="什么是文件">什么是文件</h2>
+<p>文件是操作系统虚拟出来的概念，拿来存储信息的</p>
+<h2 id="什么是文本">什么是文本</h2>
+<p>.txt / .word / .md / .py 存储的是文字</p>
+<h1 id="文本处理-1">文本处理</h1>
+<p>如何通过文本编辑器去控制txt文件</p>
+<ul>
+<li>找到路径</li>
+<li>打开文件</li>
+<li>读取/修改操作</li>
+<li>保存</li>
+<li>关闭文件</li>
+</ul>
+<pre><code><code>file_path = &#39;D:\pycharm_project\config.txt&#39;
+f = open(file_path, encoding=&#39;utf8&#39;)  # 把该路径的文件读入内存
+data = f.read()      # 读取文件
+print(data)
+f.close()    # 解除对操作系统的占用</code></pre>
+<p>打开文件的三种操作</p>
+<ul>
+<li>r 只读不可写</li>
+<li>w 只写不可读（清空后写入）</li>
+<li>a 只写不可读（末尾追加）</li>
+</ul>
+<pre><code><code>file_path = &#39;D:\pycharm_project\config.txt&#39;
+f = open(file_path, &#39;r&#39;,encoding=&#39;utf8&#39;)
+print(&#39;f.readable:&#39;,f.readable())
+print(&#39;f.writable:&#39;,f.writable())
+
+# 打印结果：
+f.readable: True
+f.writable: False</code></pre>
+<p>写入文件</p>
+<pre><code><code>file_path = &#39;D:\pycharm_project\config.txt&#39;
+f = open(file_path, &#39;a&#39;,encoding=&#39;utf8&#39;)
+data = f.write(&#39;234&#39;)
+print(data)</code></pre>
+<h1 id="文本处理高级应用">文本处理高级应用</h1>
+<pre><code><code>print(r&#39;\n&#39;)  # \n本来是换行，加上r，变成了\n</code></pre>
+<p>gbk/utf8只针对文本，所以音频通过rb模式读取二进制</p>
+<p>b模式下没有encoding模式，b一般与r / a / w 一起使用</p>
+<pre><code><code>file_path = &#39;D:\pycharm_project\movie.mp4&#39;
+f = open(file_path, &#39;rb&#39;)</code></pre>
+<p>r+可写可读，w+可写可读（清空文件），a+可写可读</p>
+<p><strong>一般不推荐使用可写可读模式</strong></p>
+<p>利用with open 可以自动关闭文件</p>
+<pre><code><code>with open(&#39;D:\pycharm_project\config.txt&#39;, &#39;r+&#39;, encoding=&#39;utf8&#39;) as f:
+    data = f.read()
+    print(data)   # 这个缩进里面的代码都是文件打开的状态，运行到缩进外面会自动关闭文件
+print(123)</code></pre>
+<h1 id="文本处理词云">文本处理+词云</h1>
+<p>步骤：</p>
+<ol>
+<li>读取文件内容</li>
+<li>利用jieba模块对文件内容进行分割</li>
+<li>找到一张词云图的背景图片</li>
+<li>利用wordcloud模块生成词云图</li>
+</ol>
+<pre><code><code>import jieba
+import wordcloud
+import imageio
+
+with open(r&#39;D:\pycharm_project\day05\语录.txt&#39;,&#39;r&#39;,encoding=&#39;utf8&#39;) as f:
+    data = f.read()
+ls = jieba.lcut(data)
+s = &#39; &#39;.join(ls)
+
+img = imageio.imread(r&#39;D:\pycharm_project\33.jpg&#39;)
+w = wordcloud.WordCloud(width=1000,height=1000,font_path=r&#39;C:\Windows\Fonts\STXINWEI.TTF&#39;,background_color=&#39;white&#39;,mask=img)
+w.generate(s)
+w.to_file(&#39;qq.png&#39;)</code></pre>
+<p><img src="./images/文本处理，爬虫初识0.png" alt="词云图" /></p>
+<h1 id="爬虫初识">爬虫初识</h1>
+<ol>
+<li><p>什么是爬虫?</p>
+<p>爬虫指的是爬取数据.</p></li>
+<li><p>什么是数据?</p>
+<p>互联网中能看到的都是数据.</p>
+<p>淘宝的商品信息等...</p>
+<p>爬取某某网站的小视频...</p></li>
+<li><p>爬虫的比喻</p>
+<p>把数据比喻成一座宝藏, 爬虫其实就是在挖取宝藏.</p></li>
+<li><p>爬虫的原理</p>
+<ul>
+<li>发送请求 ---&gt; requests, selenium</li>
+<li>获取数据 ---&gt; 无需自己做</li>
+<li>解析获取有价值的数据 ---&gt; re正则模块(内置)</li>
+<li>保存数据 ---&gt; 文件处理</li>
+</ul></li>
+</ol>
+<h2 id="爬取图片">爬取图片</h2>
+<pre><code><code>import requests
+
+response2 = requests.get(
+    url=&#39;https://timgsa.baidu.com/timg?image&amp;quality=80&amp;size=b9999_10000&amp;sec=1566904515016&amp;di=eda120ed19a6c3734cd82d75d8f51535&amp;imgtype=0&amp;src=http%3A%2F%2Fimg1.mydrivers.com%2Fimg%2F20160128%2F5f400f189753457dbb8f5f09ff25e50b.jpg&#39;
+
+)
+with open(&#39;图片1.jpg&#39;, &#39;wb&#39;) as f:   # wb写入二进制数据流
+    f.write(response2.content)
+    print(&#39;下载成功!&#39;)</code></pre>
+<h2 id="爬取视频">爬取视频</h2>
+<pre><code><code>import requests
+
+response = requests.get(
+    url=&#39;https://video.pearvideo.com/mp4/adshort/20190827/cont-1595412-14312901_adpkg-ad_hd.mp4&#39;
+)
+
+with open(&#39;视频1.mp4&#39;,&#39;wb&#39;) as f:
+    f.write(response.content)
+    print(&#39;下载成功！&#39;)</code></pre>
+<h2 id="爬取豆瓣电影信息">爬取豆瓣电影信息</h2>
+<pre><code><code>
+&#39;&#39;&#39;
+爬取豆瓣电影新片榜详情
+&#39;&#39;&#39;
+
+import requests
+import re
+response = requests.get(
+    url=&#39;https://movie.douban.com/top250&#39;
+)
+
+# 获取响应文本
+# print(response.text)
+
+&#39;&#39;&#39;
+1.电影名称
+2.电影详情页链接
+3.电影评分
+4.电影评价人数
+&#39;&#39;&#39;
+
+# re.findall(&#39;正则匹配规则&#39;, &#39;解析文本&#39;, re.S)
+# .*? 贪婪匹配
+movie_list = re.findall(&#39;&lt;div class=&quot;item&quot;&gt;.*?&lt;a href=&quot;(.*?)&quot;&gt;.*?&lt;span class=&quot;title&quot;&gt;(.*?)&lt;/span&gt;.*?&lt;span class=&quot;rating_num&quot; property=&quot;v:average&quot;&gt;(.*?)&lt;/span&gt;.*?&lt;span&gt;(.*?)人评价&lt;/span&gt;&#39;, response.text, re.S)
+
+num = 1
+for line in movie_list:
+    movie_url = line[0]
+    movie_name = line[1]
+    movie_point = line[2]
+    movie_count = line[3]
+    print(f&#39;{num}.{movie_url},电影名字：{movie_name},评分：{movie_point},评价人数：{movie_count}&#39;)
+    num += 1
+
+
+    
+# 打印结果：
+1.https://movie.douban.com/subject/1292052/,电影名字：肖申克的救赎,评分：9.7,评价人数：1569877
+2.https://movie.douban.com/subject/1291546/,电影名字：霸王别姬,评分：9.6,评价人数：1159637
+3.https://movie.douban.com/subject/1292720/,电影名字：阿甘正传,评分：9.5,评价人数：1221601
+4.https://movie.douban.com/subject/1295644/,电影名字：这个杀手不太冷,评分：9.4,评价人数：1413306
+5.https://movie.douban.com/subject/1292063/,电影名字：美丽人生,评分：9.5,评价人数：715179
+6.https://movie.douban.com/subject/1292722/,电影名字：泰坦尼克号,评分：9.4,评价人数：1163959
+7.https://movie.douban.com/subject/1291561/,电影名字：千与千寻,评分：9.3,评价人数：1254774
+8.https://movie.douban.com/subject/1295124/,电影名字：辛德勒的名单,评分：9.5,评价人数：633659
+9.https://movie.douban.com/subject/3541415/,电影名字：盗梦空间,评分：9.3,评价人数：1207515
+10.https://movie.douban.com/subject/3011091/,电影名字：忠犬八公的故事,评分：9.3,评价人数：809641
+11.https://movie.douban.com/subject/2131459/,电影名字：机器人总动员,评分：9.3,评价人数：801051
+12.https://movie.douban.com/subject/3793023/,电影名字：三傻大闹宝莱坞,评分：9.2,评价人数：1093201
+13.https://movie.douban.com/subject/1291549/,电影名字：放牛班的春天,评分：9.3,评价人数：761018
+14.https://movie.douban.com/subject/1292001/,电影名字：海上钢琴师,评分：9.2,评价人数：884940
+15.https://movie.douban.com/subject/1292064/,电影名字：楚门的世界,评分：9.2,评价人数：847507
+16.https://movie.douban.com/subject/1889243/,电影名字：星际穿越,评分：9.3,评价人数：869189
+17.https://movie.douban.com/subject/1292213/,电影名字：大话西游之大圣娶亲,评分：9.2,评价人数：850347
+18.https://movie.douban.com/subject/1291560/,电影名字：龙猫,评分：9.2,评价人数：749971
+19.https://movie.douban.com/subject/5912992/,电影名字：熔炉,评分：9.3,评价人数：503261
+20.https://movie.douban.com/subject/1291841/,电影名字：教父,评分：9.3,评价人数：544360
+21.https://movie.douban.com/subject/1307914/,电影名字：无间道,评分：9.2,评价人数：698197
+22.https://movie.douban.com/subject/25662329/,电影名字：疯狂动物城,评分：9.2,评价人数：981830
+23.https://movie.douban.com/subject/1849031/,电影名字：当幸福来敲门,评分：9.1,评价人数：885025
+24.https://movie.douban.com/subject/3319755/,电影名字：怦然心动,评分：9.0,评价人数：989998
+25.https://movie.douban.com/subject/6786002/,电影名字：触不可及,评分：9.2,评价人数：577088</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

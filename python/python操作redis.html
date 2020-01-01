@@ -1,0 +1,514 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python操作redis' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python操作redis</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11750081.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#安装依赖">安装依赖</a></li>
+        <li><a href="#连接方式">连接方式</a><ul>
+        <li><a href="#操作模式">操作模式</a></li>
+        <li><a href="#连接池">连接池</a></li>
+        </ul></li>
+        <li><a href="#五大数据类型操作">五大数据类型操作</a><ul>
+        <li><a href="#string操作">String操作</a></li>
+        <li><a href="#hash操作">Hash操作</a></li>
+        <li><a href="#list操作">List操作</a></li>
+        <li><a href="#set操作">Set操作</a></li>
+        <li><a href="#有序集合">有序集合</a></li>
+        <li><a href="#管道">管道</a></li>
+        <li><a href="#发布订阅">发布订阅</a></li>
+        <li><a href="#sentinel">sentinel</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="安装依赖">安装依赖</h1>
+<p><code>pip install redis</code></p>
+<h1 id="连接方式">连接方式</h1>
+<h2 id="操作模式">操作模式</h2>
+<p>redis-py提供两个类Redis和StrictRedis用于实现Redis的命令，StrictRedis用于实现大部分官方的命令，并使用官方的语法和命令，Redis是StrictRedis的子类，用于向后兼容旧版本的redis-py</p>
+<pre><code><code>import redis
+
+r = redis.Redis(host=&#39;127.0.0.1&#39;, port=6379, password=&#39;123456&#39;)
+r.set(&#39;foo&#39;, &#39;bar&#39;)
+print(r.get(&#39;foo&#39;))  # &#39;bar&#39;</code></pre>
+<h2 id="连接池">连接池</h2>
+<p>redis-py使用connection pool来管理对一个redis server的所有连接，避免每次建立、释放连接的开销。默认，每个Redis实例都会维护一个自己的连接池。可以直接建立一个连接池，然后作为参数Redis，这样就可以实现多个Redis实例共享一个连接池</p>
+<pre><code><code>import redis
+
+pool = redis.ConnectionPool(host=&#39;127.0.0.1&#39;, port=6379, password=&#39;123456&#39;)
+
+r = redis.Redis(connection_pool=pool)
+r.set(&#39;foo&#39;, &#39;bar&#39;)
+print(r.get(&#39;foo&#39;))  # &#39;bar&#39;</code></pre>
+<h1 id="五大数据类型操作">五大数据类型操作</h1>
+<h2 id="string操作">String操作</h2>
+<p>String操作，redis中的String在在内存中按照一个name对应一个value来存储</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">name ------------------ value<br /> n1 ------------------ v1<br /> n2 ------------------ v2<br /> n3 ------------------ v3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p><code>set(name, value, ex=None, px=None, nx=False, xx=False)</code>：在Redis中设置值，默认，不存在则创建，存在则修改</p>
+<p>参数：<br />
+ex：过期时间（秒）</p>
+<p>​ px：过期时间（毫秒）</p>
+<p>​ nx：如果设置为True，则只有name不存在时，当前set操作才执行</p>
+<p>​ xx：如果设置为True，则只有name存在时，岗前set操作才执行</p></li>
+<li><p><code>setnx(name, value)</code>： 设置值，只有name不存在时，执行设置操作（添加）</p></li>
+<li><p><code>setex(name, value, time)</code>：设置值</p>
+<p>参数：</p>
+<p>​ time：过期时间（数字毫秒 或 timedelta对象）</p></li>
+<li><p><code>psetex(name, time_ms, value)</code>：设置值</p>
+<p>参数：</p>
+<p>​ time_ms：过期时间（数字毫秒 或 timedelta对象）</p></li>
+<li><p><code>mset(*args, **kwargs)</code>：批量设置值</p>
+<pre><code><code>mset(k1=&#39;v1&#39;, k2=&#39;v2&#39;)
+mget({&#39;k1&#39;: &#39;v1&#39;, &#39;k2&#39;: &#39;v2&#39;})</code></pre></li>
+<li><p><code>get(name)</code>：获取值</p></li>
+<li><p><code>mget(keys, *args)</code>：批量获取</p>
+<pre><code><code>mget(&#39;ylr&#39;, &#39;wupeiqi&#39;)
+或
+r.mget([`&#39;ylr&#39;, &#39;wupeiqi&#39;])</code></pre></li>
+<li><p><code>getset(name, value)</code>：设置新值并获取原来的值</p></li>
+<li><p><code>getrange(key, start, end)</code>：获取子序列（根据字节获取，非字符）</p>
+<p>参数：<br />
+name：Redis 的 name<br />
+start：起始位置（字节）<br />
+end：结束位置（字节）如： &quot;武沛齐&quot; ，0-3表示 &quot;武&quot;</p></li>
+<li><p><code>setrange(name, offset, value)</code>：修改字符串内容，从指定字符串索引开始向后替换（新值太长时，则向后添加）</p>
+<p>参数：<br />
+offset：字符串的索引，字节（一个汉字三个字节）<br />
+value：要设置的值</p></li>
+<li><p><code>setbit(name, offset, value)</code>：对name对应值的二进制表示的位进行操作</p>
+<p>参数：<br />
+name：redis的name<br />
+offset：位的索引（将值变换成二进制后再进行索引）<br />
+value：值只能是 1 或 0<br />
+<strong>注：</strong>如果在Redis中有一个对应： <code>n1 = &quot;foo&quot;</code>，那么字符串foo的二进制表示为：<code>01100110 01101111 01101111</code>，所以，如果执行<code>setbit('n1', 7, 1)</code>，则就会将第7位设置为1，那么最终二进制则变成 <code>01100111 01101111 01101111</code>，即：&quot;goo&quot;<br />
+<strong>扩展，转换二进制表示：</strong></p>
+<pre><code><code># source = &quot;武沛齐&quot;
+source = &quot;foo&quot;
+for i in source:
+  num = ord(i)
+  print bin(num).replace(&#39;b&#39;,&#39;&#39;)
+
+&quot;&quot;&quot;
+特别的，如果source是汉字 &quot;武沛齐&quot;怎么办？    
+
+答：对于utf-8，每一个汉字占 3个字节，那么 &quot;武沛齐&quot; 则有 9个字节
+对于汉字，for循环时候会按照 字节 迭代，那么在迭代时，将每一个字节转换 十进制数，然后再将十进制数转换成二进制
+
+11100110 10101101 10100110 11100110 10110010 10011011 11101001 10111101 10010000
+            武                         沛                           齐
+&quot;&quot;&quot;</code></pre></li>
+<li><p><code>getbit(name, offset)</code>：获取name对应的值的二进制表示中的某位的值 （0或1）</p></li>
+<li><p><code>bitcount(key, start=None, end=None)</code>：获取name对应的值的二进制表示中 1 的个数<br />
+参数：<br />
+key：Redis的name<br />
+start：位起始位置<br />
+end：位结束位置</p></li>
+<li><p><code>bitop(operation, dest, *keys)</code>：获取多个值，并将值做位运算，将最后的结果保存至新的name对应的值<br />
+参数：<br />
+operation：AND（并）、OR（或）、 NOT（非）、XOR（异或）<br />
+dest：新的Redis的name<br />
+*keys：要查找的Redis的name，如：<code>bitop(&quot;AND&quot;, 'new_name', 'n1', 'n2', 'n3')</code>，获取Redis中n1,n2,n3对应的值，然后讲所有的值做位运算（求并集），然后将结果保存 new_name 对应的值中</p></li>
+<li><p><code>strlen(name)</code>：返回name对应值的字节长度（一个汉字3个字节）</p></li>
+<li><p><code>incr(self, name, amount=1)</code>：自增 name对应的值，当name不存在时，则创建name＝amount，否则，则自增<br />
+参数：<br />
+name：Redis的name<br />
+amount：自增数（必须是整数）<br />
+<strong>注：</strong>同incrby</p></li>
+<li><p><code>incrbyfloat(self, name, amount=1.0)</code>：自增 name对应的值，当name不存在时，则创建name＝amount，否则，则自增<br />
+参数：<br />
+name：Redis的name<br />
+amount：自增数（浮点型）</p></li>
+<li><p><code>decr(self, name, amount=1)</code>：自减 name对应的值，当name不存在时，则创建name＝amount，否则，则自减</p>
+<p>参数：<br />
+name：Redis的name<br />
+amount：自减数（整数）</p></li>
+<li><p><code>append(key, value)</code>：在redis name对应的值后面追加内容<br />
+参数：<br />
+key：redis的name<br />
+value：要追加的字符串　</p></li>
+</ul>
+<h2 id="hash操作">Hash操作</h2>
+<p>redis中Hash在内存中的存储格式如下：</p>
+<table>
+<thead>
+<tr class="header">
+<th>name ---------------- hash<br/> n1 ---------------- k1 ---- v1<br/> k2 ---- v2<br/> k3 ---- v3<br/> <br/> n2 ---------------- m1 ---- v12<br/> m2 ---- v15</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p><code>hset(name, key, value)</code>：name对应的hash中设置一个键值对（不存在，则创建；否则，修改）</p>
+<p>参数<br />
+name：redis的name<br />
+key：name对应的hash中的key<br />
+value：name对应的hash中的value<br />
+<strong>注：</strong><code>hsetnx(name, key, value)</code>,当name对应的hash中不存在当前key时则创建（相当于添加）</p></li>
+<li><p><code>hmset(name, mapping)</code>：在name对应的hash中批量设置键值对<br />
+参数：<br />
+name：redis的name<br />
+mapping：字典，如：<code>{'k1':'v1', 'k2': 'v2'}</code><br />
+如：<code>r.hmset('xx', {'k1':'v1', 'k2': 'v2'})</code></p></li>
+<li><p><code>hget(name,key)</code>:在name对应的hash中获取根据key获取value</p></li>
+<li><p><code>hmget(name, keys, *args)</code>：在name对应的hash中获取多个key的值<br />
+参数：<br />
+name：reids对应的name<br />
+keys：要获取key集合，如：<code>['k1', 'k2', 'k3']</code><br />
+*args：要获取的key，如：<code>k1,k2,k3</code><br />
+如：<code>r.mget('xx', ['k1', 'k2'])</code>或<code>print r.hmget('xx', 'k1', 'k2')</code></p></li>
+<li><p><code>hgetall(name)</code>：获取name对应<code>hash</code>的所有键值</p></li>
+<li><p><code>hlen(name)</code>： 获取name对应的hash中键值对的个数</p></li>
+<li><p><code>hkeys(name)</code>：获取name对应的hash中所有的key的值</p></li>
+<li><p><code>hvals(name)</code>：获取name对应的hash中所有的value的值</p></li>
+<li><p><code>hexists(name, key)</code>：检查name对应的hash是否存在当前传入的key`</p></li>
+<li><p><code>hdel(name, *keys)</code>：将name对应的hash中指定key的键值对删除</p></li>
+<li><p><code>hincrby(name, key, amount=1)</code>：自增name对应的hash中的指定key的值，不存在则创建key=amount<br />
+参数：<br />
+name：redis中的name<br />
+key：hash对应的key<br />
+amount：自增数（整数）</p></li>
+<li><p><code>hincrbyfloat(name, key, amount=1.0)</code>：自增name对应的hash中的指定key的值，不存在则创建key=amount<br />
+参数：<br />
+name：redis中的name<br />
+key：hash对应的key<br />
+amount：自增数（浮点数）<br />
+<strong>注：</strong>自增name对应的hash中的指定key的值，不存在则创建key=amount</p></li>
+<li><code>hscan(name, cursor=0, match=None, count=None)</code>：增量式迭代获取，对于数据大的数据非常有用，hscan可以实现分片的获取数据，并非一次性将数据全部获取完，从而放置内存被撑爆<br />
+参数：<br />
+name：redis的name<br />
+cursor：游标（基于游标分批取获取数据）<br />
+match：匹配指定key，默认None 表示所有的key<br />
+count：每次分片最少获取个数，默认None表示采用Redis的默认分片个数<br />
+如：</li>
+</ul>
+<pre><code><code># 第一次：cursor1, data1 = r.hscan(&#39;xx&#39;, cursor=0, match=None, count=None)
+# 第二次：cursor2, data1 = r.hscan(&#39;xx&#39;, cursor=cursor1, match=None, count=None)
+# ...
+# 直到返回值cursor的值为0时，表示数据已经通过分片获取完毕</code></pre>
+<ul>
+<li><p><code>hscan_iter(name, match=None, count=None)</code>：利用yield封装hscan创建生成器，实现分批去redis中获取数据<br />
+参数：<br />
+match：匹配指定key，默认None 表示所有的key<br />
+count：每次分片最少获取个数，默认None表示采用Redis的默认分片个数<br />
+如：</p>
+<pre><code><code>for item in r.hscan_iter(&#39;xx&#39;):
+  print item</code></pre></li>
+</ul>
+<h2 id="list操作">List操作</h2>
+<p>redis中的List在在内存中按照一个name对应一个List来存储。</p>
+<table>
+<thead>
+<tr class="header">
+<th>name ---------------------- values<br /> n1 ---------------------- [v1, v2, ....]<br /> n2 ---------------------- [v1, v2, ....]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p><code>lpush(name,values)</code>：在name对应的list中添加元素，每个新的元素都添加到列表的最左边<br />
+如<code>r.lpush('oo', 11,22,33)</code>， 保存顺序为: <code>33,22,11</code><br />
+扩展：<code>rpush(name, values)</code> 表示从右向左操作</p></li>
+<li><p><code>lpushx(name,value)</code>：在name对应的list中添加元素，只有name已经存在时，值添加到列表的最左边<br />
+更多: <code>rpushx(name, value)</code> 表示从右向左操作</p></li>
+<li><p><code>llen(name)</code>：name对应的list元素的个数</p></li>
+<li><p><code>linsert(name, where, refvalue, value))</code>：在name对应的列表的某一个值前或后插入一个新值<br />
+参数：<br />
+name：redis的name<br />
+where：BEFORE或AFTER<br />
+refvalue：标杆值，即：在它前后插入数据<br />
+value：要插入的数据</p></li>
+<li><p><code>r.lset(name, index, value)</code>：对name对应的list中的某一个索引位置重新赋值<br />
+参数：<br />
+name：redis的name<br />
+index：list的索引位置<br />
+value：要设置的值</p></li>
+<li><p><code>r.lrem(name, value, num)</code>：在name对应的list中删除指定的值<br />
+参数：<br />
+name：redis的name<br />
+value：要删除的值<br />
+num：</p>
+<p>​ num=0，删除列表中所有的指定值<br />
+​ num=2,从前到后，删除2个<br />
+​ num=-2,从后向前，删除2个</p></li>
+<li><p><code>lpop(name)</code>：在name对应的列表的左侧获取第一个元素并在列表中移除，返回值则是第一个元素<br />
+更多：<code>rpop(name)</code> 表示从右向左操作</p></li>
+<li><p><code>lindex(name, index)</code>：在name对应的列表中根据索引获取列表元素</p></li>
+<li><p><code>lrange(name, start, end)</code>：在name对应的列表分片获取数据<br />
+参数：<br />
+name：redis的name<br />
+start：索引的起始位置<br />
+end：索引结束位置</p></li>
+<li><p><code>ltrim(name, start, end)</code>：在name对应的列表中移除没有在start-end索引之间的值<br />
+参数：<br />
+name：redis的name<br />
+start：索引的起始位置<br />
+end：索引结束位置</p></li>
+<li><p><code>rpoplpush(src, dst)</code>： 从一个列表取出最右边的元素，同时将其添加至另一个列表的最左边<br />
+参数：<br />
+src：要取数据的列表的name<br />
+dst：要添加数据的列表的name`</p></li>
+<li><p><code>blpop(keys, timeout)</code>：将多个列表排列，按照从左到右去pop对应列表的元素<br />
+参数<br />
+keys：redis的name的集合<br />
+timeout：超时时间，当元素所有列表的元素获取完之后，阻塞等待列表内有数据的时间（秒）, 0 表示永远阻塞<br />
+更多：<code>r.brpop(keys, timeout)</code>，从右向左获取数据</p></li>
+<li><p><code>brpoplpush(src, dst, timeout=0)</code>：从一个列表的右侧移除一个元素并将其添加到另一个列表的左侧<br />
+参数：<br />
+src：取出并要移除元素的列表对应的name<br />
+dst：要插入元素的列表对应的name<br />
+timeout：当src对应的列表中没有数据时，阻塞等待其有数据的超时时间（秒），0 表示永远阻塞</p></li>
+<li>自定义增量迭代： 由于redis类库中没有提供对列表元素的增量迭代，如果想要循环name对应的列表的所有元素，那么就需要：
+<ol>
+<li>获取name对应的所有列表</li>
+<li>循环列表<br />
+但是，如果列表非常大，那么就有可能在第一步时就将程序的内容撑爆，所有有必要自定义一个增量迭代的功能：</li>
+</ol>
+<pre><code><code>def list_iter(name):
+&quot;&quot;&quot;
+自定义redis列表增量迭代
+:param name: redis中的name，即：迭代name对应的列表
+:return: yield 返回 列表元素
+&quot;&quot;&quot;
+  list_count = r.llen(name)
+  for index in xrange(list_count):
+      yield r.lindex(name, index)
+# 使用
+for item in list_iter(&#39;pp&#39;):
+  print(item)</code></pre></li>
+</ul>
+<h2 id="set操作">Set操作</h2>
+<p>Set集合就是不允许重复的列表</p>
+<ul>
+<li><p><code>sadd(name,values)</code>： name对应的集合中添加元素</p></li>
+<li><p><code>scard(name)</code>：获取name对应的集合中元素个数</p></li>
+<li><p><code>sdiff(keys, *args)</code>：在第一个name对应的集合中且不在其他name对应的集合的元素集合</p></li>
+<li><p><code>sdiffstore(dest, keys, *args)</code>：获取第一个name对应的集合中且不在其他name对应的集合，再将其新加入到dest对应的集合中</p></li>
+<li><p><code>sinter(keys, *args)</code>：获取多一个name对应集合的并集</p></li>
+<li><p><code>sinterstore(dest, keys, *args)</code>：获取多一个name对应集合的并集，再讲其加入到dest对应的集合中</p></li>
+<li><p><code>sismember(name, value)</code>：检查value是否是name对应的集合的成员</p></li>
+<li><p><code>smembers(name)</code>：获取name对应的集合的所有成员</p></li>
+<li><p><code>smove(src, dst, value)</code>：将某个成员从一个集合中移动到另外一个集合</p></li>
+<li><p><code>spop(name)</code>：从集合的右侧（尾部）移除一个成员，并将其返回</p></li>
+<li><p><code>srandmember(name, numbers)</code>：从name对应的集合中随机获取 numbers 个元素</p></li>
+<li><code>srem(name, values)</code>：在name对应的集合中删除某些值</li>
+<li><p><code>sunion(keys, *args)</code>：获取多一个name对应的集合的并集</p></li>
+<li><p><code>sunionstore(dest,keys, *args)</code>：获取多一个name对应的集合的并集，并将结果保存到dest对应的集合中</p></li>
+<li><code>sscan(name, cursor=0, match=None, count=None)</code></li>
+<li><p><code>sscan_iter(name, match=None, count=None)</code>： 同字符串的操作，用于增量迭代分批获取元素，避免内存消耗太大</p></li>
+</ul>
+<h2 id="有序集合">有序集合</h2>
+<p>在集合的基础上，为每元素排序；元素的排序需要根据另外一个值来进行比较，所以，对于有序集合，每一个元素有两个值，即：值和分数，分数专门用来做排序。</p>
+<ul>
+<li><p><code>zadd(name, *args, **kwargs)</code>：在name对应的有序集合中添加元素<br />
+如:<code>zadd('zz', 'n1', 1, 'n2', 2)</code>或<code>zadd('zz', n1=11, n2=22)</code></p></li>
+<li><p><code>zcard(name)</code>：获取name对应的有序集合元素的数量</p></li>
+<li><p><code>zcount(name, min, max)</code>：获取name对应的有序集合中分数 在 [min,max] 之间的个数</p></li>
+<li><p><code>zincrby(name, value, amount)</code>：自增name对应的有序集合的 name 对应的分数</p></li>
+<li><p><code>r.zrange( name, start, end, desc=False, withscores=False, score_cast_func=float)</code>：按照索引范围获取name对应的有序集合的元素<br />
+参数：<br />
+name：redis的name<br />
+start：有序集合索引起始位置（非分数）<br />
+end：有序集合索引结束位置（非分数）<br />
+desc：排序规则，默认按照分数从小到大排序<br />
+withscores：是否获取元素的分数，默认只获取元素的值<br />
+score_cast_func：对分数进行数据转换的函数<br />
+更多：<br />
+从大到小排序：<code>zrevrange(name, start, end, withscores=False, score_cast_func=float)</code><br />
+按照分数范围获取name对应的有序集合的元素：<code>zrangebyscore(name, min, max, start=None, num=None, withscores=False, score_cast_func=float)</code><br />
+从大到小排序： <code>zrevrangebyscore(name, max, min, start=None, num=None, withscores=False, score_cast_func=float)</code></p></li>
+<li><p><code>zrank(name, value)</code>：获取某个值在 name对应的有序集合中的排行（从 0 开始）<br />
+更多：<br />
+<code>zrevrank(name, value)</code>，从大到小排序</p></li>
+<li><p><code>zrangebylex(name, min, max, start=None, num=None)</code>：当有序集合的所有成员都具有相同的分值时，有序集合的元素会根据成员的 值 （lexicographical ordering）来进行排序，而这个命令则可以返回给定的有序集合键 key 中， 元素的值介于 min 和 max 之间的成员<br />
+对集合中的每个成员进行逐个字节的对比（byte-by-byte compare）， 并按照从低到高的顺序， 返回排序后的集合成员。 如果两个字符串有一部分内容是相同的话， 那么命令会认为较长的字符串比较短的字符串要大<br />
+参数：<br />
+name：redis的name<br />
+min：左区间（值）。<br />
++ 表示正无限；<br />
+- 表示负无限；<br />
+( 表示开区间；<br />
+[ 则表示闭区间<br />
+max：右区间（值）<br />
+start：对结果进行分片处理，索引位置<br />
+num：对结果进行分片处理，索引后面的num个元素<br />
+如：<code>ZADD myzset 0 aa 0 ba 0 ca 0 da 0 ea 0 fa 0 ga</code><br />
+<code>r.zrangebylex('myzset', &quot;-&quot;, &quot;[ca&quot;)</code> 结果为：<code>['aa', 'ba', 'ca']</code><br />
+更多：<br />
+从大到小排序<code>zrevrangebylex(name, max, min, start=None, num=None)</code></p></li>
+<li><p><code>zrem(name, values)</code>：删除name对应的有序集合中值是values的成员</p>
+<p>如：<code>zrem('zz', ['s1', 's2'])</code></p></li>
+<li><p><code>zremrangebyrank(name, min, max)</code>：根据排行范围删除</p></li>
+<li><p><code>zremrangebyscore(name, min, max)</code>：根据分数范围删除</p></li>
+<li><p><code>zremrangebylex(name, min, max)</code>：根据值返回删除</p></li>
+<li><p><code>zscore(name, value)</code>：获取name对应有序集合中 value 对应的分数</p></li>
+<li><p><code>zinterstore(dest, keys, aggregate=None)</code>： 获取两个有序集合的交集，如果遇到相同值不同分数，则按照aggregate进行操作</p>
+<p>aggregate的值为: SUM MIN MAX</p></li>
+<li><p><code>zunionstore(dest, keys, aggregate=None)</code>：获取两个有序集合的并集，如果遇到相同值不同分数，则按照aggregate进行操作</p>
+<p>aggregate的值为: SUM MIN MAX</p></li>
+<li><p><code>zscan(name, cursor=0, match=None, count=None, score_cast_func=float)</code><br />
+<code>zscan_iter(name, match=None, count=None,score_cast_func=float)</code>：同字符串相似，相较于字符串新增score_cast_func，用来对分数进行操作</p></li>
+<li><p>其他常用操作</p>
+<ul>
+<li><p><code>delete(*names)</code>：根据删除redis中的任意数据类型</p></li>
+<li><p><code>exists(name)</code>：检测redis的name是否存在</p></li>
+<li><p><code>keys(pattern='*')</code>：根据模型获取redis的name<br />
+更多：<br />
+<code>KEYS \*</code>：匹配数据库中所有 key 。<br />
+<code>KEYS h?llo</code>： 匹配 hello ， hallo 和 hxllo 等。<br />
+<code>KEYS h\*llo</code> ：匹配 hllo 和 heeeeello 等。<br />
+<code>KEYS h[ae]llo</code>：匹配 hello 和 hallo ，但不匹配 hillo</p></li>
+<li><p><code>expire(name ,time)</code>：为某个redis的某个name设置超时时间</p></li>
+<li><p><code>rename(src, dst)</code>：对redis的name重命名为</p></li>
+<li><p><code>move(name, db))</code>：将redis的某个值移动到指定的db下</p></li>
+<li><p><code>randomkey()</code>：随机获取一个redis的name（不删除）</p></li>
+<li><p><code>type(name)</code>：获取name对应值的类型</p></li>
+<li><p><code>scan(cursor=0, match=None, count=None)</code><br />
+<code>scan_iter(match=None, count=None)</code>：同字符串操作，用于增量迭代获取key</p></li>
+</ul></li>
+</ul>
+<h2 id="管道">管道</h2>
+<p>redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。</p>
+<pre><code><code>import redis
+
+pool = redis.ConnectionPool(host=&#39;10.211.55.4&#39;, port=6379)
+r = redis.Redis(connection_pool=pool)
+
+# pipe = r.pipeline(transaction=False)
+pipe = r.pipeline(transaction=True)
+pipe.multi()
+
+pipe.set(&#39;name&#39;, &#39;alex&#39;)
+pipe.set(&#39;role&#39;, &#39;sb&#39;)
+
+pipe.execute()</code></pre>
+<p>实现计数器</p>
+<pre><code><code>import redis
+
+conn = redis.Redis(host=&#39;192.168.1.41&#39;,port=6379)
+conn.set(&#39;count&#39;,1000)
+
+with conn.pipeline() as pipe:
+
+    # 先监视，自己的值没有被修改过
+    conn.watch(&#39;count&#39;)
+
+    # 事务开始
+    pipe.multi()
+    old_count = conn.get(&#39;count&#39;)
+    count = int(old_count)
+    if count &gt; 0:  # 有库存
+        pipe.set(&#39;count&#39;, count - 1)
+
+    # 执行，把所有命令一次性推送过去
+    pipe.execute()</code></pre>
+<h2 id="发布订阅">发布订阅</h2>
+<p><img src="./images/python操作redis0.png" /></p>
+<p>发布者：服务器</p>
+<p>订阅者：Dashboad和数据处理</p>
+<p>Demo如下：</p>
+<pre><code><code># RedisHelper
+
+import redis
+
+class RedisHelper:
+
+    def __init__(self):
+        self.__conn = redis.Redis(host=&#39;10.211.55.4&#39;)
+        self.chan_sub = &#39;fm104.5&#39;
+        self.chan_pub = &#39;fm104.5&#39;
+
+    def public(self, msg):
+        self.__conn.publish(self.chan_pub, msg)
+        return True
+
+    def subscribe(self):
+        pub = self.__conn.pubsub()
+        pub.subscribe(self.chan_sub)
+        pub.parse_response()
+        return pub</code></pre>
+<p>订阅者：</p>
+<pre><code><code>from monitor.RedisHelper import RedisHelper
+
+obj = RedisHelper()
+redis_sub = obj.subscribe()
+
+while True:
+  msg = redis_sub.parse_response() 
+  print(msg)</code></pre>
+<p>发布者：</p>
+<pre><code><code>from monitor.RedisHelper import RedisHelper
+
+obj = RedisHelper()
+obj.public(&#39;hello&#39;)</code></pre>
+<h2 id="sentinel">sentinel</h2>
+<p>redis重的sentinel主要用于在redis主从复制中，如果master顾上，则自动将slave替换成master</p>
+<pre><code><code>from redis.sentinel import Sentinel
+
+# 连接哨兵服务器(主机名也可以用域名)
+sentinel = Sentinel([
+  (&#39;10.211.55.20&#39;, 26379),
+  (&#39;10.211.55.20&#39;, 26380)
+], socket_timeout=0.5)
+
+# 获取主服务器地址
+# master = sentinel.discover_master(&#39;mymaster&#39;)
+# print(master)
+
+
+# 获取从服务器地址
+# slave = sentinel.discover_slaves(&#39;mymaster&#39;)
+# print(slave)
+
+
+# 获取主服务器进行写入
+# master = sentinel.master_for(&#39;mymaster&#39;)# master.set(&#39;foo&#39;, &#39;bar&#39;)
+
+
+# 获取从服务器进行读取（默认是round-roubin）
+# slave = sentinel.slave_for(&#39;mymaster&#39;, password=&#39;redis_auth_pass&#39;)
+# r_ret = slave.get(&#39;foo&#39;)# print(r_ret)
+</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

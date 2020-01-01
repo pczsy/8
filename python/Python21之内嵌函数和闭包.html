@@ -1,0 +1,73 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python21之内嵌函数和闭包' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python21之内嵌函数和闭包</center></div><div class='banquan'>原文出处:本文由博客园博主柯珂柯珂提供。<br/>
+原文连接:https://www.cnblogs.com/ksht-wdyx/p/11340412.html</div><br>
+    <p>一、内嵌函数</p>
+<p>　　内嵌函数指的是在一个函数体内部定义的函数，可以称它为函数的函数，也就是子函数，外部的函数称之为母函数，就类似局部变量和全局变量</p>
+<p>子函数体内定义的变量只在其函数内部有效，但其内部可以调用母函数定义的变量，但无法直接修改母函数体内定义的变量。</p>
+<p>&nbsp;</p>
+<p>二、闭包</p>
+<p>　　闭包是一种满足特定要求的内嵌函数（子函数），其外部的函数称为母函数，则当子函数体内有对母函数体内定义的变量的引用时我们称这个子函数为一个闭包</p>
+<p>但当母函数和其闭包都定义了参数时，由于在母函数体外是无法直接对闭包进行函数的调用的，为了能够实现对闭包的调用，需要在母函数内增加一条返回闭包函数名本身的语句，这个时候调用母函数后返回的是一个闭包的函数对象，就可以通过这种方法间接的调用闭包函数</p>
+<p>　　下诉代码中，我们也可以使用fun1(7)(8)</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('f76bcf00-0877-4a97-8fb0-c2cd86aca6a5')"><img id="code_img_closed_f76bcf00-0877-4a97-8fb0-c2cd86aca6a5" class="code_img_closed" src="./images/Python21之内嵌函数和闭包0.png" alt="" /><img id="code_img_opened_f76bcf00-0877-4a97-8fb0-c2cd86aca6a5" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('f76bcf00-0877-4a97-8fb0-c2cd86aca6a5',event)" src="./images/Python21之内嵌函数和闭包1.png" alt="" />
+<div id="cnblogs_code_open_f76bcf00-0877-4a97-8fb0-c2cd86aca6a5" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> fun1(x):
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> fun2(y):
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">return</span> x*<span style="color: #000000;">y
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> fun2
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> i = fun1(7<span style="color: #000000;">)
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">type(i)
+</span><span style="color: #008080;"> 8</span> &lt;<span style="color: #0000ff;">class</span> <span style="color: #800000;">'</span><span style="color: #800000;">function</span><span style="color: #800000;">'</span>&gt;
+<span style="color: #008080;"> 9</span> i(8<span style="color: #000000;">)
+</span><span style="color: #008080;">10</span> 56</pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>&nbsp;</p>
+<p>三、在<span style="color: #ff0000;">内嵌函数中（子函数）</span>修改<span style="color: #ff0000;">外部函数（母函数）</span>的变量的进行修改</p>
+<p>　　Python3可以实现，多使用一条声明语句：<span style="color: #ff0000;">nonlocal &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 注意与global语句的区别，global语句是在函数体内修改全局变量的值，</span></p>
+<p><span style="color: #ff0000;">　　格式：nonlocal 外部函数的变量名</span></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('2ecfe946-b64f-49b4-a836-c8953ceb3a98')"><img id="code_img_closed_2ecfe946-b64f-49b4-a836-c8953ceb3a98" class="code_img_closed" src="./images/Python21之内嵌函数和闭包0.png" alt="" /><img id="code_img_opened_2ecfe946-b64f-49b4-a836-c8953ceb3a98" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('2ecfe946-b64f-49b4-a836-c8953ceb3a98',event)" src="./images/Python21之内嵌函数和闭包1.png" alt="" />
+<div id="cnblogs_code_open_2ecfe946-b64f-49b4-a836-c8953ceb3a98" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">def</span><span style="color: #000000;"> mother():
+</span><span style="color: #008080;"> 2</span>     var = 110
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">mother中的var的值为</span><span style="color: #800000;">'</span><span style="color: #000000;">,var)
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">def</span><span style="color: #000000;"> son():
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">        nonlocal var
+</span><span style="color: #008080;"> 6</span>         var = 119
+<span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Son中的var的值为</span><span style="color: #800000;">'</span><span style="color: #000000;">,var)
+</span><span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">函数中的var的值为</span><span style="color: #800000;">'</span><span style="color: #000000;">,var)
+</span><span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> son
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span>     
+<span style="color: #008080;">12</span> &gt;&gt;&gt;<span style="color: #000000;"> mother()()
+</span><span style="color: #008080;">13</span> mother中的var的值为 110
+<span style="color: #008080;">14</span> 函数中的var的值为 110
+<span style="color: #008080;">15</span> Son中的var的值为 119
+<span style="color: #008080;">16</span> <span style="color: #000000;">这时我们打印var的值，其为119，
+</span><span style="color: #008080;">17</span> 因为程序的运行过程是，mother运行结束返回son-&gt;son运行</pre>
+</div>
+<span class="cnblogs_code_collapse">View Code</span></div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

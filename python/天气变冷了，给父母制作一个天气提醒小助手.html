@@ -1,0 +1,84 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修天气变冷了，给父母制作一个天气提醒小助手' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>天气变冷了，给父母制作一个天气提醒小助手</center></div><div class='banquan'>原文出处:本文由博客园博主Python知识圈提供。<br/>
+原文连接:https://www.cnblogs.com/pythoncircle/p/11717706.html</div><br>
+    <h2 id="背景">背景</h2>
+<p>最近天气变冷了，和父母聊天中得知，他们查看每天的天气预报不太方便，我记得小时候，每晚 19:30 左右，一家人都要守在电视机旁边收听第二天的天气情况。</p>
+<p>如今，对于我们年轻人来说，获取天气情况很方便，但是对于我们不擅长用手机的父母来说，还是很吃力，他们用的多的还是微信吧。为此，我用不到 40 行代码写了一个小工具，每天定时把当天的天气情况直接发到微信群里。</p>
+<h2 id="查询天气接口">查询天气接口</h2>
+<p>要获取天气情况，需要一个查询天气的接口，网上找了一下，一般都是注册后送一定调用次数的，我选择了一个，免费送 500 次查询次数的。</p>
+<p><img src="./images/天气变冷了，给父母制作一个天气提醒小助手0.png" /></p>
+<p>我们看看接口的 API 文档。</p>
+<p><img src="./images/天气变冷了，给父母制作一个天气提醒小助手1.png" /></p>
+<p>其中城市名 cityname 和 key 是必填项。</p>
+<pre><code><code>http://v.juhe.cn/weather/index?format=2&amp;cityname=%E8%8B%8F%E5%B7%9E&amp;key=您申请的KEY</code></pre>
+<p>key 值在 juhe.cn 我的接口那一栏中可以看到。</p>
+<p><img src="./images/天气变冷了，给父母制作一个天气提醒小助手2.png" /></p>
+<p>我们也可以事先在 Postman 工具中看看接口能否调通。</p>
+<p><img src="./images/天气变冷了，给父母制作一个天气提醒小助手3.png" /></p>
+<p>Postman 接口工具没用过的没关系，他们网页上也提供了调试工具。​</p>
+<p><img src="./images/天气变冷了，给父母制作一个天气提醒小助手4.png" /></p>
+<h2 id="查询天气方法">查询天气方法</h2>
+<p>我们直接用 requests 库请求接口就能获得 json 格式的天气信息，json 数据中包含了当天和未来几天的天气信息，这里我只需要当天的，当天数据都在 result 下的 today 里，提取出来用 return 返回。<br />
+<img src="./images/天气变冷了，给父母制作一个天气提醒小助手5.png" /></p>
+<h2 id="通过微信发送天气消息">通过微信发送天气消息</h2>
+<p>我们通过微信把天气信息发到群里，这里我们需要用到调用微信的库，itchat 库或者 wxpy 都可以，这里我用了 wxpy 库。</p>
+<p>先导入 wxpy 库。</p>
+<pre><code><code>from wxpy import *</code></pre>
+<p>我们把刚才的请求接口返回的天气信息整合一下，然后用 wxpy 库的 search 方法通过群名称找到你需要发送天气消息的这个群，用 send 方法发送。</p>
+<p><img src="./images/天气变冷了，给父母制作一个天气提醒小助手6.png" /></p>
+<p>我这里是发送到群里，当然，你也可以直接发送给个人微信。</p>
+<pre><code><code>my_friend = bot.friends().search(u&#39;pk哥&#39;)[0]</code></pre>
+<h2 id="定时操作">定时操作</h2>
+<p>如果每次都需要我们手动运行，那就有点麻烦，我们要让程序每天在固定时间定时发送，这里需要用到 Timer 定时器。</p>
+<p>Timer 定时器格式：</p>
+<pre><code><code>Timer(86400, get_weather）</code></pre>
+<p>第一个参数表示相隔指定时间（单位：秒）后再次调用方法（第二个参数），注意，方法后不要带括号。</p>
+<p>86400 秒就是相隔 24 小时，也就是一天的时间。</p>
+<pre><code><code>t = Timer(86400, get_weather)  
+t.start()
+t.join()</code></pre>
+<h2 id="异常处理">异常处理</h2>
+<p>如果信息发送失败，我们把信息发给自己，这里我做了一个异常处理。</p>
+<pre><code><code>   except BaseException:
+        my_friend = bot.friends().search(u&#39;brucepk&#39;)[
+            0]  # 发送不成功，则发送消息给自己，提醒消息发送失败
+        my_friend.send(u&#39;天气消息发送失败&#39;)</code></pre>
+<p>我们的程序需要持续运行，那是不是需要一直在电脑上运行啊，这样有点不现实啊，我们把它部署到服务器上就可以搞定了，现在服务器也很便宜，做活动的时候一般 100 元以内就可以买一年。</p>
+<h2 id="部署在服务器">部署在服务器</h2>
+<p>在服务器中运行程序，直接扫码登录微信，下面是我周五开始运行的，相隔 24 小时后，周六再次调用方法，获取新的天气信息。<br />
+<img src="./images/天气变冷了，给父母制作一个天气提醒小助手7.png" /><br />
+发到群里效果如下图，当然，你还可以多加一些接口返回的信息或者自己想说的话。<br />
+<img src="./images/天气变冷了，给父母制作一个天气提醒小助手8.png" /></p>
+<h2 id="可能存在的问题">可能存在的问题</h2>
+<p>1、我的微信登录不了网页版微信<br />
+因为 itchat 库和 wxpy 库都是调用微信的网页版接口，如果你的微信注册比较晚，被限制了网页版登录功能，那这个程序你无法运行。</p>
+<p>2、发送不到指定群<br />
+先检查下群名称，把群名称一些 emoji 表情符号去掉，这些特殊符号可能导致无法识别。</p>
+<p>群名称没错的话，看看自动发送信息的这个号有没有把这个群添加到通讯录。</p>
+<p><img src="./images/天气变冷了，给父母制作一个天气提醒小助手9.png" /></p>
+<p>这样，一个定时发送消息的小工具就完成了，你也可以在上面扩展，加上其他功能，这样就更完善了。</p>
+<p>本文全部源码在公众号「Python 知识圈」后台回复「天气小工具」获取，源码中 key 值和群名称需换成自己的。</p>
+<h4 id="关注微信公众号-python知识圈-获取更多-python-精彩内容">关注微信公众号 Python知识圈 ，获取更多 Python 精彩内容。</h4>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

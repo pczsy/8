@@ -1,0 +1,119 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修webpack4.0(二)--热更新(webpack-dev-server)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>webpack4.0(二)--热更新(webpack-dev-server)</center></div><div class='banquan'>原文出处:本文由博客园博主X林一提供。<br/>
+原文连接:https://www.cnblogs.com/xym0996/p/12013656.html</div><br>
+    <div><span style="background-color: #00ccff; font-size: 18pt;"><strong><span style="background-color: #169fe6;">webpack4.0---热更新　　　　　　　　　　　　　　　　　　　　　　　　</span><br /></strong></span></div>
+<div><span style="font-size: 18px;">　　</span><span style="font-size: 18px;">使用webpack可帮助我们的开发以及打包，在开发过程中，有时候我们只修改了部分代码并想不必刷新整个页面即可看到更改后的效果，这时候 webpack-dev-server （WDS）热更新就可以派上用场了。</span></div>
+<div>　<hr /></div>
+<div><strong><span style="font-size: 18px;">1、</span><span style="font-size: 18px;">关于 WDS&nbsp;热更新，有以下几点：</span></strong></div>
+<div>
+<div>　　&nbsp;&nbsp;<span style="font-size: 18px;">（1）WDS 不刷新整个页面。</span></div>
+<div><span style="font-size: 18px;"> 　　（2）WDS 不输出文件，而放在内存中（没有磁盘IO，速度更快）。</span><br /><span style="font-size: 18px;">
+　　（3）使用 HotModuleReplacementPlugin 插件(webpack自带)。</span></div>
+<div>&nbsp;</div>
+<div><span style="font-size: 18px;"><strong>2、安装</strong></span></div>
+<div>
+<div class="cnblogs_code">
+<pre><code>npm i webpack-dev-server -D</pre>
+</div>
+<h3><strong><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)0.png" alt="" /></strong></h3>
+<p><span style="font-size: 16px;"><strong>package.json文件</strong></span></p>
+<p><span style="font-size: 18px;"><strong><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)1.png" alt="" /></strong></span></p>
+<h3><strong>3、项目文件目录结构</strong></h3>
+<p><span style="font-size: 16px;">在web10项目里建一个build文件夹里面在建一个webpack.conf.js文件</span></p>
+<p><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)2.png" alt="" width="929" height="142" /></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>4、webpack.conf.js配置</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;">//声明变量
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">var webpack = require('webpack');
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">var PATH = require('path');//这是nodejs的核心模块之一
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">var SRC_PATH = PATH.resolve(__dirname,'../src');<br /></span><span style="color: #008080;"> 5</span> <span style="color: #000000;">var DIST_PATH = PATH.resolve(__dirname,'../dist');<br /></span><span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> <span style="color: #000000;">module.exports = {
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">    entry:SRC_PATH+'\\index.js',
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">    output:{
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">        path:DIST_PATH,
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">        filename:'bundle.js' 
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    },
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">    //loader
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">    module:{
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    },
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    //插件
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">    plugins:[
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">    ],
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">    devServer:{//开发服务器
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">        hot:true,//热更新
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">        inline: true,//
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">        open:true,//是否自动打开默认浏览器
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        contentBase:DIST_PATH,//发布目录
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">        port:'0996',//控制端口
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">        host:'0.0.0.0',//host地址
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        historyApiFallback:true,
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">        useLocalIp:true,//是否用自己的IP
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">        proxy:{
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">            '/action':'http://127.0.0.1:8080/'
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">33</span> }</pre>
+</div>
+<p><strong><span style="font-size: 18px;"><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)3.png" alt="" /></span></strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 18px;">编译：命令&nbsp;</span></strong><span style="font-size: 18px;"><strong>webpack --config build/webpack.conf.js --mode development</strong></span></p>
+<p><span style="font-size: 18px;"><strong><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)4.png" alt="" width="741" height="196" /></strong></span></p>
+<p>编译后dist里面会多出一个bundle.js&nbsp; &nbsp;改写一下index.html引入bundle.js</p>
+<p><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)5.png" alt="" width="740" height="79" /></p>
+<p><span style="color: #404040; font-family: -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 600;">同时npm 允许在package.json文件里面，使用scripts字段自定义脚本命令。</span></p>
+<p><span style="color: #404040; font-family: -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 600;"><span style="color: #404040; font-family: -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;">"dev": "webpack-dev-server --mode development --inline --progress --config build/webpack.conf.js"</span></span></p>
+<p><span style="color: #404040; font-family: -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 600;"><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)6.png" alt="" /></span></p>
+<p><strong>运行:自动打开浏览器</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> npm run dev</pre>
+</div>
+<p>&nbsp;<img src="./images/webpack4.0(二)--热更新(webpack-dev-server)7.png" alt="" width="905" height="553" /></p>
+<p><span style="font-size: 16px;">访问你写的index.html</span></p>
+<p><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)8.png" alt="" /></p>
+<p>&nbsp;<img src="./images/webpack4.0(二)--热更新(webpack-dev-server)9.png" alt="" /></p>
+<p><span style="font-size: 16px;"><strong>热更新表现在哪里？</strong></span></p>
+<p><span style="font-size: 16px;"><strong>　　　</strong>修改src里的index.js文件 点击保存&nbsp; 同时热更新起效 修改bundle.js里的值，从而起到热更新的效果。</span></p>
+<p><span style="font-size: 16px;"><strong><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)10.png" alt="" /></strong></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/webpack4.0(二)--热更新(webpack-dev-server)11.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><img src="./images/webpack4.0(二)--热更新(webpack-dev-server)12.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><span style="background-color: #169fe6; font-size: 18pt;">&nbsp;<strong>缺点　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　<br /></strong></span></p>
+<p><span style="background-color: #169fe6; font-size: 18pt;"><span style="font-size: 16px; background-color: #ffffff;">　　会发现这样虽然解决了网页刷新麻烦的问题 ，但是也有不方便的之处 就是你的dist中的index.html文件要自己手动建 而且打包后的main.js也要自己手动写入，比较麻烦下一篇随笔要讲的一个插件就是可以动态生成html文件，不用手写代码。打包就直接引用。</span></span></p>
+
+
+
+</div>
+
+
+
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

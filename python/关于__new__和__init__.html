@@ -1,0 +1,75 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修关于__new__和__init__' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>关于__new__和__init__</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11228353.html</div><br>
+    <h1 id="关于__new__和__init__">关于__new__和__init__</h1>
+<p>例如一个类</p>
+<pre><code><code>class Foo(object):
+    def __init__(self):
+        print(1)
+        
+    def __new__(self):
+        print(2)
+#2</code></pre>
+<ul>
+<li>new会优先int执行</li>
+<li>其实就相当于子类的里面的new方法覆盖的obj里面的new方法当子类里面没有返回值的时候,将不执行init方法</li>
+</ul>
+<pre><code><code>class Foo(object):
+    def __init__(self):
+        print(self)
+        print(1)
+
+    def __new__(self):
+        print(2)
+        return 2</code></pre>
+<ul>
+<li>当返回值不是object类时候也不会执行int方法</li>
+</ul>
+<pre><code><code>class Foo(object):
+    def __init__(self):
+        print(self)
+        print(1)
+
+    def __new__(cls):
+        print(2)
+        return object.__new__(cls)
+&#39;&#39;&#39;
+2
+&lt;__main__.Foo object at 0x000000000213C278&gt;
+1
+&#39;&#39;&#39;</code></pre>
+<ul>
+<li>当返回值是个object类时候,会执行int方法且int里面的self就是new返回的类</li>
+</ul>
+<p>当我们想要一个具有参数的的新类的时候</p>
+<pre><code><code>class Demo(object):
+    def __init__(self,name):
+        self.name = name
+
+    def __new__(cls, *args, **kwargs):
+
+        return object.__new__(cls)</code></pre>
+<p>​</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,80 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修EditText 无法失焦与失焦后键盘不收缩解决方案' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>EditText 无法失焦与失焦后键盘不收缩解决方案</center></div><div class='banquan'>原文出处:本文由博客园博主族语提供。<br/>
+原文连接:https://www.cnblogs.com/aoximin/p/12036473.html</div><br>
+    <h3 id="背景">背景</h3>
+<p>有一个需求，比方说下图:<br />
+<img src="./images/EditText 无法失焦与失焦后键盘不收缩解决方案0.png" /><br />
+点击了上图的Image 区域才可以编辑。<br />
+那么我首先想到的就是:</p>
+<pre><code><code>android:focusable=&quot;false&quot;</code></pre>
+<p>不让它获取到焦点不就ok吗？<br />
+事实上这是很好的方式，然后我开始编辑点击图片后EditText获取焦点:</p>
+<pre class="java"><code>editText.setSelection(editText.getText().length());//设置焦点位置移到最后,如果没有这一句，那么焦点将会在最前
+editText.setFocusable(true);
+editText.setFocusableInTouchMode(true);
+editText.requestFocus();// 请求焦点</code></pre>
+<p>ps:</p>
+<pre class="java"><code>editText.setFocusable(true); //物理按键可获得焦点，一般智能电视机，我们的遥控操作之类
+editText.setFocusableInTouchMode(true); ////触摸可获得焦点</code></pre>
+<p>上述如果有一个不为true，android系统都会认为不能获取焦点。<br />
+出现了一个小小的问题，拥有焦点后，居然没有弹出软键盘。这时候开发者主动点，把它盘出来。</p>
+<pre class="java"><code>InputMethodManager  inputManager=(InputMethodManager)getBaseContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+inputManager.showSoftInput(editText,InputMethodManager.SHOW_FORCED);</code></pre>
+<p>这样似乎ok了的。<br />
+那么糟糕的情况来了，当我点击EditText的以外的地方的时候，焦点还在Edit上面，焦点并没有消失。</p>
+<h3 id="解决方案">解决方案</h3>
+<pre class="java"><code>@Override
+public boolean dispatchTouchEvent(MotionEvent ev) {
+    switch (ev.getAction()) {
+        case MotionEvent.ACTION_DOWN:
+            View edittext=findViewById(R.id.edittext);
+            //判断是否被点击
+            if (!isTouchPointInView(edittext,(int) ev.getX(),(int) ev.getY()))
+            {
+               edittext.clearFocus();
+            }
+            break;
+    }
+    return super.dispatchTouchEvent(ev);
+}</code></pre>
+<p>我通过判断如果不在触摸区域内，就让它失去焦点。<br />
+按照这个想法，我的确成功了，然而凡事哪有一帆风顺，我遭遇到了另外一个bug。那就是，焦点失去了，然而软键盘还在。<br />
+这时候我想到了焦点变动事件,code 如下:</p>
+<pre class="java"><code>findViewById(R.id.edittext).setOnFocusChangeListener(new View.OnFocusChangeListener(){
+    @Override
+    public  void onFocusChange(View v,boolean hasFocus)
+    {
+        EditText editText=(EditText)v;
+        if (!hasFocus)
+        {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+        }
+    }
+});</code></pre>
+<p>是的，失去了焦点那么就让软键盘消失。</p>
+<h3 id="其他需要注意的">其他需要注意的</h3>
+<p>其他问题，比如页面back了，或者退出了app，我们都需要手动去让软键盘隐藏，事件分别是@Override的:onStop与onBackPressed。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

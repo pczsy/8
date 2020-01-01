@@ -1,0 +1,106 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修ES6+转ES5（webpack+babel、指定多个js文件、自动注入）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>ES6+转ES5（webpack+babel、指定多个js文件、自动注入）</center></div><div class='banquan'>原文出处:本文由博客园博主webNick提供。<br/>
+原文连接:https://www.cnblogs.com/puyongsong/p/12080184.html</div><br>
+    <p><span style="font-size: 16px;">　　接续上篇ES6+转ES5，本篇将使用webpack和babel将多个不同目录下指定的多个ES6+语法的js文件编译为ES5，并将编译后的文件配置注入对应的html文件。 </span><br /><span style="font-size: 16px;">　　所需环境node、npm、设置淘宝镜像请参考上篇进行安装，地址：<a href="https://www.cnblogs.com/puyongsong/p/12036090.html">https://www.cnblogs.com/puyongsong/p/12036090.html</a></span></p>
+<h2><span style="font-size: 16px;">  一、新建项目，目录如下</span></h2>
+<p><span style="font-size: 16px;"><img src="./images/ES6+转ES5（webpack+babel、指定多个js文件、自动注入）0.png" alt="" /></span></p>
+<h2><span style="font-size: 16px;">二、执行命令初始化项目 </span></h2>
+<p><span style="font-size: 16px;">   　　cnpm init -y  </span><br /><span style="font-size: 16px;">　　执行成功后会生成文件：package.json </span></p>
+<h2><span style="font-size: 16px;"> 三、执行命令安装webpack</span></h2>
+<p><span style="font-size: 16px;">　　cnpm install webpack --save-dev  </span><br /><span style="font-size: 16px;">　　（有个坑）在webpack3中，webpack本身和它的CLI以前都是在同一个包中，但在第4版中，两者已分开管理，所以要单独安装其脚手架。    </span><br /><span style="font-size: 16px;">　　执行命令安装webpack-cli  </span><br /><span style="font-size: 16px;">　　cnpm install webpack-cli --save-dev</span></p>
+<h2><span style="font-size: 16px;">四、执行命令安装以下3个用于处理js的包</span></h2>
+<p><span style="font-size: 16px;">　　cnpm install --save-dev babel-loader @babel/core @babel/preset-env  </span><br /><span style="font-size: 16px;">　　babel-loader：对使用了ES2015+语法的.js文件进行处理。  </span><br /><span style="font-size: 16px;">　　babel-core：提供一系列api。当webpack使用babel-loader处理文件时，babel-loader就调用了babel-core的api。     </span><br /><span style="font-size: 16px;">　　babel-preset-env：告诉babel使用哪种转码规则进行文件处理。babel有几种规则都可以实现对ES6语法的转码，如babel-preset-es2015、babel-preset-latest、babel-preset-env，不过官方现已建议采用babel-preset-env。</span></p>
+<h2><span style="font-size: 16px;">五、执行命令安装全局垫片插件：</span></h2>
+<p><span style="font-size: 16px;">　　cnpm install babel-polyfill --save-dev</span></p>
+<h2><span style="font-size: 16px;">六、执行命令安装局部垫片插件：</span></h2>
+<p><span style="font-size: 16px;">　　cnpm install @babel/runtime --save-dev    </span><br /><span style="font-size: 16px;">　　cnpm install @babel/plugin-transform-runtime --save-dev  </span><br /><span style="font-size: 16px;">　　垫片：Babel默认只转换新的JavaScript句法（syntax），而不转换新的API，比如Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如Object.assign）都不会转码。举例来说，ES6在Array对象上新增了Array.from方法。Babel就不会转码这个方法。如果想让这个方法运行，必须使用babel-polyfill，为当前环境提供一个垫片。</span></p>
+<h2><span style="font-size: 16px;">七、根目录下新建文件：webpack.config.js</span></h2>
+<p><span style="font-size: 16px;">　　这个js配置文件的注意事项我都写上了注释，后面我会将其全部内容贴上来。</span></p>
+<h2><span style="font-size: 16px;">八、根目录下建一个.babelrc文件，内容为</span></h2>
+<div class="cnblogs_Highlighter">
+<pre><code><span style="font-size: 16px;">{
+    "presets": [
+        ["@babel/preset-env", {
+            "targets": {
+                "browsers": ["&gt; 1%", "last 2 versions"]
+            }
+        }]
+    ],
+    "plugins": ["@babel/transform-runtime"]
+}</span></pre>
+</div>
+<p><span style="font-size: 16px;">　　意思是打包后的代码要支持1%以上的浏览器并支持浏览器的上2个版本 </span><br /><span style="font-size: 16px;">　　此时执行命令webpack就可以了</span></p>
+<h2><span style="font-size: 16px;">九、想要配置为html文件自动注入所以生成的包还需要安装以下插件</span></h2>
+<p><span style="font-size: 16px;">　　执行命令安装html-webpack-plugin插件  </span><br /><span style="font-size: 16px;">　　cnpm install html-webpack-plugin --save-dev  </span><br /><span style="font-size: 16px;">　　安装完成后执行webpack即可  </span><br /><span style="font-size: 16px;">　<strong>　注意：</strong>如果webpack打包时报错Cannot find module 'webpack/lib/node/NodeTemplatePlugin'  </span><br /><span style="font-size: 16px;">　　解决办法  </span><br /><span style="font-size: 16px;">　　执行命令cnpm link webpack --save-dev  </span><br /><span style="font-size: 16px;">　　然后在执行webpack就可以了  </span><br /><span style="font-size: 16px;">　　附上最后生成文件后的目录结构图：  </span><br /><span style="font-size: 16px;"><img src="./images/ES6+转ES5（webpack+babel、指定多个js文件、自动注入）1.png" alt="" /></span><br /><span style="font-size: 16px;">附上webpack.config.js全部内容&nbsp;</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:javascript;collapse:true;;gutter:false;"><span style="font-size: 16px;">//为了使用插件，需要将require()其添加到plugins阵列中。使用new运算符调用插件来创建插件的实例。
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack'); // 用于访问内置插件
+const path = require('path');
+module.exports = {
+    entry: { //入口配置
+        index: './src/index.js',
+        ctrl: './ctrls/ctrl.js'
+    },
+    // 这里[]里的name就是app和search也就是entry里的key值 
+    //  这里[hash:5]会随机生成一个版本号作为你的打包js版本 
+    //  建议最后一次打包才加上.[hash:5] 否则每次打包都同一个文件都会生成新的版本号不同的文件
+    output: { //出口配置
+        // filename: '[name].[hash:5].js',
+        filename: '[name].js',
+        path: __dirname + '/dist' // 生成新文件的地址
+    },
+    module: {
+        rules: [{
+            test: /(\.jsx|\.js)$/, // 处理以.jsx或.js结尾的文件
+            use: {
+                loader: "babel-loader", // 用babel-loader处理
+                options: {
+                    "presets": [
+                        ["@babel/preset-env", {
+                            "targets": {
+                                "browsers": ["&gt; 1%", "last 2 versions"]
+                            }
+                        }]
+                    ]
+                }
+            }
+        }]
+    },
+    //html-webpack-plugin生成器通过自动注入所有生成的包为应用程序生成HTML文件
+    plugins: [
+        new HtmlWebpackPlugin({ // 地址为output对应的path地址dist
+            template: './src/index.html', //处理模板
+            filename: '../index.html' //生成模板
+            // 无chunks参数默认全部注入
+        }), new HtmlWebpackPlugin({
+            template: './src/a.html', //处理模板
+            filename: '../views/view1.html', //生成模板
+            chunks: ['index'] // 只引入index.js
+        })
+    ]
+}</span></pre>
+</div>
+<p><span style="font-size: 16px;">共勉，望鞭策！</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,106 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修十四.生成器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>十四.生成器</center></div><div class='banquan'>原文出处:本文由博客园博主CeliaTodd提供。<br/>
+原文连接:https://www.cnblogs.com/hpcz190911/p/11581974.html</div><br>
+    <p><span style="font-size: 16px;">2019-09-24-23:24:24</span></p>
+<p><span style="font-size: 16px;">一.什么时生成器?</span></p>
+<p><span style="font-size: 16px;">　　1.生成器的实质就是迭代器</span></p>
+<p><span style="font-size: 16px;">二.生成器的获取方式</span></p>
+<p><span style="font-size: 16px;">　　1.通过生成器函数</span></p>
+<p><span style="font-size: 16px;">　　2.通过各种推导式获取生成器</span></p>
+<p><span style="font-size: 16px;">　　3.通过数据转换获取生成器</span></p>
+<p><span style="font-size: 16px;">三..案例</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008000;">#</span><span style="color: #008000;">这个是一个简单函数,怎样变成生成器呢?</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> func():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">111</span><span style="color: #800000;">"</span><span style="color: #000000;">)    
+    </span><span style="color: #0000ff;">return</span> 222<span style="color: #000000;"> 
+ret </span>=<span style="color: #000000;"> func() 
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">将函数中的return换成yield就是生成器 </span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> func():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">111</span><span style="color: #800000;">"</span><span style="color: #000000;">) 
+    </span><span style="color: #0000ff;">yield</span> 222<span style="color: #000000;"> 
+ret </span>=<span style="color: #000000;"> func()
+</span><span style="color: #0000ff;">print</span>(ret)</span></pre>
+</div>
+<p><span style="font-size: 16px;">四.yield和return的区别</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #0000ff;">def</span><span style="color: #000000;"> func():
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">111</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">yield</span> 222
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">333</span><span style="color: #800000;">"</span><span style="color: #000000;">)    
+    </span><span style="color: #0000ff;">yield</span> 444<span style="color: #000000;"> 
+gener </span>=<span style="color: #000000;"> func() 
+ret </span>= gener.<span style="color: #800080;">__next__</span><span style="color: #000000;">() 
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret)
+ret2 </span>= gener.<span style="color: #800080;">__next__</span><span style="color: #000000;">()
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret2) 
+ret3 </span>= gener.<span style="color: #800080;">__next__</span>()  <span style="color: #008000;">#</span><span style="color: #008000;"> 最后⼀一个yield执行完毕. 再次__next__()程序报错, 也就是说和return⽆关了. </span>
+<span style="color: #0000ff;">print</span>(ret3)</span></pre>
+</div>
+<p><span style="font-size: 16px;">yield是通过分段执行函数,执行了yield不会立即停止函数的运行,而执行完return是直接就停止函数的运行了</span></p>
+<p><span style="font-size: 16px;">注意:执行完yield这个函数后,后面如果再次执行_next_()就会导致程序报错</span></p>
+<p><span style="font-size: 16px;">五.send和__next__()的区别</span></p>
+<p><span style="font-size: 16px;">1. send和next()都是让生成器向下走⼀次</span></p>
+<p><span style="font-size: 16px;">2. send可以给上一个yield的位置传递值, 不能给后一个yield发送值. 在第一次执行生<em id="__mceDel">成器代码的时候不能使用send()</em></span></p>
+<p><span style="font-size: 16px;"><em>　　案例</em></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #0000ff;">def</span><span style="color: #000000;"> eat():    
+    </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">我吃什什么啊</span><span style="color: #800000;">"</span><span style="color: #000000;">)    
+    a </span>= <span style="color: #0000ff;">yield</span> <span style="color: #800000;">"</span><span style="color: #800000;">馒头</span><span style="color: #800000;">"</span>    
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">a=</span><span style="color: #800000;">"</span><span style="color: #000000;">,a)   
+    b </span>= <span style="color: #0000ff;">yield</span> <span style="color: #800000;">"</span><span style="color: #800000;">⼤大饼</span><span style="color: #800000;">"</span>    
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">b=</span><span style="color: #800000;">"</span><span style="color: #000000;">,b)   
+    c </span>= <span style="color: #0000ff;">yield</span> <span style="color: #800000;">"</span><span style="color: #800000;">⾲韭菜盒⼦子</span><span style="color: #800000;">"</span>    
+    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">c=</span><span style="color: #800000;">"</span><span style="color: #000000;">,c)    
+    </span><span style="color: #0000ff;">yield</span> <span style="color: #800000;">"</span><span style="color: #800000;">GAME OVER</span><span style="color: #800000;">"</span><span style="color: #000000;">
+gen </span>= eat()     <span style="color: #008000;">#</span><span style="color: #008000;"> 获取⽣生成器器 </span>
+ret1 = gen.<span style="color: #800080;">__next__</span><span style="color: #000000;">() 
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret1) 
+ret2 </span>= gen.send(<span style="color: #800000;">"</span><span style="color: #800000;">胡辣汤</span><span style="color: #800000;">"</span><span style="color: #000000;">) 
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret2) 
+ret3 </span>= gen.send(<span style="color: #800000;">"</span><span style="color: #800000;">狗粮</span><span style="color: #800000;">"</span><span style="color: #000000;">) 
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ret3) 
+ret4 </span>= gen.send(<span style="color: #800000;">"</span><span style="color: #800000;">猫粮</span><span style="color: #800000;">"</span><span style="color: #000000;">) 
+</span><span style="color: #0000ff;">print</span>(ret4)</span></pre>
+</div>
+<p><span style="font-size: 16px;">六.列表推导式</span></p>
+<p><span style="font-size: 16px;">　　&nbsp;[ 结果 for 变量量 in 可迭代对象]&nbsp;</span></p>
+<p><span style="font-size: 16px;">　　&nbsp;[ 结果 for 变量量 in 可迭代对象 if 条件 ] (这个是筛选模式)</span></p>
+<p><span style="font-size: 16px;">七.生成器表达式</span></p>
+<p><span style="font-size: 16px;">　　生成器表达式和列表推导式的语法基本上是一样的. 只是把[]替换成()&nbsp;</span></p>
+<p><span style="font-size: 16px;">八.生成器表达式和列表推导式的区别</span></p>
+<p><span style="font-size: 16px;">　　1. 列表推导式比较耗内存. 一次性加载. 生成器表达式几乎不占⽤内存. 使用的时候才分配和使用内存 </span></p>
+<p><span style="font-size: 16px;">　　2. 得到的值不一样. 列表推导式得到的是一个列表. 生成器表达式获取的是一个生成器.</span></p>
+<p><span style="font-size: 16px;">九.以此类推字典推导式</span></p>
+<p><span style="font-size: 16px;">　　字典推导式和列表推导式的语法基本上是一样的. 只是把[]替换成{}</span></p>
+<p><span style="font-size: 16px;">十.集合推导式</span></p>
+<p><span style="font-size: 16px;">　　&nbsp;集合推导式可以帮我们直接生成一个集合. 集合的特点: 无序, 不重复. 所以集合推导式自带去重功能</span></p>
+<p><span style="font-size: 16px;">总结</span></p>
+<p><span style="font-size: 16px;">　　推导式有, 列表推导式, 字典推导式, 集合推导式, 没有元组推导式&nbsp; &nbsp; </span></p>
+<p><span style="font-size: 16px;">　　生成器表达式: (结果 for 变量量 in 可迭代对象 if 条件筛选)&nbsp; &nbsp; </span></p>
+<p><span style="font-size: 16px;">　　生成器表达式可以直接获取到生成器对象. 生成器对象可以直接进行for循环. 生成器具有惰性机制.&nbsp;</span></p>
+<p><span style="font-size: 16px;">以上是我的学习内容,有错的请告知,谢谢你们,感谢</span></p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

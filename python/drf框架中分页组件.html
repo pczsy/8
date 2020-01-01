@@ -1,0 +1,91 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修drf框架中分页组件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>drf框架中分页组件</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11569061.html</div><br>
+    <h1 id="drf框架中分页组件">drf框架中分页组件</h1>
+<h3 id="普通分页最常用">普通分页（最常用）</h3>
+<p>自定制分页类</p>
+<p>pagination.py</p>
+<pre><code><code>from rest_framework.pagination import PageNumberPagination
+# 普通分页
+class CarPageNumberPagination(PageNumberPagination):
+    # 默认一页的条数
+    page_size = 3
+    # 用户可以自定义选择一页的条数，但最多显示5条
+    page_size_query_param = &#39;page_size&#39;
+    max_page_size = 5
+    # 默认条数访问 /我们路由设置访问这个视图的路由/?page=页面号
+    #       eg：/我们路由设置访问这个视图的路由/?page=1
+    # 自定义条数访问 /我们路由设置访问这个视图的路由/?page=页面号&amp;page_size=一页的条数
+    #       eg：/我们路由设置访问这个视图的路由/?page=1&amp;page_size=5
+</code></pre>
+<p>views.py</p>
+<pre><code><code>from . import pagination
+class 模型名称(ModelViewSet):
+    .......
+    pagination_class = pagination.CarPageNumberPagination</code></pre>
+<h3 id="偏移分页">偏移分页</h3>
+<p>自定制分页类</p>
+<p>pagination.py</p>
+<pre><code><code>from rest_framework.pagination import LimitOffsetPagination
+# 偏移分页
+class CarLimitOffsetPagination(LimitOffsetPagination):
+    # 默认一页的条数
+    default_limit = 3
+    # limit控制一页显示的条数，offset控制偏移的条数(从头开始计数)
+    limit_query_param = &#39;limit&#39;
+    offset_query_param = &#39;offset&#39;
+    # 限制limit可以设置的最大显示条数
+    max_limit = 5
+    # 接口 /我们路由设置访问这个视图的路由/?limit=一页的条数&amp;offset=偏移的条数
+    #       eg：/我们路由设置访问这个视图的路由/?limit=5&amp;offset=2  # 显示3~7条</code></pre>
+<p>views.py</p>
+<pre><code><code>from . import pagination
+class 模型名称(ModelViewSet):
+    .......
+    pagination_class = pagination.CarLimitOffsetPagination</code></pre>
+<h3 id="加密分页">加密分页</h3>
+<p>自定制分页类</p>
+<p>pagination.py</p>
+<pre><code><code>from rest_framework.pagination import CursorPagination
+# 加密分页
+class CarCursorPagination(CursorPagination):
+    # 默认一页的条数
+    page_size = 3
+    # 用户可以自定义选择一页的条数，但最多显示5条
+    page_size_query_param = &#39;page_size&#39;
+    max_page_size = 5
+    # 默认排序规则
+    ordering = &#39;pk&#39;
+    # 采用默认排序访问 /我们路由设置访问这个视图的路由/?cursor=加密串
+    #       eg：/我们路由设置访问这个视图的路由/?cursor=cD0z
+    # 结合视图类实现OrderingFilter自定义排序规则
+    #  /我们路由设置访问这个视图的路由/?cursor=加密串&amp;ordering=排序字段
+    #       eg：/我们路由设置访问这个视图的路由/?cursor=cD0z&amp;ordering=-price</code></pre>
+<p>views.py</p>
+<pre><code><code>from . import pagination
+class 模型名称(ModelViewSet):
+    .......
+    pagination_class = pagination.CarCursorPagination</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

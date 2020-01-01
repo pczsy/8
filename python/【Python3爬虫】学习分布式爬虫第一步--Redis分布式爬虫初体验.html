@@ -1,0 +1,130 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【Python3爬虫】学习分布式爬虫第一步--Redis分布式爬虫初体验' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【Python3爬虫】学习分布式爬虫第一步--Redis分布式爬虫初体验</center></div><div class='banquan'>原文出处:本文由博客园博主TM0831提供。<br/>
+原文连接:https://www.cnblogs.com/TM0831/p/11372833.html</div><br>
+    <h2>一、写在前面</h2>
+<p>　　之前写的爬虫都是单机爬虫，还没有尝试过分布式爬虫，这次就是一个分布式爬虫的初体验。所谓分布式爬虫，就是要用多台电脑同时爬取数据，相比于单机爬虫，分布式爬虫的爬取速度更快，也能更好地应对IP的检测。本文介绍的是利用Redis数据库实现的分布式爬虫，Redis是一种常用的菲关系型数据库，常用数据类型包括String、Hash、Set、List和Sorted Set，重要的是Redis支持主从复制，主机能将数据同步到从机，也就能够实现读写分离。因此我们可以利用Redis的特性，借助requests模块发送请求，再解析网页和提取数据，实现一个简单的分布式爬虫。</p>
+<p>&nbsp;</p>
+<h2>二、基本环境</h2>
+<p>　　Python版本：Python3</p>
+<p>　　Redis版本：5.0</p>
+<p>　　IDE： Pycharm</p>
+<p>&nbsp;</p>
+<h2>三、环境配置</h2>
+<p>由于Windows下的安装配置比较简单，所以这里只说Linux环境下安装和配置Redis（以Ubuntu为例）。</p>
+<h3>1.安装Redis</h3>
+<p>1）apt安装：</p>
+<blockquote>
+<p>$<span class="crayon-h">&nbsp;sudo apt-get install redis-server</span></p>
+</blockquote>
+<p>2）编译安装：</p>
+<blockquote>
+<p><span class="crayon-sy"><span class="crayon-sy">$<span class="crayon-h">&nbsp;<span class="crayon-e">wget&nbsp;<span class="crayon-v">http<span class="crayon-o">:<span class="crayon-o">/<span class="crayon-o">/<span class="crayon-v">download<span class="crayon-e">.redis<span class="crayon-e">.io<span class="crayon-o">/<span class="crayon-v">releases<span class="crayon-o">/<span class="crayon-v">redis<span class="crayon-o">-<span class="crayon-cn">5.0.0.tar.gz</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="crayon-sy">$<span class="crayon-h">&nbsp;<span class="crayon-e">tar -<span class="crayon-e">xzvf&nbsp;<span class="crayon-v">redis<span class="crayon-o">-<span class="crayon-cn">5.0.0.tar.gz</span></span></span></span></span></span></span></p>
+<p><span class="crayon-sy">$<span class="crayon-h">&nbsp;<span class="crayon-r">cd<span class="crayon-h">&nbsp;<span class="crayon-v">redis<span class="crayon-o">-<span class="crayon-cn">5.0.0</span></span></span></span></span></span></span></p>
+<p><span class="crayon-sy">$<span class="crayon-h">&nbsp;<span class="crayon-r">make</span></span></span></p>
+<p><span class="crayon-sy">$ make install</span></p>
+<div id="crayon-5d56093b39293075810297-4" class="crayon-line crayon-striped-line">&nbsp;</div>
+</blockquote>
+<h3>2.配置Redis</h3>
+<p>　　首先找到redis.conf文件，然后输入命令sudo vi redis.conf，进行如下操作：</p>
+<blockquote>
+<p>注释掉bind 127.0.0.1 # 为了远程连接，这一步还可以将bind 127.0.0.1改为bind 0.0.0.0</p>
+<p>protected-mode yes 改为 protected-mode no&nbsp;</p>
+<p>daemonized no 改为&nbsp;daemonized yes&nbsp;</p>
+</blockquote>
+<p>　　如果6379端口被占用，还需要改一下端口号。除此之外，要远程连接还需要关闭防火墙。</p>
+<blockquote>
+<p>chkconfig firewalld&nbsp;off&nbsp; # 关闭防火墙</p>
+<p>systemctl status firewalld&nbsp; # 检查防火墙状态</p>
+</blockquote>
+<h3>3.远程连接Redis</h3>
+<p>　　使用的命令为redis-cli -h &lt;IP地址&gt; -p &lt;端口号&gt;</p>
+<p>　　注：Windows查看IP地址用ipconfig，Linux查看IP地址用ifconfig。</p>
+<p>&nbsp;</p>
+<h2>四、基本思路</h2>
+<p>&nbsp;　　这次我爬取的网站为：<a href="http://www.shu800.com/">http://www.shu800.com/</a>，在这个网站的首页里有五大分类，分别是性感美女、清纯可爱、明星模特、动漫美女和丝袜美腿，所以要做的第一件事就是获取这几个分类的URL。然后，对每个分类下的网页进行爬取，通过查看网页元素可以发现如下信息：</p>
+<p><img src="./images/【Python3爬虫】学习分布式爬虫第一步--Redis分布式爬虫初体验0.png" alt="" width="783" height="80" /></p>
+<p><img src="./images/【Python3爬虫】学习分布式爬虫第一步--Redis分布式爬虫初体验1.png" alt="" width="782" height="355" /></p>
+<p>　　可以很明显地看到每一页的URL都是符合一定规律的，只要获取到了尾页的URL，将其中的页数提取出来，也就能构造每一页的URL了，这就比每次去获取下一页的URL简单多了。而对于每一个图集下的图片，也是用同样的方法得到每一页图片的URL。最后要做的就是从图片网页中将图片的URL提取出来，然后下载保存到本地。</p>
+<p>　　这次分布式爬虫我使用了两台电脑，一台作为主机master，另一台作为从机slave。主机开启Redis服务，爬取每一页图片的URL，并将爬取到的URL保存到Redis的集合中，从机远程连接主机的Redis，监听Redis中是否有URL，如果有URL则提取出来进行下载图片，直至所有URL都被提取和下载。</p>
+<p>&nbsp;</p>
+<h2>五、主要代码</h2>
+<p>&nbsp;1.第一段代码是爬取每个页面里的美女图集的URL，并且把这些URL保存到数据库中，这里使用的是Redis中的集合，通过使用集合能够达到URL去重的目的，代码如下：</p>
+<div class="cnblogs_code">
+<pre><code> 1 def<span> get_page(url):
+ 2     """
+ 3     爬取每个页面下的美女图集的URL
+ 4     :param url: 页面URL
+ 5     :return:
+ 6     """
+ 7     try<span>:
+ 8         r = Redis(host="localhost", port=6379, db=1)  # 连接Redis
+ 9 <span>        time.sleep(random.random())
+10         res = requests.get(url, headers=<span>headers)
+11         res.encoding = "utf-8"
+12         et =<span> etree.HTML(res.text)
+13         href_list = et.xpath('/html/body/div[5]/div[1]/div[1]/div[2]/ul/li/a/@href'<span>)
+14         for href in<span> href_list:
+15             href = "http://www.shu800.com" +<span> href
+16             r.sadd("href", href)  # 保存到数据库中
+17     except<span> requests.exceptions:
+18         headers["User-Agent"] =<span> ua.random
+19         get_page(url)</span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p>2.第二段代码是从机监听Redis中是否有URL的代码，如果没有URL，等待五秒钟再运行，因为如果不稍作等待就直接运行，很容易超过Python的递归深度，所以我设置了一个等待五秒钟再运行。反之，如果有URL被添加到Redis中，就要将URL提取出来进行爬取，使用的方法是redis模块里的spop()方法，该方法会从Redis的集合中返回一个元素。需要注意的是，URL被提取出来后要先转成str。</p>
+<div class="cnblogs_code">
+<pre><code> 1 def<span> get_urls():
+ 2     """
+ 3     监听Redis中是否有URL，如果没有就一直运行，如果有就提取出来进行爬取
+ 4     :return: 
+ 5     """
+ 6     if b"href" in<span> r.keys():
+ 7         while<span> True:
+ 8             try<span>:
+ 9                 url = r.spop("href"<span>)
+10                 url = url.decode("utf-8")  # unicode转str
+11                 print("Crawling URL: "<span>, url)
+12 <span>                get_image(url)
+13 <span>                get_img_page(url)
+14             except<span>:
+15                 if b"href" not in r.keys():  # 爬取结束，退出程序
+16                     break
+17                 else<span>:
+18                     continue
+19     else<span>:
+20         time.sleep(5<span>)
+21         get_urls()</span></span></span></span></span></span></span></span></span></span></span></span></pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>六、运行结果</h2>
+<p>　　下图是在主机master上运行的截图，这里爬取到的图集总共有9633个：</p>
+<p><img src="./images/【Python3爬虫】学习分布式爬虫第一步--Redis分布式爬虫初体验2.png" alt="" /></p>
+<p>&nbsp;　　从机slave会不断地从Redis数据库中提取URL来爬取，下图是运行时的截图：</p>
+<p><img src="./images/【Python3爬虫】学习分布式爬虫第一步--Redis分布式爬虫初体验3.png" alt="" /></p>
+<p>　　打开文件夹看看爬下来的图片都有什么（都是这种标题，有点难顶啊...）：</p>
+<p><img src="./images/【Python3爬虫】学习分布式爬虫第一步--Redis分布式爬虫初体验4.png" alt="" width="857" height="451" /></p>
+<p>&nbsp;</p>
+<p>完整代码已上传到<a href="https://github.com/TM0831/Spiders/tree/master/RedisCrawler" target="_blank">GitHub</a>！</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

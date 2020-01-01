@@ -1,0 +1,56 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python获取Linux发行版名称' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python获取Linux发行版名称</center></div><div class='banquan'>原文出处:本文由博客园博主python之蝉提供。<br/>
+原文连接:https://www.cnblogs.com/pythonzhichan/p/11433294.html</div><br>
+    <p><span>我必须从Python脚本中获取Linux发行版名称。</span><code>dist</code><span><span>平台模块中</span><span>有一个</span><span>方法：</span></span></p>
+<pre><code><code><span class="kwd">import<span class="pln"> platform<span class="pln">
+platform<span class="pun">.<span class="pln">dist<span class="pun">()
+</span></span></span></span></span></span></code></pre>
+<p><span>但在我的Arch Linux下它返回：</span></p>
+<pre><code><code><span class="pun">&gt;&gt;&gt;<span class="pln"> platform<span class="pun">.<span class="pln">dist<span class="pun">()<span class="pln">
+<span class="pun">(<span class="str">''<span class="pun">,<span class="pln"> <span class="str">''<span class="pun">,<span class="pln"> <span class="str">''<span class="pun">)
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p><span><span>为什么？</span><span>我怎么能得到这个名字？</span></span></p>
+<p><span><span>PS。</span><span>我必须检查分发是否是基于Debian的。</span></span></p>
+<hr />
+<p><span>更新：我在这里找到了</span><a href="http://docs.python.org/library/platform.html#unix-platforms" rel="noreferrer">Python站点</a><span>，自2.6以来，dist（）已被弃用。</span></p>
+<pre><code><code><span class="pun">&gt;&gt;&gt;<span class="pln"> platform<span class="pun">.<span class="pln">linux_distribution<span class="pun">()<span class="pln">
+<span class="pun">(<span class="str">''<span class="pun">,<span class="pln"> <span class="str">''<span class="pun">,<span class="pln"> <span class="str">''<span class="pun">)
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>&nbsp;</p>
+<h2>解决方案</h2>
+<hr />
+<p><span>这对我在Ubuntu上有用：</span></p>
+<pre><code><code><span class="pun">(<span class="str">'Ubuntu'<span class="pun">,<span class="pln"> <span class="str">'10.04'<span class="pun">,<span class="pln"> <span class="str">'lucid'<span class="pun">)</span></span></span></span></span></span></span></span></span></code></pre>
+<p><span>然后我常常</span><code>strace</code><span>找出平台模块正在做什么来查找分布，这是这部分：</span></p>
+<pre><code><code><span class="pln">open<span class="pun">(<span class="str">"/etc/lsb-release"<span class="pun">,<span class="pln"> O_RDONLY<span class="pun">|<span class="pln">O_LARGEFILE<span class="pun">)<span class="pln"> <span class="pun">=<span class="pln"> <span class="lit">3<span class="pln">
+fstat64<span class="pun">(<span class="lit">3<span class="pun">,<span class="pln"> <span class="pun">{<span class="pln">st_mode<span class="pun">=<span class="pln">S_IFREG<span class="pun">|<span class="lit">0644<span class="pun">,<span class="pln"> st_size<span class="pun">=<span class="lit">102<span class="pun">,<span class="pln"> <span class="pun">...})<span class="pln"> <span class="pun">=<span class="pln"> <span class="lit">0<span class="pln">
+fstat64<span class="pun">(<span class="lit">3<span class="pun">,<span class="pln"> <span class="pun">{<span class="pln">st_mode<span class="pun">=<span class="pln">S_IFREG<span class="pun">|<span class="lit">0644<span class="pun">,<span class="pln"> st_size<span class="pun">=<span class="lit">102<span class="pun">,<span class="pln"> <span class="pun">...})<span class="pln"> <span class="pun">=<span class="pln"> <span class="lit">0<span class="pln">
+mmap2<span class="pun">(<span class="pln">NULL<span class="pun">,<span class="pln"> <span class="lit">4096<span class="pun">,<span class="pln"> PROT_READ<span class="pun">|<span class="pln">PROT_WRITE<span class="pun">,<span class="pln"> MAP_PRIVATE<span class="pun">|<span class="pln">MAP_ANONYMOUS<span class="pun">,<span class="pln"> <span class="pun">-<span class="lit">1<span class="pun">,<span class="pln"> <span class="lit">0<span class="pun">)<span class="pln"> <span class="pun">=<span class="pln"> <span class="lit">0xb76b1000<span class="pln">
+read<span class="pun">(<span class="lit">3<span class="pun">,<span class="pln"> <span class="str">"DISTRIB_ID=Ubuntu\nDISTRIB_RELEAS"<span class="pun">...,<span class="pln"> <span class="lit">8192<span class="pun">)<span class="pln"> <span class="pun">=<span class="pln"> <span class="lit">102<span class="pln">
+read<span class="pun">(<span class="lit">3<span class="pun">,<span class="pln"> <span class="str">""<span class="pun">,<span class="pln"> <span class="lit">4096<span class="pun">)<span class="pln">                       <span class="pun">=<span class="pln"> <span class="lit">0<span class="pln">
+read<span class="pun">(<span class="lit">3<span class="pun">,<span class="pln"> <span class="str">""<span class="pun">,<span class="pln"> <span class="lit">8192<span class="pun">)<span class="pln">                       <span class="pun">=<span class="pln"> <span class="lit">0<span class="pln">
+close<span class="pun">(<span class="lit">3<span class="pun">)<span class="pln">                                <span class="pun">=<span class="pln"> <span class="lit">0</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p><span>所以，</span><code>/etc/lsb-release</code><span>包含这些信息，来自Ubuntu的Debian基础文件包。</span></p>
+<p>本文首发于<a href="http://www.pythonheidong.com/" target="_blank">Python黑洞网</a>，博客园同步跟新</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

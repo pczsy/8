@@ -1,0 +1,61 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修练手爬虫用urllib模块获取' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>练手爬虫用urllib模块获取</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11326228.html</div><br>
+    <h1 id="练手爬虫用urllib模块获取">练手爬虫用urllib模块获取</h1>
+<p><code>有个人看一段python2的代码有很多错误</code></p>
+<pre><code><code>import re
+import urllib
+
+def getHtml(url):
+    page = urllib.urlopen(url)
+    html = page.read()
+    return html
+
+def getImg(html):
+    reg = r&#39;src=&quot;(.+?\.jpg)&quot; pic_ext&#39;
+    imgre = re.compile(reg)
+    imglist = re.findall(imgre,html)
+    return imglist 
+
+html = getHtml(&quot;https://zwk365.com&quot;) //攒外快网
+print getImg(html)</code></pre>
+<h2 id="修改后python3的代码">修改后python3的代码</h2>
+<pre><code><code>import re
+import urllib.request
+
+def getHtml(url):
+    page = urllib.request.urlopen(url) #获取网站
+    html = page.read() #内容读取,返回的html是字节的格式
+    return html
+
+def getImg(html):
+    # print(str(html,encoding=&#39;utf8&#39;))   #内容以爬下来为准而不是网站上的
+    reg = &#39;data-original=&quot;(.*?)&quot;&#39;  #设置下内容的re格式
+    imglist = re.findall(reg,str(html,encoding=&#39;utf8&#39;),re.S)
+    return imglist
+
+html = getHtml(&quot;https://zwk365.com&quot;)
+print(getImg(html))</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

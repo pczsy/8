@@ -1,0 +1,91 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Ubuntu18.04 一键升级Python所有第三方包' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Ubuntu18.04 一键升级Python所有第三方包</center></div><div class='banquan'>原文出处:本文由博客园博主passerby223提供。<br/>
+原文连接:https://www.cnblogs.com/passerby223/p/11717479.html</div><br>
+    <p><span style="font-size: 18px;">一、pip是什么</span></p>
+<p><span style="font-size: 18px;">pip 是 Python 包管理工具，该工具提供了对Python 包的查找、下载、安装、卸载的功能。</span></p>
+<p><span style="font-size: 18px;">二、升级pip版本</span></p>
+<p><span style="font-size: 18px;">1、默认Ubuntu自带的pip (pip 9.0.1)是基于Python2.7的版本</span></p>
+<p><span style="font-size: 18px;">2、我们需要重新安装基于Python3的pip：</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="font-size: 18pt;"><span style="color: #0000ff;">sudo</span> apt-get <span style="color: #0000ff;">install</span> python3-pip</span></pre>
+</div>
+<p><span style="font-size: 18px;">3、升级pip3版本：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;"><span style="font-size: 18pt;">python3 -m pip install --upgrade pip</span></pre>
+</div>
+<p><span style="font-size: 18px;">4、查看Python3的pip版本，如果报以下错误：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;"><span style="font-size: 18pt;">ImportError: cannot import name main</span></pre>
+</div>
+<p><span style="font-size: 18px;">解决办法：编辑usr/bin/pip3文件</span></p>
+<p><span style="font-size: 18px;">修改前：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;"><span style="font-size: 18pt;">from pip import main
+if __name__ == '__main__':
+    sys.exit(main())</span></pre>
+</div>
+<p><span style="font-size: 18px;">修改后：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;"><span style="font-size: 18pt;">from pip import __main__
+if __name__ == '__main__':
+    sys.exit(__main__._main())</span></pre>
+</div>
+<p><span style="font-size: 18px;">验证修已成功生效：pip3 -V</span></p>
+<p><span style="font-size: 18px;">终端打印：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;"><span style="font-size: 18pt;">pip 19.3.1 from /home/wenbin/.local/lib/python3.6/site-packages/pip (python 3.6)
+</span></pre>
+</div>
+<p><span style="font-size: 18px;">5、一键升级所有Python包</span></p>
+<p><span style="font-size: 18px;">编写一个Python脚本去执行即可，下面是代码：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;"><span style="font-size: 18pt;">import pkg_resources
+from subprocess import call
+
+for packages in [dist.project_name for dist in pkg_resources.working_set]:
+    call("pip3 install --upgrade " + ''.join(packages) + ' --user', shell=True)
+</span></pre>
+</div>
+<p><span style="font-size: 18px;">因为我的Python3对应的pip是pip3，所以脚本这里<span style="font-family: 'Courier New';">call("pip3 install --upgrade " + ''.join(packages) + ' --user', shell=True)中的pip要写成pip3</span></span></p>
+<p><span style="font-family: 'Courier New'; font-size: 18px;">接下来在查看下Python的历史版本的包还有那些：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;"><span style="font-size: 18pt;">pip3 list --outdated
+</span></pre>
+</div>
+<p><span style="font-size: 18px;">终端打印：</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;"><span style="font-size: 18px;"><span style="font-size: 18pt;">Package     Version Latest Type 
+----------- ------- ------ -----
+distro-info 0.0.0   0.10   sdist
+pycairo     1.16.2  1.18.1 sdist
+pycups      1.9.73  1.9.74 sdist
+pygobject   3.26.1  3.34.0 sdist　</span>　</span></pre>
+</div>
+<p><span style="font-size: 18px;">然后在对这些没升级的包使用</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;"><span style="font-size: 18pt;">pip3 install --upgrade 要升级的包名
+</span></pre>
+</div>
+<p><span style="font-size: 18px;">命令进行逐个升级即可</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

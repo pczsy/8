@@ -1,0 +1,461 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django--form组件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django--form组件</center></div><div class='banquan'>原文出处:本文由博客园博主蔚蓝的爱提供。<br/>
+原文连接:https://www.cnblogs.com/Hades123/p/11710642.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#form组件">form组件</a><ul>
+        <li><a href="#校验字段功能">校验字段功能</a></li>
+        <li><a href="#渲染标签功能">渲染标签功能</a><ul>
+        <li><a href="#方式一">方式一</a></li>
+        <li><a href="#方式二">方式二</a></li>
+        <li><a href="#方式三">方式三</a></li>
+        </ul></li>
+        <li><a href="#渲染错误信息功能">渲染错误信息功能</a></li>
+        <li><a href="#组件的参数配置">组件的参数配置</a></li>
+        <li><a href="#钩子">钩子</a></li>
+        <li><a href="#总体">总体</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<h1 id="form组件">form组件</h1>
+<h2 id="校验字段功能">校验字段功能</h2>
+<p>以注册为示例进行演示：</p>
+<pre><code><code># models.py
+
+class UserInfo(models.Model):
+    name=models.CharField(max_length=32)
+    pwd=models.CharField(max_length=32)
+    email=models.EmailField()</code></pre>
+<pre class="html"><code>&lt;!--register.html--&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+    {% csrf_token %}
+    &lt;div&gt;
+        &lt;label for=&quot;user&quot;&gt;用户名&lt;/label&gt;
+        &lt;p&gt;&lt;input type=&quot;text&quot; name=&quot;name&quot; id=&quot;name&quot;&gt;&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+        &lt;label for=&quot;pwd&quot;&gt;密码&lt;/label&gt;
+        &lt;p&gt;&lt;input type=&quot;password&quot; name=&quot;pwd&quot; id=&quot;pwd&quot;&gt;&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+        &lt;label for=&quot;r_pwd&quot;&gt;确认密码&lt;/label&gt;
+        &lt;p&gt;&lt;input type=&quot;password&quot; name=&quot;r_pwd&quot; id=&quot;r_pwd&quot;&gt;&lt;/p&gt;
+    &lt;/div&gt;
+     &lt;div&gt;
+        &lt;label for=&quot;email&quot;&gt;邮箱&lt;/label&gt;
+        &lt;p&gt;&lt;input type=&quot;text&quot; name=&quot;email&quot; id=&quot;email&quot;&gt;&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;input type=&quot;submit&quot;&gt;
+&lt;/form&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<pre><code><code># views.py
+
+# forms组件
+from django.forms import widgets
+
+wid_01=widgets.TextInput(attrs={&quot;class&quot;:&quot;form-control&quot;})
+wid_02=widgets.PasswordInput(attrs={&quot;class&quot;:&quot;form-control&quot;})
+
+class UserForm(forms.Form):
+    name=forms.CharField(max_length=32,
+                         widget=wid_01
+                         )
+    pwd=forms.CharField(max_length=32,widget=wid_02)
+    r_pwd=forms.CharField(max_length=32,widget=wid_02)
+    email=forms.EmailField(widget=wid_01)
+    tel=forms.CharField(max_length=32,widget=wid_01)
+
+
+
+def register(request):
+
+    if request.method==&quot;POST&quot;:
+        form=UserForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)       # 所有干净的字段以及对应的值
+        else:
+            print(form.cleaned_data)       #
+            print(form.errors)             # ErrorDict : {&quot;校验错误的字段&quot;:[&quot;错误信息&quot;,]}
+            print(form.errors.get(&quot;name&quot;)) # ErrorList [&quot;错误信息&quot;,]
+        return HttpResponse(&quot;OK&quot;)
+    form=UserForm()
+    return render(request,&quot;register.html&quot;,locals())</code></pre>
+<h2 id="渲染标签功能">渲染标签功能</h2>
+<h3 id="方式一">方式一</h3>
+<pre class="html"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css&quot; integrity=&quot;sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u&quot; crossorigin=&quot;anonymous&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h3&gt;注册页面&lt;/h3&gt;
+&lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;div class=&quot;col-md-6 col-lg-offset-3&quot;&gt;
+            &lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+                {% csrf_token %}
+                &lt;div&gt;
+                    &lt;label for=&quot;&quot;&gt;用户名&lt;/label&gt;
+                    {{ form.name }}
+                &lt;/div&gt;
+                &lt;div&gt;
+                    &lt;label for=&quot;&quot;&gt;密码&lt;/label&gt;
+                    {{ form.pwd }}
+                &lt;/div&gt;
+                &lt;div&gt;
+                    &lt;label for=&quot;&quot;&gt;确认密码&lt;/label&gt;
+                    {{ form.r_pwd }}
+                &lt;/div&gt;
+                &lt;div&gt;
+                    &lt;label for=&quot;&quot;&gt; 邮箱&lt;/label&gt;
+                    {{ form.email }}
+                &lt;/div&gt;
+                &lt;input type=&quot;submit&quot; class=&quot;btn btn-default pull-right&quot;&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h3 id="方式二">方式二</h3>
+<pre class="html"><code>&lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+    {% csrf_token %}
+    {% for field in form %}
+    &lt;div&gt;
+        &lt;label for=&quot;&quot;&gt;{{ field.label }}&lt;/label&gt;
+        {{ field }}
+    &lt;/div&gt;
+    {% endfor %}
+    &lt;input type=&quot;submit&quot; class=&quot;btn btn-default pull-right&quot;&gt;
+&lt;/form&gt;</code></pre>
+<h3 id="方式三">方式三</h3>
+<pre class="html"><code>&lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+    {% csrf_token %}
+    {{ form.as_p }}
+    &lt;input type=&quot;submit&quot; class=&quot;btn btn-default pull-right&quot;&gt;
+&lt;/form&gt;</code></pre>
+<h2 id="渲染错误信息功能">渲染错误信息功能</h2>
+<pre><code><code># views.py
+
+def register(request):
+    if request.method==&quot;POST&quot;:
+        form=UserForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)       # 所有干净的字段以及对应的值
+        else:
+            print(form.cleaned_data)       #
+            print(form.errors)             # ErrorDict : {&quot;校验错误的字段&quot;:[&quot;错误信息&quot;,]}
+            print(form.errors.get(&quot;name&quot;)) # ErrorList [&quot;错误信息&quot;,]
+        return render(request,&quot;register.html&quot;,locals())
+    
+    form=UserForm()
+    return render(request,&quot;register.html&quot;,locals())</code></pre>
+<pre class="html"><code>&lt;!--register.html--&gt;
+
+&lt;form action=&quot;&quot; method=&quot;post&quot; novalidate&gt;
+    {% csrf_token %}
+    {% for field in form %}
+        &lt;div&gt;
+            &lt;label for=&quot;&quot;&gt;{{ field.label }}&lt;/label&gt;
+            {{ field }} &lt;span class=&quot;pull-right&quot; style=&quot;color: red&quot;&gt;{{ field.errors.0 }}&lt;/span&gt;
+        &lt;/div&gt;
+    {% endfor %}
+    &lt;input type=&quot;submit&quot; class=&quot;btn btn-default&quot;&gt;
+&lt;/form&gt;</code></pre>
+<h2 id="组件的参数配置">组件的参数配置</h2>
+<pre><code><code>class Ret(Form):
+    name = forms.CharField(
+        max_length=10, 
+        min_length=2, 
+        label=&#39;用户名&#39;,
+        error_messages={
+            &#39;required&#39;: &#39;该字段不能为空&#39;, 
+            &#39;invalid&#39;: &#39;格式错误&#39;, 
+            &#39;max_length&#39;: &#39;太长&#39;, 
+            &#39;min_length&#39;: &#39;太短&#39;
+        },
+        widget=widgets.TextInput(attrs={
+            &#39;class&#39;:&#39;form-control&#39;
+        }))
+    
+    pwd = forms.CharField(
+        max_length=10, 
+        min_length=2, 
+        widget=widgets.PasswordInput(attrs={
+            &#39;class&#39;:&#39;form-control&#39;
+        }))
+    
+    email = forms.EmailField(
+        label=&#39;邮箱&#39;, 
+        error_messages={
+            &#39;required&#39;: &#39;该字段不能为空&#39;, 
+            &#39;invalid&#39;: &#39;格式错误&#39;
+        })</code></pre>
+<h2 id="钩子">钩子</h2>
+<pre><code><code>from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+
+class Ret(Form):
+    ....
+   
+    # 局部钩子
+    def clean_name(self):
+        val=self.cleaned_data.get(&quot;name&quot;)
+        ret=UserInfo.objects.filter(name=val)
+        if not ret:
+            return val
+        else:
+            raise ValidationError(&quot;该用户已注册!&quot;)
+
+
+    def clean_tel(self):
+        val=self.cleaned_data.get(&quot;tel&quot;)
+        if len(val)==11:
+            return val
+        else:
+            raise  ValidationError(&quot;手机号格式错误&quot;)
+            
+    # 全局钩子        
+    def clean(self):
+        pwd=self.cleaned_data.get(&#39;pwd&#39;)
+        r_pwd=self.cleaned_data.get(&#39;r_pwd&#39;)
+
+        if pwd and r_pwd:
+            if pwd==r_pwd:
+                return self.cleaned_data
+            else:
+                raise ValidationError(&#39;两次密码不一致&#39;)
+        else:
+            return self.cleaned_data 
+        
+        
+# 获取全局钩子的错误，错误是放在__all__中的
+# pwd_err=my_form.errors.get(&#39;__all__&#39;)</code></pre>
+<h2 id="总体">总体</h2>
+<pre><code><code># myform.py
+
+from django import forms
+from django.forms import widgets
+from app01.models import UserInfo
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+
+
+class UserForm(forms.Form):
+    name=forms.CharField(
+        min_length=4,
+        label=&quot;用户名&quot;,
+        error_messages={
+            &quot;required&quot;:&quot;该字段不能为空&quot;
+        },
+        widget=widgets.TextInput(attrs={
+            &quot;class&quot;:&quot;form-control&quot;
+        }))
+    
+    pwd=forms.CharField(
+        min_length=4,
+        label=&quot;密码&quot;,
+        widget=widgets.PasswordInput(attrs={
+            &quot;class&quot;:&quot;form-control&quot;
+        }))
+    
+    r_pwd=forms.CharField(
+        min_length=4,
+        label=&quot;确认密码&quot;,
+        error_messages={
+            &quot;required&quot;:&quot;该字段不能为空&quot;
+        },
+        widget=widgets.TextInput(attrs={
+            &quot;class&quot;:&quot;form-control&quot;
+        }))
+    
+    email=forms.EmailField(
+        label=&quot;邮箱&quot;,
+        error_messages={
+            &quot;required&quot;:&quot;该字段不能为空&quot;,
+            &quot;invalid&quot;:&quot;格式错误&quot;},
+        widget=widgets.TextInput(attrs={
+            &quot;class&quot;:&quot;form-control&quot;
+        }))
+    
+    tel=forms.CharField(
+        label=&quot;手机号&quot;,
+        widget=widgets.TextInput(attrs={
+            &quot;class&quot;:&quot;form-control&quot;
+        }))
+
+
+    def clean_name(self):
+        val=self.cleaned_data.get(&quot;name&quot;)
+        ret=UserInfo.objects.filter(name=val)
+        if not ret:
+            return val
+        else:
+            raise ValidationError(&quot;该用户已注册!&quot;)
+
+    def clean_tel(self):
+        val=self.cleaned_data.get(&quot;tel&quot;)
+        if len(val)==11:
+            return val
+        else:
+            raise  ValidationError(&quot;手机号格式错误&quot;)
+
+    def clean(self):
+        pwd=self.cleaned_data.get(&#39;pwd&#39;)
+        r_pwd=self.cleaned_data.get(&#39;r_pwd&#39;)
+        if pwd and r_pwd:
+            if pwd==r_pwd:
+                return self.cleaned_data
+            else:
+                raise ValidationError(&#39;两次密码不一致&#39;)
+        else:
+            return self.cleaned_data</code></pre>
+<pre><code><code># views.py
+
+from django.shortcuts import render,HttpResponse
+from app01.myforms import *
+
+
+def reg(request):
+    if request.method==&quot;POST&quot;:
+        print(request.POST)
+        #form=UserForm({&quot;name&quot;:&quot;yu&quot;,&quot;email&quot;:&quot;123@qq.com&quot;,&quot;xxxx&quot;:&quot;alex&quot;})
+        form=UserForm(request.POST) # form表单的name属性值应该与forms组件字段名称一致
+        print(form.is_valid()) # 返回布尔值
+        if form.is_valid():
+            print(form.cleaned_data)  # {&quot;name&quot;:&quot;yuan&quot;,&quot;email&quot;:&quot;123@qq.com&quot;}
+        else:
+            print(form.cleaned_data)  # {&quot;email&quot;:&quot;123@qq.com&quot;}
+            # print(form.errors)        # {&quot;name&quot;:[&quot;..........&quot;]}
+            # print(type(form.errors))  # ErrorDict
+            # print(form.errors.get(&quot;name&quot;))
+            # print(type(form.errors.get(&quot;name&quot;)))    # ErrorList
+            # print(form.errors.get(&quot;name&quot;)[0])
+
+
+            #   全局钩子错误
+            #print(&quot;error&quot;,form.errors.get(&quot;__all__&quot;)[0])
+            errors=form.errors.get(&quot;__all__&quot;)
+            return render(request,&quot;reg.html&quot;,locals())
+
+        &#39;&#39;&#39;
+        form.is_valid()   :返回布尔值
+        form.cleaned_data :{&quot;name&quot;:&quot;yuan&quot;,&quot;email&quot;:&quot;123@qq.com&quot;}
+        form.errors       :{&quot;name&quot;:[&quot;..........&quot;]}
+
+        &#39;&#39;&#39;
+        
+    form=UserForm()
+    return render(request,&quot;register.html&quot;,locals())</code></pre>
+<pre class="html"><code>&lt;!--register.html--&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+    &lt;style&gt;
+        .error{
+            color: red;
+        }
+    &lt;/style&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css&quot;
+    integrity=&quot;sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u&quot; crossorigin=&quot;anonymous&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;div class=&quot;col-md-6 col-lg-offset-3&quot;&gt;
+            &lt;!--
+            &lt;h3&gt;简单form&lt;/h3&gt;
+            &lt;form action=&quot;&quot; method=&quot;post&quot; novalidate&gt;
+                {% csrf_token %}
+                &lt;p&gt;用户名&lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;&lt;/p&gt;
+                &lt;p&gt;密码 &lt;input type=&quot;text&quot; name=&quot;pwd&quot;&gt;&lt;/p&gt;
+                &lt;p&gt;确认密码 &lt;input type=&quot;text&quot; name=&quot;r_pwd&quot;&gt;&lt;/p&gt;
+                &lt;p&gt;邮箱  &lt;input type=&quot;text&quot; name=&quot;email&quot;&gt;&lt;/p&gt;
+                &lt;p&gt;手机号 &lt;input type=&quot;text&quot; name=&quot;tel&quot;&gt;&lt;/p&gt;
+                &lt;input type=&quot;submit&quot;&gt;
+            &lt;/form&gt;
+            --&gt;
+            
+            &lt;hr&gt;
+            &lt;h3&gt;forms组件渲染方式1&lt;/h3&gt;
+            &lt;form action=&quot;&quot; method=&quot;post&quot; novalidate&gt;
+                {% csrf_token %}
+                &lt;p&gt;{{ form.name.label }}
+                    {{ form.name }} &lt;span class=&quot;pull-right error&quot;&gt;{{ form.name.errors.0 }}&lt;/span&gt;
+                &lt;/p&gt;
+                &lt;p&gt;{{ form.pwd.label }}
+                    {{ form.pwd }} &lt;span class=&quot;pull-right error&quot;&gt;{{ form.pwd.errors.0 }}&lt;/span&gt;
+                &lt;/p&gt;
+                &lt;p&gt;确认密码
+                    {{ form.r_pwd }} &lt;span class=&quot;pull-right error&quot;&gt;{{ form.r_pwd.errors.0 }}&lt;/span&gt;&lt;span class=&quot;pull-right error&quot;&gt;{{ errors.0 }}&lt;/span&gt;
+                &lt;/p&gt;
+                &lt;p&gt;邮箱 {{ form.email }} &lt;span class=&quot;pull-right error&quot;&gt;{{ form.email.errors.0 }}&lt;/span&gt;&lt;/p&gt;
+                &lt;p&gt;手机号 {{ form.tel }} &lt;span class=&quot;pull-right error&quot;&gt;{{ form.tel.errors.0 }}&lt;/span&gt;&lt;/p&gt;
+                &lt;input type=&quot;submit&quot;&gt;
+            &lt;/form&gt;
+            
+            &lt;!--
+            &lt;h3&gt;forms组件渲染方式2&lt;/h3&gt;
+            &lt;form action=&quot;&quot; method=&quot;post&quot; novalidate&gt;
+                {% csrf_token %}
+                {% for field in form %}
+                    &lt;div&gt;
+                        &lt;label for=&quot;&quot;&gt;{{ field.label }}&lt;/label&gt;
+                        {{ field }}
+                    &lt;/div&gt;
+                {% endfor %}
+                 &lt;input type=&quot;submit&quot;&gt;
+            &lt;/form&gt;
+
+            &lt;h3&gt;forms组件渲染方式3&lt;/h3&gt;
+            &lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+                 {% csrf_token %}
+                 {{ form.as_p }}
+                 &lt;input type=&quot;submit&quot;&gt;
+            &lt;/form&gt;
+            --&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

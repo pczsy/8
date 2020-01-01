@@ -1,0 +1,756 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修NIO-FileChannel源码分析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>NIO-FileChannel源码分析</center></div><div class='banquan'>原文出处:本文由博客园博主杰哥很忙提供。<br/>
+原文连接:https://www.cnblogs.com/Jack-Blog/p/12078767.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#nio-filechannel源码分析">NIO-FileChannel源码分析</a><ul>
+        <li><a href="#目录">目录</a></li>
+        <li><a href="#前言">前言</a></li>
+        <li><a href="#randomaccessfile">RandomAccessFile</a><ul>
+        <li><a href="#接口">接口</a></li>
+        <li><a href="#创建实例">创建实例</a></li>
+        <li><a href="#获取文件通道">获取文件通道</a></li>
+        </ul></li>
+        <li><a href="#filechannelimpl">FileChannelImpl</a><ul>
+        <li><a href="#创建">创建</a></li>
+        <li><a href="#写文件">写文件</a></li>
+        <li><a href="#读文件">读文件</a></li>
+        <li><a href="#修改起始位置">修改起始位置</a></li>
+        <li><a href="#获取文件长度">获取文件长度</a></li>
+        <li><a href="#截取长度">截取长度</a></li>
+        <li><a href="#写入磁盘">写入磁盘</a></li>
+        <li><a href="#通道之间数据传输">通道之间数据传输</a></li>
+        <li><a href="#文件锁">文件锁</a></li>
+        <li><a href="#关闭">关闭</a></li>
+        </ul></li>
+        <li><a href="#总结">总结</a></li>
+        <li><a href="#相关文献">相关文献</a></li>
+        </ul></li>
+        </ul>
+    </div>
+</div>
+<hr />
+<hr />
+<h1 id="nio-filechannel源码分析">NIO-FileChannel源码分析</h1>
+<h2 id="目录">目录</h2>
+<p><a href="https://www.cnblogs.com/Jack-Blog/p/11991240.html">NIO-概览</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/11996309.html">NIO-Buffer</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12015516.html">NIO-Channel</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12040082.html">NIO-Channel接口分析</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12061595.html">NIO-SocketChannel源码分析</a><br />
+<a href="https://www.cnblogs.com/Jack-Blog/p/12078767.html">NIO-FileChannel源码分析</a></p>
+<h2 id="前言">前言</h2>
+<p>本来是想学习Netty的，但是Netty是一个NIO框架，因此在学习netty之前，还是先梳理一下NIO的知识。通过剖析<a href="http://jdk.java.net/">源码</a>理解NIO的设计原理。</p>
+<blockquote>
+<p>本系列文章针对的是JDK1.8.0.161的源码。</p>
+</blockquote>
+<p><a href="https://www.cnblogs.com/Jack-Blog/p/12061595.html">上一篇</a>对SocketChannel的源码进行了分析，本篇继续对FileChannel的源码进行解析。</p>
+<h2 id="randomaccessfile">RandomAccessFile</h2>
+<p>我们可以通过使用<code>RandomAccessFile</code>读写数据。也可以通过<code>FileInputStream</code>读数据或通过<code>FileOutputStream</code>写数据。但实际这三个类内部实际是一样的，我们就以<code>RandomAccessFile</code>为例子说明<code>FileChannelImpl</code>的实现。</p>
+<h3 id="接口">接口</h3>
+<p><code>RandomAccessFile</code>实现了<code>DataInput</code>和<code>DataOutput</code>两个接口，即数据输入和输出接口。</p>
+<pre><code><code>public class RandomAccessFile implements DataOutput, DataInput, Closeable {
+
+}</code></pre>
+<p><code>DataInput</code>定义了一些基本的读取方法</p>
+<ul>
+<li>读取指定长度的字节数据</li>
+<li>读取数据并转换为基元类型。</li>
+<li>读取一行数据。读取到<code>\r</code>会丢弃，读取到<code>\n</code>会丢弃并停止继续读取。</li>
+<li>用UTF-8编码读取一个string</li>
+</ul>
+<pre><code><code>
+public interface DataInput {
+    void readFully(byte b[]) throws IOException;
+    void readFully(byte b[], int off, int len) throws IOException;
+    int skipBytes(int n) throws IOException;
+    XXX readXXX() throws IOException;
+    String readLine() throws IOException;
+    String readUTF() throws IOException;
+}</code></pre>
+<p><code>DataOutput</code>定义了一些基本的写方法</p>
+<ul>
+<li>写入指定长度字节数据到文件。</li>
+<li>将基元类型写入文件。</li>
+<li>使用UTF-8编码写入一个string到文件。</li>
+</ul>
+<pre><code><code>public interface DataOutput {
+    void write(int b) throws IOException;
+    void write(byte b[]) throws IOException;
+    void write(byte b[], int off, int len) throws IOException;
+    void writeXXX(XXX v) throws IOException;
+    void writeUTF(String s) throws IOException;
+}</code></pre>
+<h3 id="创建实例">创建实例</h3>
+<p>在创建RandomAccessFile我们需要传入两个参数：第一个是文件路径，第二个是文件访问方式。</p>
+<pre><code><code>public RandomAccessFile(String name, String mode)
+    throws FileNotFoundException
+{
+    this(name != null ? new File(name) : null, mode);
+}
+
+public RandomAccessFile(File file, String mode)
+    throws FileNotFoundException
+{
+    //File用于检查文件路径是否有效
+    String name = (file != null ? file.getPath() : null);
+    int imode = -1;
+    //判断文件访问方式
+    if (mode.equals(&quot;r&quot;))
+        imode = O_RDONLY;
+    else if (mode.startsWith(&quot;rw&quot;)) {
+        imode = O_RDWR;
+        rw = true;
+        if (mode.length() &gt; 2) {
+            if (mode.equals(&quot;rws&quot;))
+                imode |= O_SYNC;
+            else if (mode.equals(&quot;rwd&quot;))
+                imode |= O_DSYNC;
+            else
+                imode = -1;
+        }
+    }
+    if (imode &lt; 0)
+        throw new IllegalArgumentException(&quot;Illegal mode \&quot;&quot; + mode + &quot;\&quot; must be one of \&quot;r\&quot;, \&quot;rw\&quot;, \&quot;rws\&quot;, or \&quot;rwd\&quot;&quot;);
+    //检查读写权限
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+        security.checkRead(name);
+        if (rw) {
+            security.checkWrite(name);
+        }
+    }
+    if (name == null) {
+        throw new NullPointerException();
+    }
+    if (file.isInvalid()) {
+        throw new FileNotFoundException(&quot;Invalid file path&quot;);
+    }
+    fd = new FileDescriptor();
+    fd.attach(this);
+    path = name;
+    open(name, imode);
+}</code></pre>
+<ul>
+<li>首先会创建一个File对象，用于检查文件路径是否合法。目前仅检查文件路径是否含有<code>Nul</code>(/u0000)。</li>
+<li>检查文件操作方式，文件有四种操作方式</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>模式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>r</td>
+<td>以只读方式打开。调用结果对象的任何 write 方法都将导致抛出 IOException。</td>
+</tr>
+<tr class="even">
+<td>rw</td>
+<td>打开以便读取和写入。如果该文件尚不存在，则尝试创建该文件。</td>
+</tr>
+<tr class="odd">
+<td>rwd</td>
+<td>打开以便读取和写入，这点和<code>rw</code>的操作完全一致，但是只会在cache满或者调用RandomAccessFile.close()的时候才会执行内容同步操作。</td>
+</tr>
+<tr class="even">
+<td>rws</td>
+<td>在&quot;rwd&quot;的基础上对内容同步的要求更加严苛，每write修改一个byte都会直接修改到磁盘中。</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>创建<code>SecurityManager</code>检查读写文件权限</li>
+<li>创建文件描述符</li>
+<li>打开文件</li>
+</ul>
+<h3 id="获取文件通道">获取文件通道</h3>
+<p>通过<code>getChannel</code>可以获取文件通道，进行文件读写。</p>
+<pre><code><code>public final FileChannel getChannel() {
+    synchronized (this) {
+        if (channel == null) {
+            channel = FileChannelImpl.open(fd, path, true, rw, this);
+        }
+        return channel;
+    }
+}</code></pre>
+<p>通过<code>FileChannelImpl.open</code>创建一个FileChannelImpl实例。</p>
+<h2 id="filechannelimpl">FileChannelImpl</h2>
+<p><img src="./images/NIO-FileChannel源码分析0.png" alt="20191219111345.png" /></p>
+<h3 id="创建">创建</h3>
+<p>在FileDispatcherImpl静态构造函数中会调用<code>IOUtil.load()</code>，在<a href="https://www.cnblogs.com/Jack-Blog/p/12061595.html">上一章</a>详细介绍过。</p>
+<pre><code><code>static {
+    IOUtil.load();
+}
+private FileChannelImpl(FileDescriptor fd, String path, boolean readable, boolean writable, boolean append, Object parent)
+{
+    this.fd = fd;
+    this.readable = readable;
+    this.writable = writable;
+    this.append = append;
+    this.parent = parent;
+    this.path = path;
+    //创建nd用于调用native方法进行读写
+    this.nd = new FileDispatcherImpl(append);
+}</code></pre>
+<h3 id="写文件">写文件</h3>
+<pre><code><code>
+public int write(ByteBuffer src) throws IOException {
+    ensureOpen();
+    if (!writable)
+        throw new NonWritableChannelException();
+    synchronized (positionLock) {
+        int n = 0;
+        int ti = -1;
+        try {
+            begin();
+            //将当前线程加入到线程集合中，当Channel关闭时，可以发送信号给线程，避免线程被I/O阻塞住
+            ti = threads.add();
+            if (!isOpen())
+                return 0;
+            do {
+                //写数据
+                n = IOUtil.write(fd, src, -1, nd);
+            } while ((n == IOStatus.INTERRUPTED) &amp;&amp; isOpen());
+            return IOStatus.normalize(n);
+        } finally {
+            //I/O完成移除线程
+            threads.remove(ti);
+            end(n &gt; 0);
+            assert IOStatus.check(n);
+        }
+    }
+}</code></pre>
+<ul>
+<li>首先校验一些必要的状态，如文件是否打开，是否可写等。</li>
+<li>调用<code>begin</code>开始I/O操作</li>
+<li>将当前线程加入到线程集合中。</li>
+<li>调用IOUtil.write将buffer数据写入到文件中</li>
+<li>I/O完成调用<code>end</code>收尾工作</li>
+<li><p>将线程移除线程集合中</p>
+<blockquote>
+<p>关于begin和end操作可以看《<a href="https://www.cnblogs.com/Jack-Blog/p/12040082.html#udp协议">NIO-Channel接口分析</a>》</p>
+</blockquote></li>
+</ul>
+<p><code>threads</code>是一个<code>NativeThreadSet</code>类型，它用于存放native线程的唯一token。</p>
+<pre><code><code>
+class NativeThreadSet {
+    private long[] elts;
+    ...
+    int add() {
+        long th = NativeThread.current();
+        ...
+        //数组不够长会先扩容
+        ...
+        for (int i = start; i &lt; elts.length; i++) {
+            //未使用过，则设置当前的线程token值
+            if (elts[i] == 0) {
+                elts[i] = th;
+                used++;
+                return i;
+            }
+        }
+        ...
+    }
+
+    void remove(int i) {
+        synchronized (this) {
+            //清空
+            elts[i] = 0;
+            used--;
+            //当调用了signalAndWait等待时会设置为true。此时会激活每个线程，并清理，每个线程都会被移除。当全部移除后激活调用signalAndWait的线程
+            if (used == 0 &amp;&amp; waitingToEmpty)
+            //通知
+                notifyAll();
+        }
+    }
+    //通知并等待
+    synchronized void signalAndWait() {
+        boolean interrupted = false;
+        while (used &gt; 0) {
+            int u = used;
+            int n = elts.length;
+            for (int i = 0; i &lt; n; i++) {
+                long th = elts[i];
+                ...
+                //激活线程
+                NativeThread.signal(th);
+                ...
+            }
+            //是否等待所有线程被移除
+            waitingToEmpty = true;
+            try {
+                //等待线程被清理,所有线程被移除时会激活。最多等待50ms，防止线程被阻塞。
+                wait(50);
+            } catch (InterruptedException e) {
+                interrupted = true;
+            } finally {
+                waitingToEmpty = false;
+            }
+        }
+        //线程中断则调用中断处理操作
+        if (interrupted)
+            Thread.currentThread().interrupt();
+    }
+}</code></pre>
+<p>native线程被定义为NativeThread类型的对象，主要由于在linux等操作系统当线程被I/O操作阻塞时，channel释放并不会激活该线程，因此需要通过一种通知的机制，在channel关闭时对线程进行通知，以便激活线程。</p>
+<p><code>threads.add();</code>会获取当前native的线程token，并加入待NativeThreadSet的token数组中(若数组长度不够，则会进行扩容。)</p>
+<blockquote>
+<p>在<a href="https://www.cnblogs.com/Jack-Blog/p/12061595.html#写数据">上一章</a>详细将结果IOUtil.write这里就不重复说明了</p>
+</blockquote>
+<h3 id="读文件">读文件</h3>
+<p>和写文件步骤类似，调用<code>IOUtil.read</code>读取数据</p>
+<pre><code><code>
+public int read(ByteBuffer dst) throws IOException {
+    ...
+    n = IOUtil.read(fd, dst, -1, nd);
+    ...
+}</code></pre>
+<h3 id="修改起始位置">修改起始位置</h3>
+<pre><code><code>
+public FileChannel position(long newPosition) throws IOException {
+    ...
+    p  = position0(fd, newPosition);
+    ...
+}</code></pre>
+<h3 id="获取文件长度">获取文件长度</h3>
+<pre><code><code>public long size() throws IOException {
+    ...
+    s = nd.size(fd);
+    ...
+}</code></pre>
+<h3 id="截取长度">截取长度</h3>
+<p>截取文件的长度，超过的文件内容会被删除。</p>
+<pre><code><code>public FileChannel truncate(long newSize) throws IOException {
+    
+    ...
+    int rv = -1;
+    long p = -1;
+    int ti = -1;
+    ...
+    // 获取当前长度
+    long size  = nd.size(fd);
+    ...
+    // 获取当前位置
+    p = position0(fd, -1);
+    ...
+    // 若当前长度大于截取的长度，则截取
+    if (newSize &lt; size) {
+        ...
+        rv = nd.truncate(fd, newSize);
+        ...
+    }
+    //若当前位置大于截取的长度则修改当前位置
+    if (p &gt; newSize)
+        p = newSize;
+    ...
+    rv = (int)position0(fd, p);
+    ...
+}</code></pre>
+<h3 id="写入磁盘">写入磁盘</h3>
+<p>写文件若没有采用直接缓冲区，则会先写入到页缓冲区中，通过force可以将尚未写入磁盘的数据强制写道磁盘上。</p>
+<pre><code><code>public void force(boolean metaData) throws IOException {
+    ...
+    rv = nd.force(fd, metaData);
+    ...
+}</code></pre>
+<h3 id="通道之间数据传输">通道之间数据传输</h3>
+<p>若需要将一个通道的数据写入到另一个通道，则可以使用<code>transferTo</code>或<code>transferFrom</code></p>
+<h4 id="transferto">transferTo</h4>
+<p>若当前通道是FileChannel，则可以将当前通道数据通过<code>transferTo</code>写入到其他通道</p>
+<pre><code><code>public long transferTo(long position, long count, WritableByteChannel target) throws IOException
+{
+    ...
+    //当前文件大小
+    long sz = size();
+    if (position &gt; sz)
+        return 0;
+    int icount = (int)Math.min(count, Integer.MAX_VALUE);
+    //可传大小修正
+    if ((sz - position) &lt; icount)
+        icount = (int)(sz - position);
+    long n;
+    // 若内核支持则使用直接传输
+    if ((n = transferToDirectly(position, icount, target)) &gt;= 0)
+        return n;
+    // 尝试内存映射文件传输
+    if ((n = transferToTrustedChannel(position, icount, target)) &gt;= 0)
+        return n;
+    // 慢速传输
+    return transferToArbitraryChannel(position, icount, target);
+}</code></pre>
+<p>通常情况下我们要将一个通道的数据传到另一个通道。举个例子，从一个文件读取数据通过socket通道进行发送。比如通过http协议读取服务器上的一个静态文件。</p>
+<p><img src="./images/NIO-FileChannel源码分析1.png" /></p>
+<ul>
+<li>文件从硬盘读取(拷贝)页缓冲区</li>
+<li>从页缓冲区读取(拷贝)数据到用户缓冲区</li>
+<li>用户缓冲区的数据写入(拷贝)到socket内核缓冲区，最终再将socket内核缓冲区的数据写入(拷贝)到网卡中。<br />
+可以看到这中间发生了四次内存拷贝。</li>
+</ul>
+<p>当我们通过<code>transferTo</code>在通道之间数据传输时，若内核支持，则会使用<a href="https://www.jianshu.com/p/fad3339e3448">零拷贝</a>的方式传输数据。</p>
+<p>通过零拷贝技术可以避免将数据拷贝到用户空间中。<br />
+<img src="./images/NIO-FileChannel源码分析2.png" /></p>
+<h5 id="直接传输">直接传输</h5>
+<p>若底层硬件支持的话可以将读取到的内核缓冲区的文件描述符加到socket缓冲区中，就可以省去了内核中将数据拷贝到socket缓冲区这一个内存拷贝动作。</p>
+<blockquote>
+<p>使用直接传输时，只能从文件通道传输到网络通道。</p>
+</blockquote>
+<p><img src="./images/NIO-FileChannel源码分析3.png" /></p>
+<pre><code><code>private long transferToDirectly(long position, int icount, WritableByteChannel target) throws IOException
+{
+    if (!transferSupported)
+        return IOStatus.UNSUPPORTED;
+    //做一些校验，当前和目标通道是否都支持直接传输
+    ...
+    targetFD = ((SelChImpl)target).getFD();
+    ...
+    int thisFDVal = IOUtil.fdVal(fd);
+    int targetFDVal = IOUtil.fdVal(targetFD);
+    //调用native方法直接传输，若不支持会返回不支持的错误码
+    n = transferTo0(thisFDVal, position, icount, targetFDVal);
+    ...
+}</code></pre>
+<blockquote>
+<p>windows不支持<code>transferTo0</code></p>
+</blockquote>
+<p>以linux为例，linux会调用sendfile64在两个文件描述符之间传递数据。</p>
+<pre class="cpp"><code>Java_sun_nio_ch_FileChannelImpl_transferTo0(JNIEnv *env, jobject this,
+                                            jint srcFD,
+                                            jlong position, jlong count,
+                                            jint dstFD)
+{
+#if defined(__linux__)
+    off64_t offset = (off64_t)position;
+    jlong n = sendfile64(dstFD, srcFD, &amp;offset, (size_t)count);
+    ...
+    return n;
+#elif defined (__solaris__)
+...
+#elif defined(__APPLE__)
+...
+#elif defined(_AIX)
+...
+#else
+    return IOS_UNSUPPORTED_CASE;
+#endif
+}</code></pre>
+<blockquote>
+<p>sendfile64只支持将文件传输到socket</p>
+</blockquote>
+<h5 id="内存映射文件">内存映射文件</h5>
+<p>若内核不支持上述方式则会尝试使用mmap(内存映射文件)的方式传输。</p>
+<p><img src="./images/NIO-FileChannel源码分析4.png" /></p>
+<p>应用程序调用<code>mmap()</code>，磁盘上的数据会通过DMA被拷贝的页缓冲区，接着操作系统会把这段页缓冲区与应用程序共享，这样就不需要把页缓冲区的内容复制到用户空间了。应用程序再调用<code>write()</code>,操作系统直接将页缓冲区的内容拷贝到socket缓冲区中，这一切都发生在内核空间，最后，socket缓冲区再把数据发到网卡去。</p>
+<pre><code><code>private long transferToTrustedChannel(long position, long count, WritableByteChannel target) throws IOException
+{
+    ...
+    //内存映射文件
+    MappedByteBuffer dbb = map(MapMode.READ_ONLY, position, size);
+    //有个bug，若在内存映射文件写入到目标通道时，关闭了channel，并不能中断此次写操作。
+    int n = target.write(dbb);
+    ...
+    unmap(dbb);
+    ...
+}</code></pre>
+<p><code>MapMode</code>有三种方式，只读(READ_ONLY)、可读写(READ_WRITE)、写时复制(PRIVATE)。</p>
+<p>当多个进程的虚拟内存映射到同一块物理内存时，若不采用写时复制，则由于共用一块物理内存，会相互影响。当使用了写时复制的技术后，一旦一个进程要修改页面时，就会复制一个副本，因此不会影响其他进程。</p>
+<p><img src="./images/NIO-FileChannel源码分析5.png" /></p>
+<pre><code><code>map(MapMode.READ_ONLY, position, size);
+public MappedByteBuffer map(MapMode mode, long position, long size) throws IOException
+{
+    //一些基本校验 
+    ...
+    //获取文件大小
+    long filesize = nd.size(fd);
+    ...
+    //根据文件大小设置文件描述符的结束未知
+    rv = nd.truncate(fd, position + size);
+    ...
+    int pagePosition = (int)(position % allocationGranularity);
+    long mapPosition = position - pagePosition;
+    long mapSize = size + pagePosition;
+    //调用native进行映射，若此时发生内存溢出，则强制回收一次GC，并重新尝试映射，若还是发生内存溢出则抛出异常
+    ...
+    addr = map0(imode, mapPosition, mapSize);
+    ...
+    //创建一个内存映射的文件描述符，指向当前的native文件描述符
+    FileDescriptor mfd = nd.duplicateForMapping(fd);
+
+    int isize = (int)size;
+    //Unmapper是卸载内存映射文件用的
+    Unmapper um = new Unmapper(addr, mapSize, isize, mfd);
+    if ((!writable) || (imode == MAP_RO)) {
+        return Util.newMappedByteBufferR(isize, addr + pagePosition, mfd, um);
+    } else {
+        //创建一个MappedByteBuffer
+        return Util.newMappedByteBuffer(isize, addr + pagePosition, mfd, um);
+    }
+    ...
+}</code></pre>
+<p><code>Unmapper</code>适用于卸载内存映射文件用的。它实现了<code>Runnable</code>接口，以便于线程可以执行移除内存映射以及一些清理工作。</p>
+<pre><code><code>private static class Unmapper implements Runnable
+{
+    ...
+    public void run() {
+        if (address == 0)
+            return;
+        //移除内存映射
+        unmap0(address, size);
+        address = 0;
+        ...
+        // 关闭文件描述符
+        nd.close(fd);
+        ...
+    }</code></pre>
+<p>那么什么时候会进行清理呢，我们可以看到实际通过<code>Util.newMappedByteBuffer</code>创建了一个<code>MapperByteBuffer</code>，并将<code>Unmapper</code>对象进行传递。</p>
+<p>接下来看如何创建<code>MapperByteBuffer</code></p>
+<pre><code><code>static MappedByteBuffer newMappedByteBuffer(int size, long addr, FileDescriptor fd, Runnable unmapper)
+{
+    MappedByteBuffer dbb;
+    if (directByteBufferConstructor == null)
+        initDBBConstructor();
+    try {
+        dbb = (MappedByteBuffer)directByteBufferConstructor.newInstance(
+            new Object[] { new Integer(size), new Long(addr), fd, unmapper });
+    } catch (InstantiationException |
+                IllegalAccessException |
+                InvocationTargetException e) {
+        throw new InternalError(e);
+    }
+    return dbb;
+}</code></pre>
+<p>首先通过<code>directByteBufferConstructor</code>创建一个MapperByteBuffer，从命名可以看出来这是一个<code>DirectByteBuffer</code>构造器。</p>
+<p>通过反射获取了<code>DirectByteBuffer</code>的构造函数。</p>
+<pre><code><code>
+private static void initDBBConstructor() {
+    ...
+    Class&lt;?&gt; cl = Class.forName(&quot;java.nio.DirectByteBuffer&quot;);
+    Constructor&lt;?&gt; ctor = cl.getDeclaredConstructor(
+        new Class&lt;?&gt;[] { int.class, long.class, FileDescriptor.class, Runnable.class });
+    ctor.setAccessible(true);
+    directByteBufferConstructor = ctor;
+    ...
+}</code></pre>
+<p>构造函数传递的第五个参数为<code>Unmapper</code>对象，它被传递到了Cleaner中，由此可知，当MapperByteBuffer被释放时，<code>Cleaner</code>可以保证内存映射被卸载。</p>
+<pre><code><code>protected DirectByteBuffer(int cap, long addr, FileDescriptor fd, Runnable unmapper)
+{
+    super(-1, 0, cap, cap, fd);
+    address = addr;
+    cleaner = Cleaner.create(this, unmapper);
+    att = null;
+}</code></pre>
+<p>当内存映射完成时，就可以通过write进行数据传输,传输完成通过ummap卸载内存映射。</p>
+<pre><code><code>private static void unmap(MappedByteBuffer bb) {
+    Cleaner cl = ((DirectBuffer)bb).cleaner();
+    if (cl != null)
+        cl.clean();
+}</code></pre>
+<h5 id="常规传输">常规传输</h5>
+<p>常规传输需要多次内存拷贝以及在用户模式和内核模式切换。</p>
+<pre><code><code>private long transferToArbitraryChannel(long position, int icount, WritableByteChannel target) throws IOException
+{
+    ...
+    //获取临时直接缓冲区
+    ByteBuffer bb = Util.getTemporaryDirectBuffer(c);
+    ...
+    //读到bb中
+    int nr = read(bb, pos);
+    ...
+    //转换为读模式
+    bb.flip();
+    //写入到目标通道
+    int nw = target.write(bb);
+    ...
+    //释放临时直接缓冲区
+    Util.releaseTemporaryDirectBuffer(bb);
+}
+</code></pre>
+<h4 id="transferfrom">transferFrom</h4>
+<p>若要将其他通道的数据传输到文件通道中，可以通过<code>transferFrom</code>传输。</p>
+<p>若原通道是文件，则可以通过内存映射文件的方式提高性能。否则使用常规传输方式，需要将数据拷贝到用户空间。</p>
+<pre><code><code>public long transferFrom(ReadableByteChannel src, long position, long count) throws IOException
+{
+    ...
+    if (src instanceof FileChannelImpl)
+        return transferFromFileChannel((FileChannelImpl)src, position, count);
+
+    return transferFromArbitraryChannel(src, position, count);
+}</code></pre>
+<h5 id="内存映射文件-1">内存映射文件</h5>
+<pre><code><code>private long transferFromFileChannel(FileChannelImpl src, long position, long count) throws IOException
+{
+    ...
+    MappedByteBuffer bb = src.map(MapMode.READ_ONLY, p, size);
+    //写入到文件
+    long n = write(bb, position);
+    ...
+    //释放内存映射
+    unmap(bb);
+    ...
+}</code></pre>
+<h5 id="常规传输-1">常规传输</h5>
+<pre><code><code>private long transferFromArbitraryChannel(ReadableByteChannel src, long position, long count) throws IOException
+{
+    int c = (int)Math.min(count, TRANSFER_SIZE);
+    //获取临时直接缓冲区
+    ByteBuffer bb = Util.getTemporaryDirectBuffer(c);
+    ...
+    //将src写入到临时直接缓存
+    int nr = src.read(bb);
+    ...
+    //转换为读模式
+    bb.flip();
+    //写入到文件
+    int nw = write(bb, pos);
+    ...
+    //释放临时直接缓冲区
+    Util.releaseTemporaryDirectBuffer(bb);
+}</code></pre>
+<h3 id="文件锁">文件锁</h3>
+<p>在NIO中引入了<code>FileLock</code>实现文件锁，可以实现文件进程锁。它支持独占锁和共享锁。</p>
+<p>使用独占锁时，只允许一个线程独占文件，其他线程必须等待独占的线程释放文件锁后才可以占用。使用共享锁时只支持读模式共享文件占用。关于文件锁的使用可以看下<a href="https://blog.csdn.net/zwjyyy1203/article/details/87360592">《JAVA 文件锁 FileLock》</a></p>
+<pre><code><code>public FileLock lock(long position, long size, boolean shared) throws IOException
+{
+    ...
+    //写模式不能共享锁
+    if (shared &amp;&amp; !readable)
+        throw new NonReadableChannelException();
+    //读模式不能独占锁
+    if (!shared &amp;&amp; !writable)
+        throw new NonWritableChannelException();
+    //创建一个文件锁实例
+    FileLockImpl fli = new FileLockImpl(this, position, size, shared);
+    //获取文件锁表
+    FileLockTable flt = fileLockTable();
+    flt.add(fli);
+    boolean completed = false;
+    int ti = -1;
+    try {
+        ...
+        //调用native方法加锁
+        n = nd.lock(fd, true, position, size, shared);
+        if (isOpen()) {
+            //部分操作系统不支持共享锁，若获取到的是独占锁，则更新当前FileLockImpl为独占锁
+            if (n == FileDispatcher.RET_EX_LOCK) {
+                //若获取到锁，则重新获取一个非共享锁实例
+                FileLockImpl fli2 = new FileLockImpl(this, position, size, false);
+                flt.replace(fli, fli2);
+                fli = fli2;
+            }
+            completed = true;
+        }
+    } finally {
+        if (!completed)
+            //加锁失败，移除锁
+            flt.remove(fli);
+        threads.remove(ti);
+        ...
+    }
+    return fli;
+}</code></pre>
+<h3 id="关闭">关闭</h3>
+<p>关闭文件通道时需要释放所有锁和文件流</p>
+<pre><code><code>protected void implCloseChannel() throws IOException {
+    // 释放文件锁
+    if (fileLockTable != null) {
+        for (FileLock fl: fileLockTable.removeAll()) {
+            synchronized (fl) {
+                if (fl.isValid()) {
+                    //释放锁
+                    nd.release(fd, fl.position(), fl.size());
+                    ((FileLockImpl)fl).invalidate();
+                }
+            }
+        }
+    }
+    // 通知当前通道所有被阻塞线程
+    threads.signalAndWait();
+    if (parent != null) {
+        ((java.io.Closeable)parent).close();
+    } else {
+        nd.close(fd);
+    }
+}</code></pre>
+<p>在创建channel的时候会将<code>RandomAccessFile</code>、<code>FileInputStream</code>或<code>FileOutputStream</code>等对象设置为channel的parent。从而使得channel关闭的时候可以释放parent资源。</p>
+<pre><code><code>((java.io.Closeable)parent).close();
+public void close() throws IOException {
+    synchronized (closeLock) {
+        if (closed) {
+            return;
+        }
+        closed = true;
+    }
+    if (channel != null) {
+        channel.close();
+    }
+    //关闭文件描述符
+    fd.closeAll(new Closeable() {
+        public void close() throws IOException {
+            close0();
+        }
+    });
+}</code></pre>
+<p>关闭FileDescriptor时会关闭<code>RandomAccessFile</code>、<code>FileInputStream</code>或<code>FileOutputStream</code>等资源。在创建RandomAccessFile时会通过<code>FileDescriptor.attach</code>将RandomAccessFile添加到FileDescriptor的otherParents中</p>
+<pre><code><code>synchronized void closeAll(Closeable releaser) throws IOException {
+    if (!closed) {
+        closed = true;
+        IOException ioe = null;
+        //在try执行完后调用releaser的close方法
+        try (Closeable c = releaser) {
+            //在创建RandomAccessFile时会把RandomAccessFile对象添加到otherParents中
+            if (otherParents != null) {
+                for (Closeable referent : otherParents) { 
+                    ...
+                    referent.close();
+                    ...
+            }
+        } 
+        ...
+    }
+}</code></pre>
+<h2 id="总结">总结</h2>
+<p>本篇对文件通道常用的操作源码进行解析，对linux下的零拷贝进行简要说明。</p>
+<h2 id="相关文献">相关文献</h2>
+<ol>
+<li><a href="https://www.cnblogs.com/imstudy/p/11108085.html">史上最强Java NIO入门：担心从入门到放弃的，请读这篇！</a></li>
+<li><a href="https://ifeve.com/java-nio-all/">Java NIO系列教程</a></li>
+<li><a href="https://www.jianshu.com/p/fad3339e3448">浅析Linux中的零拷贝技术</a></li>
+<li><a href="https://blog.csdn.net/puliao4167/article/details/87894191">Linux系统编程——内存映射与写时复制</a></li>
+<li><a href="https://blog.csdn.net/wypblog/article/details/101731752">支撑百万并发的“零拷贝”技术，你了解吗？</a></li>
+<li><a href="https://blog.csdn.net/qq_26222859/article/details/81056938">java NIO之MappedByteBuffer</a></li>
+<li><a href="https://blog.csdn.net/zwjyyy1203/article/details/87360592">JAVA 文件锁 FileLock</a></li>
+</ol>
+<hr />
+<blockquote>
+<p><img src="./images/NIO-FileChannel源码分析6.png" alt="20191127212134.png" /><br />
+微信扫一扫二维码关注订阅号杰哥技术分享<br />
+出处：<a href="https://www.cnblogs.com/Jack-Blog/p/12078767.html" class="uri">https://www.cnblogs.com/Jack-Blog/p/12078767.html</a><br />
+作者：杰哥很忙<br />
+本文使用「CC BY 4.0」创作共享协议。欢迎转载，请在明显位置给出出处及链接。</p>
+</blockquote>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

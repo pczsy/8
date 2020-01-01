@@ -1,0 +1,390 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django之ORM-model模型关系' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django之ORM-model模型关系</center></div><div class='banquan'>原文出处:本文由博客园博主YifChan提供。<br/>
+原文连接:https://www.cnblogs.com/yifchan/p/python-1-26.html</div><br>
+    <p>Django1.8.2中文文档：<a href="https://yiyibooks.cn/xx/django_182/index.html" target="_blank">Django1.8.2中文文档</a></p>
+<h2>模型类关系</h2>
+<p>1）一对多关系<br />例：图书类-英雄类 <br />models.ForeignKey() 定义在多的类中。</p>
+<p>2）多对多关系<br />例：新闻类-新闻类型类 体育新闻 国际新闻<br />models.ManyToManyField() 定义在哪个类中都可以。</p>
+<p>3）一对一关系<br />例：员工基本信息类-员工详细信息类. 员工工号<br />models.OneToOneField定义在哪个类中都可以。</p>
+<p>&nbsp;</p>
+<p>多对多示例</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('4f494634-eb1e-4b04-8932-a1fa965fe117')"><img id="code_img_closed_4f494634-eb1e-4b04-8932-a1fa965fe117" class="code_img_closed" src="./images/Django之ORM-model模型关系0.png" alt="" /><img id="code_img_opened_4f494634-eb1e-4b04-8932-a1fa965fe117" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('4f494634-eb1e-4b04-8932-a1fa965fe117',event)" src="./images/Django之ORM-model模型关系1.png" alt="" />
+<div id="cnblogs_code_open_4f494634-eb1e-4b04-8932-a1fa965fe117" class="cnblogs_code_hide">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 新闻类型类</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> NewsType(models.Model):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 类型名</span>
+    type_name = models.CharField(max_length=20<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 关系属性，代表类型下面的信息</span>
+    type_news = models.ManyToManyField(<span style="color: #800000;">'</span><span style="color: #800000;">NewsInfo</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 新闻类</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> NewsInfo(models.Model):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 新闻标题</span>
+    title = models.CharField(max_length=128<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 发布时间</span>
+    pub_date = models.DateTimeField(auto_now_add=<span style="color: #000000;">True)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 信息内容</span>
+    content =<span style="color: #000000;"> models.TextField()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 关系属性, 代表信息所属的类型</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> news_type = models.ManyToManyField('NewsType')</span></pre>
+</div>
+<span class="cnblogs_code_collapse">多对多示例</span></div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('b59cdecb-b14a-4491-a863-51f2214cb712')"><img id="code_img_closed_b59cdecb-b14a-4491-a863-51f2214cb712" class="code_img_closed" src="./images/Django之ORM-model模型关系0.png" alt="" /><img id="code_img_opened_b59cdecb-b14a-4491-a863-51f2214cb712" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('b59cdecb-b14a-4491-a863-51f2214cb712',event)" src="./images/Django之ORM-model模型关系1.png" alt="" />
+<div id="cnblogs_code_open_b59cdecb-b14a-4491-a863-51f2214cb712" class="cnblogs_code_hide">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 员工基本信息类</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> EmployeeBasicInfo(models.Model):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 姓名</span>
+    name = models.CharField(max_length=20<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 性别</span>
+    gender = models.BooleanField(default=<span style="color: #000000;">False)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 年龄</span>
+    age =<span style="color: #000000;"> models.IntegerField()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 关系属性,代表员工的详细信息</span>
+    employee_detail = models.OneToOneField(<span style="color: #800000;">'</span><span style="color: #800000;">EmployeeDetailInfo</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 员工详细信息类</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> EmployeeDetailInfo(models.Model):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 联系地址</span>
+    addr = models.CharField(max_length=256<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 教育经历</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 关系属性，代表员工基本信息</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> employee_basic = models.OneToOneField('EmployeeBasicInfo')</span></pre>
+</div>
+<span class="cnblogs_code_collapse">一对一关系示例</span></div>
+<p>重点关注一对多的关系；</p>
+<p>&nbsp;</p>
+<h2>模型-关联查询</h2>
+<p>关联查询-一对多</p>
+<h3>查询和对象关联的数据</h3>
+<p>在一对多关系中，一对应的类我们把它叫做一类，多对应的那个类我们把它叫做多类，我们把多类中定义的建立关联的类属性叫做关联属性。<br />例：查询id为1的图书关联的英雄的信息。</p>
+<div class="cnblogs_code">
+<pre><code>b=BookInfo.objects.get(id=1<span style="color: #000000;">)
+b.heroinfo_set.all()
+通过模型类查询：
+HeroInfo.objects.filter(hbook__id</span>=1)</pre>
+</div>
+<p>例：查询id为1的英雄关联的图书信息。</p>
+<div class="cnblogs_code">
+<pre><code>h = HeroInfo.objects.get(id=1<span style="color: #000000;">)
+h.hbook
+通过模型类查询：
+BookInfo.objects.filter(heroinfo__id</span>=1)</pre>
+</div>
+<p>&nbsp;</p>
+<p>格式：</p>
+<p><img src="./images/Django之ORM-model模型关系4.png" alt="" /></p>
+<p>由一类的对象查询多类的时候：<br />	　　一类的对象.多类名小写_set.all() #查询所用数据<br />由多类的对象查询一类的时候：<br />	　　多类的对象.关联属性  #查询多类的对象对应的一类的对象<br />由多类的对象查询一类对象的id时候：<br />	　　多类的对象. 关联属性_id</p>
+<p>&nbsp;</p>
+<h3>通过模型类实现关联查询</h3>
+<p>关联查询<br /><strong>1.通过模型类实现关联查询时，要查哪个表中的数据，就需要通过哪个类来查。</strong><br /><strong>2.写关联查询条件的时候，如果类中没有关系属性，条件需要些对应类的名，如果类中有关系属性，直接写关系属性。</strong></p>
+<p>例：查询图书信息，要求图书关联的英雄的描述包含'八'。</p>
+<div class="cnblogs_code">
+<pre><code>BookInfo.objects.filter(heroinfo__hcomment__contains=<span style="color: #800000;">'</span><span style="color: #800000;">八</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>例：查询图书信息，要求图书中的英雄的id大于3.</p>
+<div class="cnblogs_code">
+<pre><code>BookInfo.objects.filter(heroinfo__id__gt=3)</pre>
+</div>
+<p>例：查询书名为&ldquo;天龙八部&rdquo;的所有英雄。</p>
+<div class="cnblogs_code">
+<pre><code>HeroInfo.objects.filter(hbook__btitle=<span style="color: #800000;">'</span><span style="color: #800000;">天龙八部</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<p>通过多类的条件查询一类的数据：<br />	　　一类名.objects.filter(多类名小写__多类属性名__条件名) <br />通过一类的条件查询多类的数据：<br />	　　多类名.objects.filter(关联属性__一类属性名__条件名)</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>模型-插入和删除</h2>
+<p>插入、更新和删除<br />调用一个模型类对象的save方法的时候就可以实现对模型类对应数据表的插入和更新。<br />调用一个模型类对象的delete方法的时候就可以实现对模型类对应数据表数据的删除。<br />插入示例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 1.创建bookinfo对象</span>
+b =<span style="color: #000000;"> models.BookInfo()
+b.btitle </span>= <span style="color: #800000;">"</span><span style="color: #800000;">流星蝴蝶剑</span><span style="color: #800000;">"</span><span style="color: #000000;">
+b.bpub_date </span>= date(1990, 1, 1<span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2.保存进数据库</span>
+b.save()</pre>
+</div>
+<p>删除示例：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 1.获取书籍对象</span>
+book = models.BookInfo.objects.get(id=<span style="color: #000000;">bid)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 2.删除书籍</span>
+book.delete()</pre>
+</div>
+<p>&nbsp;</p>
+<h2>模型-自关联</h2>
+<p><img src="./images/Django之ORM-model模型关系5.png" alt="" /></p>
+<p>自关联是一种特殊的一对多的关系。<br />案例：显示广州市的上级地区和下级地区。<br />地区表：id, atitle, aParent_id;<br />mysql终端中批量执行sql语句：source areas.sql;</p>
+<p>&nbsp;</p>
+<h3>自关联案例</h3>
+<p>models.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AreaInfo(models.Model):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">地区模型类</span><span style="color: #800000;">"""</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 地区名称</span>
+    atitle = models.CharField(max_length=20<span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 关系属性，代表当前地区的父级地区</span>
+    aParent = models.ForeignKey(<span style="color: #800000;">"</span><span style="color: #800000;">self</span><span style="color: #800000;">"</span>, null=True, blank=True)</pre>
+</div>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code>E:\Pycharm\Pycharm_save\cp15\test2&gt;<span style="color: #000000;">cd booktest
+
+E:\Pycharm\Pycharm_save\cp15\test2\booktest</span>&gt;mysql -uroot -<span style="color: #000000;">p
+Enter password: </span>****<span style="color: #000000;">
+Welcome to the MySQL monitor.  Commands end with ; </span><span style="color: #0000ff;">or</span><span style="color: #000000;"> \g.
+Type </span><span style="color: #800000;">'</span><span style="color: #800000;">help;</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">or</span> <span style="color: #800000;">'</span><span style="color: #800000;">\h</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">for</span> help. Type <span style="color: #800000;">'</span><span style="color: #800000;">\c</span><span style="color: #800000;">'</span><span style="color: #000000;"> to clear the current input statement.
+
+mysql</span>&gt;<span style="color: #000000;"> use test1000;
+Database changed
+mysql</span>&gt; source area.sql</pre>
+</div>
+<p>&nbsp;</p>
+<p>area.html</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>地区<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">p</span><span style="color: #0000ff;">&gt;</span>{{ area }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">p</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>父级地区<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">p</span><span style="color: #0000ff;">&gt;</span>{{ parent }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">p</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>子级地区<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h1</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">ul</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% for child in children %}
+        </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">li</span><span style="color: #0000ff;">&gt;</span>{{ child }}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">li</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    {% endfor %}
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">ul</span><span style="color: #0000ff;">&gt;</span></pre>
+</div>
+<p>Views.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">def</span><span style="color: #000000;"> areas(request):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">获取广州市的上级地区和下级地区</span><span style="color: #800000;">'''</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 1.获取广州市的信息</span>
+    area = AreaInfo.objects.get(atitle=<span style="color: #800000;">'</span><span style="color: #800000;">广州市</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 2.查询广州市的上级地区</span>
+    parent =<span style="color: #000000;"> area.aParent
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 3.查询广州市的下级地址</span>
+    children =<span style="color: #000000;"> area.areainfo_set.all()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 使用模板</span>
+    <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">'</span><span style="color: #800000;">booktest/areas.html</span><span style="color: #800000;">'</span>, {<span style="color: #800000;">'</span><span style="color: #800000;">area</span><span style="color: #800000;">'</span>: area, <span style="color: #800000;">'</span><span style="color: #800000;">parent</span><span style="color: #800000;">'</span>: parent, <span style="color: #800000;">'</span><span style="color: #800000;">children</span><span style="color: #800000;">'</span>: children})</pre>
+</div>
+<p>Urls.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.conf.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> url
+</span><span style="color: #0000ff;">from</span> booktest <span style="color: #0000ff;">import</span><span style="color: #000000;"> views
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^areas/$</span><span style="color: #800000;">'</span>, views.areas),  <span style="color: #008000;">#</span><span style="color: #008000;"> 自关联案例</span>
+]</pre>
+</div>
+<p>应注意浏览器中的url后面的&rsquo;/&rsquo;。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>模型-模型管理器</h2>
+<h4>什么是管理器？</h4>
+<p>BookInfo.objects.all()-&gt;objects是一个什么东西呢？<br />答：<strong>objects是Django帮我自动生成的管理器对象，通过这个管理器可以实现对数据的查询</strong>。<br />objects是models.Manger类的一个对象。自定义管理器之后Django不再帮我们生成默认的objects管理器。</p>
+<p>&nbsp;</p>
+<h3>自定义管理器</h3>
+<p>可以在BookInfo下自定义一个 book = models.Manager()<br />这时就不能使用 BookInfo.objects.xxx了，而是BookInfo.book.xxx，但这样并没有什么用。<br />我们一般这样用：</p>
+<ul>
+<li>1)自定义一个管理器类，这个类继承models.Manger类。</li>
+<li>2)再在具体的模型类里定义一个自定义管理器类的对象。</li>
+
+
+
+
+
+
+</ul>
+<p>&nbsp;</p>
+<h4>自定义管理器类的应用场景</h4>
+<p>1）改变查询的结果集。<br />比如调用BookInfo.books.all()返回的是没有删除的图书的数据。<br />2）添加额外的方法。<br />管理器类中定义一个方法帮我们操作模型类对应的数据表。<br />使用self.model()就可以创建一个跟自定义管理器对应的模型类对象。</p>
+<p>&nbsp;</p>
+<h4>自定义管理器示例</h4>
+<p>自定义管理器代码</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('18c89b73-6d72-4d4f-91f0-3e225b5ee4d2')"><img id="code_img_closed_18c89b73-6d72-4d4f-91f0-3e225b5ee4d2" class="code_img_closed" src="./images/Django之ORM-model模型关系0.png" alt="" /><img id="code_img_opened_18c89b73-6d72-4d4f-91f0-3e225b5ee4d2" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('18c89b73-6d72-4d4f-91f0-3e225b5ee4d2',event)" src="./images/Django之ORM-model模型关系1.png" alt="" />
+<div id="cnblogs_code_open_18c89b73-6d72-4d4f-91f0-3e225b5ee4d2" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookInfoManager(models.Manager):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">图书模型管理器类</span><span style="color: #800000;">'''</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 1.改变原有查询的结果集</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> all(self):
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 1.调用父类的all方法，获取所有数据</span>
+        books = super().all()  <span style="color: #008000;">#</span><span style="color: #008000;"> QuerySet</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 2.对books中的数据进行过滤</span>
+        books = books.filter(isDelete=<span style="color: #000000;">False)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 返回books</span>
+        <span style="color: #0000ff;">return</span><span style="color: #000000;"> books
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 2.封装方法，操作模型类对应的数据表（增删改查)</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> create_book(self, btitle, bpub_date):
+        </span><span style="color: #800000;">'''</span><span style="color: #800000;">添加一本图书</span><span style="color: #800000;">'''</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 1.创建一个图书对象</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 获取self所在的模型类</span>
+        model_class =<span style="color: #000000;"> self.model
+        book </span>=<span style="color: #000000;"> model_class()
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> book = models.BookInfo()</span>
+        book.btitle =<span style="color: #000000;"> btitle
+        book.bpub_date </span>=<span style="color: #000000;"> bpub_date
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 2.添加进数据库</span>
+<span style="color: #000000;">        book.save()
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> 3.返回book</span>
+        <span style="color: #0000ff;">return</span><span style="color: #000000;"> book
+
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 一类</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> booktest2_bookinfo</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> BookInfo(models.Model):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">图书模型类</span><span style="color: #800000;">'''</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 图书名称</span>
+    btitle = models.CharField(max_length=20, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">title</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 图书名字唯一</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> btitle = models.CharField(max_length=20, unique=True, db_index=True)</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 价格,最大位数为10,小数为2</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> bprice = models.DecimalField(max_digits=10, decimal_places=2)</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 出版日期</span>
+    bpub_date =<span style="color: #000000;"> models.DateField()
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> bpub_date = models.DateField(auto_now_add=True) # 创建时间</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> bpub_date = models.DateField(auto_now=True) # 更新时间</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 阅读量</span>
+    bread = models.IntegerField(default=<span style="color: #000000;">0)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 评论量</span>
+    bcomment = models.IntegerField(default=<span style="color: #000000;">0)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 删除标记</span>
+    isDelete = models.BooleanField(default=<span style="color: #000000;">False)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> book = models.Manager() # 自定一个Manager类对象，管理器对象</span>
+    objects = BookInfoManager()  <span style="color: #008000;">#</span><span style="color: #008000;"> 自定义一个BookInfoManager类的对象</span>
+
+    <span style="color: #008000;">#</span><span style="color: #008000;"> @classmethod</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> def create_book(cls, btitle, bpub_date):</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     '''添加一本图书'''</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     # 创建一个cls类的对象</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     obj = cls()</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     obj.btitle = btitle</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     obj.bpub_date = bpub_date</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     # 添加进数据库</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     obj.save()</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     # 返回obj</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     return obj</span></pre>
+</div>
+<span class="cnblogs_code_collapse">自定义管理器代码</span></div>
+<p>&nbsp;</p>
+<p>自定义管理器的使用：<br />1.</p>
+<div class="cnblogs_code">
+<pre><code>BookInfo.objects.all() <span style="color: #008000;">#</span><span style="color: #008000;"> objects是管理器中的objects，返回的是一个isDelete=0的值；</span></pre>
+</div>
+<p>2.</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> booktest.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> BookInfo
+BookInfo.objects.create_book(</span><span style="color: #800000;">'</span><span style="color: #800000;">test2</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">1991-1-1</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>其实在models.Manager里面已经封装了create方法，使用示例如下：<br />BookInfo.objects.create(btitlt='test3', bpub_date='1991-1-1')</p>
+<p>&nbsp;</p>
+<p>应注意如果定义的图书模型类名换了比如class BookInfo，这个时候BookInfoManager中的book = BookInfo()也要改成<br />book = BookInfo1()，这样会很麻烦，但幸好，Manager里面有考虑到这一点，</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 获取self所在的模型类</span>
+model_class =<span style="color: #000000;"> self.model
+book </span>=<span style="color: #000000;"> model_class()
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 上面两句相当于最后一句。</span><span style="color: #008000;">
+#</span><span style="color: #008000;">  book = BookInfo()</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;小结：</p>
+<p><img src="./images/Django之ORM-model模型关系8.png" alt="" /></p>
+<p>主旨：模型管理器类和模型类是通过在模型类中定义objects = BookInfoManager()，在模型管理器类中通过 <br />model_class = self.model； book = model_class() 来建立关系的。</p>
+<p>&nbsp;</p>
+<h3>自定义模型管理器类方法获取默认收货地址</h3>
+<p>定义地址模型管理器类</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('ab61ac13-772d-42a8-84e5-ab19176c9ba4')"><img id="code_img_closed_ab61ac13-772d-42a8-84e5-ab19176c9ba4" class="code_img_closed" src="./images/Django之ORM-model模型关系0.png" alt="" /><img id="code_img_opened_ab61ac13-772d-42a8-84e5-ab19176c9ba4" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('ab61ac13-772d-42a8-84e5-ab19176c9ba4',event)" src="./images/Django之ORM-model模型关系1.png" alt="" />
+<div id="cnblogs_code_open_ab61ac13-772d-42a8-84e5-ab19176c9ba4" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AddressManager(models.Manager):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">地址管理器类</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get_default_address(self, user):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">返回默认的地址</span><span style="color: #800000;">"""</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> self.model：获取self对象所在的模型类</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;">:
+            address </span>= self.get(user=user, is_default=<span style="color: #000000;">True)
+        </span><span style="color: #0000ff;">except</span><span style="color: #000000;"> self.model.DoesNotExist:
+            </span><span style="color: #008000;">#</span><span style="color: #008000;"> 不存在默认收货地址</span>
+            address =<span style="color: #000000;"> None
+        </span><span style="color: #0000ff;">return</span> address</pre>
+</div>
+<span class="cnblogs_code_collapse">地址模型管理器类</span></div>
+<p>地址模型类中引用地址模型管理器类的objects</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('9886bb69-2c45-4561-a799-0728b117847c')"><img id="code_img_closed_9886bb69-2c45-4561-a799-0728b117847c" class="code_img_closed" src="./images/Django之ORM-model模型关系0.png" alt="" /><img id="code_img_opened_9886bb69-2c45-4561-a799-0728b117847c" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('9886bb69-2c45-4561-a799-0728b117847c',event)" src="./images/Django之ORM-model模型关系1.png" alt="" />
+<div id="cnblogs_code_open_9886bb69-2c45-4561-a799-0728b117847c" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Address(BaseModel):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">地址模型类</span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    user </span>= models.ForeignKey(<span style="color: #800000;">'</span><span style="color: #800000;">User</span><span style="color: #800000;">'</span>, verbose_name=<span style="color: #800000;">'</span><span style="color: #800000;">所属账户</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    receiver </span>= models.CharField(max_length=20, verbose_name=<span style="color: #800000;">'</span><span style="color: #800000;">收件人</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    addr </span>= models.CharField(max_length=256, verbose_name=<span style="color: #800000;">'</span><span style="color: #800000;">收件地址</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    zip_code </span>= models.CharField(max_length=6, null=True, verbose_name=<span style="color: #800000;">'</span><span style="color: #800000;">邮政编码</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    phone </span>= models.CharField(max_length=11, verbose_name=<span style="color: #800000;">'</span><span style="color: #800000;">联系电话</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    is_default </span>= models.BooleanField(default=False, verbose_name=<span style="color: #800000;">'</span><span style="color: #800000;">是否默认</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 自定义一个模型管理器对象</span>
+    objects = AddressManager()</pre>
+</div>
+<span class="cnblogs_code_collapse">引用地址模型管理器类</span></div>
+<p>在CBV中使用自定义模型管理器类中的方法</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('223463c5-5bb2-4966-a00a-1004db8e81fd')"><img id="code_img_closed_223463c5-5bb2-4966-a00a-1004db8e81fd" class="code_img_closed" src="./images/Django之ORM-model模型关系0.png" alt="" /><img id="code_img_opened_223463c5-5bb2-4966-a00a-1004db8e81fd" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('223463c5-5bb2-4966-a00a-1004db8e81fd',event)" src="./images/Django之ORM-model模型关系1.png" alt="" />
+<div id="cnblogs_code_open_223463c5-5bb2-4966-a00a-1004db8e81fd" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> AddressView(LoginRequiredMixin, View):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">用户中心-订单页</span><span style="color: #800000;">"""</span>
+    <span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, request):
+        </span><span style="color: #800000;">"""</span><span style="color: #800000;">返回用户中心信息页面</span><span style="color: #800000;">"""</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 获取用户的默认收货地址</span>
+        user =<span style="color: #000000;"> request.user
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> try:</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">     address = Address.objects.get(user=user, is_default=True)</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> except Address.DoesNotExist:</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;">     address = None</span>
+        <span style="color: #008000;">#</span><span style="color: #008000;"> 使用自定义地址模型类管理器对象的获取默认收货地址方法</span>
+        address =<span style="color: #000000;"> Address.objects.get_default_address(user)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> print("address:", address)</span>
+        <span style="color: #0000ff;">return</span> render(request, <span style="color: #800000;">"</span><span style="color: #800000;">user_center_site.html</span><span style="color: #800000;">"</span>, {<span style="color: #800000;">"</span><span style="color: #800000;">page</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">address</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">address</span><span style="color: #800000;">"</span>: address})</pre>
+</div>
+<span class="cnblogs_code_collapse">CBV中使用自定义模型管理器类中的方法</span></div>
+<p>&nbsp;</p>
+<h2>模型-元选项</h2>
+<p>Django默认生成的表名：应用名小写_模型类名小写。<br /><br /></p>
+<p><strong>元选项</strong>：需要在模型类中定义一个元类Meta,在里面定义一个类属性db_table就可以指定表名。<br /><br /></p>
+<p>如果改了应用名，而表名有不会自动更改，这个时候，就会出问题；<br />为了解决这个问题，我们要让模型类的表名不依赖于应用名；<br />使用 元选项，指定表名。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> BookInfo(models.Model):
+    </span><span style="color: #800000;">'''</span><span style="color: #800000;">图书模型类</span><span style="color: #800000;">'''</span><span style="color: #000000;">
+    btitle </span>= models.CharField(max_length=20, db_column=<span style="color: #800000;">'</span><span style="color: #800000;">title</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    bpub_date </span>=<span style="color: #000000;"> models.DateField()
+    bread </span>= models.IntegerField(default=<span style="color: #000000;">0)
+    bcomment </span>= models.IntegerField(default=<span style="color: #000000;">0)
+    isDelete </span>= models.BooleanField(default=<span style="color: #000000;">False)
+    
+    objects </span>= BookInfoManager()  <span style="color: #008000;">#</span><span style="color: #008000;"> 自定义一个BookInfoManager类的对象</span>
+　　<br />　　 # 使用元选项
+    <span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        db_table </span>= <span style="color: #800000;">'</span><span style="color: #800000;">bookinfo</span><span style="color: #800000;">'</span>  <span style="color: #008000;">#</span><span style="color: #008000;"> 指定模型类对应表名</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

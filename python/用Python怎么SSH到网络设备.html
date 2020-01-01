@@ -1,0 +1,127 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修用Python怎么SSH到网络设备' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>用Python怎么SSH到网络设备</center></div><div class='banquan'>原文出处:本文由博客园博主Singvis提供。<br/>
+原文连接:https://www.cnblogs.com/singvis/p/11604864.html</div><br>
+    <p>[ TOC ]</p>
+<h1 id="前言">0. 前言</h1>
+<p>自上一篇文章《用python怎么telnet到网络设备》，简单使用了telnetlib库给大家演示了下，但是，现实环境中仍不建议去使用telnet。<br />
+SSH(Secure Shell)协议也是属于TCP/IP协议族里的一种，端口号22，可以代替telnet来远程管理的一种方法。<br />
+SSH提供了双向认证、数据加密等方法保证数据的安全性，推荐使用SSHv2版本</p>
+<h1 id="测试环境及关键代码解释">1. 测试环境及关键代码解释</h1>
+<h2 id="简单测试环境">1.1 简单测试环境</h2>
+<ol>
+<li>使用python3环境</li>
+<li>使用第三方Netmiko模块(基于Paramiko库进行改版)</li>
+<li><p>简单的实验环境<br />
+<img src="./images/用Python怎么SSH到网络设备0.png" alt="在这里插入图片描述" /></p>
+<h2 id="关键代码">1.2 关键代码</h2>
+<p>import xx：导入模块<br />
+class xx：定义类<br />
+def xx: 定义函数<br />
+try-except ：处理可能引发的异常<br />
+ssh.enable()：进入enable模式<br />
+ssh.find_prompt()：返回当前提示符<br />
+ssh.send_command()：发送查询命令并返回结果<br />
+ssh.send_config_set()：发送配置命令到目标设备<br />
+ssh.disconnect()：关闭连接</p></li>
+</ol>
+<p><strong>Tips</strong>: import ConnectHandler和import Netmiko是一样的效果的哈。</p>
+<h1 id="完整代码">2. 完整代码</h1>
+<pre><code><code>&#39;&#39;&#39;
+欢迎关注微信公众号：&#39;diandijishu&#39;
+  此平台是网路工程师个人日常技术、项目案例经验分享，
+  为巩固及提升技术能力乃至共享所学所知技术，
+  也欢迎各位工程师一起分享、一起成长。
+&#39;&#39;&#39;
+
+#!/usr/bin/env python
+#coding:utf-8
+
+from netmiko import ConnectHandler
+from netmiko.ssh_exception import NetMikoTimeoutException
+from netmiko.ssh_exception import NetMikoAuthenticationException
+from datetime import datetime
+import time
+import logging
+from my_devices import device_list as devices
+
+&#39;定义类&#39;
+class SSH_Client():
+    &#39;定义login_host函数，用于登陆设备&#39;
+    def login_host(self , a_device):
+        try:
+            self.ssh = ConnectHandler(**a_device)
+            self.ssh.enable()
+            reply = self.ssh.find_prompt()
+            print(&#39;&gt;&#39; * 10 + &#39;成功登陆结果如下:&#39; + &#39;&gt;&#39; * 10 + &#39;\n&#39; + reply)
+            return True
+        except ValueError:
+            logging.warning(a_device[&#39;host&#39;] + &#39; Secret 密码错误&#39;)
+        except NetMikoTimeoutException:
+            logging.warning(a_device[&#39;host&#39;] + &#39; 连接不上设备,请检查网络是否正常通信&#39;)
+        except NetMikoAuthenticationException:
+            logging.warning(a_device[&#39;host&#39;] + &#39; 登陆失败，用户名或密码错误&#39;)
+
+    &#39;定义do_cmd函数,用于执行命令&#39;
+    def do_cmd(self,cmds):
+        &#39;读取文件，for语句循环执行命令&#39;
+        with open(cmds) as cmd_obj:
+            for cmd in cmd_obj:
+                reply = self.ssh.send_command(cmd)
+                time.sleep(2)
+                logging.warning(&#39;&gt;&#39; * 10 + cmd.rstrip() + &#39; 命令执行结果如下:&#39; + &#39;&gt;&#39; * 10 + &#39;\n&#39; + reply)
+    &#39;定义logout_host函数，关闭程序&#39;
+    def logout_host(self):
+        self.ssh.disconnect()
+
+if __name__ == &#39;__main__&#39;:
+    cmds = &#39;cmd.txt&#39;  # 存放执行命令文件，相对路径
+    ssh_client = SSH_Client()
+    start_time = datetime.now()
+    for a_device in devices:
+        &#39;如果登录结果为True，则执行命令，然后退出&#39;
+        if ssh_client.login_host(a_device):
+            ssh_client.do_cmd(cmds)
+            ssh_client.logout_host()
+            time.sleep(2)
+    stop_time = datetime.now()
+    print(&#39;总花费时长：{0}\n&#39;.format(stop_time - start_time))
+</code></pre>
+<h1 id="运行效果">3. 运行效果</h1>
+<p><img src="./images/用Python怎么SSH到网络设备1.png" alt="在这里插入图片描述" /></p>
+<h1 id="报错效果">4. 报错效果</h1>
+<h2 id="远程连接不上">4.1 远程连接不上</h2>
+<p><img src="./images/用Python怎么SSH到网络设备2.png" alt="在这里插入图片描述" /></p>
+<h2 id="用户名和密码错误">4.2 用户名和密码错误</h2>
+<p><img src="./images/用Python怎么SSH到网络设备3.png" alt="在这里插入图片描述" /></p>
+<h1 id="碎碎语">5. 碎碎语</h1>
+<p>结合两篇文章，想必大家都知道如何用python使用自带库或第三方库去telnet或ssh网络设备，然而大家可能就会问，如果设备包含多厂商、网络设备telnet和ssh混杂、众多网络设备，那代码又如何去优化呢？的确，要解决一系列问题，咱们得一个一个来哈，也顺便给入门的小伙伴慢慢熟悉下，后面的文章我给大家讲解如何使用多进程和多线程进行优化、完整版网络巡检。<br />
+本人代码功夫不深，如有缺陷望指教，多谢。</p>
+<hr />
+<p>如果喜欢的我的文章，欢迎关注我的公众号：点滴技术，扫码关注，不定期分享<br />
+<img src="./images/用Python怎么SSH到网络设备4.png" alt="点滴技术" /></p>
+<hr />
+<p>如果喜欢的我的文章，欢迎关注我的公众号：点滴技术，扫码关注，不定期分享</p>
+<p><img src="./images/用Python怎么SSH到网络设备5.png" alt="点滴技术" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

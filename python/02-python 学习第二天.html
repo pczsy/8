@@ -1,0 +1,442 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修02-python 学习第二天' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>02-python 学习第二天</center></div><div class='banquan'>原文出处:本文由博客园博主dwdar提供。<br/>
+原文连接:https://www.cnblogs.com/dwdar/p/11650732.html</div><br>
+    <p>今天学习了以下几个方面的内容，虽然部分内容不能理解，跟着老师写出了代码。</p>
+<ol style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding: 0px 0px 0px 40px; color: #333333; font-family: verdana, Arial, Helvetica, sans-serif;">
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">列表、元组操作</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">字符串操作</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">字典操作</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">集合操作</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">文件操作</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">字符编码与转码</li>
+</ol>
+<h1><span style="color: #000000;">程序练习1:购物车程序</span></h1>
+<p style="padding: 0px; color: #333333; font-family: verdana, Arial, Helvetica, sans-serif;">请闭眼写出以下程序。</p>
+<p style="padding: 0px; color: #333333; font-family: verdana, Arial, Helvetica, sans-serif;">程序：购物车程序</p>
+<p style="padding: 0px; color: #333333; font-family: verdana, Arial, Helvetica, sans-serif;">需求:</p>
+<ol style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding: 0px 0px 0px 40px; color: #333333; font-family: verdana, Arial, Helvetica, sans-serif;">
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">启动程序后，让用户输入工资，然后打印商品列表</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">允许用户根据商品编号购买商品</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">用户选择商品后，检测余额是否够，够就直接扣款，不够就提醒&nbsp;</li>
+<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; list-style: decimal;">可随时退出，退出时，打印已购买商品和余额</li>
+</ol>
+<h1>我的实现思路</h1>
+<p>1、先做一个商品列表product_list将商品存下来<br />2、新建一个空列表，作为购物列表shouping_list<br />3、新建一个工资列表，让用户输入工资，为了避免用户输入的不是数字，用int强转时报错做两件事情<br />        3.1 判断用户输入的是不是数字<br />        3.2 将用户输入的值强转成数字，因为列表的下标时数字，有序用于判断。</p>
+<p>创建一个死循环做一下事情：<br />    1、将商品列表遍历后显示给用户，要求有序号，我们可以把下标作为序号<br />    2、让用户输入一个数字，选择购买的商品<br />        2.1判断用户输入的是不是数字，如果时数字，就把它强转成数字类型，存到变量user_choice中。<br />        2.2可以留下来后面再做：进一步判断用户输入的数目是否超过商品数目，如果超了就提示，不超就继续<br />    3、判断用户是否买得起该商品<br />        3.1根据用户输入的数字，把商品从列表里取下来<br />        3.2判断是否可以买得起<br />        3.3如果买得起就将列表添加到购物列表shouping_list取<br />        3.4扣钱<br />        如果买不起：<br />            提示XX商品买不起，你的钱不够xxx<br />        2.3可以留下来后面再做：用户输入的值超过了商品数量，就提示：没有这个商品<br />    4、判断用户是否输入q<br />        4.1 如果用户输入的Q<br />        4.2 显示购物列表<br />        4.3 显示余额<br />        4.4 退出程序<br />        4.5 如果用户输入的时其他字符，显示错误</p>
+<h1>代码部分</h1>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*- coding:utf-8 -*-</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> Author:Dwdar</span>
+<span style="color: #000000;">
+product_list </span>= [  <span style="color: #008000;">#</span><span style="color: #008000;"> 商品用列表存下来</span>
+    (<span style="color: #800000;">'</span><span style="color: #800000;">Iphoe</span><span style="color: #800000;">'</span>, 5800<span style="color: #000000;">),
+    (</span><span style="color: #800000;">'</span><span style="color: #800000;">Mac Pro</span><span style="color: #800000;">'</span>, 9800<span style="color: #000000;">),
+    (</span><span style="color: #800000;">'</span><span style="color: #800000;">Bike</span><span style="color: #800000;">'</span>, 9800<span style="color: #000000;">),
+    (</span><span style="color: #800000;">'</span><span style="color: #800000;">Watch</span><span style="color: #800000;">'</span>, 10600<span style="color: #000000;">),
+    (</span><span style="color: #800000;">'</span><span style="color: #800000;">Coffe</span><span style="color: #800000;">'</span>, 31<span style="color: #000000;">),
+    (</span><span style="color: #800000;">'</span><span style="color: #800000;">Alex Python</span><span style="color: #800000;">'</span>, 120<span style="color: #000000;">),
+]
+
+shouping_list </span>= []  <span style="color: #008000;">#</span><span style="color: #008000;"> 一个空列表，他是购物车，用户购买的商品要放到这里</span>
+<span style="color: #000000;">
+salary </span>= input(<span style="color: #800000;">"</span><span style="color: #800000;">请输入工资:</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 用户输入工资</span>
+<span style="color: #0000ff;">if</span> salary.isdigit():  <span style="color: #008000;">#</span><span style="color: #008000;"> 判断用户输入的是不是数字</span>
+    salary = int(salary)  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果是数字，就int 强转成数字</span>
+
+    <span style="color: #0000ff;">while</span> True:  <span style="color: #008000;">#</span><span style="color: #008000;"> 进入死循环</span>
+        <span style="color: #0000ff;">for</span> index, item <span style="color: #0000ff;">in</span> enumerate(product_list):  <span style="color: #008000;">#</span><span style="color: #008000;"> 遍历商品列表，</span>
+            <span style="color: #008000;">#</span><span style="color: #008000;"> print(product_list.index(item),item) #效率低</span>
+            <span style="color: #0000ff;">print</span><span style="color: #000000;">(index, item)
+        user_choice </span>= input(<span style="color: #800000;">"</span><span style="color: #800000;">选择商品&gt;&gt;&gt;:</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 让用户选择商品</span>
+        <span style="color: #0000ff;">if</span> user_choice.isdigit():  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果用户输入的是数字</span>
+            user_choice = int(user_choice)  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果是数字，就int 强转成数字</span>
+            <span style="color: #008000;">#</span><span style="color: #008000;"> 判断 用户输入的数字是否超过商品的学号，数量</span>
+            <span style="color: #0000ff;">if</span> user_choice &lt; len(product_list) <span style="color: #0000ff;">and</span> user_choice &gt;=<span style="color: #000000;"> 0:
+                p_item </span>= product_list[user_choice]  <span style="color: #008000;">#</span><span style="color: #008000;"> 通过下标把商品价格取出来</span>
+                <span style="color: #0000ff;">if</span> p_item[1] &lt;= salary:  <span style="color: #008000;">#</span><span style="color: #008000;"> 判断是否买得起</span>
+                    shouping_list.append(p_item)  <span style="color: #008000;">#</span><span style="color: #008000;"> 买得起就把商品存进，购物车里</span>
+                    salary -= p_item[1]  <span style="color: #008000;">#</span><span style="color: #008000;"> 扣钱</span>
+                    <span style="color: #008000;">#</span><span style="color: #008000;"> 向用户提示购买了什么，余额是多少</span>
+                    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">商品 %s 已添加到购物车,你的余额是: \033[31;1m%s\033[0m</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> (p_item, salary))
+                </span><span style="color: #0000ff;">else</span>:  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果判断时发现买不起</span>
+                    <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">\033[41;1m你的余额只剩[%s]啦，还买个毛线\033[0m</span><span style="color: #800000;">"</span> % salary)  <span style="color: #008000;">#</span><span style="color: #008000;"> 给用户反馈买不起</span>
+            <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+                </span><span style="color: #008000;">#</span><span style="color: #008000;"> 还有一种情况是，用户选择后没有这个商品，向用户提示</span>
+                <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">\033[41;1m你的选择的商品%s不存在!\033[0m</span><span style="color: #800000;">"</span> %<span style="color: #000000;"> user_choice)
+
+        </span><span style="color: #0000ff;">elif</span> user_choice == <span style="color: #800000;">'</span><span style="color: #800000;">q</span><span style="color: #800000;">'</span>:  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果用户输入q,进入退出环节</span>
+            <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">----------------商品列表----------------</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 列表标题，为了好看一点</span>
+            <span style="color: #0000ff;">for</span> p <span style="color: #0000ff;">in</span> shouping_list:  <span style="color: #008000;">#</span><span style="color: #008000;"> 遍历已购买商品列表</span>
+                <span style="color: #0000ff;">print</span>(p)  <span style="color: #008000;">#</span><span style="color: #008000;"> 打印商品列表</span>
+            <span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">\033[31;1m您的余额是:%s\033[0m</span><span style="color: #800000;">"</span> % salary)  <span style="color: #008000;">#</span><span style="color: #008000;"> 向用户提示余额情况</span>
+            exit()  <span style="color: #008000;">#</span><span style="color: #008000;"> 退出程序</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;">:
+            </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">"</span><span style="color: #800000;">选择错误</span><span style="color: #800000;">"</span>)  <span style="color: #008000;">#</span><span style="color: #008000;"> 如果用户没有录入q,而录入了别的，我们向用户提示</span></pre>
+</div>
+<h1>&nbsp;程序练习2：三级菜单</h1>
+<p>思路：<br />进入程序显示一级菜单：<br />向用户提示输入：<br />	根据用户的输入进入二级菜单：<br />	向用户提示输入：<br />		根据选择进入三级菜单：<br />		向用户提示输入：<br />			根据用户输入显示三级菜下的内容</p>
+<p>如果用户输入b 返回上一级菜单<br />如果用户输入q,退出程序</p>
+<p>--------------------------------------------------------------------<br />为了实现向下选择和向上返回的目的，首先需要建立一个无限循环<br />	把一级目录显示给用户<br />	向用户提选择一级目录中的任意一个。<br />	如果用户输入了某个一级目录，遍历和显示相关目录<br />	一次类推，不断循环，通过嵌套循环和判断实现四级菜单和逐级打开效果。</p>
+<p>代码</p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;"># -*- coding:utf-8 -*-
+# Author:Dwdar
+
+menu = {    #嵌套字典数据
+    "小学":{
+        "一年级":{
+            "一年级1班":{
+                "一1班学生1",
+                "一1班学生2",
+                "一1班学生3",
+            },
+            "一年级2班":{
+                "二1班学生1",
+                "二2班学生2",
+                "二3班学生3",
+            },
+            "一年级3班":{
+                "一3班学生1",
+                "一3班学生2",
+                "一3班学生3",
+
+            },
+        },
+        "二年级":{
+            "二年级1班":{
+                "二1班学生1",
+                "二1班学生2",
+                "二1班学生3",
+            },
+            "二年级2班":{
+                "二2班学生1",
+                "二2班学生2",
+                "二2班学生3",
+            },
+            "二年级3班":{
+                "二3班学生1",
+                "二3班学生2",
+                "二3班学生3",
+            },
+        },
+        "三年级":{
+            "三年级1班":{
+                "三1班学生1",
+                "三1班学生2",
+                "三1班学生3",
+            },
+            "三年级2班":{
+                "三2班学生1",
+                "三2班学生2",
+                "三2班学生3",
+            },
+            "三年级3班":{
+                "三3班学生1",
+                "三3班学生2",
+                "三3班学生3",
+            },
+            "三年级4班":{
+                "三4班学生1",
+                "三4班学生2",
+                "三4班学生3",
+            },
+            "三年级5班":{
+                "三5班学生1-那尔太",
+                "三5班学生2",
+                "三5班学生3",
+            }
+        },
+        "四年级":{
+            "四年级1班":{
+                "四1班学生1",
+                "四1班学生2",
+                "四1班学生3",
+            },
+            "四年级2班":{
+                "四2班学生1",
+                "四2班学生2",
+                "四2班学生3",
+            },
+            "四年级3班":{
+                "四3班学生1",
+                "四3班学生2",
+                "四3班学生3",
+            },
+            "四年级4班":{
+                "四4班学生1",
+                "四4班学生2",
+                "四4班学生3",
+            },
+            "四年级5班":{
+                "四5班学生1-那尔太",
+                "四5班学生2",
+                "四5班学生3",
+            }
+        },
+        "五年级":{
+            "五年级1班":{
+                "五1班学生1",
+                "五1班学生2",
+                "五1班学生3",
+            },
+            "五年级2班":{
+                "五2班学生1",
+                "五2班学生2",
+                "五2班学生3",
+            },
+            "五年级3班":{
+                "五3班学生1",
+                "五3班学生2",
+                "五3班学生3",
+            },
+            "五年级4班":{
+                "五4班学生1",
+                "五4班学生2",
+                "五4班学生3",
+            },
+            "五年级5班":{
+                "五5班学生1-那尔太",
+                "五5班学生2",
+                "五5班学生3",
+            }
+        },
+        "六年级":{
+            "六年级1班":{
+                "六1班学生1",
+                "六1班学生2",
+                "六1班学生3",
+            },
+            "六年级2班":{
+                "六2班学生1",
+                "六2班学生2",
+                "六2班学生3",
+            },
+            "六年级3班":{
+                "六3班学生1",
+                "六3班学生2",
+                "六3班学生3",
+            },
+            "六年级4班":{
+                "六4班学生1",
+                "六4班学生2",
+                "六4班学生3",
+            },
+            "六年级5班":{
+                "六5班学生1-那尔太",
+                "六5班学生2",
+                "六5班学生3",
+            },
+        },
+    },
+    "初中":{
+        "初一": {
+            "初一1班": {
+                "初一1班学生1",
+                "初一1班学生2",
+                "初一1班学生3",
+            },
+            "初一2班": {
+                "初一1班学生1",
+                "初一2班学生2",
+                "初一3班学生3",
+            },
+            "初一3班": {
+                "初一3班学生1",
+                "初一3班学生2",
+                "初一3班学生3",
+            },
+        },
+        "初二": {
+            "初二1班": {
+                "初二1班学生1",
+                "初二1班学生2",
+                "初二1班学生3",
+            },
+            "初二2班": {
+                "初二1班学生1",
+                "初二2班学生2",
+                "初二3班学生3",
+            },
+            "初二3班": {
+                "初二3班学生1",
+                "初二3班学生2",
+                "初二3班学生3",
+            },
+        },
+        "初三": {
+            "初三1班": {
+                "初三1班学生1",
+                "初三1班学生2",
+                "初三1班学生3",
+            },
+            "初三2班": {
+                "初三1班学生1",
+                "初三2班学生2",
+                "初三3班学生3",
+            },
+            "初三3班": {
+                "初三3班学生1",
+                "初三3班学生2",
+                "初三3班学生3",
+            },
+        },
+    },
+    "高中":{
+        "高一": {
+            "高一1班": {
+                "高一1班学生1",
+                "高一1班学生2",
+                "高一1班学生3",
+            },
+            "高一2班": {
+                "高一2班学生1",
+                "高一2班学生2",
+                "高一2班学生3",
+            },
+            "高一3班": {
+                "高一3班学生1",
+                "高一3班学生2",
+                "高一3班学生3",
+            },
+        },
+        "高二": {
+            "高二1班": {
+                "高二1班学生1",
+                "高二1班学生2",
+                "高二1班学生3",
+            },
+            "高二2班": {
+                "高二2班学生1",
+                "高二2班学生2",
+                "高二2班学生3",
+            },
+            "高二3班": {
+                "高二3班学生1",
+                "高二3班学生2",
+                "高二3班学生3",
+            },
+        },
+        "高三": {
+            "高三1班": {
+                "高三1班学生1",
+                "高三1班学生2",
+                "高三1班学生3",
+            },
+            "高三2班": {
+                "高三2班学生1",
+                "高三2班学生2",
+                "高三2班学生3",
+            },
+            "高三3班": {
+                "高三3班学生1",
+                "高三3班学生2",
+                "高三3班学生3",
+            },
+        },
+    },
+    "大学":{
+        "大一": {
+            "大一python班": {
+                "大一python班学生1",
+                "大一python班学生2",
+                "大一python班学生3",
+            },
+            "大一C语言班": {
+                "大一C语言班学生1",
+                "大一C语言班学生2",
+                "大一C语言班学生3",
+            },
+            "大一网络工程班": {
+                "大一网络工程班学生1",
+                "大一网络工程班学生2",
+                "大一网络工程班学生3",
+            },
+        },
+        "大二": {
+            "大二python班": {
+                "大二python班学生1",
+                "大二python班学生2",
+                "大二python班学生3",
+            },
+            "大二C语言班": {
+                "大二python班学生1",
+                "大二C语言班学生2",
+                "大二网络工程班学生3",
+            },
+            "大二网络工程班": {
+                "大二网络工程班学生1",
+                "大二网络工程班学生2",
+                "大二网络工程班学生3",
+            },
+        },
+        "大三": {
+            "大三python班": {
+                "大三python班学生1",
+                "大三python班学生2",
+                "大三python班学生3",
+            },
+            "大三C语言班": {
+                "大三python班学生1",
+                "大三C语言班学生2",
+                "大三网络工程班学生3",
+            },
+            "大三网络工程班": {
+                "大三网络工程班学生1",
+                "大三网络工程班学生2",
+                "大三网络工程班学生3",
+            },
+        },
+    },
+}
+while True:     #第一层无限循环
+    for i in menu:  # 遍历字典一级目录
+        print(i)    #一级目录显示给用户
+    chois = input("请输入选择:&gt;&gt;&gt;")      #让用户选择二级目录
+    if chois == 'b':    #如果用户输入b,退出当前循环
+        break
+    while True:     #第二层无限循环
+        for i2 in menu[chois]:  #如果用户输入的二级目录存在，那么遍历二级目录
+            print('\t',i2)      #将遍历后的二级目录显示给用户，'\t'是添加一个Tab键位置
+        chois2 = input("请输入选择:&gt;&gt;&gt;") #让用户选择三级目录
+        if chois2 == 'b':   #如果用户输入b,退出当前循环
+            break
+        while True:
+            for i3 in menu[chois][chois2]:#如果用户输入的三级目录存在，那么遍历三级目录
+                print('\t\t',i3) #将遍历后的三级目录显示给用户
+            chois3 = input("请输入选择:&gt;&gt;&gt;") #让用户选择四级目录
+            if chois3 == 'b':
+                break
+            while True:
+                for i4 in menu[chois][chois2][chois3]: #将遍历后的四级目录显示给用户
+                    print('\t\t\t', i4)
+                chois4 = input("按b返回上一层:&gt;&gt;&gt;") #目录到了最底层，向用户提示返回
+                if chois4 == 'b':   #如果用户输入了b
+                    break           #退出当前循环
+
+
+#练习程序没有对无效输入进行判断，无效输入会报错
+</pre>
+</div>
+<p>&nbsp;本想做三级菜单，为把儿子名字显示出来，一激动就做了四级菜单，呵呵，实现方法一样的。</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

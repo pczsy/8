@@ -1,0 +1,250 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修day35-python之协程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>day35-python之协程</center></div><div class='banquan'>原文出处:本文由博客园博主有猿人提供。<br/>
+原文连接:https://www.cnblogs.com/sqy-yyr/p/11439817.html</div><br>
+    <p>1.协程</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> import time</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> import queue</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> def consumer(name):</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     print("---&gt;ready to eat baozi...")</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     while True:</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         new_baozi = yield</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         print("[%s] is eating baozi %s" % (name,new_baozi))</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         #time.sleep(1)</span>
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> def producer():</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     r = con.__next__()</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #     r = con2.__next__()</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #     n = 0</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #     while 1:</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         time.sleep(1)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         print("\033[32;1m[producer]\033[0m is making baozi %s and %s" %(n,n+1) )</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         con.send(n)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         con2.send(n+1)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         n +=2</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # if __name__ == '__main__':</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #     con = consumer("c1")</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #     con2 = consumer("c2")</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #     producer()</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> from greenlet import greenlet</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> def test1():</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(12)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     gr2.switch()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(34)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> def test2():</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(56)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     gr1.switch()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(78)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     gr1.switch()</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> gr1 = greenlet(test1)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> gr2 = greenlet(test2)</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> gr2.switch()</span>
+
+
+<span style="color: #008000;">#</span><span style="color: #008000;"> import gevent</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> import requests,time</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> start=time.time()</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> def f(url):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print('GET: %s' % url)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     resp =requests.get(url)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     data = resp.text</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print('%d bytes received from %s.' % (len(data), url))</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> f('https://www.python.org/')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> f('https://www.yahoo.com/')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> f('https://www.baidu.com/')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> f('https://www.sina.com.cn/')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> f("http://www.xiaohuar.com/hua/")</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> # gevent.joinall([</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         gevent.spawn(f, 'https://www.python.org/'),</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         gevent.spawn(f, 'https://www.yahoo.com/'),</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         gevent.spawn(f, 'https://www.baidu.com/'),</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         gevent.spawn(f, 'https://www.sina.com.cn/'),</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #         gevent.spawn(f, 'http://www.xiaohuar.com/hua/'),</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # ])</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> # f('https://www.python.org/')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # f('https://www.yahoo.com/')</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> #</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> # f('https://baidu.com/')</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> # f('https://www.sina.com.cn/')</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> print("cost time:",time.time()-start)</span></pre>
+</div>
+<p>2.进程同步</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> from multiprocessing import Process, Lock</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> import time</span><span style="color: #008000;">
+#
+</span> 
+<span style="color: #008000;">#</span><span style="color: #008000;"> def f(l, i):</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         l.acquire()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         time.sleep(1)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         print('hello world %s' % i)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         l.release()</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> if __name__ == '__main__':</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     lock = Lock()</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     for num in range(10):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         Process(target=f, args=(lock, num)).start()</span></pre>
+</div>
+<p>3.进程池</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> from  multiprocessing import Process,Pool</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> import time,os</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> def Foo(i):</span><span style="color: #008000;">
+#</span> <span style="color: #008000;">
+#</span><span style="color: #008000;">     time.sleep(1)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(i)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print("son",os.getpid())</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     return "HELLO %s"%i</span><span style="color: #008000;">
+#
+</span><span style="color: #0000ff;">from</span> multiprocessing <span style="color: #0000ff;">import</span><span style="color: #000000;">  Process,Pool
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> def Bar(arg):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(arg)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     # print("hello")</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     # print("Bar:",os.getpid())</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> if __name__ == '__main__':</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     pool = Pool(5)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print("main pid",os.getpid())</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     for i in range(100):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         #pool.apply(func=Foo, args=(i,))  #同步接口</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         #pool.apply_async(func=Foo, args=(i,))</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         #回调函数：  就是某个动作或者函数执行成功后再去执行的函数</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         pool.apply_async(func=Foo, args=(i,),callback=Bar)</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     pool.close()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     pool.join()         # join与close调用顺序是固定的</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     print('end')</span></pre>
+</div>
+<p>4.进程通信</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#
+#
+#
+#</span><span style="color: #008000;"> import queue,time</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> import multiprocessing</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> def foo(q):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     time.sleep(1)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print("son process",id(q))</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     q.put(123)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     q.put("yuan")</span><span style="color: #008000;">
+#
+</span>
+<span style="color: #008000;">#</span><span style="color: #008000;"> if __name__ == '__main__':</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     #q=queue.Queue()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     q=multiprocessing.Queue()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     p=multiprocessing.Process(target=foo,args=(q,))</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     p.start()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     #p.join()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print("main process",id(q))</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(q.get())</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print(q.get())</span><span style="color: #008000;">
+#
+#
+#
+#
+#
+#
+#</span><span style="color: #008000;"> from multiprocessing import Process, Pipe</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> def f(conn):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     conn.send([12, {"name":"yuan"}, 'hello'])</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     response=conn.recv()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print("response",response)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     conn.close()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     print("q_ID2:",id(conn))</span><span style="color: #008000;">
+#
+</span>
+<span style="color: #008000;">#</span><span style="color: #008000;"> if __name__ == '__main__':</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     parent_conn, child_conn = Pipe() #双向管道</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     print("q_ID1:",id(child_conn))</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     p = Process(target=f, args=(child_conn,))</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     p.start()</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     print(parent_conn.recv())   # prints "[42, None, 'hello']"</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     parent_conn.send("儿子你好!")</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     p.join()</span><span style="color: #008000;">
+#
+#
+#</span><span style="color: #008000;"> from multiprocessing import Process, Manager</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;"> def f(d, l,n):</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     d[n] = '1'    #{0:"1"}</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     d['2'] = 2    #{0:"1","2":2}</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     l.append(n)    #[0,1,2,3,4,   0,1,2,3,4,5,6,7,8,9]</span><span style="color: #008000;">
+#</span><span style="color: #008000;">     #print(l)</span><span style="color: #008000;">
+#
+</span> 
+<span style="color: #008000;">#</span><span style="color: #008000;"> if __name__ == '__main__':</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">     with Manager() as manager:</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         d = manager.dict()#{}</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         l = manager.list(range(5))#[0,1,2,3,4]</span><span style="color: #008000;">
+#
+#
+#</span><span style="color: #008000;">         p_list = []</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         for i in range(10):</span><span style="color: #008000;">
+#</span><span style="color: #008000;">             p = Process(target=f, args=(d,l,i))</span><span style="color: #008000;">
+#</span><span style="color: #008000;">             p.start()</span><span style="color: #008000;">
+#</span><span style="color: #008000;">             p_list.append(p)</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         for res in p_list:</span><span style="color: #008000;">
+#</span><span style="color: #008000;">             res.join()</span><span style="color: #008000;">
+#
+#</span><span style="color: #008000;">         print(d)</span><span style="color: #008000;">
+#</span><span style="color: #008000;">         print(l)</span></pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

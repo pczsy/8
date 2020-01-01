@@ -1,0 +1,125 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修稳定易用的 Django 分页库，完善分页功能' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>稳定易用的 Django 分页库，完善分页功能</center></div><div class='banquan'>原文出处:本文由博客园博主削微寒提供。<br/>
+原文连接:https://www.cnblogs.com/xueweihan/p/12069154.html</div><br>
+    <p><img src="./images/稳定易用的 Django 分页库，完善分页功能0.png" /></p>
+<p>作者：<a href="https://www.zmrenwu.com">HelloGitHub-追梦人物</a></p>
+<blockquote>
+<p>文中所涉及的示例代码，已同步更新到 <a href="https://github.com/HelloGitHub-Team/HelloDjango-blog-tutorial">HelloGitHub-Team 仓库</a></p>
+</blockquote>
+<p>在 <a href="https://www.zmrenwu.com/courses/hellodjango-blog-tutorial/materials/81/">通过 Django Pagination 实现简单分页</a> 中，我们实现了一个简单的分页导航。但效果有点差强人意，我们只能点上一页和下一页的按钮进行翻页。比较完善的分页效果应该像下面这样，但想实现这样一种效果，Django Pagination 内置的 API 已无能为力。接下来我们将通过拓展 Django Pagination 来实现下图这样比较完善的分页效果。</p>
+<p><img src="./images/稳定易用的 Django 分页库，完善分页功能1.png" /></p>
+<h2 id="分页效果概述">分页效果概述</h2>
+<p>一个比较完善的分页效果应该具有以下特性，就像上图展示的那样，很多网站都采用了类似这种的分页导航方式。</p>
+<ul>
+<li>始终显示第一页和最后一页。</li>
+<li>当前页码高亮显示。</li>
+<li>显示当前页码前后几个连续的页码。</li>
+<li>如果两个页码号间还有其它页码，中间显示省略号以提示用户。</li>
+</ul>
+<h2 id="分页思路">分页思路</h2>
+<p>如果需要自己来实现分页效果，我们会怎么做呢？先来分析一下导航条的组成部分，可以看到整个分页导航条其实可以分成 7 个部分：</p>
+<ol>
+<li>第 1 页页码，这一页需要始终显示。</li>
+<li>第 1 页页码后面的省略号部分。但要注意如果第 1 页的页码号后面紧跟着页码号 2，那么省略号就不应该显示。</li>
+<li>当前页码的左边部分，比如这里的 3-4。</li>
+<li>当前页码，比如这里的 5。</li>
+<li>当前页码的右边部分，比如这里的 6-7。</li>
+<li>最后一页页码前面的省略号部分。但要注意如果最后一页的页码号前面跟着的页码号是连续的，那么省略号就不应该显示。</li>
+<li>最后一页的页码号。</li>
+</ol>
+<p>因此我们的思路是，在视图中依据上述规则生成页码列表，然后在模板中循环显示页码列表就可以了。有了思路，实现起来其实也并不很难。不过对于这类常见需求，别人早就帮我们实现好了，本着不重复造轮子的原则，直接拿来用就好。</p>
+<h2 id="第一个-django-第三方拓展django-pure-pagination">第一个 Django 第三方拓展：django-pure-pagination</h2>
+<p>我们第一次开始接触 django 第三方拓展，在此之前我们一直都基于 django 本身我们提供的功能在开发，然而 django 强大的地方就在于海量的第三方应用供我们挑选，几乎大部分 web 开发中的需求，django 都能找到他人已经写好的第三方应用，拿来即用。</p>
+<p>事实上，正确的 django 开发姿势应该是这样的：</p>
+<ol>
+<li>充分理解你的需求，想一想，如果自己实现，我会怎么做？</li>
+<li>通过 Google、GitHub、开发者社区论坛等调研已有的实现类似需求的应用</li>
+<li>拿来即用，并尝试理解他人是如何实现这个功能的</li>
+</ol>
+<p>以我们的分页功能举例：</p>
+<p>首先我们上面分析了分页需求的实现。然后我在 GitHub 上通过 django pagination 关键词进行搜索，在比较了多个 star 数比较高的项目后，发现 django-pure-pagination 文档最清晰，使用最简单，因此决定将这个应用集成到我们的博客来。值得一提的是，尽管这个应用显示作者最后一次更新代码在 4 年前，但我粗略浏览了一下源码，发现其依赖的 django api 4 年来异常稳定，所以确保能在 django 2.2 中使用。</p>
+<p>接下来我们就来使用它，首先安装它：</p>
+<pre><code><code>$ pipenv install django-pure-pagination</code></pre>
+<p>然后将它注册到 <code>INSTALLED_APPS</code> 里：</p>
+<pre class="python"><code>INSTALLED_APPS = [
+    # ...
+    &#39;pure_pagination&#39;,  # 分页
+
+    &#39;blog.apps.BlogConfig&#39;,  # 注册 blog 应用
+    &#39;comments.apps.CommentsConfig&#39;,  # 注册 comments 应用
+]</code></pre>
+<p>修改一下 <code>IndexView</code>，让它继承 django-pure-pagination 提供的 <code>PaginationMixin</code>，这个混入类将为我们提供上述提到的分页功能。</p>
+<pre class="python"><code>class IndexView(PaginationMixin, ListView):
+    model = Post
+    template_name = &#39;blog/index.html&#39;
+    context_object_name = &#39;post_list&#39;
+    paginate_by = 10</code></pre>
+<p>然后我们可以在 common.py 配置中配置一下分页的效果，这是 django-pure-pagination 提供的配置项，用于个性化配置分页效果：</p>
+<pre class="python"><code># django-pure-pagination 分页设置
+PAGINATION_SETTINGS = {
+    &#39;PAGE_RANGE_DISPLAYED&#39;: 4, # 分页条当前页前后应该显示的总页数（两边均匀分布，因此要设置为偶数），
+    &#39;MARGIN_PAGES_DISPLAYED&#39;: 2, # 分页条开头和结尾显示的页数
+    &#39;SHOW_FIRST_PAGE_WHEN_INVALID&#39;: True, # 当请求了不存在页，显示第一页
+}</code></pre>
+<p>在模板中需要分页的地方，调用分页对象的 render 方法就可以了，比如在 index.html 中：</p>
+<pre class="python"><code>{% if is_paginated %}
+    {{ page_obj.render }}
+{% endif %}</code></pre>
+<p>注意这里 page_obj 是分页后的对象列表，具体请参考上一篇文章的讲解。render 方法会自动帮我们渲染一个预先定义好的分页条，至此，分页功能就完成了。</p>
+<h2 id="自定义模板">自定义模板</h2>
+<p>有时候预定义的分页条并不能满足我们的需求，我们可以通过自定义的模板来覆盖预定义的模板。django 查找模板的顺序是，首先在项目配置的模板根路径寻找（我们项目中配的是 templates 文件夹），没有找到的话，再去应用的 templates 目录下寻找。分页模板预定义的路径为 pure_pagination/pagination.html，所以我们可以在项目模板根路径下建立一个一模一样的文件结构，这样 django 就会首先找到我们的模板，从而应用我们自定义的模板，而不是预定义的模板。</p>
+<p>在 templates 目录下新建一个 pure_pagination 目录，然后建立一个 pagination.html 文件。</p>
+<p>接下来便是在模板中设置分页导航了，将导航条的七个部分的数据一一展现即可，示例代码如下：</p>
+<pre class="html"><code>&lt;div class=&quot;text-center pagination&quot; style=&quot;width: 100%&quot;&gt;
+  &lt;ul&gt;
+    {% if page_obj.has_previous %}
+      &lt;li&gt;&lt;a href=&quot;?{{ page_obj.previous_page_number.querystring }}&quot;
+             class=&quot;prev&quot;&gt;&amp;lsaquo;&amp;lsaquo; &lt;/a&gt;&lt;/li&gt;
+    {% else %}
+      &lt;li&gt;&lt;span class=&quot;disabled prev&quot;&gt;&amp;lsaquo;&amp;lsaquo; &lt;/span&gt;&lt;/li&gt;
+    {% endif %}
+    {% for page in page_obj.pages %}
+      {% if page %}
+        {% ifequal page page_obj.number %}
+          &lt;li class=&quot;current&quot;&gt;&lt;a href=&quot;#&quot;&gt;{{ page }}&lt;/a&gt;&lt;/li&gt;
+        {% else %}
+          &lt;li&gt;&lt;a href=&quot;?{{ page.querystring }}&quot; class=&quot;page&quot;&gt;{{ page }}&lt;/a&gt;&lt;/li&gt;
+        {% endifequal %}
+      {% else %}
+        ...
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      &lt;li&gt;&lt;a href=&quot;?{{ page_obj.next_page_number.querystring }}&quot; class=&quot;next&quot;&gt; &amp;rsaquo;&amp;rsaquo;&lt;/a&gt;
+      &lt;/li&gt;
+    {% else %}
+      &lt;li&gt;&lt;span class=&quot;disabled next&quot;&gt; &amp;rsaquo;&amp;rsaquo;&lt;/span&gt;&lt;/li&gt;
+    {% endif %}
+  &lt;/ul&gt;
+&lt;/div&gt;</code></pre>
+<p>多添加几篇文章，在示例中就可以看到分页效果了。要使分页导航更加美观，通过设置其 CSS 样式即可。</p>
+<hr />
+<p><strong>『讲解开源项目系列』</strong>——让对开源项目感兴趣的人不再畏惧、让开源项目的发起者不再孤单。跟着我们的文章，你会发现编程的乐趣、使用和发现参与开源项目如此简单。欢迎留言联系我们、加入我们，让更多人爱上开源、贡献开源～</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

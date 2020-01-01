@@ -1,0 +1,168 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python函数传参和返回值注意事项' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python函数传参和返回值注意事项</center></div><div class='banquan'>原文出处:本文由博客园博主BRYANT_2019提供。<br/>
+原文连接:https://www.cnblogs.com/bryant24/p/11439729.html</div><br>
+    <h4 id="函数传参">函数传参</h4>
+<ul>
+<li>空参数<br />
+定义函数时括号里面没有形参，调用时不用传参。</li>
+</ul>
+<pre><code><code>def func():
+    print(&#39;null para.&#39;)
+
+# 调用
+func()</code></pre>
+<ul>
+<li>位置传参<br />
+规定形参的数量，调用时必须传递相同数量的形参。</li>
+</ul>
+<pre><code><code>def func(a, b):
+    print(a,b)
+
+# 调用
+func(11, 22)</code></pre>
+<ul>
+<li>带默认参数的形参<br />
+带默认值的参数位于非默认值参数的后面， 即位于位置参数，可变参数后面。</li>
+</ul>
+<pre><code><code>def func(a, b, c=0):
+    print(a, b, c)
+
+# 调用
+func(11, 22)</code></pre>
+<ul>
+<li>传递元组型可变参数</li>
+</ul>
+<pre><code><code>def f2(a, b, *args):
+    print(a)
+    print(b)
+    print(args)
+
+rest =  f2(10, 20, 30, 40, 50)
+print(rest)</code></pre>
+<pre><code><code>执行结果：
+10
+20
+(30, 40, 50)
+</code></pre>
+<ul>
+<li>元组传参传递的另一种方式：</li>
+</ul>
+<pre><code><code>def f2(a, b, *args):
+    print(a)
+    print(b)
+    print(args)
+
+my_tuple = (30, 40, 50)
+rest =  f2(10, 20, *my_tuple)
+print(rest)</code></pre>
+<pre><code><code>执行结果：
+10
+20
+(30, 40, 50)
+
+除位置参数10, 20以后的数据自动赋值给了元组形参*args
+如果只传10,20这2个参数给f2函数也不会报错，此时元组接收的参数为空。</code></pre>
+<ul>
+<li>传递字典型可变参数</li>
+</ul>
+<pre><code><code>def f2(a, b, **kwargs):
+    print(a)
+    print(b)
+    print(kwargs)
+
+rest =  f2(10, 20, ka=558, kb=&#39;bbb&#39;)
+print(rest)</code></pre>
+<pre><code><code>执行结果：
+10
+20
+{&#39;ka&#39;: 558, &#39;kb&#39;: &#39;bbb&#39;}</code></pre>
+<ul>
+<li>传递字典参数的另一种形式：</li>
+</ul>
+<pre><code><code>def f2(a, b, **kwargs):
+    print(a)
+    print(b)
+    print(kwargs)
+
+kw_para = {&#39;ka&#39;: 558,&#39; kb&#39;: &#39;bbb&#39;}
+
+rest =  f2(10, 20, **kw_para)
+print(rest)</code></pre>
+<pre><code><code>执行结果：
+10
+20
+{&#39;ka&#39;: 558, &#39;kb&#39;: &#39;bbb&#39;}</code></pre>
+<ul>
+<li>位置参数、元组参数、字典参数混合传参</li>
+</ul>
+<pre><code><code>def f2(a, b, *args, **kwargs):
+    print(a)
+    print(b)
+    print(args)
+    print(kwargs)
+
+my_kw = {&#39;ka&#39;: 558, &#39;kb&#39;: &#39;bbb&#39;}
+my_tuple = (30, 40, 50)
+rest =  f2(10, 20, *my_tuple, **my_kw)
+print(rest)</code></pre>
+<pre><code><code>结果：
+10
+20
+(30, 40, 50)
+{&#39;ka&#39;: 558, &#39;kb&#39;: &#39;bbb&#39;}
+按位置参数、元组参数、字典参数的顺序定义函数和调用，位置顺序不能调换！
+除非有带默认参数的位置参数，此时带有默认参数的位置参数需要放到元组参数和字典参数之间。</code></pre>
+<ul>
+<li>带有默认参数的位置参数、元组参数、字典参数混合传参</li>
+</ul>
+<pre><code><code>def f2(a, *args, b=0, **kwargs):
+    print(a)
+    print(b)
+    print(args)
+    print(kwargs)
+
+my_kw = {&#39;ka&#39;: 558, &#39;kb&#39;: &#39;bbb&#39;}
+my_tuple = (30, 40, 50)
+rest =  f2(10, *my_tuple, **my_kw)
+print(rest)</code></pre>
+<pre><code><code>结果：
+10
+0
+(30, 40, 50)
+{&#39;ka&#39;: 558, &#39;kb&#39;: &#39;bbb&#39;}</code></pre>
+<h4 id="函数返回值">函数返回值</h4>
+<ul>
+<li>函数执行完不出现return语句，或者return语句不返回值，此时调用者收到的返回值为None。</li>
+<li>可以返回一个元组。</li>
+</ul>
+<pre><code><code>def func():
+    return 1, 2, 3
+
+x, y, z = func()
+</code></pre>
+<ul>
+<li>返回其他对象等。</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

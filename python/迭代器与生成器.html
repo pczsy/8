@@ -1,0 +1,179 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修迭代器与生成器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>迭代器与生成器</center></div><div class='banquan'>原文出处:本文由博客园博主陈Sir&#183;提供。<br/>
+原文连接:https://www.cnblogs.com/cany/p/11182550.html</div><br>
+    <h3 id="迭代器与生成器">迭代器与生成器</h3>
+<h4 id="迭代器">迭代器</h4>
+<h5 id="可迭代对象">1.可迭代对象</h5>
+<p>  对于迭代器来说，我们更熟悉的应该是可迭代对象，之前无论是源码还是讲课中或多或少我们提到过可迭代对象这个词。之前为了便于大家理解可迭代对象，可能解释的不是很正确，所以今天我们正式的聊一聊什么是可迭代对象。从字面意思来说，我们先对其进行拆解：什么是对象？Python中一切皆对象，之前我们讲过的一个变量，一个列表，一个字符串，文件句柄，函数名等等都可称作一个对象，其实一个对象就是一个实例，就是一个实实在在的东西。那么什么叫迭代？其实我们在日常生活中经常遇到迭代这个词儿，更新迭代等等，迭代就是一个重复的过程，但是不能是单纯的重复（如果只是单纯的重复那么他与循环没有什么区别）每次重复都是基于上一次的结果而来。比如你爹生你，你生你爹，哦不对，你生你儿子，你儿子生你孙子等等，每一代都是不一样的；还有你使用过得app，微信，抖音等，隔一段时间就会基于上一次做一些更新，那么这就是迭代。可迭代对象从字面意思来说就是一个可以重复取值的实实在在的东西。</p>
+<p>  那么刚才我们是从字面意思分析的什么是可迭代对象，到目前为止我们接触到的可迭代对象有哪些呢？</p>
+<p>  str list tuple dict set range 文件句柄等，那么int，bool这些为什么不能称为可迭代对象呢？虽然在字面意思这些看着不符合，但是我们要有一定的判断标准或者规则去判断该对象是不是可迭代对象。</p>
+<p>  **在python中，但凡内部含有__iter__方法的对象，都是可迭代对象。**</p>
+<h4 id="查看对象内部方法">2.查看对象内部方法</h4>
+<p>该对象内部含有什么方法除了看源码还有什么其他的解决方式么？当然有了， 可以通过dir() 去判断一个对象具有什么方法</p>
+<pre><code><code>k = &#39;diege&#39;
+print(dir(k))</code></pre>
+<h4 id="小结">3.小结</h4>
+<p>从字面意思来说：可迭代对象就是一个可以重复取值的实实在在的东西。</p>
+<p>从专业角度来说：但凡内部含有__iter__方法的对象，都是可迭代对象。</p>
+<p>可迭代对象可以通过判断该对象是否有<code>'__iter__'</code>方法来判断。</p>
+<p>可迭代对象的优点：</p>
+<p>  可以直观的查看里面的数据。</p>
+<p>可迭代对象的缺点：</p>
+<p>  1. 占用内存。</p>
+<p>  2. 可迭代对象不能迭代取值（除去索引，key以外）。</p>
+<p>  那么这个缺点有人就提出质疑了，即使抛去索引,key以外，这些我可以通过for循环进行取值呀！对，他们都可以通过for循环进行取值，其实for循环在底层做了一个小小的转化，就是先将可迭代对象转化成迭代器，然后在进行取值的。那么接下来，我们就看看迭代器是个什么鬼。</p>
+<h4 id="迭代器的定义">4.迭代器的定义</h4>
+<p>  从字面意思来说迭代器，是一个可以迭代取值的工具，器：在这里当做工具比较合适。</p>
+<p>  从专业角度来说：迭代器是这样的对象：实现了无参数的__next__方法，返回序列中的下一个元素，如果没有元素了，那么抛出StopIteration异常.python中的迭代器还实现了__iter__方法，因此迭代器也可以迭代。 出自《流畅的python》</p>
+<p>  那么对于上面的解释有一些超前，和难以理解，不用过于纠结，我们简单来说：在python中，内部含有<code>'__Iter__'</code>方法并且含有<code>'__next__'</code>方法的对象就是迭代器。</p>
+<h4 id="迭代器协议">5.迭代器协议</h4>
+<p>字符串、列表、元组、字典、集合都可以被for循环，说明他们都是可迭代的。</p>
+<p>我们来看看这个列表的迭代器比起列表来说实现了哪些新方法，这样就能揭开迭代器的神秘面纱了吧？</p>
+<pre><code><code>&#39;&#39;&#39;
+dir([1,2].__iter__())是列表迭代器中实现的所有方法，dir([1,2])是列表中实现的所有方法,都是以列表的形式返回给我们的，为了看的更清楚，我们分别把他们转换成集合。
+然后取差集。
+&#39;&#39;&#39;
+#print(dir([1,2].__iter__()))
+#print(dir([1,2]))
+print(set(dir([1,2].__iter__()))-set(dir([1,2])))</code></pre>
+<p>这三个方法中，能让我们一个一个取值的神奇方法是谁？</p>
+<p>没错！就是__next__</p>
+<p>在for循环中，就是在内部调用了__next__方法才能取到一个一个的值。</p>
+<p>那接下来我们就用列表转化为迭代器 利用next方法来写一个不依赖for的遍历。</p>
+<pre><code><code>l = [1,2,3,4]
+l_iter = l.__iter__()
+item = l_iter.__next__()  #1
+print(item)
+item = l_iter.__next__()  #2
+print(item)
+item = l_iter.__next__()  #3
+print(item)
+item = l_iter.__next__()  #4
+print(item)
+item = l_iter.__next__()  #抛出StopIteration异常
+print(item)</code></pre>
+<p>这是一段会报错的代码，如果我们一直取next取到迭代器里已经没有元素了，就会抛出一个异常StopIteration，告诉我们，列表中已经没有有效的元素了。</p>
+<p>这个时候，我们就要使用异常处理机制来把这个异常处理掉。</p>
+<pre><code><code>l = [1,2,3,4]
+l_iter = l.__iter__()
+while True:
+    try:
+        item = l_iter.__next__()
+        print(item)
+    except StopIteration:
+        break</code></pre>
+<p>那现在我们就使用while循环实现了原本for循环做的事情，我们是从谁那儿获取一个一个的值呀？是不是就是l_iter？好了，这个l_iter就是一个迭代器。</p>
+<p>迭代器遵循迭代器协议：必须拥有__iter__方法和__next__方法。</p>
+<h4 id="小结-1">6.小结</h4>
+<p>从字面意思来说：迭代器就是可以迭代取值的工具。</p>
+<p>从专业角度来说：在python中，内部含有<code>'__Iter__'</code>方法并且含有<code>'__next__'</code>方法的对象就是迭代器。</p>
+<p>迭代器的优点：</p>
+<p>  节省内存。</p>
+<p>  迭代器在内存中相当于只占一个数据的空间：因为每次取值都上一条数据会在内存释放，加载当前的此条数据。</p>
+<p>  惰性机制：next一次，取一个值，绝不过多取值。</p>
+<p>有一个迭代器模式可以很好的解释上面这两条：迭代是数据处理的基石。扫描内存中放不下的数据集时，我们要找到一种惰性获取数据项的方式，即按需一次获取一个数据项。这就是迭代器模式。</p>
+<p>迭代器的缺点：</p>
+<p>  不能直观的查看里面的数据。</p>
+<p>  取值时不走回头路，只能一直向下取值。</p>
+<h4 id="初识生成器">7.初识生成器</h4>
+<p>我们知道的迭代器有两种：一种是调用方法直接返回的，一种是可迭代对象通过执行iter方法得到的，迭代器有的好处是可以节省内存。</p>
+<p>如果在某些情况下，我们也需要节省内存,就只能自己写。我们自己写的这个能实现迭代器功能的东西就叫生成器。</p>
+<p>Python中提供的生成器：</p>
+<p>1.生成器函数：常规函数定义，但是，使用yield语句而不是return语句返回结果。yield语句一次返回一个结果，在每个结果中间，挂起函数的状态，以便下次重它离开的地方继续执行</p>
+<p>2.生成器表达式：类似于列表推导，但是，生成器返回按需产生结果的一个对象，而不是一次构建一个结果列表</p>
+<p>生成器Generator：</p>
+<p>  本质：迭代器(所以自带了__iter__方法和__next__方法，不需要我们去实现)</p>
+<p>  特点：惰性运算,开发者自定义</p>
+<h4 id="生成器函数">8.生成器函数</h4>
+<p>  一个包含yield关键字的函数就是一个生成器函数。yield可以为我们从函数中返回值，但是yield又不同于return，return的执行意味着程序的结束，调用生成器函数不会得到返回的具体的值，而是得到一个可迭代的对象。每一次获取这个可迭代对象的值，就能推动函数的执行，获取新的返回值。直到函数执行结束。</p>
+<pre><code><code>import time
+def genrator_fun1():
+    a = 1
+    print(&#39;现在定义了a变量&#39;)
+    yield a
+    b = 2
+    print(&#39;现在又定义了b变量&#39;)
+    yield b
+
+g1 = genrator_fun1()
+print(&#39;g1 : &#39;,g1)       #打印g1可以发现g1就是一个生成器
+print(&#39;-&#39;*20)   #我是华丽的分割线
+print(next(g1))
+time.sleep(1)   #sleep一秒看清执行过程
+print(next(g1))</code></pre>
+<p>生成器有什么好处呢？就是不会一下子在内存中生成太多数据</p>
+<p>假如我想让工厂给学生做校服，生产2000000件衣服，我和工厂一说，工厂应该是先答应下来，然后再去生产，我可以一件一件的要，也可以根据学生一批一批的找工厂拿。</p>
+<p>而不能是一说要生产2000000件衣服，工厂就先去做生产2000000件衣服，等回来做好了，学生都毕业了。</p>
+<pre><code><code>#初识生成器二
+
+def produce():
+    &quot;&quot;&quot;生产衣服&quot;&quot;&quot;
+    for i in range(2000000):
+        yield &quot;生产了第%s件衣服&quot;%i
+
+product_g = produce()
+print(product_g.__next__()) #要一件衣服
+print(product_g.__next__()) #再要一件衣服
+print(product_g.__next__()) #再要一件衣服
+num = 0
+for i in product_g:         #要一批衣服，比如5件
+    print(i)
+    num +=1
+    if num == 5:
+        break
+
+#到这里我们找工厂拿了8件衣服，我一共让我的生产函数(也就是produce生成器函数)生产2000000件衣服。
+#剩下的还有很多衣服，我们可以一直拿，也可以放着等想拿的时候再拿</code></pre>
+<p>生成器监听文件输入的例子</p>
+<pre><code><code>import time
+
+def tail(filename):
+    f = open(filename)
+    f.seek(0, 2) #从文件末尾算起
+    while True:
+        line = f.readline()  # 读取文件中新的文本行
+        if not line:
+            time.sleep(0.1)
+            continue
+        yield line
+
+tail_g = tail(&#39;tmp&#39;)
+for line in tail_g:
+    print(line)</code></pre>
+<h4 id="小结-2">9.小结</h4>
+<p>可迭代对象：</p>
+<p>  拥有__iter__方法</p>
+<p>  特点：惰性运算</p>
+<p>  例如:range(),str,list,tuple,dict,set</p>
+<p>迭代器Iterator：</p>
+<p>  拥有__iter__方法和__next__方法</p>
+<p>例如：iter(range()),iter(str),iter(list),iter(tuple),iter(dict),iter(set),reversed(list_o),map(func,list_o),filter(func,list_o),file_o</p>
+<p>生成器Generator：</p>
+<p>　　本质：迭代器，所以拥有__iter__方法和__next__方法</p>
+<p>　　特点：惰性运算,开发者自定义</p>
+<p>使用生成器的优点：</p>
+<p>  1.延迟计算，一次返回一个结果。也就是说，它不会一次生成所有的结果，这对于大数据量处理，将会非常有用。</p>
+<p>  2.提高代码可读性</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

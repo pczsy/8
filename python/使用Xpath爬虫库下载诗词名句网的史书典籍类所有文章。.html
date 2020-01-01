@@ -1,0 +1,79 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修使用Xpath爬虫库下载诗词名句网的史书典籍类所有文章。' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>使用Xpath爬虫库下载诗词名句网的史书典籍类所有文章。</center></div><div class='banquan'>原文出处:本文由博客园博主记住我忘记我提供。<br/>
+原文连接:https://www.cnblogs.com/nmsghgnv/p/11314609.html</div><br>
+    <div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 需要的库</span>
+<span style="color: #0000ff;">from</span> lxml <span style="color: #0000ff;">import</span><span style="color: #000000;"> etree
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 请求头</span>
+headers =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36</span><span style="color: #800000;">'</span><span style="color: #000000;">
+}
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 保存文本的地址</span>
+pathname=r<span style="color: #800000;">'</span><span style="color: #800000;">E:\爬虫\诗词名句网\\</span><span style="color: #800000;">'</span>
+<span style="color: #008000;">#</span><span style="color: #008000;"> 获取书籍名称的函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_book(url):
+    response </span>=<span style="color: #000000;"> requests.get(url,headers)
+    etrees </span>=<span style="color: #000000;"> etree.HTML(response.text)
+    url_infos </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="bookmark-list"]/ul/li</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> url_infos:
+        url_info </span>= i.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">./h2/a/@href</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        book_name </span>= i.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">./h2/a/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)[0]
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">开始下载.</span><span style="color: #800000;">'</span>+<span style="color: #000000;">book_name)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> print('http://www.shicimingju.com'+url_info[0])</span>
+        get_index(<span style="color: #800000;">'</span><span style="color: #800000;">http://www.shicimingju.com</span><span style="color: #800000;">'</span>+<span style="color: #000000;">url_info[0])
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取书籍目录的函数</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_index(url):
+    response </span>=<span style="color: #000000;"> requests.get(url, headers)
+    etrees </span>=<span style="color: #000000;"> etree.HTML(response.text)
+    url_infos </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="book-mulu"]/ul/li</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span><span style="color: #000000;"> url_infos:
+        url_info </span>= i.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">./a/@href</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #008000;">#</span><span style="color: #008000;"> print('http://www.shicimingju.com' + url_info[0])</span>
+        get_content(<span style="color: #800000;">'</span><span style="color: #800000;">http://www.shicimingju.com</span><span style="color: #800000;">'</span> +<span style="color: #000000;"> url_info[0])
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 获取书籍内容并写入.txt文件</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_content(url):
+    response </span>=<span style="color: #000000;"> requests.get(url, headers)
+    etrees </span>=<span style="color: #000000;"> etree.HTML(response.text)
+    title </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="www-main-container www-shadow-card "]/h1/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)[0]
+    content </span>= etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="chapter_content"]/p/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    content </span>= <span style="color: #800000;">''</span><span style="color: #000000;">.join(content)
+    book_name</span>=etrees.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//div[@class="nav-top"]/a[3]/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">)[0]
+    with open(pathname</span>+book_name+<span style="color: #800000;">'</span><span style="color: #800000;">.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">a+</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">) as f:
+        f.write(title</span>+<span style="color: #800000;">'</span><span style="color: #800000;">\n\n</span><span style="color: #800000;">'</span>+content+<span style="color: #800000;">'</span><span style="color: #800000;">\n\n\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">print</span>(title+<span style="color: #800000;">'</span><span style="color: #800000;">..下载完成</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 程序入口</span>
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">http://www.shicimingju.com/book/</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    get_book(url)</span></pre>
+</div>
+<p>控制台查看下载过程；</p>
+<p><img src="./images/使用Xpath爬虫库下载诗词名句网的史书典籍类所有文章。0.png" alt="" /></p>
+<p>打开文件夹查看是否下载成功；</p>
+<p><img src="./images/使用Xpath爬虫库下载诗词名句网的史书典籍类所有文章。1.png" alt="" /></p>
+<p><img src="./images/使用Xpath爬虫库下载诗词名句网的史书典籍类所有文章。2.png" alt="" /></p>
+<p>done.</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,250 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java发送邮件基础方法（另附部分主流邮箱服务器地址、端口及授权码设置方法）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java发送邮件基础方法（另附部分主流邮箱服务器地址、端口及授权码设置方法）</center></div><div class='banquan'>原文出处:本文由博客园博主ggwudivs提供。<br/>
+原文连接:https://www.cnblogs.com/ggwudivs/p/12056122.html</div><br>
+    <p>java发送邮件基础方法，可通过重载简化参数</p>
+<div class="cnblogs_code" style="text-align: left;">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.File;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.UnsupportedEncodingException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Properties;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.activation.DataHandler;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.activation.FileDataSource;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.Authenticator;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.BodyPart;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.Message.RecipientType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.MessagingException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.Multipart;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.PasswordAuthentication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.Session;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.Transport;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.internet.InternetAddress;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.internet.MimeBodyPart;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.internet.MimeMessage;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.internet.MimeMultipart;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.mail.internet.MimeUtility;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MailUtil {
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Description: 使用QQ邮箱发送不带附件的邮件，收件人邮箱类型不限。
+     * @date: 2019年12月17日 下午4:51:01
+     * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: ggwudivs
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> subject        邮件标题
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> content        邮件内容
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> fromUser        发件人邮箱
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> fromPass        发件人邮箱密码，应为16位SMTP口令
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> tO_Recipients    收件人邮箱，多个收件人用","分隔
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> openSSL        是否开启SSL
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> UnsupportedEncodingException
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> MessagingException:
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">: void
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> sendMessage_QQ (String subject, String content, String fromUser, String fromPass, String tO_Recipients, <span style="color: #0000ff;">boolean</span> openSSL) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> UnsupportedEncodingException, MessagingException{
+        sendMessage(subject, content, fromUser, fromPass, </span><span style="color: #0000ff;">null</span>, tO_Recipients, <span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span>, "smtp.qq.com", openSSL?"465":"587", <span style="color: #0000ff;">null</span><span style="color: #000000;">, openSSL);
+    }
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Description: 使用QQ邮箱发送带附件的邮件，收件人邮箱类型不限。
+     * @date: 2019年12月17日 下午5:25:14
+     * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: ggwudivs
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> subject                邮件标题
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> content                邮件内容
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> fromUser                发件人邮箱
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> fromPass                发件人邮箱密码，应为16位SMTP口令
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> tO_Recipients            收件人邮箱，多个收件人用","分隔
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> attachmentFilesPath    邮件附件路径，多个附件用","分隔
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> openSSL                是否开启SSL
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> UnsupportedEncodingException
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> MessagingException:
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">: void
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> sendMessage_QQ (String subject, String content, String fromUser, String fromPass, String tO_Recipients, String attachmentFilesPath, <span style="color: #0000ff;">boolean</span> openSSL) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> UnsupportedEncodingException, MessagingException{
+        sendMessage(subject, content, fromUser, fromPass, </span><span style="color: #0000ff;">null</span>, tO_Recipients, <span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span>, "smtp.qq.com", openSSL?"465":"587"<span style="color: #000000;">, attachmentFilesPath, openSSL);
+    }
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Description: smtp发送邮件
+     * @date: 2019年12月17日 下午3:22:35
+     * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: ggwudivs
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> subject                邮件标题
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> content                邮件文本内容
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> fromUser                发件人邮箱
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> fromPass                发件人邮箱密码，QQ邮箱应为16位SMTP口令
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> nickname                发件人昵称
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> tO_Recipients            收件人邮箱，多个收件人用","分隔
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> cC_Recipients            抄送人邮箱，多个抄送人用","分隔
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> bCC_Recipients        密送人邮箱，多个密送人用","分隔
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> smtpHost                smtp服务器地址
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> smtpPort                smtp服务器端口
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> attachmentFilesPath    邮件附件路径，多个附件用","分隔
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> MessagingException
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> UnsupportedEncodingException:
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">: void
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> sendMessage(String subject, String content, String fromUser, String fromPass, String nickname, String tO_Recipients, String cC_Recipients, String bCC_Recipients, String smtpHost, String smtpPort, String attachmentFilesPath, <span style="color: #0000ff;">boolean</span> openSSL) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> MessagingException, UnsupportedEncodingException {  
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建Properties类，用于记录邮箱的一些属性</span>
+        Properties props = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Properties();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">表示SMTP发送邮件，必须进行身份验证</span>
+        props.put("mail.smtp.auth", "true"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">SMTP服务器地址</span>
+        props.put("mail.smtp.host"<span style="color: #000000;">, smtpHost);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">是否开启SSL</span>
+        <span style="color: #0000ff;">if</span>(!<span style="color: #000000;">openSSL){
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">SMTP服务器端口号</span>
+            props.put("mail.smtp.port"<span style="color: #000000;">, smtpPort);
+        }</span><span style="color: #0000ff;">else</span><span style="color: #000000;">{
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">SMTP服务器ssl端口号</span>
+            props.setProperty("mail.smtp.socketFactory.port"<span style="color: #000000;">, smtpPort);
+            props.setProperty(</span>"mail.smtp.socketFactory.fallback", "false"<span style="color: #000000;">);
+            props.setProperty(</span>"mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"<span style="color: #000000;">);
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">构建授权信息，用于进行SMTP进行身份验证</span>
+        Authenticator authenticator = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Authenticator() {
+            </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> PasswordAuthentication getPasswordAuthentication() {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">发件人账号，发件人密码（QQ邮箱应为16位SMTP口令）</span>
+                <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> PasswordAuthentication(fromUser, fromPass);
+            }
+        };
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">使用环境属性和授权信息，创建邮件会话</span>
+        Session mailSession =<span style="color: #000000;"> Session.getInstance(props, authenticator);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建邮件消息</span>
+        MimeMessage message = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MimeMessage(mailSession);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置发件人，有昵称时同时设置昵称</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            message.setFrom((nickname</span>==<span style="color: #0000ff;">null</span>||"".equals(nickname))?<span style="color: #0000ff;">new</span> InternetAddress(fromUser):<span style="color: #0000ff;">new</span> InternetAddress(fromUser, nickname, "UTF-8"<span style="color: #000000;">));
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置一个或多个收件人</span>
+<span style="color: #000000;">        message.setRecipients(RecipientType.TO, tO_Recipients);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置一个或多个抄送人</span>
+<span style="color: #000000;">        message.setRecipients(RecipientType.CC, cC_Recipients);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置一个或多个密送人</span>
+<span style="color: #000000;">        message.setRecipients(RecipientType.BCC, bCC_Recipients);
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置邮件标题</span>
+<span style="color: #000000;">        message.setSubject(subject);
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置邮件的内容</span>
+        <span style="color: #0000ff;">if</span>(attachmentFilesPath == <span style="color: #0000ff;">null</span> || ""<span style="color: #000000;">.equals(attachmentFilesPath)){
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">设置邮件的正文文本</span>
+            message.setContent(content, "text/html;charset=UTF-8"<span style="color: #000000;">);
+        }</span><span style="color: #0000ff;">else</span><span style="color: #000000;">{
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">向multipart对象中添加邮件的各个部分内容，包括文本内容和附件</span>
+            Multipart multipart = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MimeMultipart();
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">添加邮件文本内容</span>
+            BodyPart contentBodyPart = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MimeBodyPart();
+            contentBodyPart.setContent(content, </span>"text/html;charset=utf-8"<span style="color: #000000;">);
+            multipart.addBodyPart(contentBodyPart);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">添加邮件附件内容</span>
+            BodyPart attachmentBodyPart = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MimeBodyPart();
+            String[] attachmentFiles </span>= attachmentFilesPath.split(","<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (String attachmentFile : attachmentFiles) {
+                </span><span style="color: #0000ff;">if</span> (attachmentFile != <span style="color: #0000ff;">null</span> &amp;&amp; !""<span style="color: #000000;">.equals(attachmentFile)) {
+                    attachmentBodyPart </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MimeBodyPart(); 
+                    
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">根据附件路径获取文件,</span>
+                    FileDataSource dataSource = <span style="color: #0000ff;">new</span> FileDataSource(<span style="color: #0000ff;">new</span><span style="color: #000000;"> File(attachmentFile));
+                    attachmentBodyPart.setDataHandler(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> DataHandler(dataSource));
+                    
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">MimeUtility.encodeWord可以避免文件名乱码</span>
+                    String strFileName=<span style="color: #000000;">dataSource.getFile().getName();
+                    attachmentBodyPart.setFileName(MimeUtility.encodeText(strFileName));  
+                    
+                    multipart.addBodyPart(attachmentBodyPart);
+                }
+            }
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">设置邮件的正文内容</span>
+<span style="color: #000000;">            message.setContent(multipart);
+        }
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">发送邮件</span>
+<span style="color: #000000;">        Transport.send(message);
+    }  
+}</span></pre>
+</div>
+<table style="width: 100%; height: 139px;" border="1" align="left">
+<tbody>
+<tr>
+<td style="text-align: center;">邮箱类型</td>
+<td style="text-align: center;">SMTP服务器地址</td>
+<td style="text-align: center;">普通端口</td>
+<td style="text-align: center;">SSL端口</td>
+<td style="text-align: center;">服务器配置参考地址</td>
+</tr>
+<tr>
+<td>QQ邮箱</td>
+<td>smtp.qq.com</td>
+<td style="text-align: center;">587</td>
+<td style="text-align: center;">465</td>
+<td style="text-align: left;"><a href="https://service.mail.qq.com/cgi-bin/help?subtype=1&amp;&amp;id=28&amp;&amp;no=167" target="_blank">https://service.mail.qq.com/cgi-bin/help?subtype=1&amp;&amp;id=28&amp;&amp;no=167</a></td>
+</tr>
+<tr>
+<td>阿里企业邮箱</td>
+<td>smtp.qiye.aliyun.com</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">465</td>
+<td style="text-align: left;"><a href="http://mailhelp.mxhichina.com/smartmail/detail.vm?knoId=5871700" target="_blank">http://mailhelp.mxhichina.com/smartmail/detail.vm?knoId=5871700</a></td>
+</tr>
+<tr>
+<td>网易163免费邮箱</td>
+<td>smtp.163.com</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">465/994</td>
+<td style="text-align: left;"><a href="https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac22dc0e9af8168582a" target="_blank">https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac22dc0e9af8168582a</a></td>
+</tr>
+<tr>
+<td>网易企业邮箱</td>
+<td>smtp.qiye.163.com</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">994</td>
+<td style="text-align: left;"><a href="https://qiye.163.com/help/client-profile.html" target="_blank">https://qiye.163.com/help/client-profile.html</a></td>
+</tr>
+<tr>
+<td>网易免费企业邮箱</td>
+<td>smtp.ym.163.com</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">994</td>
+<td style="text-align: left;"><a href="http://app.ym.163.com/ym/help/help.html" target="_blank">http://app.ym.163.com/ym/help/help.html</a></td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: left;"><span style="color: #ff0000; font-family: 'Microsoft YaHei'; font-size: 18px;"><strong>&nbsp;t</strong></span><span style="color: #ff0000; font-family: 'Microsoft YaHei'; font-size: 18px;"><strong>ips:</strong></span></p>
+<p style="text-align: left;">QQ邮箱需先设置独立密码才能使用smtp功能（<a href="https://service.mail.qq.com/cgi-bin/help?subtype=1&amp;&amp;no=1001220&amp;&amp;id=28" target="_blank">https://service.mail.qq.com/cgi-bin/help?subtype=1&amp;&amp;no=1001220&amp;&amp;id=28</a>）。</p>
+<p style="text-align: left;">QQ邮箱设置方法：设置--账户--账户安全--独立密码。</p>
+<p style="text-align: left;">网易163免费邮箱同QQ邮箱一样，需先设置授权码才能使用smtp功能（<a href="https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac24a2130dd2fad05b1" target="_blank">https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac24a2130dd2fad05b1</a>）</p>
+<p style="text-align: left;">网易163免费邮箱开启授权码方法：<a href="https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac2cda80145a1742516" target="_blank">https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac2cda80145a1742516</a></p>
+<p style="text-align: left;">网易企业邮箱在开启客户端授权密码的功能时才需要设置客户端授权码：<a href="https://qiye.163.com/help/3f85a9.html" target="_blank">https://qiye.163.com/help/3f85a9.html</a></p>
+<p style="text-align: left;">网易企业邮箱开启授权码方法：<a title="网易企业邮箱开启授权码方法" href="https://qiye.163.com/help/af988e.html" target="_blank">https://qiye.163.com/help/af988e.html</a></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

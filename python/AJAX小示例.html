@@ -1,0 +1,194 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修AJAX小示例' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>AJAX小示例</center></div><div class='banquan'>原文出处:本文由博客园博主林染提供。<br/>
+原文连接:https://www.cnblogs.com/zengyi1995/p/11291417.html</div><br>
+    <h3 id="一-基本内容">一、 基本内容</h3>
+<ol>
+<li><p>定义：AJAX（Asynchronous Javascript And XML）翻译成中文就是“异步的Javascript和XML”，即使用Javascript语言与服务器进行异步交互，传输的数据为XML（当然，传输的数据不只是XML）</p></li>
+<li><p>作用：AJAX就是使用 js 技术发送请求和接收响应</p></li>
+<li><p>优点：在不重新加载整个页面的情况下，可以与服务器交换数据并更新部分网页内容</p></li>
+<li><p>特点：</p>
+<ul>
+<li>异步交互
+<ul>
+<li>同步交互：客户端发出一个请求后，需要等待服务器响应结束后，才能发出第二个请求</li>
+<li>异步交互：客户端发出一个请求后，无需等待服务器响应结束，就可以发出第二个请求</li>
+</ul></li>
+<li>局部刷新，无须刷新整个页面</li>
+<li>传输的数据量少，性能高</li>
+</ul></li>
+<li><p>应用场景：</p>
+<ul>
+<li>搜索引擎根据用户输入的关键字，自动提示检索关键字</li>
+<li>注册时候的用户名的查重</li>
+</ul></li>
+<li><p>普通示例：页面输入两个整数，通过AJAX传输到后端计算出结果并返回</p>
+<pre><code><code># urls.py
+urlpatterns = [
+    url(r&#39;^ajax_add/&#39;, views.ajax_add),
+    url(r&#39;^ajax_demo1/&#39;, views.ajax_demo1),  
+]</code></pre>
+<pre><code><code># views.py
+def ajax_demo1(request):
+    return render(request, &quot;ajax_demo1.html&quot;)
+
+def ajax_add(request):
+    i1 = int(request.GET.get(&quot;i1&quot;))
+    i2 = int(request.GET.get(&quot;i2&quot;))
+    ret = i1 + i2
+    return JsonResponse(ret, safe=False)</code></pre>
+<pre class="django"><code>{# ajax_demo1.html #}
+&lt;input type=&quot;text&quot; id=&quot;i1&quot;&gt;+
+&lt;input type=&quot;text&quot; id=&quot;i2&quot;&gt;=
+&lt;input type=&quot;text&quot; id=&quot;i3&quot;&gt;
+&lt;input type=&quot;button&quot; value=&quot;AJAX提交&quot; id=&quot;b1&quot;&gt;
+
+&lt;script src=&quot;/static/jquery-3.2.1.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+    $(&quot;#b1&quot;).on(&quot;click&quot;, function () {
+        $.ajax({
+            url:&quot;/ajax_add/&quot;,
+            type:&quot;GET&quot;,
+            data:{&quot;i1&quot;:$(&quot;#i1&quot;).val(),&quot;i2&quot;:$(&quot;#i2&quot;).val()},
+            success:function (data) {
+                $(&quot;#i3&quot;).val(data);
+            },
+            error:function (error) {
+                console.log(error)
+            },
+        })
+    })
+&lt;/script&gt;</code></pre></li>
+</ol>
+<h3 id="二-jquery实现的ajax">二、 jQuery实现的AJAX</h3>
+<ul>
+<li><p>最基本的jQuery发送AJAX请求示例</p>
+<pre><code><code># views.py
+def ajax_test(request):
+    user_name = request.POST.get(&quot;username&quot;)
+    password = request.POST.get(&quot;password&quot;)
+    print(user_name, password)
+    return HttpResponse(&quot;OK&quot;)</code></pre>
+<pre class="django"><code>&lt;button id=&quot;ajaxTest&quot;&gt;AJAX 测试&lt;/button&gt;
+&lt;script&gt;
+    $(&quot;#ajaxTest&quot;).click(function () {
+        $.ajax({
+            url: &quot;/ajax_test/&quot;,
+            type: &quot;POST&quot;,
+            data: {username: &quot;Q1mi&quot;, password: 123456},
+            success: function (data) {
+                alert(data)
+            }
+        })
+    })
+&lt;/script&gt;</code></pre></li>
+<li><p>$.ajax参数</p>
+<ul>
+<li>data参数中的键值对，如果值不为字符串，需要将其转换成字符串类型</li>
+</ul></li>
+</ul>
+<h3 id="三-ajax通过csrf的校验">三、 AJAX通过csrf的校验</h3>
+<ol>
+<li><p>前提条件：确保有csrftoken的cookie</p>
+<ul>
+<li>在页面中使用{% csrf_token %}</li>
+<li>加装饰器：ensure_csrf_cookie</li>
+<li>注意：
+<ul>
+<li>如果使用从cookie中取csrftoken的方式，需要确保cookie存在csrftoken值</li>
+<li>如果你的视图渲染的HTML文件中没有包含 {% csrf_token %}，Django可能不会设置CSRFtoken的cookie。</li>
+<li>这个时候需要使用ensure_csrf_cookie()装饰器强制设置Cookie</li>
+</ul></li>
+</ul></li>
+<li><p>AJAX请求如何设置csrf_token</p>
+<ul>
+<li>通过获取隐藏的input标签中的csrfmiddlewaretoken值，放置在data中发送</li>
+</ul>
+<pre class="django"><code>$.ajax({
+ url: &quot;/cookie_ajax/&quot;,
+ type: &quot;POST&quot;,
+ data: {
+     &quot;username&quot;: &quot;Q1mi&quot;,
+     &quot;password&quot;: 123456,
+     {# 使用jQuery取出csrfmiddlewaretoken的值，拼接到data中 #}
+     &quot;csrfmiddlewaretoken&quot;: $(&quot;[name = &#39;csrfmiddlewaretoken&#39;]&quot;).val()
+ },
+ success: function (data) {
+     console.log(data);
+ }
+})</code></pre>
+<ul>
+<li>通过获取返回的cookie中的字符串，放置在请求头中发送
+<ul>
+<li>注意：需要引入一个jquery.cookie.js插件</li>
+</ul></li>
+</ul>
+<pre class="django"><code>$.ajax({
+ url: &quot;/cookie_ajax/&quot;,
+ type: &quot;POST&quot;,
+ {# 从Cookie取csrftoken，并设置到请求头中 #}
+ headers: {&quot;X-CSRFToken&quot;: $(&quot;[name = &#39;csrfmiddlewaretoken&#39;]&quot;).val()},
+ data: {&quot;username&quot;: &quot;Q1mi&quot;, &quot;password&quot;: 123456},
+ success: function (data) {
+     console.log(data);
+ }
+})</code></pre>
+<ul>
+<li>使用文件：自己写一个getCookie方法
+<ul>
+<li>粘贴在 static 下的 js 中的 一个js文件 ，比如：ajax_setup.js</li>
+</ul></li>
+</ul>
+<pre class="js"><code>function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie &amp;&amp; document.cookie !== &#39;&#39;) {
+        var cookies = document.cookie.split(&#39;;&#39;);
+        for (var i = 0; i &lt; cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            if (cookie.substring(0, name.length + 1) === (name + &#39;=&#39;)) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+// 通过js获取csrftoken的值
+var csrftoken = getCookie(&#39;csrftoken&#39;);
+
+// 使用$.ajaxSetup()方法为ajax请求统一设置
+function csrfSafeMethod(method) {
+  return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
+$.ajaxSetup({
+  beforeSend: function (xhr, settings) {
+    // 不是 GET|HEAD|OPTIONS|TRACE 这些请求的话，就执行if后的操作
+    if (!csrfSafeMethod(settings.type) &amp;&amp; !this.crossDomain) {
+      xhr.setRequestHeader(&quot;X-CSRFToken&quot;, csrftoken);   // 设置请求头，本质同方法2
+    }
+  }
+});</code></pre></li>
+</ol>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

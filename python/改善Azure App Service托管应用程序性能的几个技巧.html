@@ -1,0 +1,72 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修改善Azure App Service托管应用程序性能的几个技巧' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>改善Azure App Service托管应用程序性能的几个技巧</center></div><div class='banquan'>原文出处:本文由博客园博主nodotnet提供。<br/>
+原文连接:https://www.cnblogs.com/JulianHuang/p/12098385.html</div><br>
+    <p>&nbsp;</p>
+<blockquote>
+<p>本文介绍了几个技巧，这些技巧可以改善Azure App Service托管应用程序的性能。其中一些技巧是你现在就可以进行的配置变更，</p>
+<p>而其他技巧则可能需要对应用程序进行一些重新设计和重构。</p>
+</blockquote>
+<p>开发者都希望从部署在Azure的App Services中压榨出最佳性能。更好的性能不仅能够获得更佳的响应体验；而且如果我们在Azure中能&ldquo;四两拨千斤&rdquo;，那么性能的提升还可以为我们省钱。</p>
+<p>在本文中，我们将研究提高Azure App Services中运行的Web程序性能的设置和策略。</p>
+<p><em><em>-------------------------------------------------<em><em>-------------------------------------------------</em></em><em><em>-------------------------------------------------</em></em><em><em>-------------------------------------------------</em></em><em><em>--------------------</em></em></em></em></p>
+<p><span style="font-size: 15px;"><span style="color: #ff6600;">下面几个性能提升意见在 App Service 配置界面即可操作，这组技巧的主题是 评估当前App Service现状，压榨出App ServicePlan资源</span>。</span></p>
+<p><img src="./images/改善Azure App Service托管应用程序性能的几个技巧0.png" alt="" width="749" height="465" /></p>
+<p>&nbsp;</p>
+<h3>1.&nbsp; &nbsp;启动HTTP/2</h3>
+<p>Microsoft于2018年初宣布在App Services中支持HTTP/2，但到目前为止在Azure中默认创建的App Service还是以HTTP1.1协议工作。HTTP/2对常见的的Web协议进行了重大更改，许多更改旨在提高性能并减少Web上的延迟。例如，HTTP/2中的标头压缩和二进制格式将减少有效负载大小。另外请求管道和多路复用等功能允许使用更少的网络套接字来执行更多并发请求，并有助于避免一个缓慢的请求阻止所有后续请求，这是HTTP 1.1中的常见问题。</p>
+<p>如上图示，为你的的App Service启动HTTP/2协议：下拉列表指定HTTP/2版本后，所有支持HTTP/2的客户端都将自动升级其连接， 不支持HTTP/2的客户端仍然以原有Http1.1 方式交互。</p>
+<p>下面是一个简单的测试以验证HTTP/2的改进：</p>
+<p>某App Service托管页面引用了脚本、CSS资源、16张图像(每个图像的大小超过200 KB)。使用developer tool记录使用HTTP 1.1在App Service上发生的情况。</p>
+<p>请注意观察<span style="background-color: #ff6600;">条形红色部分</span>显示了后置请求以阻塞状态开始。这是可怕的&ldquo;行头阻塞&rdquo;问题，其中【对连接数和并发请求的限制】制约了客户端和服务器之间的吞吐量，直到第一个请求开始后800毫秒，客户端才会收到该页面的最终字节。</p>
+<p><img src="./images/改善Azure App Service托管应用程序性能的几个技巧1.png" alt="" width="821" height="634" /></p>
+<p>&nbsp;接下来在App Service中启用了HTTP/2支持：不需要对客户端或服务器上进行任何其他配置更改，最后一个字节不到500ms到达。由于HTTP/2提高了网络利用率，我们避免了阻塞。</p>
+<p><img src="./images/改善Azure App Service托管应用程序性能的几个技巧2.png" alt="" width="823" height="711" /></p>
+<h3>2.&nbsp; 关闭空闲休眠</h3>
+<p>　　如果你有将应用程序部署到IIS的经历，那么你应该知道IIS在一段时间不活动之后将休眠（这个配置在IIS理默认是20分钟）。</p>
+<p>Azure App Service延续了这一传统，尽管休眠可为在同一App Service Plan上运行的其他App Service提供资源，但是此策略会损害当前应用程序的性能，因为下一个传入请求将经历Web服务器冷启动的过程：缓存为空、连接池为空，站点预热，所有请求的速度都比正常情况慢。</p>
+<p>为了防止空闲关闭，您可以在&ldquo; App Service配置&rdquo; 【始终开启】标志。</p>
+<p>&nbsp;</p>
+<h3>3. 关闭App Service实例亲和力</h3>
+<p>　　即使你仅运行App Service Plan的单实例，每个Azure App Service前面都是负载平衡器。负载均衡器会转发请求到App Service实例。当App Service因流量缩放出多实例，负载均衡器使用<a href="http://www.iis.net/learn/extensions/planning-for-arr">Application Request Routing</a>将连接会话分发给实例。</p>
+<p>　　因为Azure无法知晓应用程序是不是stateless服务， 故默认的App Service将确保客户端在会话期间访问同一App Service实例。</p>
+<p>　　为了实现这种亲和力，负载均衡器会在对客户端的第一个响应中注入<strong>ARRAffinity</strong>&nbsp; Cookie。</p>
+<p><img src="./images/改善Azure App Service托管应用程序性能的几个技巧3.png" alt="" width="855" height="482" /></p>
+<p>&nbsp; &nbsp;如果你的应用程序是stateless，并允许负载平衡器在实例之间分配请求，请关闭请求路由cookie，以提高性能和弹性。</p>
+<p>--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 15px; color: #ff6600;">下面的改进需要一些其他网络规划或重组（某些情况下，还需要更改应用程序本身），这组技巧中的主题是缩短数据在网络上传输的距离</span></p>
+<h3>4.&nbsp; 让你的服务资源相距更近</h3>
+<p>　　比如常规的WebApi服务，需要搭建App Service 和Database，建议你把资源放在同一区域协同工作。</p>
+<h3><em id="__mceDel">5.&nbsp; </em>让你的App Service与使用者更接近</h3>
+<p>　　如果大多数客户流量都来自世界的特定区域，则将资源放置在离客户最近的Azure区域中是很有意义的。当然，我们许多人的客户分布在世界各地。</p>
+<p>&nbsp; &nbsp; &nbsp; 在这种情况下，您可以考虑跨多个Azure区域进行地理复制，以与每个人保持亲密关系，之后你使用类似Azure Traffic Manager（基于DNS技术的负载均衡器）将你的客户直接路由到 最近的服务实例。</p>
+<h3>6. 让你的服务内容与 使用者更接近</h3>
+<p>　　脚本、图片、CSS，视频等静态资源是在CDN边缘服务器上缓存的较好选择，一旦缓存，Azure App Service 不需要花费带宽和时间在这些资源上，专注处理动态资源。</p>
+<blockquote>
+<p>Azure支持CDN边缘服务器的搭建&nbsp;</p>
+</blockquote>
+<p>&nbsp;</p>
+<p>回过头来，看以上性能优化建议，第一步还是要评估当前App Service现状和性能，不是每一个策略都对你的App Service 有效。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

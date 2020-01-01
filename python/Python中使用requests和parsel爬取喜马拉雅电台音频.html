@@ -1,0 +1,210 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python中使用requests和parsel爬取喜马拉雅电台音频' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python中使用requests和parsel爬取喜马拉雅电台音频</center></div><div class='banquan'>原文出处:本文由博客园博主霸道流氓提供。<br/>
+原文连接:https://www.cnblogs.com/badaoliumangqizhi/p/11749848.html</div><br>
+    <h1>场景</h1>
+<p>喜马拉雅电台：</p>
+<p><a href="https://www.ximalaya.com/">https://www.ximalaya.com/</a></p>
+<p>找到一步小说音频，这里以下面为例</p>
+<p><a href="https://www.ximalaya.com/youshengshu/16411402/">https://www.ximalaya.com/youshengshu/16411402/</a></p>
+<p>博客：<br /><a href="https://blog.csdn.net/badao_liumang_qizhi">https://blog.csdn.net/badao_liumang_qizhi</a><br />关注公众号<br />霸道的程序猿<br />获取编程相关电子书、教程推送与免费下载。</p>
+<h1>实现</h1>
+<h2>找到下载地址</h2>
+<p>使用谷歌浏览器打开上面网址，按F12打开调试，点击播放按钮后，然后找到Network下的Media下的Headers下的RequestURL,然后选中在新窗口中打开</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频0.png" alt="" width="1024" height="612" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>打开之后就可以点击三个点出来之后的下载按钮，便可以下载</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频1.png" alt="" width="805" height="562" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>使用代码下载</h2>
+<p>打开PyCharm，新建一个Python项目</p>
+<p>导入requests库，然后为了防止其反扒机制，找到浏览器上Headers下的Requests 
+Headers下的User-Agent,复制出来。</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频2.png" alt="" width="908" height="362" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">#能发送http请求的库
+import requests
+
+headers </span>=<span style="color: #000000;"> {
+</span><span style="color: #800000;">'</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span>Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36'<span> <br />} <br />media_url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">http://audio.cos.xmcdn.com/group47/M0A/34/EA/wKgKm1tHj6GwgeWBAFehkfjyvKI181.m4a</span><span style="color: #800000;">'</span><span> response </span>= requests.<span style="color: #0000ff;">get</span>(media_url,headers =<span> headers); with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">badao.mp4</span><span style="color: #800000;">'</span>,mode=<span style="color: #800000;">'</span><span style="color: #800000;">wb</span><span style="color: #800000;">'</span>) <span style="color: #0000ff;">as</span><span> f: f.write(response.content)</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>下载成功之后</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频3.png" alt="" width="896" height="543" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>下载地址获取</h2>
+<p>上面只是获取一个音频的下载地址，怎样获取每一集的下载地址</p>
+<p>还是刚才的调试页面，我们点击放大镜样的搜索按钮，出来搜索框之后，输入刚才下载地址的文件名</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频4.png" alt="" width="1016" height="303" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>点击第一个返回json数据的接口url,找到其Headers下的RequestURL。</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频5.png" alt="" width="854" height="264" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>然后在新窗口打开</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频6.png" alt="" width="834" height="234" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>可以看到是通过这个API返回的Json数据中的下载地址。</p>
+<p>那么这个API需要传递什么参数。通过其Headers底部的请求参数可以看到需要一个id参数和pytype参数。</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频7.png" alt="" width="735" height="232" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>通过对比每一集的接口的请求参数得知，pytype是固定的，id是每一集对应的链接中的id相对应的。</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频8.png" alt="" width="851" height="410" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>所以要是循环下载多集的话，需要在目录页面获取超链接的href属性中对应的id。</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频9.png" alt="" width="856" height="506" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>这里我们定义一个请求下载地址json数据的方法</p>
+<div class="cnblogs_code">
+<pre><code>defmedia_api(track_id):<br />    api_url=f<span style="color: #800000;">'</span><span style="color: #800000;">https://www.ximalaya.com/revision/play/v1/audio?id={track_id}&amp;ptype=1</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+    response </span>= requests.<span style="color: #0000ff;">get</span>(api_url,headers =<span style="color: #000000;"> headers)
+    print(response.json())
+  
+
+media_api(</span><span style="color: #800080;">98791745</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<p>运行下打印json数据</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频10.png" alt="" width="955" height="436" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>提取下载地址</h2>
+<p>那么就需要根据传递的id参数通过这个接口返回json数据，并从json数据中提取src对应的url数据</p>
+<div class="cnblogs_code">
+<pre><code>def media_api(track_id):   <br />    api_url=f<span style="color: #800000;">'</span><span style="color: #800000;">https://www.ximalaya.com/revision/play/v1/audio?id={track_id}&amp;ptype=1</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+    response </span>= requests.<span style="color: #0000ff;">get</span>(api_url,headers =<span style="color: #000000;"> headers)
+    #print(response.json())
+    #json返回字典类型  提取使用[]
+    data_json </span>=<span style="color: #000000;"> response.json()
+    src </span>= data_json[<span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span>][<span style="color: #800000;">'</span><span style="color: #800000;">src</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> src
+
+media_api(</span><span style="color: #800080;">98791745</span>)</pre>
+</div>
+<p>&nbsp;</p>
+<p>这样就能根据id获取每一集的下载地址，然后再将下载地址传递给上面第一步下载的方法中进行下载即可。</p>
+<p>接下来就是怎样获取每一集的id。</p>
+<h2>parsel解析网页获取id</h2>
+<p>首先需要导入parsel模块</p>
+<div class="cnblogs_code">
+<pre><code>import parsel</pre>
+</div>
+<p>&nbsp;</p>
+<p>如果没有安装则需要安装</p>
+<div class="cnblogs_code">
+<pre><code>pip install parsel</pre>
+</div>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频11.png" alt="" width="788" height="391" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><img alt="" /></p>
+<p>我们来到其目录页</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频13.png" alt="" width="798" height="472" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>在Elemnts下可以看到每一集是一个a标签，我们获取a标签的href属性中的最后面的id。</p>
+<p>我们再定义一个方法，此方法能根据页面的url获取当前页的所有集的id。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">def get_total_page(page_url):
+    #请求页面
+    response </span>= requests.<span style="color: #0000ff;">get</span>(page_url,headers =<span style="color: #000000;"> headers)
+    print(response.text)
+    #获取页面html的内容
+    sel </span>=<span style="color: #000000;"> parsel.Selector(response.text)
+    print(sel)
+    #通过css选择器找到a标签   .sound</span>-list代表 class属性为sound-<span style="color: #000000;">list 然后下面的ul 下的li 下的a
+    sound_list </span>= sel.css(<span style="color: #800000;">'</span><span style="color: #800000;">.sound-list ul li a</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    print(sound_list)
+    #只有前30个是页面链接 截取前30个
+    </span><span style="color: #0000ff;">for</span> sound <span style="color: #0000ff;">in</span> sound_list[:<span style="color: #800080;">30</span><span style="color: #000000;">]:
+        #extract_first()将对象中的文字提取出来
+        #获取a标签的href属性的内容
+        media_url </span>= sound.css(<span style="color: #800000;">'</span><span style="color: #800000;">a::attr(href)</span><span style="color: #800000;">'</span><span style="color: #000000;">).extract_first()
+        #</span>/youshengshu/<span style="color: #800080;">16411402</span>/<span style="color: #800080;">98791745</span> --<span style="color: #000000;">只去最后面的id
+        media_url </span>= media_url.split(<span style="color: #800000;">'</span><span style="color: #800000;">/</span><span style="color: #800000;">'</span>)[-<span style="color: #800080;">1</span><span style="color: #000000;">]
+        # 获取a标签的title属性的内容
+        media_name </span>= sound.css(<span style="color: #800000;">'</span><span style="color: #800000;">a::attr(title)</span><span style="color: #800000;">'</span><span style="color: #000000;">).extract_first()
+        #用yield将整个循环的内容返回
+        </span><span style="color: #0000ff;">yield</span> media_url,media_name</pre>
+</div>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>下载一页的音频</h2>
+<p>我们在main方法中调用获取当前页所有的集的id和名字，然后循环将拿到的id去请求api获取下载的地址，然后将下载地址传递给下载的方法去下载</p>
+<p>&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">if</span> __name__ == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    meidas </span>= get_total_page(<span style="color: #800000;">'</span><span style="color: #800000;">https://www.ximalaya.com/youshengshu/16411402/</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">for</span> media_id,media_name <span style="color: #0000ff;">in</span><span style="color: #000000;"> meidas:
+        #print(media_url, media_name)
+        media_url </span>=<span style="color: #000000;"> media_api(media_id)
+        download_meida(media_url, media_name)</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>运行程序将一页下载完</p>
+<p><img src="./images/Python中使用requests和parsel爬取喜马拉雅电台音频14.png" alt="" width="1024" height="570" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>下载所有页</h2>
+<p>我们点击第二页看到url中追加了一个p2，依次类推，p+相应的页数。</p>
+<p>这样就可以将页面url改造成传参的</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">if</span> __name__ == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    #循环页数下载 range代表下载的页数范围
+    </span><span style="color: #0000ff;">for</span> page <span style="color: #0000ff;">in</span> range(<span style="color: #800080;">2</span>,<span style="color: #800080;">3</span><span style="color: #000000;">):
+        meidas </span>= get_total_page(f<span style="color: #800000;">'</span><span style="color: #800000;">https://www.ximalaya.com/youshengshu/16411402/p{page}</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">for</span> media_id,media_name <span style="color: #0000ff;">in</span><span style="color: #000000;"> meidas:
+            #print(media_url, media_name)
+            media_url </span>=<span style="color: #000000;"> media_api(media_id)
+            download_meida(media_url, media_name)</span></pre>
+</div>
+<p>那么在range中就可以输入要下载的页数的范围。</p>
+<p>如果输入(1,31)就是下载所有的30页，这里只下载第二页，所以range是(2,3)</p>
+<h2>代码下载</h2>
+<p>关注公众号：</p>
+<p>霸道的程序猿</p>
+<p>回复：</p>
+<p>爬取喜马拉雅</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

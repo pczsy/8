@@ -1,0 +1,75 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修k8s 开船记-触礁：四涡轮发动机撞坏3个引发502故障' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>k8s 开船记-触礁：四涡轮发动机撞坏3个引发502故障</center></div><div class='banquan'>原文出处:本文由博客园博主博客园团队提供。<br/>
+原文连接:https://www.cnblogs.com/cmt/p/12038692.html</div><br>
+    <p><img src="./images/k8s 开船记-触礁：四涡轮发动机撞坏3个引发502故障0.png" alt="" width="500" height="422" /></p>
+<p>（图片来自网络）</p>
+<p>非常抱歉，这次开船触礁故障给您带来麻烦了，请您谅解。</p>
+<p>在我们昨天发布 k8s 开船记<a href="https://www.cnblogs.com/cmt/p/12033446.html" target="_blank">首航博文</a>后，有园友在评论中发来贺词&mdash;&mdash;&ldquo;泰坦尼克号出发了[狗头]&rdquo;，借此吉言，今天船就触礁了，还好不是冰山。在触礁后，我们收到了唯一一封贺电，贺电署名&mdash;&mdash;&ldquo;隔壁正在打酱油的 docker swarm 集群&rdquo;。</p>
+<p>触礁时间发生在今天上午 10:18~10:30 左右，当时航行用的是四涡轮发动机（4个nodes）。</p>
+<p>10:18 左右开始，3与4号发动机（k8s-n3与k8s-n4节点）被撞坏熄火，重新点火屡屡失败（重启 blog-web pod 失败），syslog 错误日志如下。</p>
+<div class="cnblogs_code">
+<pre><code>Dec 14 10:18:01 k8s-n3 kubelet[702]: E1214 10:18:01.739352     702 pod_workers.go:191] <br />Error syncing pod 9b27ac6f-5518-4e12-862f-63b1254457d2 ("blog-web-r4zld_production(9b27ac6f-5518-4e12-862f-63b1254457d2)"), skipping: failed to "StartContainer" for "blog-web" with CrashLoopBackOff: "back-off 2m40s restarting failed container=blog-web pod=blog-web-r4zld_production(9b27ac6f-5518-4e12-862f-63b1254457d2)</pre>
+</div>
+<p>10:20 左右，2号发动机（k8s-n2）也被撞坏熄火。</p>
+<div class="cnblogs_code">
+<pre><code>Dec 14 10:20:12 k8s-n2 kubelet[703]: E1214 10:20:12.138738     703 pod_workers.go:191] <br />Error syncing pod 4ab7b193-cf0d-4a41-b83a-689d546acb2f ("blog-web-4dh84_production(4ab7b193-cf0d-4a41-b83a-689d546acb2f)"), skipping: failed to "StartContainer" for "blog-web" with CrashLoopBackOff: "back-off 2m40s restarting failed container=blog-web pod=blog-web-4dh84_production(4ab7b193-cf0d-4a41-b83a-689d546acb2f)"</pre>
+</div>
+<p>唯一幸免的是1号发动机（k8s-n1），但是纵使它使尽浑身解数也无法驱动巨轮前进，于是只能停船发 502 求救信号。</p>
+<p>我们收到求救信号后，通过下面的命令手动修改了 livenessProbe 的超时时间，<span class="Apple-converted-space"><code>daemonset</code><span class="Apple-converted-space"> 重新部署 pods 后恢复了正常。</span></span></p>
+<div class="cnblogs_code">
+<pre><code>kubectl edit daemonset blog-web</pre>
+</div>
+<p>之后，我们启动了5号发动机（k8s-n5），k8s 尼克号又出发了。</p>
+<p>对于故障原因，有待进一步排查。</p>
+<p>blog-web daemonset 的健康检查配置：</p>
+<div class="cnblogs_code">
+<pre><code>livenessProbe:
+    httpGet:
+    path: /alive
+    port: 80
+    initialDelaySeconds: 10
+    periodSeconds: 3
+readinessProbe:
+    exec:
+    command:
+        - curl
+        - -H
+        - 'X-Forwarded-Proto:https'
+        - --resolve
+        - www.cnblogs.com:80:127.0.0.1
+        - www.cnblogs.com
+    initialDelaySeconds: 30
+    periodSeconds: 5</pre>
+</div>
+<p>以下的 syslog 错误日志有待排查确认：</p>
+<div class="cnblogs_code">
+<pre><code>Dec 14 10:18:53 k8s-n2 dockerd[1045]: time="2019-12-14T10:18:53.719195677+08:00" level=info msg="Container ddf3e4ed0dd63878dd1c87cb63cfd57d712f8719fb097e6c8ef15587eb3f81da failed to exit within 30 seconds of signal 15 - using the force"
+
+Dec 14 10:18:54 k8s-n2 dockerd[1045]: time="2019-12-14T10:18:54.008174148+08:00" level=error msg="stream copy error: reading from a closed fifo"
+
+Dec 14 10:18:54 k8s-n2 dockerd[1045]: time="2019-12-14T10:18:54.056924047+08:00" level=error msg="Error running exec 827374c9541db5b8d69383798c961078cba8fee08d1c8b93e84622b6a9caa61c in container: OCI runtime exec failed: exec failed: container_linux.go:346: starting container process caused \"process_linux.go:101: executing setns process caused \\\"exit status 1\\\"\": unknown"
+
+Dec 14 10:18:54 k8s-n2 dockerd[1045]: time="2019-12-14T10:18:54.129287298+08:00" level=warning msg="ddf3e4ed0dd63878dd1c87cb63cfd57d712f8719fb097e6c8ef15587eb3f81da cleanup: failed to unmount IPC: umount /var/lib/docker/containers/ddf3e4ed0dd63878dd1c87cb63cfd57d712f8719fb097e6c8ef15587eb3f81da/mounts/shm, flags: 0x2: no such file or directory"</pre>
+</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

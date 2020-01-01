@@ -1,0 +1,140 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修scrapy框架用CrawlSpider类爬取电影天堂.' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>scrapy框架用CrawlSpider类爬取电影天堂.</center></div><div class='banquan'>原文出处:本文由博客园博主记住我忘记我提供。<br/>
+原文连接:https://www.cnblogs.com/nmsghgnv/p/11354514.html</div><br>
+    <pre><code>本文使用CrawlSpider方法爬取电影天堂网站内国内电影分类下的所有电影的名称和下载地址</pre>
+<pre><code>CrawlSpider其实就是Spider的一个子类。
+CrawlSpider功能更加强大(链接提取器，规则解释器)<br />#CrawlSpider一些主要功能如下
+#LinkExtractor()实例化了一个链接提取对象，链接提取器：用来提取指定的链接（url）
+#allow参数：赋值一个正则表达式，链接提取器就可以根据正则表达式在页面中提取指定的链接
+#提取到的链接全部交给规则解释器
+#rules=（）实例化了一个规则解析器对象
+#规则解析器接受了链接提取器发送的链接后，就会对这些链接发起请求，获取链接对应的页面内容，就会根据指定的规则对页面内容指定的数据进行解析
+#callback：指定一个解析规则（方法，函数）
+#follw：是否将链接提取器继续作用到链接提取器提取出的链接所表示的页面数据中
+#LinkExtractor:设置提取链接的规则（正则表达式）
+allow=()：设置允许提取的url
+restrict_xpaths=():根据xpath语法，定位到某一标签下提取链接
+restrict_css=():根据css选择器，定位到某一标签下提取链接
+deny=():设置不允许提取的url（优先级比allow高)
+allow_domains=():设置允许提取的url的域
+deny_domains=():设置不允许提取url的域(优先级比allow_domains高)
+unique=True:如果出现多个相同的url只会保留一个，默认为True
+strip=True:自动去除url首位的空格，默认为True
+process_links=None:可以设置回调函数，对所有提取到的url进行拦截
+process_request=identity:可以设置回调函数，对request对象进行拦截<br /><br />0，创建scrapy项目</pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">scrapy startproject dianyingtiantang
+
+cd dianyingtiantang
+</span><span style="color: #008000;">#</span><span style="color: #008000;">后面的网址先随便写，在程序里面改</span>
+scrapy genspider -t crawl dytt www.xxx.com</pre>
+</div>
+<pre><code>1，items中定义爬取的字段</pre>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> scrapy
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> DianyingtiantangItem(scrapy.Item):
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> define the fields for your item here like:</span>
+    name =<span style="color: #000000;"> scrapy.Field()
+    movie_url </span>= scrapy.Field()</pre>
+</div>
+<p>2，编写爬虫主程序</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> -*- coding: utf-8 -*-</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> scrapy
+</span><span style="color: #0000ff;">from</span> scrapy.linkextractors <span style="color: #0000ff;">import</span><span style="color: #000000;"> LinkExtractor
+</span><span style="color: #0000ff;">from</span> scrapy.spiders <span style="color: #0000ff;">import</span><span style="color: #000000;"> CrawlSpider, Rule
+</span><span style="color: #0000ff;">from</span> dianyingtiantang.items <span style="color: #0000ff;">import</span><span style="color: #000000;"> DianyingtiantangItem
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> DyttSpider(CrawlSpider):
+    name </span>= <span style="color: #800000;">'</span><span style="color: #800000;">dytt</span><span style="color: #800000;">'</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> allowed_domains = ['www.xxx.com']</span>
+    start_urls = [<span style="color: #800000;">'</span><span style="color: #800000;">https://www.ygdy8.net/html/gndy/china/index.html</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    rules </span>=<span style="color: #000000;"> (
+        Rule(LinkExtractor(allow</span>=r<span style="color: #800000;">'</span><span style="color: #800000;">/html/gndy/jddy/(\d+)/(\d+).html</span><span style="color: #800000;">'</span>), callback=<span style="color: #800000;">'</span><span style="color: #800000;">parse_item</span><span style="color: #800000;">'</span>, follow=<span style="color: #000000;">True),
+    )
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> parse_item(self, response):
+        item </span>=<span style="color: #000000;"> DianyingtiantangItem()
+        item[</span><span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>] = response.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//td/p/text()|//div[@class="title_all"]/h1/font/text()</span><span style="color: #800000;">'</span><span style="color: #000000;">).extract_first()
+        item[</span><span style="color: #800000;">'</span><span style="color: #800000;">movie_url</span><span style="color: #800000;">'</span>] = response.xpath(<span style="color: #800000;">'</span><span style="color: #800000;">//tbody/tr/td/a/@href|//tbody/tr/td/p/a/@href</span><span style="color: #800000;">'</span><span style="color: #000000;">).extract_first()
+        </span><span style="color: #0000ff;">yield</span> item</pre>
+</div>
+<p>3，pipelines.py文件中编写永久性存储规则，写入mysql数据库和.txt文件</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 写入数据库</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> pymysql
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> DianyingtiantangPipeline(object):
+    conn </span>=<span style="color: #000000;"> None
+    mycursor </span>=<span style="color: #000000;"> None
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> open_spider(self, spider):
+        self.conn </span>= pymysql.connect(host=<span style="color: #800000;">'</span><span style="color: #800000;">172.16.25.4</span><span style="color: #800000;">'</span>, user=<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span>, password=<span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span>, db=<span style="color: #800000;">'</span><span style="color: #800000;">scrapy</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.mycursor </span>=<span style="color: #000000;"> self.conn.cursor()
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_item(self, item, spider):
+        </span><span style="color: #0000ff;">print</span>(item[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>] + <span style="color: #800000;">'</span><span style="color: #800000;">：正在写数据库...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        sql </span>= <span style="color: #800000;">'</span><span style="color: #800000;">insert into dytt VALUES (null,"%s","%s")</span><span style="color: #800000;">'</span> %<span style="color: #000000;"> (
+            item[</span><span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>], item[<span style="color: #800000;">'</span><span style="color: #800000;">movie_url</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+        bool </span>=<span style="color: #000000;"> self.mycursor.execute(sql)
+        self.conn.commit()
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> item
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> close_spider(self, spider):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">写入数据库完成...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.mycursor.close()
+        self.conn.close()
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 写入.txt</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> FilePipeline(object):
+    f </span>=<span style="color: #000000;"> None
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> open_spider(self,spider):
+        self.f </span>= open(<span style="color: #800000;">'</span><span style="color: #800000;">dytt.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">a+</span><span style="color: #800000;">'</span>,encoding=<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> process_item(self, item, spider):
+        </span><span style="color: #0000ff;">print</span>(item[<span style="color: #800000;">'</span><span style="color: #800000;">name</span><span style="color: #800000;">'</span>] + <span style="color: #800000;">'</span><span style="color: #800000;">：正在写入文件...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.f.write(item[</span><span style="color: #800000;">'</span><span style="color: #800000;">movie_url</span><span style="color: #800000;">'</span>]+<span style="color: #800000;">'</span><span style="color: #800000;">\n</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> item
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> close_spider(self,spider):
+        </span><span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">写入文件完成...</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        self.f.close()</span></pre>
+</div>
+<p>4，settings.py文件中打开项目管道和设置请求头</p>
+<div class="cnblogs_code">
+<pre><code>ITEM_PIPELINES =<span style="color: #000000;"> {
+   </span><span style="color: #800000;">'</span><span style="color: #800000;">dianyingtiantang.pipelines.DianyingtiantangPipeline</span><span style="color: #800000;">'</span>: 200<span style="color: #000000;">,
+   </span><span style="color: #800000;">'</span><span style="color: #800000;">dianyingtiantang.pipelines.FilePipeline</span><span style="color: #800000;">'</span>: 300<span style="color: #000000;">,
+}
+
+USER_AGENT </span>= <span style="color: #800000;">'</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>5，运行爬虫程序</p>
+<div class="cnblogs_code">
+<pre><code>scrapy crawl dytt --nolog</pre>
+</div>
+<p>6，查看数据库和文件内是否下载成功</p>
+<p><img src="./images/scrapy框架用CrawlSpider类爬取电影天堂.0.png" alt="" /></p>
+<p><img src="./images/scrapy框架用CrawlSpider类爬取电影天堂.1.png" alt="" /></p>
+<p>可以用迅雷下载器下载电影了，</p>
+<p>done。</p>
+<pre><code><br /><br /><br /></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

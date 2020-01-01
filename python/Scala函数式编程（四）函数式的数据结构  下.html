@@ -1,0 +1,206 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Scala函数式编程（四）函数式的数据结构  下' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Scala函数式编程（四）函数式的数据结构  下</center></div><div class='banquan'>原文出处:本文由博客园博主zzzzMing提供。<br/>
+原文连接:https://www.cnblogs.com/listenfwind/p/12056013.html</div><br>
+    <p>前情提要</p>
+<p><a href="https://www.cnblogs.com/listenfwind/p/11209383.html">Scala函数式编程指南（一） 函数式思想介绍</a></p>
+<p><a href="https://www.cnblogs.com/listenfwind/p/11551713.html">scala函数式编程（二） scala基础语法介绍</a></p>
+<p><a href="https://www.cnblogs.com/listenfwind/p/11593498.html">Scala函数式编程（三） scala集合和函数</a></p>
+<p><a href="https://www.cnblogs.com/listenfwind/p/11980015.html">Scala函数式编程（四）函数式的数据结构 上</a></p>
+<h1 id="list代码解析">1.List代码解析</h1>
+<p>今天介绍的内容，主要是对上一篇介绍的scala函数式数据结构补充，主要讲代码。可以先看看上一节，主要讲的是函数式的list，<a href="https://www.cnblogs.com/listenfwind/p/11980015.html">Scala函数式编程（四）函数式的数据结构 上</a>。这些代码我都放在我的公众号里面，包括函数式的List以及一个函数式的二叉搜索树，关注公众号：<strong>哈尔的数据城堡</strong>，回复“scala树数据结构”就能直接获得（写文章不容易，大哥大姐关注下吧 :) ）。</p>
+<p>话说回来，上一篇中，主要介绍了List的一些基础用法，包括定义基础的结构，节点Cons和结尾的Nil。以及使用一个object List来定义基础的List操作。</p>
+<pre><code><code>//定义List为特质，Nil和Cons为结尾和中间的Node
+sealed trait List[+A]
+
+case object Nil extends List[Nothing]
+
+case class Cons[+A](head: A, tail: List[A]) extends List[A] {
+  override def toString: String = s&quot;$head :: ${tail.toString}&quot;
+}
+
+
+//Listc操作的定义方法，object相当于java中的静态类，里面的方法可以直接调用
+object List {
+
+  def sum(ints: List[Int]): Int = ints match {
+    case Nil =&gt; 0
+    case Cons(x,xs) =&gt; x + sum(xs)
+  }
+
+  def map[A,B](l: List[A],f: A =&gt; B): List[B] =l match {
+    case Nil              =&gt; Nil
+    case Cons(head, tail) =&gt;Cons(f(head), map(tail,f))
+  }
+  def apply[A](a: A*): List[A] =
+    if (a.isEmpty) Nil
+    else Cons(a.head, apply(a.tail: _*))
+
+  def empty[A]: List[A] = Nil
+
+
+  object ops {
+    //定义隐式转换，这个是为了扩充List的操作而准备的，可以看看最下面是如果使用的
+    implicit def listOps[A](list: List[A]): ListOps[A] = new ListOps(list)
+  }
+}
+
+</code></pre>
+<p>关于节点Cons和Nil的定义和上一节一样，只是Cons多了个重写的toString方法。</p>
+<p>简单再说下，这里呢，在object List里面，在里面我们定义了apply方法，可以初始化生成一个List。以及上一节提到的sum和map方法。如果对这些看不明白可以看看上一节的内容。</p>
+<p>但这样的话当我们要调用sum方法的时候，只能通过object List来调用，类似下面这样：</p>
+<pre><code><code>//使用object List里面的apply方法初始化，生成List
+scala&gt; val numList = List(1,2,3,4)
+numList: List[Int] = 1 :: 2 :: 3 :: 4 :: Nil
+
+//使用object List里面的sum方法
+scala&gt; List.sum(numList)
+res0: Int = 10
+</code></pre>
+<p>但是呢，我们日常使用的时候可不是这样呀，我们更熟悉的应该是要这样：</p>
+<pre><code><code>//使用object List里面的apply方法初始化，生成List
+scala&gt; val numList = List(1,2,3,4)
+numList: List[Int] = 1 :: 2 :: 3 :: 4 :: Nil
+
+//直接使用numList内置的方法来处理
+scala&gt; numList.sum()
+res0: Int = 10
+</code></pre>
+<p>更加通用的做法，应该是通过List本身，来调用方法，就像上面看到的那样。通常的做法，是直接加在Cons里面，但由于Cons是继承自trait List[+A]，所以大家（包括）Nil里面都需要定义那一堆方法了，有没有别的办法呢？</p>
+<p>有的，scala的又一个语法糖，隐式转换，就是上面object List里面的ops。</p>
+<pre><code><code>  object ops {
+    //定义隐式转换，这个是为了扩充List的操作而准备的，可以看看最下面是如果使用的
+    implicit def listOps[A](list: List[A]): ListOps[A] = new ListOps(list)
+  }</code></pre>
+<p>隐式转换主要是通过implicit这个关键字定义的，当然隐式转换还有其他用法，不管这里的用法算是最常见的用法了。</p>
+<p>隐式转换函数，看的主要是参数，以及返回，函数名字（这里名字是listOps）是不重要的，起什么都没关系。</p>
+<p>隐式转换的作用这里不多解释，可以百度看看，简单说就是在需要的时候，将一个类型转换成另一种类型。这里的作用，是在特定的情况下将我们定义的List转成ListOps类型，而ListOps类，则在下面给出。</p>
+<pre><code><code>//扩充List的操作
+private[list] final class ListOps[A](list: List[A]) {
+//导入隐式转换函数，因为下面的处理也是需要隐式转换
+  import List.ops._
+
+  //使用递归实现，foldRight的实现就是调用了这个函数，这么做是为了复用
+  //代码复用是函数式中很重要的一个特性，看下面append方法就可以明白
+  def foldRightAsPrimary[B](z: B)(f: (A, B) =&gt; B): B = list match {
+    case Nil              =&gt; z
+    case Cons(head, tail) =&gt; f(head, tail.foldRightAsPrimary(z)(f))
+  }
+
+  def foldRight[B](z: B)(f: (A, B) =&gt; B): B = foldRightViaFoldLeft(z)(f)
+
+  def map[B](f: A=&gt; B): List[B] = list match {
+    case Nil              =&gt; Nil
+    case Cons(head, tail) =&gt; Cons(f(head), tail.map(f))
+  }
+
+}
+</code></pre>
+<p>有了这段代码后，当我们需要使用map的时候，就可以不用再借助object List代劳，而可以直接使用，就像这样：</p>
+<pre><code><code>//使用object List里面的apply方法初始化，生成List
+scala&gt; val numList = List(1,2,3,4)
+numList: List[Int] = 1 :: 2 :: 3 :: 4 :: Nil
+
+//直接使用numList内置的方法来处理，而不是List.map(numList,function)
+scala&gt; numList.map(function)
+
+</code></pre>
+<p><strong>当代码检测到List调用map方法，但List内部并没有map方法，就会触发隐式转换，转换成ListOps类型，调用ListOps类型里面的map方法，然后返回一个List作为结果。虽然经过了诸多波折，但调用者是感受不到的，反而感觉就像是List里面本身的map方法一样</strong>。在Spark里面就有很多这样的操作。</p>
+<p>如上面的代码，现在我们可以直接使用numList.map(function)这样的方式，就像List里面本身就有map函数一样来使用了。</p>
+<h1 id="二叉搜索树">2.二叉搜索树</h1>
+<p>在上一篇末尾，给出了一份还未完成的数据结构，二叉搜索树当作练习。这一节就来讲讲这个。</p>
+<p>其实如果把之前的List都看懂的话，其实二叉搜索树并没有什么难点。</p>
+<p>二叉搜索树，是树，自然就有叶节点和叶子节点（就是末尾）。不过这次和List不一样的是，没有使用隐式转换，所以我们定义的就不是特质了，而是先定义一个抽象类。然后让叶节点和叶子节点继承它。</p>
+<pre><code><code>  //定义一个二叉树的抽象类
+  sealed abstract class TreeMap[+A] extends AbstractMap[Int, A] {
+
+    def add[B &gt;: A](kv: (Int, B)): TreeMap[B] = ???
+    def deleteMin: ((Int, A), TreeMap[A]) = ???
+    def delete(key: Int): TreeMap[A] = ???
+    def get(key: Int): Option[A] = ???
+    def +[A1 &gt;: A](kv: (Int, A1)): TreeMap[A1] =  ???
+    def -(k: Int): TreeMap[A] = ???
+    override def toList: List[(Int, A)] = ???
+    def iterator: Iterator[(Int, A)] =???
+  }
+  
+  //叶子节点，也就是每个分支的末尾，继承了上面的抽象类
+  case class Leaf() extends TreeMap[Nothing]
+  //叶节点，包含左右和内容，继承了上面的抽象类
+  case class Node[+A](key: Int, value: A,
+                      left: TreeMap[A], right: TreeMap[A]) extends TreeMap[A]
+</code></pre>
+<p>二叉树中有有基础的增删查操作，还重载了两个符号，+和-分别代表增加和删除。对了，这里的???，其实和python里面的pass是一样的，就充当个占位符，告诉编译器这里会有东西的，先别报错。</p>
+<p>然后主要就是要实现二叉树里面空缺的代码，其实熟悉树结构的同学应该都知道，递归是树天生的基因。所以这里自然都是要通过递归实现的。不过在编写前，还是要提一下，一般函数式编程里面，不会使用可变变量（var），也不会使用可变的数据结构（ListBuff）。</p>
+<p>实现过程也没什么好解释的，其实就是通过递归，以及scala的模式匹配，如果碰到叶子节点就挂掉，不是就递归去进行。直接看代码。这里主要介绍add方法，其他的基本都是类似的：</p>
+<pre><code><code>
+  sealed abstract class TreeMap[+A] extends AbstractMap[Int, A] {
+    ......
+    //使用模式匹配，实现递归操作，主要是找到对应的位置，插入数据
+    def add[B &gt;: A](kv: (Int, B)): TreeMap[B] = {
+
+      val (key, value) = kv
+      //this就是当前的类型，可能是叶节点，也可能是叶子节点
+      this match {
+        case Node(nodeKey, nodeValue, left, right) =&gt; {
+          //按照二叉搜索树的规则，进行递归
+          if(nodeKey &gt; key)
+            Node(nodeKey, nodeValue, left.add((key,value)), right)
+          else if(nodeKey &lt; key)
+            Node(nodeKey, nodeValue, left, right.add((key,value)))
+          else
+            Node(nodeKey, value, left, right)
+        }
+        //如果是叶子节点，则新生成一个叶节点，返回
+        case Leaf() =&gt; {
+          Node(key, value, Leaf(), Leaf())
+        }
+      }
+
+      ......
+    }
+    </code></pre>
+<p>根据二叉搜索树的规则，新键大于节点的键的时候，插入右边，小于节点的键的时候，插入到左边。然后约定好结束条件，也就是碰到叶子节点的时候返回。这样一来就完成了插入的操作。后面无论是删除，还是查找，都是同样的思路。</p>
+<p>而重载运算符方法，比如重载+方法，就是直接调用上面的add方法，即直接复用。然后看看object TreeMap。</p>
+<pre><code><code>  object TreeMap {
+
+    def empty[A]: TreeMap[A] = Leaf()
+
+    def apply[A](kvs: (Int, A)*): TreeMap[A] = {
+      kvs.toSeq.foldLeft(empty[A])(_ + _)
+    }
+  }
+
+</code></pre>
+<p>这个object主要作用有两个，一个是生成叶子节点，一个是初始化一棵树（注意是apply方法）。和List一样，这里也是用多参数的输入方式，不同的是这里没有用递归，而是直接把多个参数转化成一个序列，然后用foldLeft，逐个累加。从而实现初始化树。</p>
+<p>OK，到这里就结束了，最后还是希望你能够自己试着写下tree的代码，写完再用test case测试下，编程功底就是这样一步一步打下的。</p>
+<h1 id="小结">3.小结</h1>
+<p>函数式的数据结构篇到此就结束，希望在这里，你能明白函数式的数据结构与我们最开始接触到的数据结构的实现有哪些不同，又为何要大费周章用函数式的方式实现！！</p>
+<p>很多scala的教程介绍到这里就一句话，scala的默认数据结构是不可变的，如果可变的要怎样巴拉巴拉，这样容易让人陷入知其然不知其所以然的地步。</p>
+<p>同时我也一直决定，学习语言的话，语法知识最表层的东西。真正深入学习一门语言，你需要逐渐知道这门语言在设计上的取舍，甚至是设计上的哲学，比如python的至简哲学。</p>
+<p>而在深入这些东西的过程中，语法自然而然就掌握了，比如较为晦涩的隐式转换。在这里就会知道隐式转换是这样用的，原来spark里面一直都有这个东西参与！！！</p>
+<p>接下来一篇将介绍scala中的错误处理方式，依旧是函数式的处理方式，像java中的try{}catch{}肯定是非函数式的，那么scala是怎么实现的呢，下一篇就来介绍:)</p>
+<p>如果有什么疑问，也欢迎留言。</p>
+<p>以上~</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

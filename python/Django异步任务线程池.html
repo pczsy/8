@@ -1,0 +1,108 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django异步任务线程池' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django异步任务线程池</center></div><div class='banquan'>原文出处:本文由博客园博主luozx207提供。<br/>
+原文连接:https://www.cnblogs.com/luozx207/p/12048986.html</div><br>
+    <p>当数据库数据量很大时（百万级），许多批量数据修改请求的响应会非常慢，一些不需要即时响应的任务可以放到后台的异步线程中完成，发起异步任务的请求就可以立即响应</p>
+<p>选择用线程池的原因是：线程比进程更为可控。不像子进程，子线程会在所属进程结束时立即结束。线程可共享内存。</p>
+<h3 id="请求任务异步处理的原理">请求任务异步处理的原理</h3>
+<p>使用<code>python manage.py runserver</code>模式启动的Django应用只有一个进程，对于每个请求，主线程会开启一个子线程来处理请求。请求子线程向主线程申请一个新线程，然后把耗时的任务交给新线程，自身立即响应，这就是请求任务异步处理的原理。</p>
+<h3 id="可视化线程池">可视化线程池</h3>
+<p>如果想要管理这批异步线程，知道他们是否在运行中，可以使用线程池（ThreadPoolExecutor）。</p>
+<p>线程池会先启动若干数量的线程，并让这些线程都处于睡眠状态，当向线程池submit一个任务后，会唤醒线程池中的某一个睡眠线程，让它来处理这个任务，当处理完这个任务，线程又处于睡眠状态。</p>
+<p>submit任务后会返回一个期程（future），这个对象可以查看线程池中执行此任务的线程是否仍在处理中</p>
+<p>因此可以构建一个全局可视化线程池：</p>
+<pre><code><code>from concurrent.futures.thread import ThreadPoolExecutor
+
+
+class ThreadPool(object):
+    def __init__(self):
+        # 线程池
+        self.executor = ThreadPoolExecutor(20)
+        # 用于存储每个项目批量任务的期程
+        self.future_dict = {}
+
+    # 检查某个项目是否有正在运行的批量任务
+    def is_project_thread_running(self, project_id):
+        future = self.future_dict.get(project_id, None)
+        if future and future.running():
+            # 存在正在运行的批量任务
+            return True
+        return False
+
+    # 展示所有的异步任务
+    def check_future(self):
+        data = {}
+        for project_id, future in self.future_dict.items():
+            data[project_id] = future.running()
+        return data
+
+    def __del__(self):
+        self.executor.shutdown()
+
+# 主线程中的全局线程池
+# global_thread_pool的生命周期是Django主线程运行的生命周期
+global_thread_pool = ThreadPool()</code></pre>
+<p>使用：</p>
+<pre class="python"><code># 检查异步任务
+if global_thread_pool.is_project_thread_running(project_id):
+    raise exceptions.ValidationError(detail=&#39;存在正在处理的批量任务，请稍后重试&#39;)
+
+# 提交一个异步任务
+future = global_thread_pool.executor.submit(self.batch_thread, project_id)
+global_thread_pool.future_dict[project_id] = future
+
+# 查看所有异步任务
+@login_required
+def check_future(request):
+    data = global_thread_pool.check_future()
+    return HttpResponse(status=status.HTTP_200_OK, content=json.dumps(data))</code></pre>
+<h3 id="串行执行">串行执行</h3>
+<p>使用线程锁</p>
+<p>在全局线程池中初始化线程锁</p>
+<pre><code><code>class ThreadPool(object):
+    def __init__(self):
+        self.executor = ThreadPoolExecutor(20)
+        self.future_dict = {}
+        self.lock = threading.Lock()</code></pre>
+<p>然后执行线程前需要获取锁并再执行结束后释放锁</p>
+<pre><code><code>def batch_thread(self):
+    global_thread_pool.lock.acquire()
+    try:
+        ...
+        global_thread_pool.lock.release()
+    except Exception:
+        trace_log = traceback.format_exc()
+        logger.error(&#39;异步任务执行失败:\n %s&#39; % trace_log)
+        global_thread_pool.lock.release()</code></pre>
+<p>需要捕捉异常预防子线程出错而无法释放锁的情况</p>
+<h3 id="异步线程任务执行前先检查数据库连接是否可用然后关掉不可用连接">异步线程任务执行前先检查数据库连接是否可用，然后关掉不可用连接</h3>
+<p>由于django的数据库连接是保存到线程本地变量中的，通过ThreadPoolExecutor创建的线程会保存各自的数据库连接。</p>
+<p>当连接被保存的时间超过mysql连接的最大超时时间，连接失效，但不会被线程释放。</p>
+<p>之后再调起线程执行涉及到数据库操作的异步任务时，会用到失效的数据库连接，导致报错“MySQL server has gone away”。</p>
+<p>解决方案是在线程池的所有异步任务执行前先检查数据库连接是否可用，然后关掉不可用连接</p>
+<pre><code><code>def batch_thread(self):
+    for conn in connections.all():
+        conn.close_if_unusable_or_obsolete()
+    ...</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

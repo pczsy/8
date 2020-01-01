@@ -1,0 +1,95 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作</center></div><div class='banquan'>原文出处:本文由博客园博主YDD的铁皮锅提供。<br/>
+原文连接:https://www.cnblogs.com/yddsblog/p/11979437.html</div><br>
+    <p><strong><span style="font-size: 24pt; color: #ff0000; font-family: 幼圆;">一、拆包</span></strong></p>
+<p><strong><span style="font-size: 16px;">　　首先声明这种方法比较复杂而且需要点技术水平，不建议菜鸟尝试（可以使用WireEdit编辑pcap包，不过要联网）其实在熟练这种方法后也可以很快的，但这种方法主要还是方便吧，不用下载其他什么软件。(除了WireShark)</span></strong></p>
+<p><strong><span style="font-size: 16px;">不过菜鸟也不会点进这篇技术文章吧。</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">先说主要思想</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap和text2pcap是WireShark自带的两款功能强大的命令行程序</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap是wireshark的命令行工具可以实现切割包和具体报文</span></strong></p>
+<p><strong><span style="font-size: 16px;">text2pcap可以根据你导出来的字符数据重新转化为数据报文</span></strong></p>
+<p><strong><span style="font-size: 16px;">因此我们可以先对原始包切割，切出想要的报文帧</span></strong></p>
+<p><strong><span style="font-size: 16px;">导出为数据字串</span></strong></p>
+<p><strong><span style="font-size: 16px;">修改数据字串</span></strong></p>
+<p><strong><span style="font-size: 16px;">再用text2pcap转回报文，这样就完成了修改工作。</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">接下来是实际操作过程，我将把我遇到的比较复杂的例子来讲解，其他情况以此类推：</span></strong></p>
+<p><strong><span style="font-size: 16px;">例子是一个巨帧TCP报文，人工实现IP分片功能。</span></strong></p>
+<p><strong><span style="font-size: 16px;">打开CMD控制台窗口</span></strong></p>
+<p><strong><span style="font-size: 16px;">转到WireShark安装目录 cd&nbsp;C:\Program Files\Wireshark 找到editcap.exe和text2pcap.exe 如图</span></strong></p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作0.png" alt="" width="642" height="432" /></p>
+<p><strong><span style="font-size: 16px;">接下来是官方文档editcap.html和text2pcap.html，我只截有用到的部分。</span></strong></p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作1.png" alt="" width="845" height="99" /></p>
+<p style="text-align: center;">&nbsp;</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作2.png" alt="" width="824" height="294" /></p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作3.png" alt="" width="830" height="200" /></p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作4.png" alt="" width="797" height="362" /></p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作5.png" alt="" width="764" height="199" /></p>
+<p><strong><span style="font-size: 16px;">首先切割文件，找到巨帧的那个报文序号，利用editcap来把pcap文件拆成三部分：巨帧报文之前的部分，巨帧报文一部分，巨帧之后部分。命令如下：</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap -r C:\Users\Administrator\Desktop\LargePcap.pcapng C:\Users\Administrator\Desktop\Header.pcapng 1-31</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap -r C:\Users\Administrator\Desktop\LargePcap.pcapng C:\Users\Administrator\Desktop\JuZhen.pcapng&nbsp; 32</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap C:\Users\Administrator\Desktop\LargePcap.pcapng C:\Users\Administrator\Desktop\Tail.pcapng 1-32</span></strong></p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作6.png" alt="" width="1178" height="365" /></p>
+<p><strong><span style="font-size: 16px;">这里的巨帧是第32条报文，长度为2974明显大于以太网帧的1500，所以你必须要处理pcap包，才能使这个包符合实际的传输过程；命令中 -r 参数是保留指定报文，不加的话是剔除指定报文。</span></strong></p>
+<p><strong><span style="font-size: 16px;">这里默认是pcapng格式，如果要转格式加 -F（详细见上面的说明）；</span></strong></p>
+<p><strong><span style="font-size: 16px;">把这个包拆成两部分： 一个1514（MTU 可能不同）另一个1460。这里使用 -C 参数来剪报文内的数据。</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap -C -1460:1460 C:\Users\Administrator\Desktop\JuZhen.pcapng C:\Users\Administrator\Desktop\result_1.pcapng</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap -C 54:1460 C:\Users\Administrator\Desktop\JuZhen.pcapng C:\Users\Administrator\Desktop\result_2.pcapng</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">这个语句要注意的是 offset ：length offset是偏移，length是裁剪长度；还有就是要知道命令是把指定的给去除掉 （PS：我在这绕了很久）。</span></strong></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 24pt; color: #ff0000;">二、改包</span></p>
+<p><strong><span style="font-size: 16px; color: #000000;">　　打开result_1.pcapng和result_2.pcapng文件选中要改的报文，复制 -&gt; as Hex Dump ,然后新建一个txt文件右键粘贴。</span></strong></p>
+<p><span style="font-size: 12px; color: #000000;"><span style="font-size: 14px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作7.png" alt="" /></span></span></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 16px;">我把result_1.pcapng 和 result_2.pcapng 复制到 result_1.txt、result_2.txt中</span></strong></p>
+<p><strong><span style="font-size: 16px;">接下来就是重中之重了 -------- 修改报文中的数据</span></strong></p>
+<p><strong><span style="font-size: 16px;">同时打开result.pcapng 和 result.txt，在WireShark中找到要修改的字节，对照着txt文件的相应地方改成你要的数值就行了（要注意不要改动他导出的文件格式）</span></strong></p>
+<p><strong><span style="font-size: 16px;">我这里的这个例子是要改动IP层的Total Length、Identification 和 Header CheckSum</span></strong></p>
+<p><strong><span style="font-size: 16px;">以及TCP层的Sequence Number 和 Checksum</span></strong></p>
+<p><strong><span style="font-size: 16px;">在txt中改掉对应的16进制，保存就完成了改包。</span></strong></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 24pt; color: #ff0000;">三、合包</span></p>
+<p><strong><span style="font-size: 16px;">　　然后使用text2pcap来合包操作，两条语句分别进行 txt Hex 转 pcapng 网络包</span></strong></p>
+<p><strong><span style="font-size: 16px;">text2pcap&nbsp;C:\Users\Administrator\Desktop\result_1.txt C:\Users\Administrator\Desktop\1.pcapng</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;text2pcap&nbsp;C:\Users\Administrator\Desktop\result_2.txt C:\Users\Administrator\Desktop\2.pcapng</span></strong></p>
+<p><strong><span style="font-size: 16px;">生成1.pcapng 和 2.pcapng</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">　　接下来是调整时间 ，使用 editcap -t 命令，由于不能使用精确时间来设置报文，只能 +偏移 或 -偏移来调正时间：</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap -t -xxxx 1.pcapng</span></strong></p>
+<p><strong><span style="font-size: 16px;">editcap -t -xxxx 2.pcapng</span></strong></p>
+<p><strong><span style="font-size: 16px;">先查看 Header.pcapng 最后一条报文准确时间 和 Tail.pcapng 第一条报文时间，在根据要调整的报文时间进行加减</span></strong></p>
+<p><strong><span style="font-size: 16px;">这里我就不写例子了（注意要在 Header.pcapng&nbsp;最后一条报文准确时间 和 Tail.pcapng 第一条报文时间范围内）</span></strong></p>
+<p><strong><span style="font-size: 16px;">&nbsp;</span></strong></p>
+<p><strong><span style="font-size: 16px;">最后是合并包部分，顺序是&nbsp; Header.pcapng &lt;-&nbsp; 1.pcapng&nbsp; &lt;-&nbsp; 2.pcapng&nbsp; &nbsp;&lt;- Tail.pcapng</span></strong></p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作8.png" alt="" width="895" height="454" /></p>
+<p><span style="font-size: 24pt; color: #ff0000;">四、结束</span></p>
+<p><strong><span style="font-size: 16px;">放张结果图，第32和33条报文是裁剪后的结果。</span></strong></p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/WireShark 自带工具 editcap 和 text2pcap 配合完成改包操作9.png" alt="" width="865" height="408" /></p>
+<p><strong><span style="font-size: 16px;">其实这种办法也不是特别麻烦吧！！不是很麻烦。。。。吧，。麻烦。好吧其实搞到这里我也没什么耐心了，这种方法我也没找到什么优点，在最后我也只是想记录一下，我挣扎的过程、学习的过程，仅此而已。</span></strong></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

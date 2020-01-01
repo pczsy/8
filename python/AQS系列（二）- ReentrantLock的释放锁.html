@@ -1,0 +1,182 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修AQS系列（二）- ReentrantLock的释放锁' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>AQS系列（二）- ReentrantLock的释放锁</center></div><div class='banquan'>原文出处:本文由博客园博主张曾经提供。<br/>
+原文连接:https://www.cnblogs.com/zzq6032010/p/12026470.html</div><br>
+    <p><span style="background-color: #c0c0c0; font-size: 18px;"><strong>前言</strong></span></p>
+<p>&nbsp; &nbsp; 在AQS系列（一）中我们一起看了ReentrantLock加锁的过程，今天我们看释放锁，看看老Lea那冷峻的思维是如何在代码中笔走龙蛇的。</p>
+<p><span style="background-color: #c0c0c0; font-size: 18px;"><strong>正文</strong></span></p>
+<p>&nbsp; &nbsp; 追踪unlock方法：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> unlock() {
+</span><span style="color: #008080;">2</span>         sync.release(1<span style="color: #000000;">);
+</span><span style="color: #008080;">3</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; 很简单的一行，调用了release方法，参数为1，继续跟踪发现不管是公平锁还是非公平锁调用的都是AbstractQueuedSynchronizer中的release方法：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> release(<span style="color: #0000ff;">int</span><span style="color: #000000;"> arg) {
+</span><span style="color: #008080;">2</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (tryRelease(arg)) {
+</span><span style="color: #008080;">3</span>             Node h =<span style="color: #000000;"> head;
+</span><span style="color: #008080;">4</span>             <span style="color: #0000ff;">if</span> (h != <span style="color: #0000ff;">null</span> &amp;&amp; h.waitStatus != 0<span style="color: #000000;">)
+</span><span style="color: #008080;">5</span> <span style="color: #000000;">                unparkSuccessor(h);
+</span><span style="color: #008080;">6</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">7</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">8</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">9</span>     }</pre>
+</div>
+<p>此方法看起来简单，却暗含杀机。</p>
+<p>1、首先看if中的判断方法tryRelease</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> tryRelease(<span style="color: #0000ff;">int</span><span style="color: #000000;"> releases) {
+</span><span style="color: #008080;"> 2</span>             <span style="color: #0000ff;">int</span> c = getState() -<span style="color: #000000;"> releases; // 计算出释放锁之后的state值
+</span><span style="color: #008080;"> 3</span>             <span style="color: #0000ff;">if</span> (Thread.currentThread() !=<span style="color: #000000;"> getExclusiveOwnerThread())
+</span><span style="color: #008080;"> 4</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> IllegalMonitorStateException();
+</span><span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">boolean</span> free = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">if</span> (c == 0<span style="color: #000000;">) { // c==0说明要释放锁了
+</span><span style="color: #008080;"> 7</span>                 free = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 8</span>                 setExclusiveOwnerThread(<span style="color: #0000ff;">null</span><span style="color: #000000;">); //</span>在释放之前将独占线程置为空</pre>
+<pre><code><span style="color: #008080;"> 9</span> <span style="color: #000000;">            } <br /></span><span style="color: #008080;">10</span> <span style="color: #000000;">            setState(c); // 将state置为0，此处没用cas操作，因为没必要，反正在此之前state都大于0，不会被其他线程操作，只有当前线程能操作 <br /></span><span style="color: #008080;">11</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> free; <br /></span><span style="color: #008080;">12</span> }</pre>
+</div>
+<p>此方法的实现逻辑在ReentrantLock类的Sync内部类中，即公平锁和非公平锁公用，相信理解起来比较轻松。</p>
+<p>2、再看里面的if判断条件&nbsp;h != null &amp;&amp; h.waitStatus != 0</p>
+<p>&nbsp; &nbsp; 注意此时h是head，队列头。我们先要搞清楚这两个判断条件所表示的意思，h!=null说明队列不是空的，而h.waitStatus != 0又是什么意思呢？回顾一下上一篇的最后第二个方法&nbsp;shouldParkAfterFailedAcquire，当时讲这个方法时其实描述的不是很清楚，这次重新结合释放锁的场景回顾一下。下面先将该方法粘贴出来（注释中的两个2表示执行一次这个方法只会走一个2的逻辑）：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> shouldParkAfterFailedAcquire(Node pred, Node node) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">int</span> ws =<span style="color: #000000;"> pred.waitStatus; // 1、正常情况进到这里ws是0，pred可能是head，也可能只是node前面另一个排队的任务
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">if</span> (ws ==<span style="color: #000000;"> Node.SIGNAL)
+</span><span style="color: #008080;"> 4</span>             // 3、如果是-1了，就返回true，进入后面park当前线程
+<span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">if</span> (ws &gt; 0<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">do</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 8</span>                 // 2、如果是大于0，说明pred线程已经被取消，则继续往前遍历，直到从后往前找到第一个不大于0的节点，然后互相设置指针
+<span style="color: #008080;"> 9</span>                 node.prev = pred =<span style="color: #000000;"> pred.prev;
+</span><span style="color: #008080;">10</span>             } <span style="color: #0000ff;">while</span> (pred.waitStatus &gt; 0<span style="color: #000000;">);
+</span><span style="color: #008080;">11</span>             pred.next =<span style="color: #000000;"> node;
+</span><span style="color: #008080;">12</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">13</span>             // 2、是0的话进这里，设置成-1，注意是将pred(即当前node的前一个节点)设置成-1。即如果一个节点ws是-1，那么它后面一定至少还有一个node（就是这个方法中的node）
+<span style="color: #008080;">14</span> <span style="color: #000000;">            compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">16</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">17</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; &nbsp;waitStatus&gt;0只有一种情况-线程被取消了（状态值为1）。当线程被取消时就要舍弃掉它，继续往前遍历。</p>
+<p>&nbsp; &nbsp; 回顾完上述的方法，再看h.waitStatus != 0，我们可以知道，waitStatus != 0表示等待后面还有排队的node（可能是正常状态也可能是已取消的状态），这时就要去唤醒下一个正常状态的线程，进入unparkSuccessor方法。</p>
+<p>&nbsp;3、unparkSuccessor 方法代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> unparkSuccessor(Node node) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">int</span> ws =<span style="color: #000000;"> node.waitStatus;
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">if</span> (ws &lt; 0<span style="color: #000000;">)
+</span><span style="color: #008080;"> 4</span>             compareAndSetWaitStatus(node, ws, 0<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>         Node s =<span style="color: #000000;"> node.next;
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">if</span> (s == <span style="color: #0000ff;">null</span> || s.waitStatus &gt; 0<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 8</span>             s = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">for</span> (Node t = tail; t != <span style="color: #0000ff;">null</span> &amp;&amp; t != node; t =<span style="color: #000000;"> t.prev)
+</span><span style="color: #008080;">10</span>                 <span style="color: #0000ff;">if</span> (t.waitStatus &lt;= 0<span style="color: #000000;">)
+</span><span style="color: #008080;">11</span>                     s =<span style="color: #000000;"> t;
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">13</span>         <span style="color: #0000ff;">if</span> (s != <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">            LockSupport.unpark(s.thread);
+</span><span style="color: #008080;">15</span>     }</pre>
+</div>
+<p>&nbsp; &nbsp; 该方法用于唤醒当前线程的下一个有效任务，入参node为head节点。首先如果ws为-1则通过CAS设置为0；然后判断node的下一个节点是不是空，或者是不是已经被取消（ws大于0表示已经被取消）；如果满足条件，则从后往前遍历找到从前往后数的第一个ws小于等于0的node节点，唤醒这个节点的线程。此处的for循环用的比较有意思，用了一种类似于while循环的格式来用for循环，可见老Lea不拘一格的思维方式。</p>
+<p>&nbsp; &nbsp; 此处最后一行unpark方法执行之后，就会进入系列（一）中的最后一个方法的第3行代码（如下所示），继续执行下一个线程的加锁过程，进入下一次轮回。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> parkAndCheckInterrupt() {
+</span><span style="color: #008080;">2</span>         LockSupport.park(<span style="color: #0000ff;">this</span><span style="color: #000000;">);
+</span><span style="color: #008080;">3</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> Thread.interrupted();
+</span><span style="color: #008080;">4</span>     }</pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="background-color: #c0c0c0; font-size: 18px;"><strong>附加：公平锁与非公平锁的源码理解</strong></span></p>
+<p>&nbsp; &nbsp; 在上一篇文章中未讲到公平锁和非公平锁的区别，在这里统一进行一下总结：</p>
+<p>&nbsp; &nbsp; 在释放锁的过程中，公平锁和非公平锁的处理流程是一样的，都是从队列的头往后遍历挨个唤醒等待的线程。</p>
+<p>&nbsp; &nbsp; 在加锁的过程中，有两个不同的地方。第一个是在lock方法中，公平锁代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> lock() {
+</span><span style="color: #008080;">2</span>             acquire(1<span style="color: #000000;">);
+</span><span style="color: #008080;">3</span>         }</pre>
+</div>
+<p>&nbsp; &nbsp; 非公平锁代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> lock() {
+</span><span style="color: #008080;">2</span>             <span style="color: #0000ff;">if</span> (compareAndSetState(0, 1<span style="color: #000000;">))
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">                setExclusiveOwnerThread(Thread.currentThread());
+</span><span style="color: #008080;">4</span>             <span style="color: #0000ff;">else</span>
+<span style="color: #008080;">5</span>                 acquire(1<span style="color: #000000;">);
+</span><span style="color: #008080;">6</span>         }</pre>
+</div>
+<p>&nbsp; &nbsp; 可以看到<strong>非公平锁直接先用CAS尝试获取一下锁，不用排队</strong>。这就是第一个非公平的地方。</p>
+<p>&nbsp; &nbsp; 第二个不同的地方，是acquire方法中的tryAcquire方法实现不同，公平锁的tryAcquire方法：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> tryAcquire(<span style="color: #0000ff;">int</span><span style="color: #000000;"> acquires) {
+</span><span style="color: #008080;"> 2</span>             <span style="color: #0000ff;">final</span> Thread current =<span style="color: #000000;"> Thread.currentThread();
+</span><span style="color: #008080;"> 3</span>             <span style="color: #0000ff;">int</span> c =<span style="color: #000000;"> getState();
+</span><span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">if</span> (c == 0<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 5</span>                 <span style="color: #0000ff;">if</span> (!hasQueuedPredecessors() &amp;&amp;
+<span style="color: #008080;"> 6</span>                     compareAndSetState(0<span style="color: #000000;">, acquires)) {
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">                    setExclusiveOwnerThread(current);
+</span><span style="color: #008080;"> 8</span>                     <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">11</span>             <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (current ==<span style="color: #000000;"> getExclusiveOwnerThread()) {
+</span><span style="color: #008080;">12</span>                 <span style="color: #0000ff;">int</span> nextc = c +<span style="color: #000000;"> acquires;
+</span><span style="color: #008080;">13</span>                 <span style="color: #0000ff;">if</span> (nextc &lt; 0<span style="color: #000000;">)
+</span><span style="color: #008080;">14</span>                     <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Error("Maximum lock count exceeded"<span style="color: #000000;">);
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">                setState(nextc);
+</span><span style="color: #008080;">16</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">18</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">19</span>         }</pre>
+</div>
+<p>&nbsp; &nbsp; 可以看到当c==0时公平锁会先通过hasQueuedPredecessors方法判断队列前面有没有排队的。</p>
+<p>&nbsp; &nbsp; 非公平锁的实现：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> tryAcquire(<span style="color: #0000ff;">int</span><span style="color: #000000;"> acquires) {
+</span><span style="color: #008080;"> 2</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> nonfairTryAcquire(acquires);
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> nonfairTryAcquire(<span style="color: #0000ff;">int</span><span style="color: #000000;"> acquires) {
+</span><span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">final</span> Thread current =<span style="color: #000000;"> Thread.currentThread();
+</span><span style="color: #008080;"> 8</span>             <span style="color: #0000ff;">int</span> c =<span style="color: #000000;"> getState();
+</span><span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">if</span> (c == 0<span style="color: #000000;">) {
+</span><span style="color: #008080;">10</span>                 <span style="color: #0000ff;">if</span> (compareAndSetState(0<span style="color: #000000;">, acquires)) {
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">                    setExclusiveOwnerThread(current);
+</span><span style="color: #008080;">12</span>                     <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">15</span>             <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (current ==<span style="color: #000000;"> getExclusiveOwnerThread()) {
+</span><span style="color: #008080;">16</span>                 <span style="color: #0000ff;">int</span> nextc = c +<span style="color: #000000;"> acquires;
+</span><span style="color: #008080;">17</span>                 <span style="color: #0000ff;">if</span> (nextc &lt; 0) <span style="color: #008000;">//</span><span style="color: #008000;"> overflow</span>
+<span style="color: #008080;">18</span>                     <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Error("Maximum lock count exceeded"<span style="color: #000000;">);
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">                setState(nextc);
+</span><span style="color: #008080;">20</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">22</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">23</span>         }</pre>
+</div>
+<p>&nbsp; &nbsp; 当c==0时，<strong>非公平锁是直接用CAS尝试获取加锁</strong>。这是第二个非公平的地方。</p>
+<p>&nbsp;</p>
+<p>&nbsp; &nbsp; 好了，ReentrantLock的加锁和释放锁过程基本就这些了，这周末继续搞JUC！</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

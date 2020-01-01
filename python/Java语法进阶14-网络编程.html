@@ -1,0 +1,495 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java语法进阶14-网络编程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java语法进阶14-网络编程</center></div><div class='banquan'>原文出处:本文由博客园博主远离颠倒梦想提供。<br/>
+原文连接:https://www.cnblogs.com/Open-ing/p/12006106.html</div><br>
+    <h2 class="md-end-block md-heading md-focus" style="text-align: center;"><span class="md-expand">网络编程</span></h2>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">软件结构</span></h3>
+<p><span class="md-expand"><strong><span>C/S结构</span></strong><span class="md-expand"> ：全称为Client/Server结构，是指客户端和服务器结构。</span></span></p>
+<p><span class="md-expand"><strong><span>B/S结构</span></strong><span class="md-expand"> ：全称为Browser/Server结构，是指浏览器和服务器结构。</span></span></p>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">网络通信协议</span></h3>
+<p><strong><span>网络通信协议：</span></strong>位于同一个网络中的计算机在进行连接和通信时需要遵守一定的规则，它对数据的传输格式、传输速率、传输步骤等做了统一规定</p>
+<p><strong><span>TCP/IP协议：</span></strong>它定义了计算机如何连入因特网，以及数据如何在它们之间传输的标准。它的内部包含一系列的用于处理数据通信的协议，每一层都呼叫它的下一层所提供的协议来完成自己的需求</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java语法进阶14-网络编程0.png" alt="" /></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-focus"><span class="md-expand">应用层：网络服务与最终用户的一个接口。协议有：HTTP、FTP、SMTP、DNS、TELNET、HTTPS、POP3等等。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>表示层：数据的表示、安全、压缩。格式有：JPEG、ASCll、DECOIC、加密格式等。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>会话层：建立、管理、终止会话。对应主机进程，指本地主机与远程主机正在进行的会话</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>传输层：定义传输数据的协议端口号，以及流控和差错校验。协议有：TCP、UDP。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>网络层：进行逻辑地址寻址，实现不同网络之间的路径选择。协议有：ICMP、IGMP、IP（IPV4 IPV6）、ARP、RARP。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>数据链路层：建立逻辑连接、进行硬件地址寻址、差错校验等功能。将比特组合成字节进而组合成帧，用MAC地址访问介质，错误发现但不能纠正。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-focus"><span>物理层：建立、维护、断开物理连接。</span></p>
+</li>
+</ul>
+<p><span>IP（internet protocal）又称为互联网协议。IP的责任就是把数据从源传送到目的地。它在源地址和目的地址之间传送一种称之为数据包的东西，它还提供对数据大小的重新组装功能，以适应不同网络对包大小的要求。经常与IP协议放在一起的还有TCP（Transmission Control Protocol）协议</span></p>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">TCP与UDP协议</span></h3>
+<p><span class="md-expand"><strong><span>UDP</span></strong><span class="md-expand">：用户数据报协议(User Datagram Protocol)。</span></span></p>
+<ul>
+<li><span class="md-meta md-before"><strong><span>非面向连接的，不可靠的</span></strong>：发送端不会确认接收端是否存在，就会发出数据，同样接收端在收到数据时，也不会向发送端反馈是否收到数据。</span></li>
+<li><span class="md-meta md-before"><span class="md-expand"><strong><span>大小限制的</span></strong><span class="md-expand">：数据被限制在64kb以内，超出这个范围就不能发送了。</span></span></span></li>
+<li><span class="md-expand"><strong><span>数据报(Datagram)</span></strong><span class="md-expand">：网络传输的基本单位 </span></span></li>
+</ul>
+<p><span class="md-expand"><strong><span>TCP</span></strong><span class="md-expand">：传输控制协议 (Transmission Control Protocol)。</span></span></p>
+<ul>
+<li><span class="md-meta md-before"><strong><span>面向连接的，可靠的：</span></strong>在发送端和接收端建立逻辑连接，然后再传输数据，是一种面向连接的、可靠的、基于<strong>字节流</strong>的传输层的通信协议，可以连续传输大量的数据。TCP协议保证了数据包在传送中准确无误，TCP协议使用重发机制，需要收到另一个通信实体的确认信息</span></li>
+<li><span class="md-meta md-before"><strong><span>三次握手</span></strong></span></li>
+</ul>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java语法进阶14-网络编程1.png" alt="" /></p>
+<ul>
+<li><strong><span>四次挥手</span></strong></li>
+</ul>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java语法进阶14-网络编程2.png" alt="" /></p>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">网络编程三要素</span></h3>
+<p class="md-end-block md-heading md-focus"><span class="md-expand"><strong>1、协议</strong>：如上</span></p>
+<h4 class="md-end-block md-heading md-focus"><span class="md-expand">2、IP地址</span></h4>
+<p>IP地址用来给一个网络中的计算机设备做唯一的编号，</p>
+<p>IPv4：32位整数，8位一组最多可以表示42亿个</p>
+<p>IPv6：采用128位地址长度，每16个字节一组，分成8组十六进制数</p>
+<p>公网地址( 万维网使用)和 私有地址( 局域网使用)。192.168.开头的就是私有址址，范围即为192.168.0.0--192.168.255.255，专门为组织机构内部使用</p>
+<p class="md-end-block">特殊的IP地址：</p>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block"><span class="md-expand">本地回环地址(hostAddress)：<span><code>127.0.0.1</code></span></span></p>
+</li>
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-focus"><span>主机名(hostName)：<span><code>localhost</code></span></span></p>
+</li>
+</ul>
+<p><strong><span>域名：</span></strong>域名服务器(DNS)负责将域名转化成IP地址，方便记忆。</p>
+<h4 class="md-end-block md-heading md-focus"><span class="md-expand">3、端口号</span></h4>
+<p><span class="md-expand">端口号<span class="md-expand">可以找到唯一标识设备中的进程（应用程序）<strong><span>0~65535，</span></strong>动态/ 私有端口：49152~65535</span></span></p>
+<p class="md-end-block"><span>如果端口号被另外一个服务或应用所占用，会导致当前程序启动失败。</span></p>
+<p class="md-end-block"><span>利用<span><code>协议</code><span>+<span><code>IP地址</code><span>+<span><code>端口号</code><span> 三元组合，就可以标识网络中的进程了，那么进程间的通信就可以利用这个标识与其它进程进行交互。</span></span></span></span></span></span></span></p>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">InetAddress类 </span></h3>
+<p>InetAddress类主要表示IP地址，两个子类：Inet4Address、Inet6Address。</p>
+<p class="md-end-block"><span>lInetAddress 类没有提供公共的构造器，而是提供 了 如下几个 静态方法来获取InetAddress 实例</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public static InetAddress getLocalHost()&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【返回本地主机】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public static InetAddress getByName(String host)&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【在给定主机名的情况下确定主机的 IP 地址】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public static InetAddress getByAddress(byte[] addr)&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【在给定原始 IP 地址的情况下，返回 <code>InetAddress</code> 对象】</span></p>
+</li>
+<li class="md-list-item"><span>例：byte[] addr = {(byte)192,(byte)168,24,56}; 其内部用一个int存储</span></li>
+</ul>
+<p class="md-end-block"><span>InetAddress 提供了如下几个常用的方法</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public String getHostAddress() ：　　&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回 IP 地址字符串（以文本表现形式）】</span></p>
+</li>
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-focus"><span>public String getHostName() ：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【获取此 IP 地址的主机名】</span></p>
+</li>
+<li class="md-list-item md-focus-container"><span>public String getCanonicalHostName()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【获取此 IP 地址的完全限定域名】</span></li>
+<li>boolean isReachable(int timeout)&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【测试是否可以达到该地址。】</li>
+</ul>
+<h2 class="md-end-block md-heading md-focus"><span class="md-expand">Socket</span></h2>
+<p><span class="md-expand"><strong>socket </strong>可理解为一个介于应用层与协议层之间的一个抽象层，它屏蔽了各个协议的通信细节，使得程序员无需关注协议本身，直接使用socket提供的接口来进行互联的不同主机间的进程的通信。</span></p>
+<p><span class="md-expand">就是提供了tcp/ip协议的抽象，对外提供了一套接口，通过这个接口就可以统一、方便的使用tcp/ip协议的功能了</span></p>
+<p><span class="md-expand">通信的两端都要有Socket（也可以叫&ldquo;套接字&rdquo;），是两台机器间通信的端点。网络通信其实就是Socket间的通信。也是负责和网卡驱动程序沟通的对象。socket工作流程</span></p>
+<p><span class="md-expand"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java语法进阶14-网络编程3.png" alt="" width="695" height="536" /></span></p>
+<p>socket是两个主机通信的关键，先理解IO流的工作流程有助于理解网络间的通信，socket数据的发送与接收也可简单的理解为：</p>
+<p>客户端将要发送的数据通过send()发送给客户端的tcp/udp协议的缓冲区，由客户端协议发送给服务端的tcp/udp协议，服务端的receive()会读取服务端的协议缓冲区接收到的数据，</p>
+<p>如需返回数据再经服务端的send()发送给服务端的协议缓冲区，服务端的协议再发送给客户端的协议，客户端的receive()会读取客户端协议缓冲区中的数据如此循环，直到close()</p>
+<p><a href="https://www.cnblogs.com/jianqiang2010/archive/2010/08/20/1804598.html" target="_blank">send()与receive()函数</a></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-focus"><span class="md-expand">ServerSocket：此类实现TCP服务器套接字。服务器套接字等待请求通过网络传入。流套接字</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-focus"><span>Socket：此类实现客户端套接字（也可以就叫&ldquo;套接字&rdquo;）。套接字是两台机器间通信的端点。流套接字</span></p>
+</li>
+<li>DatagramSocket：此类表示用来发送和接收UDP数据报包的套接字。数据报套接字</li>
+</ul>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java语法进阶14-网络编程4.png" alt="" /></p>
+<h2 class="md-end-block md-heading md-focus" style="text-align: center;"><span class="md-expand">TCP网络编程</span></h2>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">1、服务器端</span></h3>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-focus"><span class="md-expand">调用 ServerSocket(int port) ：创建一个服务器端套接字，并绑定到指定端口上。用于监听客户端的请求。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>调用 accept() ：监听连接请求，如果客户端请求连接，则接受连接，返回通信套接字对象。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>调用 该Socket 类对象的 getOutputStream() 和 getInputStream () ：获取输出流和输入流，开始网络数据的发送和接收。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-focus"><span>关闭Socket 对象：客户端访问结束，关闭通信套接字。</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading md-focus"><span class="md-expand">2、客户端</span></h4>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-focus"><span class="md-expand">创建 Socket：根据指定服务端的 IP 地址或端口号构造 Socket 类对象。若服务器端响应，则建立客户端到服务器的通信线路。若连接失败，会出现异常。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>打开连接到 Socket 的输入/出流： 使用 getInputStream()方法获得输入流，使用getOutputStream()方法获得输出流，进行数据传输</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>按照一定的协议对 Socket 进行读/ 写操作：通过输入流读取服务器放入线路的信息（但不能读取自己放入线路的信息），通过输出流将信息写入线路。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-focus"><span>关闭 Socket：断开客户端到服务器的连接，释放线路</span></p>
+</li>
+</ul>
+<p class="md-list-item"><span><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java语法进阶14-网络编程5.png" alt="" /></span></p>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">API</span></h3>
+<p class="md-end-block"><span><strong>ServerSocket类的构造方法：</strong></span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>ServerSocket(int port) ：　　&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【创建绑定到特定端口的服务器套接字】</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span><strong>ServerSocket类的常用方法：</strong></span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-focus"><span class="md-expand">Socket <strong>accept</strong>()&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【侦听并接受到此套接字的连接。】&nbsp;</span></p>
+</li>
+<li>InetAddress <strong>getInetAddress</strong>()&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回此服务器套接字的本地地址。】</li>
+</ul>
+<ul class="ul-list" data-mark="*">
+<li>int <strong>getLocalPort(</strong>)&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【返回此套接字在其上侦听的端口。】&nbsp;</li>
+</ul>
+<ul class="ul-list" data-mark="*">
+<li>void <strong>close</strong>():&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【关闭此套接字。】</li>
+</ul>
+<p class="md-end-block"><span><strong>Socket类的常用构造方法</strong><span>：</span></span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public Socket(InetAddress address,int port)：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【创建一个流套接字并将其连接到指定 IP 地址的指定端口号】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span class="md-expand">public Socket(String host,int port)：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【创建一个流套接字并将其连接到指定主机上的指定端口号】</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span><strong>Socket类的常用方法</strong><span>：</span></span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public InputStream <strong>getInputStream</strong>()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回此套接字的输入流，可以用于接收消息】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public OutputStream <strong>getOutputStream</strong>()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回此套接字的输出流，可以用于发送消息】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public InetAddress <strong>getInetAddress</strong>()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回此套接字连接到的远程 IP 地址；如果套接字是未连接的，则返回 null】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public InetAddress<strong> getLocalAddress</strong>()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【获取套接字绑定的本地地址】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public int <strong>getPort</strong>()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回此套接字连接到的<strong>远程端口</strong>号；如果尚未连接套接字，则返回 0】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public int <strong>getLocalPort</strong>()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回此套接字绑定到的本地端口。如果尚未绑定套接字，则返回 -1】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public void <strong>close</strong>()：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【关闭套接字（即无法重新连接或重新绑定） 同时也将会关闭该套接字的 InputStream 和 OutputStream】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>public void <strong>shutdownInput</strong>()：</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>如果在套接字上调用 shutdownInput() 后从套接字输入流读取内容，则流将返回 EOF（文件结束符）。 即不能在从此套接字的输入流中接收任何数据。关闭输入流</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public void <strong>shutdownOutput</strong>()：</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>禁用此套接字的输出流。对于 TCP 套接字，任何以前写入的数据都将被发送，并且后跟 TCP 的正常连接终止序列。 如果在套接字上调用 shutdownOutput() 后写入套接字输出流，则该流将抛出 IOException。 即不能通过此套接字的输出流发送任何数据。关闭输出流</span></p>
+<ul class="ul-list" data-mark="*">
+<li>boolean isInputShutdown() ：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 【返回是否关闭套接字连接的半读状态 (read-half)】</li>
+</ul>
+<ul class="ul-list" data-mark="*">
+<li>boolean isOutputShutdown() ：&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回是否关闭套接字连接的半写状态 (write-half)】</li>
+</ul>
+<p class="md-end-block md-focus"><span><strong>注意：</strong><span>先后调用Socket的shutdownInput()和shutdownOutput()方法，仅仅关闭了输入流和输出流，并不等于调用Socket的close()方法。在通信结束后，仍然要调用Scoket的close()方法，因为只有该方法才会释放Socket占用的资源，比如占用的本地端口号等。</span></span></p>
+<p><span class="md-expand">如果服务器端要&ldquo;同时&rdquo;处理多个客户端的请求，因此服务器端需要为<span>每一个客户端单独分配一个<strong><span>线程</span></strong><span>来处理，否则无法实现&ldquo;同时&rdquo;。</span></span></span></p>
+<h2 class="md-end-block md-heading md-focus" style="text-align: center;"><span class="md-expand">UDP网络编程</span></h2>
+<p><span class="md-expand">UDP(User Datagram Protocol，用户数据报协议)特点：</span></p>
+<p><span class="md-expand">在正式通信前不必与对方先建立连接，至于对方是否可以接收到这些数据内容，UDP协议无法控制，无连接的好处就是快，省内存空间和流量，没有TCP的确认机制、重传机制，如果因为网络原因没有传送到对端，UDP也不会给应用层返回错误信息。</span></p>
+<p><span class="md-expand">UDP协议是面向数据报文的信息传送服务。UDP在发送端没有缓冲区，对于应用层交付下来的报文在添加了首部之后就直接交付于ip层，不会进行合并，也不会进行拆分，而是一次交付一个完整的报文。</span></p>
+<p><span class="md-expand">UDP协议没有拥塞控制，所以当网络出现的拥塞不会导致主机发送数据的速率降低。虽然UDP的接收端有缓冲区，但是这个缓冲区只负责接收，并不会保证UDP报文的到达顺序是否和发送的顺序一致。</span></p>
+<p><span class="md-expand">因此UDP适用于一次只传送少量数据、对可靠性要求不高的应用环境，数据报大小限制在64K以下。</span></p>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">API</span></h3>
+<p><span class="md-expand">基于UDP协议的网络编程仍然需要在通信实例的两端各建立一个Socket，但这两个Socket之间并没有虚拟链路，这两个Socket只是发送、接收数据报的对象</span></p>
+<p class="md-end-block md-focus"><span class="md-expand"><strong>DatagramSocket 类的常用方法：</strong></span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public DatagramSocket(int port)</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>创建数据报套接字并将其绑定到本地主机上的指定端口。套接字将被绑定到通配符地址，IP 地址由内核来选择。</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public DatagramSocket(int port,InetAddress laddr)</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>创建数据报套接字，将其绑定到指定的本地地址。本地端口必须在 0 到 65535 之间（包括两者）。如果 IP 地址为 0.0.0.0，套接字将被绑定到通配符地址，IP 地址由内核选择。</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public void send(DatagramPacket p)</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>从此套接字发送数据报包。DatagramPacket 包含的信息指示：将要发送的数据、其长度、远程主机的 IP 地址和远程主机的端口号。 </span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public void receive(DatagramPacket p)</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>从此套接字接收数据报包。当此方法返回时，DatagramPacket 的缓冲区填充了接收的数据。数据报包也包含发送方的 IP 地址和发送方机器上的端口号。 此方法在接收到数据报前一直阻塞。数据报包对象的 length 字段包含所接收信息的长度。如果信息比包的长度长，该信息将被截短。</span></p>
+<ul>
+<li class="md-end-block"><span>public void close()&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【关闭此数据报套接字。】</span></li>
+</ul>
+<p class="md-end-block"><span><strong>DatagramPacket类的常用方法：</strong></span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public DatagramPacket(byte[] buf,int length)</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>构造 DatagramPacket，用来接收长度为 length 的数据包。 length 参数必须小于等于 buf.length。</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public DatagramPacket(byte[] buf,int length,InetAddress address,int port)</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>构造数据报包，用来将长度为 length 的包发送到指定主机上的指定端口号。length 参数必须小于等于 buf.length。</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>public int getLength()&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;【返回将要发送或接收到的数据的长度】</span></p>
+</li>
+</ul>
+<h3 class="md-end-block md-heading md-focus"><span>多点广播</span></h3>
+<p class="md-end-block"><span>Datagram只允许数据报发送给指定的目标地址，而MulticastSocket可以将数据报以广播方式发送到数量不等的多个客户端。</span></p>
+<p class="md-end-block"><span>IP协议为多点广播提供了这批特殊的IP地址，这些IP地址的范围是224.0.0.0至239.255.255.255。</span></p>
+<p class="md-end-block"><span><strong>MulticastSocket常用的方法：</strong></span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>MulticastSocket(int port) ：</span></p>
+</li>
+</ul>
+<p class="md-end-block"><span>创建多播套接字并将其绑定到特定端口。创建一个MulticastSocket对象后，还需要将该MulticastSocket加入到指定的多点广播地址，如果结束也需要脱离多点广播地址。</span></p>
+<ul class="ul-list" data-mark="*">
+<li class="md-list-item">
+<p class="md-end-block"><span>void joinGroup(InetAddress mcastaddr) ：【加入多播组。】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>void leaveGroup(InetAddress mcastaddr) ：【离开多播组。】</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block"><span>void setLoopbackMode(boolean disable) ：【启用/禁用多播数据报的本地回送。true 表示禁用LoopbackMode。】</span></p>
+</li>
+</ul>
+<h3 class="md-end-block md-heading md-focus"><span class="md-expand">TCP网络编程示例：群聊</span></h3>
+<h4 class="md-end-block md-heading md-focus"><span class="md-expand">客户端</span><span class="md-expand">未导包</span></h4>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Client {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> UnknownHostException, IOException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1、连接服务器</span>
+        Socket socket = <span style="color: #0000ff;">new</span> Socket("127.0.0.1", 9999<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2、开启两个线程，一个收消息，一个发消息</span>
+        SendThread st = <span style="color: #0000ff;">new</span><span style="color: #000000;"> SendThread(socket);
+        ReceiveThread rt </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ReceiveThread(socket);<br />
+        st.start();
+        rt.start();
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 等发送线程停下来再往下走</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            st.join();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 等接收线程停下来，再往下走，断开连接</span>
+        <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            rt.join();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        socket.close();
+    }
+
+    </span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> SendThread <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread {
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Socket socket;
+
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> SendThread(Socket socket) {
+            </span><span style="color: #0000ff;">super</span><span style="color: #000000;">();
+            </span><span style="color: #0000ff;">this</span>.socket =<span style="color: #000000;"> socket;
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 键盘输入</span>
+                Scanner input = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Scanner(System.in);
+                OutputStream out </span>=<span style="color: #000000;"> socket.getOutputStream();
+                PrintStream ps </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> PrintStream(out);
+                </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 从键盘输入</span>
+                    System.out.print("请输入要发送的消息："<span style="color: #000000;">);
+                    String content </span>=<span style="color: #000000;"> input.nextLine();
+
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 给服务器发送</span>
+<span style="color: #000000;">                    ps.println(content);
+
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果bye，就结束发送</span>
+                    <span style="color: #0000ff;">if</span> ("bye"<span style="color: #000000;">.equals(content)) {
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    }
+                }
+                input.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    </span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> ReceiveThread <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread {
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Socket socket;
+
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ReceiveThread(Socket socket) {
+            </span><span style="color: #0000ff;">super</span><span style="color: #000000;">();
+            </span><span style="color: #0000ff;">this</span>.socket =<span style="color: #000000;"> socket;
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                InputStream in </span>=<span style="color: #000000;"> socket.getInputStream();
+                InputStreamReader isr </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> InputStreamReader(in);
+                BufferedReader br </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> BufferedReader(isr);
+
+                </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+                    String line </span>=<span style="color: #000000;"> br.readLine();
+                    </span><span style="color: #0000ff;">if</span>("bye"<span style="color: #000000;">.equals(line)){
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    }
+                    System.out.println(line);
+                }
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}</span></pre>
+</div>
+<h4 class="md-end-block md-heading md-focus"><span class="md-expand">服务器端</span></h4>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Server {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> ArrayList&lt;Socket&gt; online = <span style="color: #0000ff;">new</span> ArrayList&lt;Socket&gt;<span style="color: #000000;">();
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">1、开启服务器</span>
+        ServerSocket server = <span style="color: #0000ff;">new</span> ServerSocket(9999<span style="color: #000000;">);
+        
+        </span><span style="color: #0000ff;">while</span>(<span style="color: #0000ff;">true</span><span style="color: #000000;">){
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">2、接收客户端的连接</span>
+            Socket socket =<span style="color: #000000;"> server.accept();
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">把这个客户端加入到online中</span>
+<span style="color: #000000;">            online.add(socket);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">每一个客户端独立的线程</span>
+            MessageHandler mh = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MessageHandler(socket);
+            mh.start();
+        }
+    }
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> MessageHandler <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread{
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Socket socket;
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String ip;
+        
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> MessageHandler(Socket socket) {
+            </span><span style="color: #0000ff;">super</span><span style="color: #000000;">();
+            </span><span style="color: #0000ff;">this</span>.socket =<span style="color: #000000;"> socket;
+            </span><span style="color: #0000ff;">this</span>.ip =<span style="color: #000000;"> socket.getInetAddress().getHostAddress();
+        }
+
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run(){
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">这个客户端的一连接成功，线程一启动，就可以告诉其他人我上线了</span>
+            sendToOthers(ip+"上线了"<span style="color: #000000;">);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">（1）接收当前的客户端发送的消息</span>
+            <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                InputStream in </span>=<span style="color: #000000;"> socket.getInputStream();
+                InputStreamReader isr </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> InputStreamReader(in);
+                BufferedReader br </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> BufferedReader(isr);
+                
+                String content;
+                </span><span style="color: #0000ff;">while</span>((content = br.readLine()) !=<span style="color: #0000ff;">null</span><span style="color: #000000;">){
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">收到一句，转发一句</span>
+                    sendToOthers(ip+"说:" +<span style="color: #000000;"> content);
+                    
+                    </span><span style="color: #0000ff;">if</span>("bye"<span style="color: #000000;">.equals(content)){
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">给自己发一句bye</span>
+                        OutputStream out =<span style="color: #000000;"> socket.getOutputStream();
+                        PrintStream ps </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> PrintStream(out);
+                        ps.println(</span>"bye"<span style="color: #000000;">);
+                        
+                        </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+                    }
+                }
+                sendToOthers(ip</span>+"下线了"<span style="color: #000000;">);
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                sendToOthers(ip</span>+"掉线了"<span style="color: #000000;">);
+            }
+        }
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">因为转发的代码也很长，独立为一个方法</span>
+        <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> sendToOthers(String str){
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">遍历所有online的客户端</span>
+            Iterator&lt;Socket&gt; iterator =<span style="color: #000000;"> online.iterator();
+            </span><span style="color: #0000ff;">while</span><span style="color: #000000;">(iterator.hasNext()){
+                Socket on </span>=<span style="color: #000000;"> iterator.next();
+                </span><span style="color: #0000ff;">if</span>(!on.equals(socket)){<span style="color: #008000;">//</span><span style="color: #008000;">只给其他客户端转发</span>
+                    <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                        OutputStream out </span>=<span style="color: #000000;"> on.getOutputStream();
+                        PrintStream ps </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> PrintStream(out);
+                        
+                        ps.println(str);
+                    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;">说明on这个客户端要么下线了，要么掉线了</span>
+<span style="color: #000000;">                        iterator.remove();
+                    }
+                }
+            }
+        }
+    }
+}</span></pre>
+</div>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

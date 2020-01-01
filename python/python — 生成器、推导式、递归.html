@@ -1,0 +1,321 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修python — 生成器、推导式、递归' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>python — 生成器、推导式、递归</center></div><div class='banquan'>原文出处:本文由博客园博主一直努力的小羊提供。<br/>
+原文连接:https://www.cnblogs.com/yangjie0906/p/11215849.html</div><br>
+    <div class="toc">
+    <p class="toc-title">目录</p>
+    <div class="toc-list">
+        <ul>
+        <li><a href="#生成器函数的变异">1 生成器（函数的变异）</a></li>
+        <li><a href="#推导式">2 推导式</a></li>
+        <li><a href="#递归">3 递归</a></li>
+        </ul>
+    </div>
+</div>
+<h3 id="生成器函数的变异">1 生成器（函数的变异）</h3>
+<p>判断一个函数是否是生成器函数：只需看函数内部是否有yield</p>
+<pre><code><code># 生成器函数（内部是否包含yield）
+def func():
+    print(&#39;F1&#39;)
+    yield 1
+    print(&#39;F2&#39;)
+    yield 2
+    print(&#39;F3&#39;)
+    yield 100
+    print(&#39;F4&#39;)
+# (只要有yield）函数内部代码不会执行，返回一个 生成器对象 。
+v1 = func()
+# 生成器是可以被for循环，一旦开始循环那么函数内部代码就会开始执行。
+for item in v1:
+    print(item)</code></pre>
+<p>循环流程：</p>
+<ul>
+<li><ol>
+<li>for循环开始第一次循环，先执行yield前面的代码，执行到yield时，返回yield的值给item并停止第一次循环。</li>
+<li>第二次循环：从上次循环的yield后面开始执行代码，执行到第二个yield（yield2）时，返回yield2的值给item并停止第二次循环。</li>
+<li>直到循环完所有的yield，循环自动终止</li>
+</ol>
+<pre><code><code>def func():
+    count = 1
+    while True:
+        yield count
+        count += 1
+
+val = func()
+
+for item in val:
+    print(item)</code></pre>
+<p>总结：函数中如果存在yield，那么该函数就是一个生成器函数，调用生成器函数会返回一个生成器，生成器只有被for循环时，生成器函数内部的代码才会执行，每次循环都会获取yield返回的值。</p>
+<pre><code><code>def func():
+    count = 1
+    while True:
+        yield count
+        count += 1
+        if count == 100:
+            return
+
+val = func()
+for item in val:
+    print(item)</code></pre>
+<p>示例：读文件</p>
+<pre><code><code>def func():
+    &quot;&quot;&quot;
+    分批去读取文件中的内容，将文件的内容返回给调用者。
+    :return:
+    &quot;&quot;&quot;
+    cursor = 0
+    while True:
+        f = open(&#39;db&#39;, &#39;r&#39;, encoding=&#39;utf-8&#39;)# 通过网络连接上redis
+        # 代指   redis[0:10]
+        f.seek(cursor)
+        data_list =[]
+        for i in range(10):
+            line = f.readline()
+            if not line:
+                return
+            data_list.append(line)
+        cursor = f.tell()
+        f.close()  # 关闭与redis的连接
+
+
+        for row in data_list:
+            yield row
+
+
+for item in func():
+    print(item)</code></pre>
+<p>redis源码示例</p>
+<p><img src="./images/python — 生成器、推导式、递归0.png" /></p>
+<p>生成器作用：</p>
+<ul>
+<li><p>生成数据</p></li>
+<li><p>是一种特殊的迭代器</p>
+<pre><code><code>def func():
+    yield 1
+    yield 2
+    yield 3
+
+v = func()
+result = v.__next__()
+print(result)
+result = v.__next__()
+print(result)
+result = v.__next__()
+print(result)
+result = v.__next__()
+print(result)</code></pre></li>
+<li><p>也是特殊的可迭代对象</p>
+<pre><code><code>def func():
+    yield 1
+
+v = func()
+result = v.__iter__()
+print(result)</code></pre></li>
+</ul>
+<p>其他知识：</p>
+<ul>
+<li><p>yeild from关键字 （从xxx中一点点获取)</p>
+<pre><code><code>def base():
+    yield 88
+    yield 99
+
+def func():
+    yield 1
+    yield 2
+    yield from base()   # 从base()中一点点获取
+    yield 3
+
+result = func()
+
+for item in result:
+    print(item)</code></pre></li>
+</ul>
+<p>生成器的send方法</p>
+<pre><code><code>def func():
+    print(123)
+    n = yield &#39;aaa&#39;
+    print(&#39;--&gt;&#39;,n)
+    yield &#39;bbb&#39;
+
+g = func()
+print(g)
+n = next(g)
+print(n)
+print(&#39;-&#39;*20)
+next(g)   # g.send(&#39;uysdfhfoiusyg&#39;)与next(g)的作用一样</code></pre>
+<p>注意:</p>
+<ul>
+<li><p>1.生成器取一次就没有了，再次取时内部为空</p></li>
+<li><p>2.惰性运算 ：不取不执行</p>
+<pre><code><code>ret = filter(lambda n:n%3==0,range(10))
+# ret是迭代器
+print(len(list(ret)))   # 4  # list(ret) = [0,3,6,9]
+print(len(list(ret)))   # 0  # list(ret) = []</code></pre></li>
+</ul></li>
+</ul>
+<h3 id="推导式">2 推导式</h3>
+<h4 id="列表推导式">2.1 列表推导式</h4>
+<ul>
+<li><p>1.目的</p>
+<p>方便的生成一个列表</p></li>
+<li><p>2.基本格式</p>
+<ul>
+<li><p>变量 = [for循环的变量 for循环一个可迭代对象]</p></li>
+<li><p>v1 = [i for i in 可迭代对象 ]<br />
+v2 = [i for i in 可迭代对象 if 条件 ] # 条件为true时才进行append</p></li>
+<li><p>练习</p>
+<pre><code><code>v1 = [ i for i in &#39;alex&#39; ]   # [&#39;a&#39;,&#39;l&#39;,&#39;e&#39;,&#39;x&#39;]
+v2 = [i+100 for i in range(10)]   # [100,101,102,103,104,105,106,107,108,109]
+v3 = [99 if i&gt;5 else 66  for i in range(10)]   # [66,66,66,66,66,66,99,99,99,99]
+
+def func():
+    return 100
+v4 = [func for i in range(10)]   # [func,func,func,func,func,func,func,func,func,func,]
+
+v5 = [lambda : 100 for i in range(10)]   # [lambda : 100,lambda : 100,lambda : 100,lambda : 100,lambda : 100,lambda : 100,lambda : 100,lambda : 100,lambda : 100,lambda : 100]
+result = v5[9]()    # 100
+
+v6 = [lambda :i for i in range(10)]   # [lambda :i,lambda :i,lambda :i,lambda :i,lambda :i,lambda :i,lambda :i,lambda :i,lambda :i,lambda :i,]
+result = v6[5]()   # 9
+
+v7 = [lambda x:x*i for i in range(10)]
+# 1.请问 v7 是什么？
+ v7 = [lambda x:x*i,lambda x:x*i,lambda x:x*i,lambda x:x*i,lambda x:x*i,lambda x:x*i,lambda x:x*i,lambda x:x*i,lambda x:x*i,lambda x:x*i,]
+# 2.请问 v7[0](2) 的结果是什么？    v7[0](2) = 18
+
+def num():
+    return [lambda x:i*x for i in range(4)]
+# num() -&gt; [函数,函数,函数,函数]
+print([ m(2) for m in num() ]) # [6,6,6,6]
+
+# ##################### 筛选 #########################
+v8 = [i for i in range(10) if i &gt; 5]   # [6,7,8,9]</code></pre></li>
+</ul></li>
+</ul>
+<h4 id="集合推导式">2.2 集合推导式</h4>
+<ul>
+<li><p>1.目的</p>
+<p>方便的生成一个集合</p></li>
+<li><p>2.基本格式</p>
+<ul>
+<li><p>变量 = {for循环的变量 for循环一个可迭代对象}</p></li>
+<li><p>v1 = { i for i in 可迭代对象 }<br />
+v2 = { i for i in 可迭代对象 if 条件 } # 条件为true时才进行append</p>
+<pre><code><code>v1 = { i for i in &#39;alex&#39; }   # {&#39;a&#39;,&#39;l&#39;,&#39;e&#39;,&#39;x&#39;}</code></pre></li>
+</ul></li>
+</ul>
+<h4 id="字典推导式">2.3 字典推导式</h4>
+<ul>
+<li><p>1.目的</p>
+<p>方便的生成一个字典</p></li>
+<li><p>2.基本格式</p>
+<pre><code><code>v1 = { &#39;k&#39;+str(i):i for i in range(10) }
+#{&#39;K0&#39;:0,&#39;K1&#39;:1,&#39;K2&#39;:2,&#39;K3&#39;:3,&#39;K4&#39;:4,&#39;K5&#39;:5,&#39;K6&#39;:6,&#39;K7&#39;:7,&#39;K8&#39;:8,&#39;k9&#39;:9}
+
+v1 = { &#39;k&#39;:i for i in range(10) }   # {&#39;k&#39;:9} #字典的键存在，则新值覆盖旧值，不存在则更新。</code></pre></li>
+</ul>
+<h4 id="生成器推导式">2.4 生成器推导式</h4>
+<pre><code><code># def func():
+#     result = []
+#     for i in range(10):
+#         result.append(i)
+#     return result
+# v1 = func()
+v1 = [i for i in range(10)] # 列表推导式，立即循环创建所有元素。
+print(v1)
+
+# def func():
+#     for i in range(10):
+#         yield i
+# v2 = func()
+v2 = (i for i in range(10)) # 生成器推导式，创建了一个生成器，内部循环为执行。</code></pre>
+<pre><code><code># 示例一
+def func():
+    result = []
+    for i in range(10):
+        result.append(i)
+    return result
+v1 = func()
+for item in v1:
+   print(item)
+
+# 示例二
+def func():
+    for i in range(10):
+        def f():
+            return i
+        yield f
+v1 = func()
+for item in v1:
+    print(item())
+
+# 示例三：
+v1 = [i for i in range(10)] # 列表推导式，立即循环创建所有元素。
+v2 = (lambda :i for i in range(10))
+for item in v2:
+    print(item())</code></pre>
+<h3 id="递归">3 递归</h3>
+<p>递归就是 函数自己调用自己（缺点：效率低）</p>
+<p>python默认支持的递归最大数是1000次</p>
+<pre><code><code>def func():
+    print(1)
+    func()
+    
+func()</code></pre>
+<pre><code><code>def func(i):
+    print(i)
+    func(i+1)
+    
+func(1)</code></pre>
+<pre><code><code>def func(a,b):          # 只能递归1000次的斐波那契
+    # 1
+    # 1
+    # 2
+    # 3 
+    # 5 
+    print(b) 
+    func(b,a+b)
+    
+func(0,1)</code></pre>
+<pre><code><code>def func(a):
+    if a == 5:
+        return 100000
+    result = func(a+1) + 10
+    return result 
+
+v = func(1)</code></pre>
+<p><img src="C:\Users\yj\AppData\Roaming\Typora\typora-user-images\1555402471461.png" alt="1555402471461" /></p>
+<pre><code><code># 递归的返回值
+def func(a):
+    if a == 5:
+        return 100000
+    result = func(a+1) + 10
+
+v = func(1)
+name = &#39;alex&#39;
+def func():
+    def inner():
+        print(name)
+     return inner
+v =func()</code></pre>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

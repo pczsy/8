@@ -1,0 +1,107 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【Java必修课】图说Stream中的skip()和limit()方法及组合使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【Java必修课】图说Stream中的skip()和limit()方法及组合使用</center></div><div class='banquan'>原文出处:本文由博客园博主南瓜慢说提供。<br/>
+原文连接:https://www.cnblogs.com/larrydpk/p/12078124.html</div><br>
+    <h1 id="简介">1 简介</h1>
+<p>本文将讲解Java 8 Stream中的两个方法：<code>skip()</code>和<code>limit()</code>。这两个方法是<code>Stream</code>很常用的，不仅各自会被高频使用，还可以组合出现，并能实现一些小功能，如<code>subList</code>和分页等。</p>
+<h1 id="skip方法">2 skip()方法</h1>
+<p>见名知义，<code>skip()</code>方法用于跳过前面n个元素，然后再返回新的流，如图所示：<br />
+<img src="./images/【Java必修课】图说Stream中的skip()和limit()方法及组合使用0.png" /></p>
+<p>来看看代码：</p>
+<pre><code><code>List&lt;Integer&gt; result = Stream.of(1, 2, 3, 4, 5, 6)
+  .skip(4)
+  .collect(Collectors.toList());
+List&lt;Integer&gt; expected = asList(5, 6);
+assertEquals(expected, result);</code></pre>
+<p>方法<code>skip()</code>的参数n的四种情况：</p>
+<p>（1）当<code>n&lt;0</code>时，抛<code>IllegalArgumentException</code>异常；</p>
+<p>（2）当<code>n=0</code>时，相当没有跳过任何元素，原封不动、完璧归赵；</p>
+<p>（3）当<code>0&lt;n&lt;length</code>时，跳过n个元素后，返回含有剩下的元素的流；</p>
+<p>（4）当<code>n&gt;=length</code>时，跳过所有元素，返回空流。</p>
+<h1 id="limit方法">3 limit()方法</h1>
+<p>对于<code>limit()</code>方法，它是用于限制流中元素的个数，即取前n个元素，返回新的流，如图所示：<br />
+<img src="./images/【Java必修课】图说Stream中的skip()和limit()方法及组合使用1.png" /></p>
+<p>代码如下：</p>
+<pre><code><code>List&lt;Integer&gt; result = Stream.of(1, 2, 3, 4, 5, 6)
+  .limit(4)
+  .collect(Collectors.toList());
+List&lt;Integer&gt; expected = asList(1, 2, 3, 4);
+assertEquals(expected, result);</code></pre>
+<p>方法<code>limit()</code>的参数n的四种情况：</p>
+<p>（1）当<code>n&lt;0</code>时，抛<code>IllegalArgumentException</code>异常；</p>
+<p>（2）当<code>n=0</code>时，不取元素，返回空流；</p>
+<p>（3）当<code>0&lt;n&lt;length</code>时，取前n个元素，返回新的流；</p>
+<p>（4）当<code>n&gt;=length</code>时，取所有元素，原封不动、完璧归赵。</p>
+<h1 id="对无限流的操作">4 对无限流的操作</h1>
+<p>流Stream分为有限流和无限流，前面的例子我们都是使用的有限流，与Java集合类不同，流是可以无限的。对于无限流，<code>skip()</code>和<code>limit()</code>表现出了极大的差异，先上代码：</p>
+<pre><code><code>Stream.iterate(1, i -&gt; i + 1)
+  .filter(num -&gt; (num &amp; (num - 1)) == 0)
+  .limit(10)
+  .forEach(System.out::println);
+System.out.println(&quot;----------------&quot;);
+Stream.iterate(1, i -&gt; i + 1)
+  .filter(num -&gt; (num &amp; (num - 1)) == 0)
+  .skip(10)
+  .forEach(System.out::println);</code></pre>
+<p>执行后发现，<code>limit()</code>是可以将无限流转化为有限流的，所以我们也可以认为它是一个短路操作。而<code>skip()</code>则不行，不管你跳过了前面多少个元素，总还是会有源源不断的元素过来，无法收敛。</p>
+<p>上述代码的结果是：</p>
+<p>通过<code>limit()</code>输出了前十个2的n次方值：<br />
+1, 2, 4, 8, 16, 32, 64, 128, 256, 512</p>
+<p>而<code>skip()</code>跳过了前10个，继续输出，但会不断执行下去（会有int的溢出现象）：</p>
+<p>1024, 2048, 4096, 8192, 16384, 32768...</p>
+<h1 id="组合应用">5 组合应用</h1>
+<p>除了两者各自有各自的功能外，我们通过组合使用，可以实现其它功能。</p>
+<h2 id="与sublist的替换">5.1 与subList的替换</h2>
+<p>集合类如<code>List</code>是有<code>subList()</code>这个方法的，可以截取List中的某一部分，这个功能还可以通过组合<code>skip()</code>和<code>limit()</code>使用得到，如下面代码：</p>
+<pre><code><code>List&lt;Integer&gt; list = asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
+List&lt;Integer&gt; expected = list.subList(3, 7);
+
+List&lt;Integer&gt; result = list.stream()
+  .skip(3)
+  .limit(7 - 3)
+  .collect(Collectors.toList());
+assertEquals(expected, result);</code></pre>
+<p>将<code>subList(startIndex, endIndex)</code>转换成<code>skip(startIndex).limit(endIndex - startIndex)</code>。</p>
+<h2 id="分页">5.2 分页</h2>
+<p>可以通过组合使用<code>skip()</code>和<code>limit()</code>进行分页，如下面代码：</p>
+<pre><code><code>int pageSize = 10;
+int pageIndex = 7;
+
+List&lt;Integer&gt; expected = asList(61, 62, 63, 64, 65, 66, 67, 68, 69, 70);
+List&lt;Integer&gt; result = Stream.iterate(1, i -&gt; i + 1)
+  .skip((pageIndex - 1) * pageSize)
+  .limit(pageSize)
+  .collect(Collectors.toList());
+
+assertEquals(expected, result);</code></pre>
+<p>上面代码例子是获取了第七页数据，每页大小为10。</p>
+<h1 id="总结">6 总结</h1>
+<p>本文介绍了Java 8的<code>Stream</code>接口中两个常用的方法：<code>skip()</code>和<code>limit()</code>，比较简单易懂，也介绍了怎么组合使用。需要注意的是，如果<code>Stream</code>过大或是无限流，小心<code>skip()</code>会有性能问题。</p>
+<hr />
+<p>欢迎关注公众号&lt;<strong>南瓜慢说</strong>&gt;，将持续为你更新...<br />
+<img src="./images/【Java必修课】图说Stream中的skip()和limit()方法及组合使用2.png" /></p>
+<p>欢迎加博主微信，做一个点赞之友，哈哈...<br />
+<img src="./images/【Java必修课】图说Stream中的skip()和limit()方法及组合使用3.png" /></p>
+<p><strong>多读书，多分享；多写作，多整理。</strong></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

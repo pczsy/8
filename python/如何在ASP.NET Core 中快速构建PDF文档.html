@@ -1,0 +1,191 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修如何在ASP.NET Core 中快速构建PDF文档' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>如何在ASP.NET Core 中快速构建PDF文档</center></div><div class='banquan'>原文出处:本文由博客园博主张子浩提供。<br/>
+原文连接:https://www.cnblogs.com/ZaraNet/p/12037634.html</div><br>
+    <p>　　比如我们需要ASP.NET Core 中需要通过PDF来进行某些简单的报表开发，随着这并不难，但还是会手忙脚乱的去搜索一些资料，那么恭喜您，这篇帖子会帮助到您，我们就不会再去浪费一些宝贵的时间。</p>
+<p>　　在本文中我们将要使用DinkToPDF来处理我们在.NET Core Web 程序中进行构建PDF文档！就现在我们不多说，直接开始有趣的部分。</p>
+<h2>前言</h2>
+<p>　　您可以通过创建PDF文档在<a href="https://github.com/zaranetCore/Blog_NetCorePdfSample" target="_blank">我的仓库</a>中，获取源代码，欢迎给个免费的Star...</p>
+<p>　　现在我们创建一个.NET Core 3.0 项目，至于是mvc、Api、这些我并不在意。创建项目后直接Nuget安装DinkToPDF。随后您需要下载我的代码仓库中的&ldquo;<a id="9d1e5a0a1cf52c8beab0619239d5f585-110a95f984ab271c7f7c525d5181eb1ee1b96e66" class="js-navigation-open" title="NativeLibrary" href="https://github.com/zaranetCore/Blog_NetCorePdfSample/tree/master/NativeLibrary">NativeLibrary</a>&rdquo;文件夹，<span><span>在其中，我们将找到两个文件32bit</span></span><span><span>和64bit，</span></span><span><span>因此我们需要为操作系统选择合适的库。</span><span>我们将从64位文件夹中选择文件。</span></span></p>
+<p><span><span>　　<span><span>最后，我们需要启动该库，并且IOC DinkToPDF。</span></span></span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> ConfigureServices(IServiceCollection services)
+        {
+            </span><span style="color: #0000ff;">var</span> context = <span style="color: #0000ff;">new</span><span style="color: #000000;"> CustomAssemblyLoadContext();
+            context.LoadUnmanagedLibrary(Path.Combine(Directory.GetCurrentDirectory(), </span><span style="color: #800000;">"</span><span style="color: #800000;">libwkhtmltox.dll</span><span style="color: #800000;">"</span><span style="color: #000000;">));
+
+            services.AddSingleton(</span><span style="color: #0000ff;">typeof</span>(IConverter), <span style="color: #0000ff;">new</span> SynchronizedConverter(<span style="color: #0000ff;">new</span><span style="color: #000000;"> PdfTools()));
+            services.AddControllers();
+        }</span></pre>
+</div>
+<h2><span><span>建立实体</span></span></h2>
+<p><span><span><span>在真实情况的项目中，我们可以从数据库中收集数据或从其他API接收数据。</span><span>但是为了简单起见，我们将从本地存储中收集PDF文档的数据。随后</span><span>，我们将创建一个HTML模板并将其存储在PDF文档中。</span></span></span></p>
+<div class="cnblogs_code">
+<pre><code> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Employee
+    {
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Name { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> LastName { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> Age { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">string</span> Gender { <span style="color: #0000ff;">get</span>; <span style="color: #0000ff;">set</span><span style="color: #000000;">; }
+    }</span></pre>
+</div>
+<p><span><span>再随后，我们要创建一个新的文件夹</span></span><code>Services</code><span><span>和里面两类文件&nbsp;<span class="cnblogs_code">DataServices.cs</span>&nbsp;</span></span><span><span>和&nbsp;<span class="cnblogs_code">TemplateGenerator.cs</span>&nbsp;</span></span><span><span>。</span><span>完整的结构应如下所示：</span></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DataServices
+    {
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Employee&gt; GetAllEmployess() =&gt;
+           <span style="color: #0000ff;">new</span> List&lt;Employee&gt;<span style="color: #000000;">
+           {
+                </span><span style="color: #0000ff;">new</span> Employee { Name=<span style="color: #800000;">"</span><span style="color: #800000;">Hao Zi Zhang</span><span style="color: #800000;">"</span>, LastName=<span style="color: #800000;">"</span><span style="color: #800000;">Turner</span><span style="color: #800000;">"</span>, Age=<span style="color: #800080;">35</span>, Gender=<span style="color: #800000;">"</span><span style="color: #800000;">Male</span><span style="color: #800000;">"</span><span style="color: #000000;">},
+                </span><span style="color: #0000ff;">new</span> Employee { Name=<span style="color: #800000;">"</span><span style="color: #800000;">Yu Chen</span><span style="color: #800000;">"</span>, LastName=<span style="color: #800000;">"</span><span style="color: #800000;">Markus</span><span style="color: #800000;">"</span>, Age=<span style="color: #800080;">22</span>, Gender=<span style="color: #800000;">"</span><span style="color: #800000;">Female</span><span style="color: #800000;">"</span><span style="color: #000000;">},
+                </span><span style="color: #0000ff;">new</span> Employee { Name=<span style="color: #800000;">"</span><span style="color: #800000;">Jian Zhi Chu</span><span style="color: #800000;">"</span>, LastName=<span style="color: #800000;">"</span><span style="color: #800000;">Martins</span><span style="color: #800000;">"</span>, Age=<span style="color: #800080;">40</span>, Gender=<span style="color: #800000;">"</span><span style="color: #800000;">Male</span><span style="color: #800000;">"</span><span style="color: #000000;">},
+                </span><span style="color: #0000ff;">new</span> Employee { Name=<span style="color: #800000;">"</span><span style="color: #800000;">ElderJames</span><span style="color: #800000;">"</span>, LastName=<span style="color: #800000;">"</span><span style="color: #800000;">Packner</span><span style="color: #800000;">"</span>, Age=<span style="color: #800080;">30</span>, Gender=<span style="color: #800000;">"</span><span style="color: #800000;">Female</span><span style="color: #800000;">"</span><span style="color: #000000;">},
+                </span><span style="color: #0000ff;">new</span> Employee { Name=<span style="color: #800000;">"</span><span style="color: #800000;">BlaZui</span><span style="color: #800000;">"</span>, LastName=<span style="color: #800000;">"</span><span style="color: #800000;">Doe</span><span style="color: #800000;">"</span>, Age=<span style="color: #800080;">45</span>, Gender=<span style="color: #800000;">"</span><span style="color: #800000;">Male</span><span style="color: #800000;">"</span><span style="color: #000000;">}
+           };
+    }</span></pre>
+</div>
+<p>其中添加服务中返回了某些数据，用于模拟服务。我们要生成一个HTML模板，因此我们需要修改&nbsp;<span class="cnblogs_code">TemplateGenerator.cs</span>&nbsp;文件：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TempleGenertor
+    {
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">string</span><span style="color: #000000;"> GetHTMLString()
+        {
+            </span><span style="color: #0000ff;">var</span> employees =<span style="color: #000000;"> DataServices.GetAllEmployess();
+
+            </span><span style="color: #0000ff;">var</span> sb = <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+            sb.Append(</span><span style="color: #800000;">@"</span><span style="color: #800000;">
+                        &lt;html&gt;
+                            &lt;head&gt;
+                            &lt;/head&gt;
+                            &lt;body&gt;
+                                &lt;div class='header'&gt;&lt;h1&gt;This is the generated PDF report!!!&lt;/h1&gt;&lt;/div&gt;
+                                &lt;table align='center'&gt;
+                                    &lt;tr&gt;
+                                        &lt;th&gt;Name&lt;/th&gt;
+                                        &lt;th&gt;LastName&lt;/th&gt;
+                                        &lt;th&gt;Age&lt;/th&gt;
+                                        &lt;th&gt;Gender&lt;/th&gt;
+                                    &lt;/tr&gt;</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+
+            </span><span style="color: #0000ff;">foreach</span> (<span style="color: #0000ff;">var</span> emp <span style="color: #0000ff;">in</span><span style="color: #000000;"> employees)
+            {
+                sb.AppendFormat(</span><span style="color: #800000;">@"</span><span style="color: #800000;">&lt;tr&gt;
+                                    &lt;td&gt;{0}&lt;/td&gt;
+                                    &lt;td&gt;{1}&lt;/td&gt;
+                                    &lt;td&gt;{2}&lt;/td&gt;
+                                    &lt;td&gt;{3}&lt;/td&gt;
+                                  &lt;/tr&gt;</span><span style="color: #800000;">"</span><span style="color: #000000;">, emp.Name, emp.LastName, emp.Age, emp.Gender);
+            }
+            sb.Append(</span><span style="color: #800000;">@"</span><span style="color: #800000;">
+                                &lt;/table&gt;
+                            &lt;/body&gt;
+                        &lt;/html&gt;</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sb.ToString();
+        }
+    }</span></pre>
+</div>
+<p>如果想要指定css样式，则可以创建某些文件夹，随后在API通过服务器路径来抉择配置。</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">.header {
+    text</span>-<span style="color: #000000;">align: center;
+    color: green;
+    padding</span>-<span style="color: #000000;">bottom: 35px;
+}
+
+table {
+    width: </span><span style="color: #800080;">80</span>%<span style="color: #000000;">;
+    border</span>-<span style="color: #000000;">collapse: collapse;
+}
+
+td, th {
+    border: 1px solid gray;
+    padding: 15px;
+    font</span>-<span style="color: #000000;">size: 22px;
+    text</span>-<span style="color: #000000;">align: center;
+}
+
+table th {
+    background</span>-<span style="color: #000000;">color: green;
+    color: white;
+}</span></pre>
+</div>
+<p><span>　　</span>就是这样，我们有用于HTML创建的HTML模板。现在，我们可以继续执行Controller逻辑。</p>
+<div class="cnblogs_code">
+<pre><code> [Route(<span style="color: #800000;">"</span><span style="color: #800000;">api/PdfCreator</span><span style="color: #800000;">"</span><span style="color: #000000;">)]
+    [ApiController]
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PdfCreatorController : ControllerBase
+    {
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> IConverter _converter;
+
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> PdfCreatorController(IConverter converter)
+        {
+            _converter </span>=<span style="color: #000000;"> converter;
+        }
+
+        [HttpGet]
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> IActionResult CreatePDF()
+        {
+            </span><span style="color: #0000ff;">var</span> globalSettings = <span style="color: #0000ff;">new</span><span style="color: #000000;"> GlobalSettings
+            {
+                ColorMode </span>=<span style="color: #000000;"> ColorMode.Color,
+                Orientation </span>=<span style="color: #000000;"> Orientation.Portrait,
+                PaperSize </span>=<span style="color: #000000;"> PaperKind.A4,
+                Margins </span>= <span style="color: #0000ff;">new</span> MarginSettings { Top = <span style="color: #800080;">10</span><span style="color: #000000;"> },
+                DocumentTitle </span>= <span style="color: #800000;">"</span><span style="color: #800000;">PDF Report</span><span style="color: #800000;">"</span><span style="color: #000000;">
+            };
+
+            </span><span style="color: #0000ff;">var</span> objectSettings = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ObjectSettings
+            {
+                PagesCount </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">,
+                HtmlContent </span>=<span style="color: #000000;"> TempleGenertor.GetHTMLString(),
+                WebSettings </span>= { DefaultEncoding = <span style="color: #800000;">"</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">"</span>, UserStyleSheet = Path.Combine(Directory.GetCurrentDirectory(), <span style="color: #800000;">"</span><span style="color: #800000;">assets</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">style.css</span><span style="color: #800000;">"</span><span style="color: #000000;">) },
+                HeaderSettings </span>= { FontName = <span style="color: #800000;">"</span><span style="color: #800000;">Arial</span><span style="color: #800000;">"</span>, FontSize = <span style="color: #800080;">9</span>, Right = <span style="color: #800000;">"</span><span style="color: #800000;">Page [page] of [toPage]</span><span style="color: #800000;">"</span>, Line = <span style="color: #0000ff;">true</span><span style="color: #000000;"> },
+                FooterSettings </span>= { FontName = <span style="color: #800000;">"</span><span style="color: #800000;">Arial</span><span style="color: #800000;">"</span>, FontSize = <span style="color: #800080;">9</span>, Line = <span style="color: #0000ff;">true</span>, Center = <span style="color: #800000;">"</span><span style="color: #800000;">Report Footer</span><span style="color: #800000;">"</span><span style="color: #000000;"> }
+            };
+
+            </span><span style="color: #0000ff;">var</span> pdf = <span style="color: #0000ff;">new</span><span style="color: #000000;"> HtmlToPdfDocument()
+            {
+                GlobalSettings </span>=<span style="color: #000000;"> globalSettings,
+                Objects </span>=<span style="color: #000000;"> { objectSettings }
+            };
+
+            </span><span style="color: #0000ff;">var</span> file =<span style="color: #000000;"> _converter.Convert(pdf);
+            </span><span style="color: #0000ff;">return</span> File(file, <span style="color: #800000;">"</span><span style="color: #800000;">application/pdf</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+        }
+    }</span></pre>
+</div>
+<h3><span>代码说明</span></h3>
+<p><span>在上面的代码中，我们首先通过使用&nbsp;<span class="cnblogs_code">IConverter</span>&nbsp;</span><span><span>接口</span><span>将注册的&nbsp;<span class="cnblogs_code">Converter</span>&nbsp;与依赖注入注入到构造函数中</span><span>。</span><span>然后，我们创建两个对象&nbsp;<span class="cnblogs_code">globalSettings</span>&nbsp;</span></span><span>，&nbsp;<span class="cnblogs_code">objectSettings</span>&nbsp;</span><span>并将它们用作&nbsp;<span class="cnblogs_code">HtmlToPdfDcoument</span>&nbsp;</span><span><span>属性中</span><span>的配置</span><span>。</span><span><br /></span></span></p>
+<p><span>现在让我们来说说&nbsp;<span class="cnblogs_code">GlobalSettings</span>&nbsp;</span><span>和&nbsp;<span class="cnblogs_code">ObjectSettings</span>&nbsp;</span><span>类。</span></p>
+<h3><span>关于GlobalSettings类</span></h3>
+<p><span><span>它括了PDF文档的整体配置属性。</span><span>我们仅使用其中的几个属性来设置颜色模式，方向，纸张尺寸，文档标题等&hellip;但它还有还多属性。</span></span></p>
+<h3><span>关于ObjectSettings类</span></h3>
+<p><code>ObjectSettings</code><span><span>由相关的PDF文档的内容的属性。</span><span>因此，我们可以配置页面计数器的可见性，页眉和页脚的格式，文档的正文内容（</span></span><code>HtmlContent</code><span><span>属性）或</span><span>的Web设置。</span></span></p>
+<p><code>HtmlContent</code><span><span>属性是此类的非常重要的属性。</span><span>它包含我们生成的HTML模板，并显示PDF文档的主体。</span></span></p>
+<p><code>WebSettings</code><span><span>也非常重要，尤其是如果我们有一个外部CSS文件来进行样式设置时。</span><span>在此属性中，我们可以配置文档的编码并提供CSS文件的路径。</span><span>如果我们检查此属性，我们将发现更多可以配置的设置，例如PDF文档的背景，文字大小 等等..</span></span></p>
+<h2><span><span>启动项目</span></span></h2>
+<p>通过路由定位到我们的API中，重定向PDF打印界面。</p>
+<p><img src="./images/如何在ASP.NET Core 中快速构建PDF文档0.png" alt="" /></p>
+<p>&nbsp;　一切看起来都是那么完美，就这样我们就可以轻松的在ASP.NET Core中构建PDF文档并且还可以完美适配相关逻辑和某些文档设置！！</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

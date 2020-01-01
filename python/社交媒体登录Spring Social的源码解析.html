@@ -1,0 +1,93 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修社交媒体登录Spring Social的源码解析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>社交媒体登录Spring Social的源码解析</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/12014587.html</div><br>
+    <p>在上一篇文章中我们给大家介绍了OAuth2授权标准，并且着重介绍了OAuth2的授权码认证模式。目前绝大多数的社交媒体平台，都是通过OAuth2授权码认证模式对外开放接口（登录认证及用户信息接口等）。但是，我们也看到OAuth2有一定的复杂性，如果所有的代码都由我们自己开发，还是有一定的工作量的。因此，我们完全可以使用Spring Social帮助我们，Spring Social对OAuth2标准进行了完整友好的封装。<br />
+本文就通过对Spring Social源码进行一下解析，从而在我们后续开发第三方媒体平台的登录认证功能时，能更加的清晰。</p>
+<h2 id="一spring-social结构化角度解析源码">一、Spring Social结构化角度解析源码</h2>
+<p>Spring Social是一个帮助我们连接社交媒体平台，方便在我们自己的应用上开发第三方登录认证等功能的Spring 类库。其中比较核心的类和接口，如下图所示，我们来一一解析。</p>
+<p>首先我们简单回顾一下OAuth2，OAuth2主要包含两部分内容：认证和鉴权。</p>
+<ul>
+<li>认证过程就是通过用户授权，获取授权码，最终换取AccessToken的过程。这个过程是标准的OAuth2认证流程，所有平台都遵循，可以认为是一致的。</li>
+<li>鉴权过程就是携带AccessToken访问社交媒体平台API接口。当然各平台的用户不同、业务不同，所以提供的的接口不一样。</li>
+</ul>
+<p>如果你对这部分内容，还不是很熟悉，先回看我的上一篇文章。请结合下面的这张图理解后面的文字。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析0.png" alt="file" /></p>
+<h3 id="oauth2认证源码">1.1.OAuth2认证源码</h3>
+<p>首先在实现OAuth2登录认证的过程中，有多次我们自己开发的应用和社交媒体平台之间的的请求和响应。所以我们需要封装一个类用来处理标准的OAuth2认证专用的HTTP工具类，这个可以说是最重要的工作，Spring Security已经帮我们提供了OAuth2Operations接口，其默认的实现类是OAuth2Template，根据不同的平台的实现差异我们可能会需要自己来实现（微调）。认证过程中所有与OAuth2认证服务器交互的工作就全交给OAuth2Operations，最后返回给我们一个AccessToken。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析1.png" alt="file" /><br />
+对于开发者来说，只要将以上四个属性的值告诉OAuth2Operations。只要服务提供商是严格按照OAuth2标准开发的认证服务，剩下的与认证服务器交互的过程，我们就不需要处理了。</p>
+<h3 id="接口资源鉴权">1.2.接口资源鉴权</h3>
+<p>当我们获得了AccessToken之后，就有权限请求OAuth2资源服务器里面的资源了。各个社交媒体平台根据用户及业务不同提供的接口完全不同，这时我们需要用到RestTemplate，通用的HTTP工具类处理请求与响应。从图中可以看到，处理各种数据格式JSON、XML的类库，RestTemplate会自行根据环境判断使用哪一个。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析2.png" alt="file" /><br />
+那既然各个平台的业务接口各不相同，我们当然要自定义开发不同的接口实现APIImpl。此时我们应该需要一个统一的父类，包含accessToken和RestTemplate，这样我们的自定义接口实现就可以通过继承这个类获得并使用accessToken和RestTemplate。这个统一的父类叫做AbstractOAuth2Binding。它还帮助我们实现HTTP请求的参数携带，以及请求结果到对象的反序列化工作等。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析3.png" alt="file" /></p>
+<p>至此，OAuth2Operations 和 自定义接口实现APIImpl，一个负责认证流程请求响应，一个负责资源请求响应。二者统一被封装为ServiceProvider-服务提供商。<br />
+<img src="./images/社交媒体登录Spring Social的源码解析4.png" alt="file" /></p>
+<h3 id="确定用户关系">1.3.确定用户关系</h3>
+<p>通过实现上面的代码中的接口，我们自己的应用与社交媒体平台（服务提供商）的HTTP交互过程就已经可以被全部支持了。但是开发社交媒体登陆还有一个很重要的步骤就是：判定社交媒体平台响应的用户信息与我们自己的应用用户之间的关系。我们用一张数据库表来表示这个关系，而且必须是这张表（Spring Social专用，在spring-social-core包里面可以找到）：</p>
+<pre><code><code>create table UserConnection (
+    userId varchar(255) not null,
+    providerId varchar(255) not null,
+    providerUserId varchar(255),
+    rank int not null,
+    displayName varchar(255),
+    profileUrl varchar(512),
+    imageUrl varchar(512),
+    accessToken varchar(512) not null,
+    secret varchar(512),
+    refreshToken varchar(512),
+    expireTime bigint,
+    primary key (userId, providerId, providerUserId));
+create unique index UserConnectionRank on UserConnection(userId, providerId, rank);</code></pre>
+<p>这张表中，最重要的三个字段就是userId（自开发应用的用户唯一标识），provider（服务提供商，社交媒体平台唯一标识），providerUserId （服务提供商用户的唯一标识）。通过这三个字段体现自开发应用的用户与服务提供商用户之间的关系，从而判定服务提供商的用户是否可以通过OAuth2认证登录我们的应用。(这张表里面的数据，是通过注册或者绑定操作加入进去的，与认证、鉴权过程无关)</p>
+<ul>
+<li>通过1.2小节中的接口，我们可以获得社交媒体的用户的数据User，但是我们说过了这个User在不同的服务提供商平台上，其结构是完全不同的。而spring Social只认识一种用户的数据结构，那就是Connection（OAuth2Connection）。所以我们需要一个ApiAdapter帮我们将二者进行适配。ApiAdapter是一个接口，内容需要我们自行实现。</li>
+<li>现在我们拿到了Spring Social认可的服务提供商用户信息Connection，然后使用Connection加载UserId（我们自己开发的平台的userid）。如果能够加载到userId（不为空），表示登录验证成功。</li>
+</ul>
+<p><img src="./images/社交媒体登录Spring Social的源码解析5.png" alt="file" /></p>
+<h2 id="本地应用授权">1.4.本地应用授权</h2>
+<p>通过实现上面代码中的接口，我们就可以拿到userId，我们自己开发的应用的用户的唯一标识。也表示利用社交媒体用户登录我们自己开发的应用成功了。但是，还有一个问题没有解决，你是登陆成功了，但是不意味着你可以访问本地应用中的所有资源。所以，我们根据userId查找当前用户，并为他赋权。</p>
+<p>在我们之前的使用用户名密码登陆的案例中，是通过实现UserDetailsService和UserDetails接口来实现的。在社交媒体登录过程中，我们需要实现的接口是SocialUserDetailsService和SocialUserDetails。其实实现原理是一样的，就是用用户的唯一标识userId，加载该用户角色的权限信息。至此，Spring Security就知道了该用户的权限信息，可以有效的控制其访问权限。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析6.png" alt="file" /></p>
+<h2 id="二spring-social流程角度解析源码">二、Spring Social流程角度解析源码</h2>
+<p>Spring Social自动配置会在过滤器链中加入一个SocialAuthenticationFilter过滤器，该过滤器拦截社交媒体登录请求。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析7.png" alt="file" /><br />
+SocialAuthenticationFilter过滤器拦截的社交媒体登录请求的地址是{filterProcessesUrl}/{providerId}。filterProcessesUrl的默认值是“/auth”，如果你的服务提供商providerId(自定义)是github，那么你的社交媒体登录按钮请求的地址就应该是“/auth/github”，当然这两个值我们都可以修改。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析8.png" alt="file" /></p>
+<p>要说明的是{filterProcessesUrl}/{providerId}在Spring Social既是认证请求的地址，也是服务提供商回调的地址。当用户点击&quot;github登录&quot;按钮，此时访问/{filterProcessesUrl}/{providerId}被拦截，此时用户没有被认证通过，所以跳转到GitHub授权页面（authorizeUrl）上，用户输入用户密码授权，在浏览器跳回到本地应用，仍然回到/{filterProcessesUrl}/{providerId}再次被拦截。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析9.png" alt="file" /><br />
+首先要检测用户是否授权使用第三方平台用户信息，如果没授权就直接抛出异常。如果用户授权了，就去执行OAuth2一系列的请求响应，获取授权码、AccessToken、Connection用户信息。这个过程代码在OAuth2AuthenticationService中被定义。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析10.png" alt="file" /><br />
+doAuthentication中授权过程，参考1.3、1.4小节内容。如果授权失败（该社交平台用户在本地应用中没有对应的用户），则跳转到signUpUrl。执行注册即用户关系绑定业务逻辑。</p>
+<p><img src="./images/社交媒体登录Spring Social的源码解析11.png" alt="file" /></p>
+<blockquote>
+<p>注意：Spring Social实现的OAuth2认证鉴权流程中，使用到了session（如上图中的sessionStrategy代码）。所以当你的应用是一个无状态应用时，需要对Spring Social进行一定程度的改造。但是笔者从来没这么做过。简单的做法就是：使用session开发有状态应用，并且session保存的状态信息交给redis集中管理；或者开发无状态应用之前，确定该应用不需要社交媒体登录功能，比如某企业内网应用。</p>
+</blockquote>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>向您推荐博主的系列文档：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

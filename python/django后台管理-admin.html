@@ -1,0 +1,119 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修django后台管理-admin' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>django后台管理-admin</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11568685.html</div><br>
+    <h1 id="自我总结">0922自我总结</h1>
+<h1 id="django后台管理-admin">django后台管理-admin</h1>
+<h2 id="一.模型注册">一.模型注册</h2>
+<p>admin.py</p>
+<p>注册方式一:</p>
+<pre><code><code>#在对于注册的app中的admin文件中导入模型然后注册模型
+admin.site.register(导入的模型类)</code></pre>
+<p>注册方式二<code>该方法是Django1.7的版本新增的功能</code>:</p>
+<pre><code><code>from django.contrib import admin
+from blog.models import Blog
+  
+#Blog模型的管理器
+@admin.register(Blog)
+class BlogAdmin(admin.ModelAdmin):
+    list_display=(&#39;id&#39;, &#39;caption&#39;, &#39;author&#39;, &#39;publish_time&#39;)</code></pre>
+<h2 id="二.admin界面的汉化">二.admin界面的汉化</h2>
+<pre><code><code>默认admin后台管理界面是英文的，对英语盲来说用起来不方便。可以在settings.py中设置：
+LANGUAGE_CODE = &#39;zh-CN&#39;
+TIME_ZONE = &#39;Asia/Shanghai&#39;
+1.8版本之后的language code设置不同：
+LANGUAGE_CODE = &#39;zh-hans&#39;
+TIME_ZONE = &#39;Asia/Shanghai&#39;</code></pre>
+<h2 id="三.admin界面优化">三.admin界面优化</h2>
+<h3 id="记录列表基本设置">1、记录列表基本设置</h3>
+<pre><code><code>from django.contrib import admin
+from blog.models import Blog
+  
+#Blog模型的管理器
+@admin.register(Blog)
+class BlogAdmin(admin.ModelAdmin):
+    #listdisplay设置要显示在列表中的字段（id字段是Django模型的默认主键）
+    list_display = (&#39;id&#39;, &#39;caption&#39;, &#39;author&#39;, &#39;publish_time&#39;)
+    
+    #list_per_page设置每页显示多少条记录，默认是100条
+    list_per_page = 50
+    
+    #ordering设置默认排序字段，负号表示降序排序
+    ordering = (&#39;-publish_time&#39;,)
+  
+    #list_editable 设置默认可编辑字段
+    list_editable = [&#39;machine_room_id&#39;, &#39;temperature&#39;]
+  
+    #fk_fields 设置显示外键字段
+     fk_fields = (&#39;machine_room_id&#39;,)</code></pre>
+<h3 id="筛选器">2、筛选器</h3>
+<pre><code><code>from django.contrib import admin
+from blog.models import Blog
+  
+#Blog模型的管理器
+@admin.register(Blog)
+class BlogAdmin(admin.ModelAdmin):
+    list_display = (&#39;id&#39;, &#39;caption&#39;, &#39;author&#39;, &#39;publish_time&#39;)
+     
+    #筛选器
+    list_filter =(&#39;trouble&#39;, &#39;go_time&#39;, &#39;act_man__user_name&#39;, &#39;machine_room_id__machine_room_name&#39;) #过滤器
+    search_fields =(&#39;server&#39;, &#39;net&#39;, &#39;mark&#39;) #搜索字段
+    date_hierarchy = &#39;go_time&#39;    # 详细时间分层筛选　时间相关字段</code></pre>
+<p>此处注意：</p>
+<p>使用 date_hierarchy 进行详细时间筛选的时候 可能出现报错：Database returned an invalid datetime value. Are time zone definitions for your database and pytz installed?</p>
+<p>处理方法：</p>
+<p>命令行直接执行此命令： [root@mysql ~]# mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql</p>
+<p>然后重启数据库即可。</p>
+<p>一般ManyToManyField多对多字段用过滤器；标题等文本字段用搜索框；日期时间用分层筛选。</p>
+<p>过滤器如果是外键需要遵循这样的语法：本表字段__外键表要显示的字段。如：“user__user_name”</p>
+<h3 id="颜色显示">3、颜色显示</h3>
+<pre><code><code>from django.db import models
+from django.contrib import admin
+from django.utils.html import format_html
+ 
+class Person(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    color_code = models.CharField(max_length=6)
+ 
+    def colored_name(self):
+        return format_html(
+            &#39;&lt;span style=&quot;color: #{};&quot;&gt;{} {}&lt;/span&gt;&#39;,
+            self.color_code,
+            self.first_name,
+            self.last_name,
+        )
+ 
+class PersonAdmin(admin.ModelAdmin):
+    list_display = (&#39;first_name&#39;, &#39;last_name&#39;, &#39;colored_name&#39;)</code></pre>
+<p><code>注意看上面代码，是写在models里，而不是admin中的ModelAdmin里</code></p>
+<h3 id="调整页面头部显示内容和页面标题">4.调整页面头部显示内容和页面标题</h3>
+<pre><code><code>class MyAdminSite(admin.AdminSite):
+    site_header = &#39;xx&#39;  # 此处设置页面显示标题
+    site_title = &#39;xxx&#39;  # 此处设置页面头部标题
+ 
+admin_site = MyAdminSite(name=&#39;management&#39;)</code></pre>
+<p>需要注意的是： admin_site = MyAdminSite(name='management') 此处括号内name值必须设置，否则将无法使用admin设置权限，至于设置什么值，经本人测试，没有影响。</p>
+<p>具体内容请看:https://www.cnblogs.com/wumingxiaoyao/p/6928297.html</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

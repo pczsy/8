@@ -1,0 +1,135 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修递归的实际业务场景之MySQL 递归查询' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>递归的实际业务场景之MySQL 递归查询</center></div><div class='banquan'>原文出处:本文由博客园博主布尔bl提供。<br/>
+原文连接:https://www.cnblogs.com/chenzhuantou/p/12054387.html</div><br>
+    <blockquote>
+<p>喜欢就点个赞呗!<br />
+<a href="https://github.com/buerbl/learnSpringboot/tree/master/lsb-digui">源码</a>&lt;--请点击此处查看</p>
+</blockquote>
+<h3 id="引入">引入</h3>
+<p>当我看到一些评论时，例如下面的样子。我挺好奇这个功能是怎么样做出来的。进过查阅资料，发现这其实是 MySQL 的递归操作。下面就让我操作一下怎么实现 MySQL 的递归查询。</p>
+<p><img src="./images/递归的实际业务场景之MySQL 递归查询0.png" /></p>
+<h3 id="设计数据库">设计数据库</h3>
+<p>观察这种数据库设计，你会发现他都有一个父节点，一直到根节点，所以我们设计数据库的时候，应该设置一个 parentid 字段。所以，我们可以得到以下的数据库。</p>
+<p><img src="./images/递归的实际业务场景之MySQL 递归查询1.png" /></p>
+<p>sql 脚本如下</p>
+<pre><code><code>CREATE TABLE digui(
+    id INT(11) NOT null auto_increment,
+    msg VARCHAR(255) not NULL COMMENT &#39;评论的内容&#39;,
+    parentid int(11) not null COMMENT &#39;上一条&#39;,
+    PRIMARY KEY(id)
+)ENGINE=INNODB auto_increment = 100 DEFAULT CHARSET=utf8mb4;
+
+INSERT into `digui`(msg, parentid) VALUES (&#39;A&#39;, 0);
+INSERT into `digui`(msg, parentid) VALUES(&#39;B&#39;, 1);
+INSERT into `digui`(msg, parentid) VALUES(&#39;D&#39;, 3);
+INSERT into `digui`(msg, parentid) VALUES(&#39;C&#39;, 2);</code></pre>
+<p>其实实现 MySQL 的递归查询方法有很多</p>
+<ol>
+<li>使用 MySQL 存储过程</li>
+<li>应用层代码递归</li>
+<li>MyBatis 的 collection 标签</li>
+</ol>
+<h3 id="方案1-应用层代码递归">方案1 应用层代码递归</h3>
+<pre class="java"><code>//应用层递归查询
+@Override
+public List&lt;Digui&gt; getAll(int parent) {
+    List&lt;Digui&gt; deptVosList=new ArrayList&lt;&gt;();
+    QueryWrapper queryWrapper = new QueryWrapper();
+    queryWrapper.eq(&quot;parentid&quot;, parent);
+    List&lt;Digui&gt; list1 = list(queryWrapper);
+    for (Digui digui: list1) {
+        Digui digui1 = new Digui();
+        digui1.setId(digui.getId());
+        digui1.setMsg(digui.getMsg());
+        digui1.setParentid(digui.getParentid());
+        // 此处递归调用赋值
+        digui1.setDiguiList(getAll(digui.getId()));
+        deptVosList.add(digui1);
+    }
+    return deptVosList;
+
+}</code></pre>
+<h3 id="方案2-mybatis-的-collection-标签">方案2 MyBatis 的 collection 标签</h3>
+<pre class="xml"><code> &lt;resultMap id=&quot;RecursiveMap&quot; type=&quot;com.example.lsbdigui.entity.Digui&quot;&gt;
+        &lt;result property=&quot;id&quot; column=&quot;id&quot;/&gt;
+        &lt;result property=&quot;msg&quot; column=&quot;msg&quot;/&gt;
+        &lt;result property=&quot;parentid&quot; column=&quot;parentid&quot;/&gt;
+        &lt;collection property=&quot;diguiList&quot; ofType=&quot;com.example.lsbdigui.entity.Digui&quot;
+                    select=&quot;com.example.lsbdigui.mapper.DiguiMapper.getAllBySQL&quot;
+                    column=&quot;id&quot;/&gt;
+&lt;/resultMap&gt;
+&lt;select id=&quot;getAllBySQL&quot; resultMap=&quot;RecursiveMap&quot;&gt;
+    select *
+    from digui
+    where parentid = #{parent}
+&lt;/select&gt;</code></pre>
+<p>使用<code>&lt;collection&gt;</code> 、<code>&lt;select&gt;</code>标签实现 sql 递归查询。</p>
+<h2 id="结果">结果</h2>
+<pre class="json"><code>{
+    &quot;code&quot;: 200,
+    &quot;msg&quot;: &quot;正确返回&quot;,
+    &quot;date&quot;: [
+        {
+            &quot;id&quot;: 100,
+            &quot;msg&quot;: &quot;A&quot;,
+            &quot;parentid&quot;: 0,
+            &quot;diguiList&quot;: [
+                {
+                    &quot;id&quot;: 101,
+                    &quot;msg&quot;: &quot;B&quot;,
+                    &quot;parentid&quot;: 100,
+                    &quot;diguiList&quot;: [
+                        {
+                            &quot;id&quot;: 103,
+                            &quot;msg&quot;: &quot;C&quot;,
+                            &quot;parentid&quot;: 101,
+                            &quot;diguiList&quot;: [
+                                {
+                                    &quot;id&quot;: 102,
+                                    &quot;msg&quot;: &quot;D&quot;,
+                                    &quot;parentid&quot;: 103,
+                                    &quot;diguiList&quot;: []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}</code></pre>
+<h3 id="对比">对比</h3>
+<p><img src="./images/递归的实际业务场景之MySQL 递归查询2.png" /></p>
+<h3 id="建议">建议</h3>
+<p>应用层可以一次查询全部数据，然后再递归找出需要的数据，这样可以减少数据库查询，性能更佳。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>https://blog.rxliuli.com/p/5830226b/</li>
+<li>https://juejin.im/entry/59be34fe5188257e8b36a303</li>
+<li>https://blog.csdn.net/u014079773/article/details/53338116</li>
+</ul>
+<h3 id="关注微信公众号随时移动端阅读">关注微信公众号，随时移动端阅读</h3>
+<p><img src="./images/递归的实际业务场景之MySQL 递归查询3.png" alt="公众号.jpg" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,63 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修爬虫实例学习——爬取酷狗TOP500数据' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>爬虫实例学习——爬取酷狗TOP500数据</center></div><div class='banquan'>原文出处:本文由博客园博主JUNECODE提供。<br/>
+原文连接:https://www.cnblogs.com/junecode/p/11306266.html</div><br>
+    <p>酷狗网址：<a href="https://www.kugou.com/yy/rank/home/1-8888.html?from=rank" data-cke-saved-href="https://www.kugou.com/yy/rank/home/1-8888.html?from=rank">https://www.kugou.com/yy/rank/home/1-8888.html?from=rank</a></p>
+<p>环境：eclipse+pydev</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> requests
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">from</span> bs4 <span style="color: #0000ff;">import</span><span style="color: #000000;"> BeautifulSoup
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> headers =<span style="color: #000000;">{
+</span><span style="color: #008080;"> 6</span>     <span style="color: #800000;">'</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">'</span>:<span style="color: #800000;">'</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36 QIHU 360EE</span><span style="color: #800000;">'</span>
+<span style="color: #008080;"> 7</span>           }    <span style="color: #008000;">#</span><span style="color: #008000;">加入请求头，伪装成浏览器，以便更好抓取数据</span>
+<span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #0000ff;">def</span> get_info(url):           <span style="color: #008000;">#</span><span style="color: #008000;">定义获取信息的函数</span>
+<span style="color: #008080;">10</span>     wb_data = requests.get(url,headers =<span style="color: #000000;"> headers)
+</span><span style="color: #008080;">11</span>     soup = BeautifulSoup(wb_data.text,<span style="color: #800000;">'</span><span style="color: #800000;">lxml</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">12</span>     ranks = soup.select(<span style="color: #800000;">'</span><span style="color: #800000;">span.pc_temp_num</span><span style="color: #800000;">'</span>)                     <span style="color: #008000;">#</span><span style="color: #008000;">selet()方法见下面图示</span>
+<span style="color: #008080;">13</span>     titles = soup.select(<span style="color: #800000;">'</span><span style="color: #800000;">#rankWrap &gt; div.pc_temp_songlist &gt; ul &gt; li &gt; a</span><span style="color: #800000;">'</span><span style="color: #000000;">)  
+</span><span style="color: #008080;">14</span>     times = soup.select(<span style="color: #800000;">'</span><span style="color: #800000;">span.pc_temp_tips_r &gt; span</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">15</span>     <span style="color: #0000ff;">for</span> rank,title,time <span style="color: #0000ff;">in</span><span style="color: #000000;"> zip(ranks,titles,times):
+</span><span style="color: #008080;">16</span>         data =<span style="color: #000000;"> {
+</span><span style="color: #008080;">17</span>             <span style="color: #800000;">'</span><span style="color: #800000;">rank</span><span style="color: #800000;">'</span>:rank.get_text().strip(),                <span style="color: #008000;">#</span><span style="color: #008000;">歌曲序号</span>
+<span style="color: #008080;">18</span>             <span style="color: #800000;">'</span><span style="color: #800000;">singer</span><span style="color: #800000;">'</span>:title.get_text().split(<span style="color: #800000;">'</span><span style="color: #800000;">-</span><span style="color: #800000;">'</span>)[0],       <span style="color: #008000;">#</span><span style="color: #008000;">歌手名称</span>
+<span style="color: #008080;">19</span>             <span style="color: #800000;">'</span><span style="color: #800000;">song</span><span style="color: #800000;">'</span>:title.get_text().split(<span style="color: #800000;">'</span><span style="color: #800000;">-</span><span style="color: #800000;">'</span>)[1],         <span style="color: #008000;">#</span><span style="color: #008000;">歌曲名称</span>
+<span style="color: #008080;">20</span>             <span style="color: #800000;">'</span><span style="color: #800000;">time</span><span style="color: #800000;">'</span>:time.get_text().strip()                 <span style="color: #008000;">#</span><span style="color: #008000;">歌曲时长</span>
+<span style="color: #008080;">21</span> <span style="color: #000000;">        }         
+</span><span style="color: #008080;">22</span>         <span style="color: #0000ff;">print</span><span style="color: #000000;"> (data)     
+</span><span style="color: #008080;">23</span>         
+<span style="color: #008080;">24</span> <span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span>:                <span style="color: #008000;">#</span><span style="color: #008000;">程序主入口</span>
+<span style="color: #008080;">25</span>     urls = [<span style="color: #800000;">'</span><span style="color: #800000;">https://www.kugou.com/yy/rank/home/{}-8888.html?from=rank</span><span style="color: #800000;">'</span>.format(str(i)) <span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> range(1,24)]            <span style="color: #008000;">#</span><span style="color: #008000;">构建多页url，500条结果需23组，每页网页22条</span>
+<span style="color: #008080;">26</span>     <span style="color: #0000ff;">for</span> url <span style="color: #0000ff;">in</span><span style="color: #000000;"> urls:
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        get_info(url)
+</span><span style="color: #008080;">28</span>         time.sleep(1)            <span style="color: #008000;">#</span><span style="color: #008000;">暂停程序，避免因提交网页请求频率过快而导致程序异常终止</span></pre>
+</div>
+<p>请求头获取方式：打开chrome浏览器，输入chrome://version，添加时加上&lsquo;User-Agent&rsquo;:即可（获得信息应置于' '中）。</p>
+<p>select()使用方法:该方法类似于中国&gt;广东省&gt;惠州市，从大到小，提取信息，可通过chrome复制得到，如图示：</p>
+<p><span data-cke-copybin-start="1"><span class="cke_widget_wrapper cke_widget_inline cke_widget_image cke_image_nocaption cke_widget_focused cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="图像" data-cke-widget-id="1"><img class="has cke_widget_element" src="./images/爬虫实例学习——爬取酷狗TOP500数据0.png" alt="" width="993" height="471" data-cke-saved-src="./images/爬虫实例学习——爬取酷狗TOP500数据0.png" data-cke-widget-data="{&amp;quot;hasCaption&amp;quot;:false,&amp;quot;src&amp;quot;:&amp;quot;./images/爬虫实例学习——爬取酷狗TOP500数据0.png&amp;quot;,&amp;quot;alt&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;width&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;height&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;lock&amp;quot;:true,&amp;quot;align&amp;quot;:&amp;quot;none&amp;quot;,&amp;quot;classes&amp;quot;:{&amp;quot;has&amp;quot;:1}}" data-cke-widget-upcasted="1" data-cke-widget-keep-attr="0" data-widget="image" /><span class="cke_reset cke_widget_drag_handler_container"><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /><span class="cke_image_resizer" title="点击并拖拽以改变尺寸">​<span data-cke-copybin-end="1">​</span></span></span></span></span></p>
+<p>&nbsp; 注意：将li:nth-of-child(1)改为li</p>
+<p>运行结果：</p>
+<p><img src="./images/爬虫实例学习——爬取酷狗TOP500数据2.png" alt="" /></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,108 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修手把手教你使用gogs搭建git私有仓库' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>手把手教你使用gogs搭建git私有仓库</center></div><div class='banquan'>原文出处:本文由博客园博主hoxis提供。<br/>
+原文连接:https://www.cnblogs.com/hoxis/p/11462959.html</div><br>
+    <p>本来想在 Github 上建一个私仓，但是发现只能设置 3 个贡献者。</p>
+<p>国内的码云也只能设置 5 个。</p>
+<p>无意间看到了使用 gogs 可以搭建私服，正好手头有空闲的服务器，于是开干！</p>
+<p><a href="https://gogs.io/" class="uri">https://gogs.io/</a></p>
+<!--more-->
+<p><img src="./images/手把手教你使用gogs搭建git私有仓库0.png" alt="gogs" /></p>
+<h1 id="安装-git">1、安装 git</h1>
+<pre><code><code>yum install git</code></pre>
+<h1 id="安装mysql">2、安装MySQL</h1>
+<p>安装过程省略。</p>
+<p>安装后登录 MySQL 进行如下配置：</p>
+<pre class="sql"><code>create database gogs default character set utf8mb4 collate utf8mb4_unicode_ci;
+
+# 这里我新建了一个用户用来访问gogs数据库
+CREATE USER &#39;pig&#39;@&#39;%&#39; IDENTIFIED BY &#39;xxxx&#39;;
+GRANT ALL ON gogs.* TO &#39;pig&#39;@&#39;%&#39;;</code></pre>
+<h1 id="安装gogs">3、安装gogs</h1>
+<h2 id="创建git用户">3.1 创建git用户</h2>
+<p>建议使用 git 用户，因为 gogs 配置文件默认使用的 git 用户。</p>
+<pre><code><code>useradd git
+passwd git设置密码</code></pre>
+<h2 id="下载解压gogs">3.2 下载解压gogs</h2>
+<pre><code><code>su git
+cd 
+
+wget https://dl.gogs.io/0.11.29/linux_amd64.zip
+# unzip 命令不可用的话需先安装
+unzip linux_amd64.zip</code></pre>
+<h2 id="配置gogs">3.3 配置gogs</h2>
+<p><code>vim /home/git/gogs/scripts/init/debian/gogs</code></p>
+<pre><code><code>PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC=&quot;GoGs Git Service&quot;
+NAME=gogs
+SERVICEVERBOSE=yes
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+WORKINGDIR=/home/git/gogs #根据自己的目录修改
+DAEMON=$WORKINGDIR/$NAME
+DAEMON_ARGS=&quot;web&quot;
+USER=git  #修改对应用户</code></pre>
+<h2 id="切回root拷贝文件和服务">3.4 切回root，拷贝文件和服务</h2>
+<pre><code><code>#拷贝到init.d下
+cp /home/git/gogs/scripts/init/debian/gogs /etc/init.d/
+#添加可执行权限
+chmod +x /etc/init.d/gogs
+#拷贝service
+cp /home/git/gogs/scripts/systemd/gogs.service /etc/systemd/system/</code></pre>
+<h2 id="启动">3.5 启动</h2>
+<pre><code><code>systemctl start gogs.service </code></pre>
+<h1 id="配置-gogs">4、配置 gogs</h1>
+<p>此时，使用 <code>ip:3000</code> 就可以访问了</p>
+<h2 id="p.s.-阿里云的坑">P.S. 阿里云的坑</h2>
+<p>阿里云的主机默认是无法访问 3000 端口的，解决方法</p>
+<p>① 登录到阿里云控制台，进入到自己的云主机管理页面</p>
+<p>② 点击『防火墙』</p>
+<p><img src="./images/手把手教你使用gogs搭建git私有仓库1.png" alt="防火墙" /></p>
+<p>③ 添加 3000 端口的访问规则</p>
+<p><img src="./images/手把手教你使用gogs搭建git私有仓库2.png" alt="添加访问规则" /></p>
+<p>确定，然后就可以继续访问之前的页面了。</p>
+<p>第一次访问 Gogs，浏览器进入安装页面，如图所示填写字段</p>
+<p><img src="./images/手把手教你使用gogs搭建git私有仓库3.png" alt="数据库配置" /></p>
+<p><img src="./images/手把手教你使用gogs搭建git私有仓库4.png" alt="其他配置" /></p>
+<p>点击 install gogs，安装成功以后会直接进入 gogs 首页，在这里可以注册或者登录，完全像是一个正常的网站。</p>
+<p>若在安装页面没有配置管理员，那么第一个注册的用户默认自动变成管理员，之后注册的用户都是普通用户。</p>
+<h2 id="配置文件详解">配置文件详解</h2>
+<p>配置文件位于：</p>
+<p><code>/home/git/gogs/custom/conf/app.ini</code></p>
+<p>其中参数的详细解释可以看官网：<a href="https://gogs.io/docs/advanced/configuration_cheat_sheet" class="uri">https://gogs.io/docs/advanced/configuration_cheat_sheet</a></p>
+<p><strong>禁止用户注册</strong></p>
+<p>为了系统安全性，考虑禁止用户注册，只能由管理员创建帐号。</p>
+<p>将参数 DISABLE_REGISTRATION 设置为 true。</p>
+<pre><code><code>DISABLE_REGISTRATION = true</code></pre>
+<p>此时需要在页面进行创建账号：</p>
+<p><img src="./images/手把手教你使用gogs搭建git私有仓库5.png" alt="管理面板" /></p>
+<p><img src="./images/手把手教你使用gogs搭建git私有仓库6.png" alt="创建账号" /></p>
+<p>至此，基于 gogs 的 Git 私仓搭建基本完毕。</p>
+<hr />
+<p>参考：</p>
+<p><a href="https://www.jianshu.com/p/63206dad0afa" class="uri">https://www.jianshu.com/p/63206dad0afa</a><br />
+<a href="https://blog.csdn.net/qq_22638399/article/details/80658196" class="uri">https://blog.csdn.net/qq_22638399/article/details/80658196</a><br />
+<a href="https://zhuanlan.zhihu.com/p/30798837" class="uri">https://zhuanlan.zhihu.com/p/30798837</a><br />
+<a href="https://www.jianshu.com/p/28e8aa8f9ec4" class="uri">https://www.jianshu.com/p/28e8aa8f9ec4</a></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,182 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Django之choices选项和富文本编辑器的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Django之choices选项和富文本编辑器的使用</center></div><div class='banquan'>原文出处:本文由博客园博主YifChan提供。<br/>
+原文连接:https://www.cnblogs.com/yifchan/p/python-1-35.html</div><br>
+    <h2>项目准备</h2>
+<p>1.创建数据库</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">create</span> <span style="color: #0000ff;">database</span> choices_test <span style="color: #0000ff;">default</span> charset utf8;</pre>
+</div>
+<p>2.创建一个名为 choices_test 的Django项目；</p>
+<p>3.创建应用app01；</p>
+<p>项目结构如下所示</p>
+<p><img src="./images/Django之choices选项和富文本编辑器的使用0.png" alt="" /></p>
+<p>&nbsp;4.配置数据库；</p>
+<div class="cnblogs_code">
+<pre><code>DATABASES =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">default</span><span style="color: #800000;">'</span><span style="color: #000000;">: {
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">ENGINE</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">django.db.backends.mysql</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">NAME</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">choices_test</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">USER</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">PASSWORD</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">root</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">HOST</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">localhost</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">PORT</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">3306</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    }
+}</span></pre>
+</div>
+<p>5.__init__.py</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> pymysql
+
+pymysql.install_as_MySQLdb()</span></pre>
+</div>
+<p>&nbsp;</p>
+<h2>choices选项的使用</h2>
+<h3>在模型类中使用choices选项</h3>
+<p>1.编写Goods模型类</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.db <span style="color: #0000ff;">import</span><span style="color: #000000;"> models
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Goods(models.Model):
+    STATUS_CHOICES </span>=<span style="color: #000000;"> (
+        (0, </span><span style="color: #800000;">'</span><span style="color: #800000;">下架</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+        (</span>1, <span style="color: #800000;">'</span><span style="color: #800000;">上架</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    )
+    ststus </span>= models.SmallIntegerField(choices=STATUS_CHOICES, default=1, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">商品上架下架</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        db_table </span>= <span style="color: #800000;">"</span><span style="color: #800000;">goods</span><span style="color: #800000;">"</span>  <span style="color: #008000;">#</span><span style="color: #008000;"> 指定创建表名使表名为goods</span>
+        verbose_name = <span style="color: #800000;">"</span><span style="color: #800000;">商品</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        verbose_name_plural </span>= verbose_name  <span style="color: #008000;">#</span><span style="color: #008000;"> 和上面一句结合使用，在后台管理时显示表名为"商品"</span></pre>
+</div>
+<p>verbose_name作用</p>
+<ul>
+<li>verbose_name：设置在admin中显示的名称，并且默认会后面加个s，表示复数；</li>
+<li>verbose_name_plural = verbose_name; ---&gt;设置在admin显示的不加s；</li>
+</ul>
+<p>&nbsp;</p>
+<p>2.去admin.py文件注册Goods模型类&nbsp;</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.contrib <span style="color: #0000ff;">import</span><span style="color: #000000;"> admin
+</span><span style="color: #0000ff;">from</span> app01.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> Goods
+
+
+admin.site.register(Goods)</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>3.数据表迁移</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">python manage.py makemigrations
+
+python manage.py migrate</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>4.配置后台管理</p>
+<p>配置时区</p>
+<div class="cnblogs_code">
+<pre><code>LANGUAGE_CODE = 'zh-hans'<span>
+
+TIME_ZONE = 'Asia/Shanghai'</span></pre>
+</div>
+<p>创建超级管理员</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #000000;">python manage.py createsuperuser
+user:admin
+password:admin123</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>5.启动项目</p>
+<p>登录后台管理</p>
+<p>如下页面</p>
+<p><img src="./images/Django之choices选项和富文本编辑器的使用1.png" alt="" width="854" height="331" /></p>
+<p>&nbsp;choices选项效果图</p>
+<p><img src="./images/Django之choices选项和富文本编辑器的使用2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>富文本编辑器</h2>
+<h3>富文本编辑器准备</h3>
+<p>1.安装编辑器包</p>
+<div class="cnblogs_code">
+<pre><code>pip install django-tinymce</pre>
+</div>
+<p>2.注册tinymce应用</p>
+<div class="cnblogs_code">
+<pre><code>INSTALLED_APPS =<span style="color: #000000;"> [
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">tinymce</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+]</span></pre>
+</div>
+<p>3.在settings文件中添加tinymce配置</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;"> 编辑器相关配置</span>
+TINYMCE_DEFAULT_CONFIG =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">theme</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">advanced</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">width</span><span style="color: #800000;">'</span>: 600<span style="color: #000000;">,
+    </span><span style="color: #800000;">'</span><span style="color: #800000;">height</span><span style="color: #800000;">'</span>: 400<span style="color: #000000;">,
+}</span></pre>
+</div>
+<p>4.配置tinymce路由</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> django.conf.urls <span style="color: #0000ff;">import</span><span style="color: #000000;"> url, include
+
+urlpatterns </span>=<span style="color: #000000;"> [
+    url(r</span><span style="color: #800000;">'</span><span style="color: #800000;">^tinymce/</span><span style="color: #800000;">'</span>, include(<span style="color: #800000;">'</span><span style="color: #800000;">tinymce.urls</span><span style="color: #800000;">'</span><span style="color: #000000;">)),
+]</span></pre>
+</div>
+<p>&nbsp;</p>
+<h3>模型类中使用编辑器</h3>
+<p>1.编写模型类代码</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> tinymce.models <span style="color: #0000ff;">import</span><span style="color: #000000;"> HTMLField
+
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Goods(models.Model):
+    </span><span style="color: #800000;">"""</span><span style="color: #800000;">商品测试模型类</span><span style="color: #800000;">"""</span><span style="color: #000000;">
+    STATUS_CHOICES </span>=<span style="color: #000000;"> (
+        (0, </span><span style="color: #800000;">'</span><span style="color: #800000;">下架</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+        (</span>1, <span style="color: #800000;">'</span><span style="color: #800000;">上架</span><span style="color: #800000;">'</span><span style="color: #000000;">),
+    )
+    ststus </span>= models.SmallIntegerField(choices=STATUS_CHOICES, default=1, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">商品上架下架</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> null=True 允许数据库为空，blank=True 允许后台输入时为空</span>
+    detail = HTMLField(null=True, blank=True, verbose_name=<span style="color: #800000;">"</span><span style="color: #800000;">商品详情</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+
+    </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Meta:
+        db_table </span>= <span style="color: #800000;">"</span><span style="color: #800000;">goods</span><span style="color: #800000;">"</span>  <span style="color: #008000;">#</span><span style="color: #008000;"> 指定创建表名使表名为goods</span>
+        verbose_name = <span style="color: #800000;">"</span><span style="color: #800000;">商品</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        verbose_name_plural </span>= verbose_name  <span style="color: #008000;">#</span><span style="color: #008000;"> 和上面一句结合使用，在后台管理时显示表名为"商品"</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>2.数据表迁移</p>
+<div class="cnblogs_code">
+<pre><code><span>python manage.py makemigrations
+
+python manage.py migrate</span></pre>
+</div>
+<p>&nbsp;</p>
+<p>3.进入后台管理，增加商品</p>
+<p>至此，我们可以在后台管理中看见如下页面</p>
+<p><img src="./images/Django之choices选项和富文本编辑器的使用3.png" alt="" width="728" height="506" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;即富文本编辑器在后台中使用成功。</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

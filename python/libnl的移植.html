@@ -1,0 +1,137 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修libnl的移植' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>libnl的移植</center></div><div class='banquan'>原文出处:本文由博客园博主freedo提供。<br/>
+原文连接:https://www.cnblogs.com/lifo/p/12006099.html</div><br>
+    <h3 id="libnl简介">libnl简介</h3>
+<p>libnl是为了方便应用程序使用netlink接口而开发的一个库。这个库为原始netlink消息传递以及不同的netlink,family专用接口提供了一个统一的接口。libnl2.0的API与libnl1.0的API并不兼容。如果您的应用程序不做相应调整，将可能导致不可用。<br />
+移植libnl1.1是hostapd的移植的一部分。hostapd使用的libnl库为1.x版本，2.0版本的API与1.0的并不兼容，故这里移植1.1版本，但2.0移植方式相同。</p>
+<h3 id="开发环境">开发环境</h3>
+<blockquote>
+<p>Ubuntu 18.04<br />
+arm-linux-gnueabi-gcc version 4.8.3</p>
+</blockquote>
+<p>开发环境不一定是我这配置，只要是Linux操作系统，和ARM对应的交叉工具链就可以。</p>
+<h3 id="目标环境">目标环境</h3>
+<blockquote>
+<p>讯为,三星4412(Cotex A9)<br />
+内核版本：4.6.1</p>
+</blockquote>
+<h3 id="移植步骤">移植步骤</h3>
+<ol>
+<li>从libnl官网下载libnl-1.1.4源码。<br />
+</li>
+<li>执行下面命名解压缩:<code>tar zxvf libnl-1.1.4.tar.gz</code></li>
+<li>进入刚解压的目录cd libnl-1.1.4，执行下面指令，做相应的配置：</li>
+</ol>
+<p><code>sudo ./configure --host=arm-linux --prefix=$(pwd)/__install --enable-static --enable-shared CC=/usr/arm/arm-2014.05/bin/arm-none-linux-gnueabi-gcc</code></p>
+<blockquote>
+<p>其中--prefix=$(pwd)/__install指定了编译出来的库存放的路径，我一般将其放在当前目录下的__install目录下。注意,这里的编译器指定,必须使用绝对路径,否则会报错</p>
+</blockquote>
+<p>这里可能出现如下错误</p>
+<pre><code><code>configure: WARNING: bison not found. Please install before continuing.  
+configure: WARNING: flex not found. Please install before continuing.  
+configure: error: Required packages are missing. Please install them and rerun ./configure </code></pre>
+<p>解决方法</p>
+<pre><code><code>sudo apt-get install bison  
+sudo apt-get install flex  </code></pre>
+<p>配置成功后,看到如下输出</p>
+<pre class="-------------------------------------------------------------------------------"><code>                                  NOTE  
+
+ There have been some changes starting with 3.2 regarding where and how libnl  
+ is being installed on the system in order to allow multiple libnl versions  
+ to be installed in parallel:  
+
+    - Headers will be installed in ${prefix}/include/libnl3, therefore  
+      you will need to add &quot;-I/usr/include/libnl3&quot; to CFLAGS  
+
+    - The library basename was renamed to libnl-3, i.e. the SO names become  
+      libnl-3.so., libnl-route-3.so, etc.  
+
+    - libtool versioning was assumed, to ease detection of compatible library  
+      versions.  
+
+ If you are using pkg-config for detecting and linking against the library   
+ things will continue magically as if nothing every happened. If you are   
+ linking manually you need to adapt your Makefiles or switch to using   
+ pkg-config files.  
+
+-------------------------------------------------------------------------------  
+</code></pre>
+<ol>
+<li>执行<code>make</code>编译：</li>
+</ol>
+<p>这可能会遇到这样的错误</p>
+<pre><code><code>/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+/usr/bin/ld: lib/.libs/libnl_3_la-addr.o: Relocations in generic ELF (EM: 40)
+lib/.libs/libnl_3_la-addr.o: error adding symbols: File in wrong format
+collect2: error: ld returned 1 exit status
+Makefile:2842: recipe for target &#39;lib/libnl-3.la&#39; failed
+make: *** [lib/libnl-3.la] Error 1
+</code></pre>
+<p>原因<br />
+配置那步(3.)没有做对,几乎可以肯定是编译器没有配置对,导致编译出错.</p>
+<ol>
+<li>执行下面命令，将编译好的库文件拷贝到先前<code>prefix</code>指定的<code>__install</code>目录中：<br />
+<code>make install</code></li>
+</ol>
+<p>成功后,在lib目录下看到下列文件</p>
+<pre><code><code>yang@yang:/usr/local/arm/libnl$ ls  
+bin  etc  include  lib  share  
+yang@yang:/usr/local/arm/libnl$ ls lib/  
+libnl                    libnl-genl-3.so            libnl-route-3.a  
+libnl-3.a                libnl-genl-3.so.200        libnl-route-3.la  
+libnl-3.la               libnl-genl-3.so.200.25.0   libnl-route-3.so  
+libnl-3.so               libnl-idiag-3.a            libnl-route-3.so.200  
+libnl-3.so.200           libnl-idiag-3.la           libnl-route-3.so.200.25.0  
+libnl-3.so.200.25.0      libnl-idiag-3.so           libnl-xfrm-3.a  
+libnl-cli-3.a            libnl-idiag-3.so.200       libnl-xfrm-3.la  
+libnl-cli-3.la           libnl-idiag-3.so.200.25.0  libnl-xfrm-3.so  
+libnl-cli-3.so           libnl-nf-3.a               libnl-xfrm-3.so.200  
+libnl-cli-3.so.200       libnl-nf-3.la              libnl-xfrm-3.so.200.25.0  
+libnl-cli-3.so.200.25.0  libnl-nf-3.so              pkgconfig  
+libnl-genl-3.a           libnl-nf-3.so.200  
+libnl-genl-3.la          libnl-nf-3.so.200.25.0  </code></pre>
+<ol>
+<li>include下文件在编译程序的时候会用到，而lib下在程序运行时会用到。故在移植hostapd的时候需要指定include的路径，需要将lib下文件拷贝到开发板中。<br />
+lib中的可执行文件,libnl-3.so.200.25.0、libnl-genl-3.so.200.25.0放到开发板的/lib目录，</li>
+</ol>
+<p>使用<code>file filename</code>可以查看文件版本信息,来确定是否编译正确,使用<code>file</code>命令可以看到如下信息</p>
+<pre><code><code>libnl-3.so.200.26.0:      ELF 32-bit LSB shared object, ARM, EABI5 version 1 (SYSV), dynamically linked, with debug_info, not stripped
+libnl-genl-3.so.200.26.0: ELF 32-bit LSB shared object, ARM, EABI5 version 1 (SYSV), dynamically linked, with debug_info, not stripped</code></pre>
+<p>OKey 它被编译为ARM版本,我们可以将它放到我们的ARM开发板中了</p>
+<p>放到开发板的的/lib目录,并创建软链接</p>
+<pre><code><code>ln -s libnl-3.so.200.25.0 libnl-3.so  
+ln -s libnl-3.so.200.25.0 libnl-3.so.200  
+ln -s libnl-genl-3.so.200.25.0 libnl-genl-3.so  
+ln -s libnl-genl-3.so.200.25.0 libnl-genl-3.so.200  </code></pre>
+<hr />
+<p>可参考:<br />
+<code>http://www.linuxfromscratch.org/blfs/view/svn/basicnet/libnl.html</code></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

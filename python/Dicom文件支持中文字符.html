@@ -1,0 +1,41 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Dicom文件支持中文字符' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Dicom文件支持中文字符</center></div><div class='banquan'>原文出处:本文由博客园博主李洛提供。<br/>
+原文连接:https://www.cnblogs.com/daner1257/p/11429917.html</div><br>
+    <p>Dicom文件的默认字符集编码为ISO-IR6，这种字符集是不支持中文的，当使用Dicom工具修改病人姓名后，名字会成乱码而无法正常显示，如下图：</p>
+<p><img src="./images/Dicom文件支持中文字符0.png" alt="" /></p>
+<p>知道了原因就知道解决办法了，修改Dicom的字符集（0008，0005标签，名字叫SpecificCharacterSet），把该值改成支持中文的即可，如GB1830、ISO_IR 192，再把病人姓名改为中文，可正常显示，如下图：</p>
+<p><img src="./images/Dicom文件支持中文字符1.png" alt="" /></p>
+<p>具体代码如下：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> pydicom
+
+ds </span>= pydicom.dcmread(r<span style="color: #800000;">'</span><span style="color: #800000;">0015.dcm</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(ds.PatientName)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> ds.SpecificCharacterSet = 'GB18030'</span>
+ds.SpecificCharacterSet = <span style="color: #800000;">'</span><span style="color: #800000;">ISO_IR 192</span><span style="color: #800000;">'</span><span style="color: #000000;">
+ds.PatientName </span>= <span style="color: #800000;">'</span><span style="color: #800000;">测试中文名字</span><span style="color: #800000;">'</span><span style="color: #000000;">
+ds.save_as(</span><span style="color: #800000;">'</span><span style="color: #800000;">out.dcm</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,108 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python属性的查找顺序' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python属性的查找顺序</center></div><div class='banquan'>原文出处:本文由博客园博主二进制的弗洛伊德提供。<br/>
+原文连接:https://www.cnblogs.com/levylovepage/p/11331849.html</div><br>
+    <h3 id="属性查找顺序">属性查找顺序</h3>
+<blockquote>
+<p>关于属性描述符请看上文&gt;<a href="https://www.cnblogs.com/levylovepage/p/11331280.html">属性描述符</a></p>
+</blockquote>
+<p>  在梳理属性查找相关知识时，查看了很多的书籍和他人的博客，发现很多讲的过于抽象，并没有一个清晰的流程呈现。特此写下我对于此方面的理解和总结。<br />
+我将属性的查找拆分为三种情形，分别为普通属性查找、数据描述符查找，非数据描述符查找。</p>
+<h4 id="普通属性的查找">普通属性的查找</h4>
+<ul>
+<li>Normal.py</li>
+</ul>
+<pre><code><code>class MyAttr():
+    name = &#39;class_levy&#39;
+    def __init__(self):
+        self.name = &quot;instance_levy&quot;
+    def __getattribute__(self, item):
+        return &quot;This is getattribute&quot;
+    def __getattr__(self, item):
+        return &quot;This is getattr&quot;
+
+my = MyAttr()
+print(my.name)
+</code></pre>
+<ul>
+<li>我通过上述的代码，一步步的调试，将步骤呈现给读者。当前的输出结果是“This is getattribute&quot;</li>
+<li>将当前代码中如下的片段注释后，输出结果为&quot;instance_levy&quot;</li>
+</ul>
+<pre><code><code>    #def __getattribute__(self, item):
+       #return &quot;This is getattribute&quot;</code></pre>
+<ul>
+<li>接下来将__init(self)重写如下,输出内容为&quot;class_levy&quot;</li>
+</ul>
+<pre><code><code>    def __init__(self):
+        pass</code></pre>
+<ul>
+<li>最后将类属性注释,输出内容为&quot;This is getattr&quot;</li>
+</ul>
+<p>  从上述的流程，我们可以分析出普通属性的查找过程为__getattribute__()-&gt;实例属性-&gt;类属性-&gt;getattr</p>
+<h4 id="数据描述符的查找">数据描述符的查找</h4>
+<ul>
+<li>DataDes.py</li>
+</ul>
+<pre><code><code>class Data():
+    def __get__(self, instance, owner):
+        return &quot;This is get&quot;
+    def __set__(self, instance, value):
+        pass
+
+class MyAttr():
+    name = Data()
+    def __init__(self):
+        self.name = &quot;instance_levy&quot;
+    def __getattribute__(self, item):
+        return &quot;This is getattribute&quot;
+    def __getattr__(self, item):
+        return &quot;This is getattr&quot;
+
+my = MyAttr()
+print(my.name)</code></pre>
+<p>  同上所述的分析方法，我们可以得出查找顺序__getattribute__()-&gt;描述符__get__()-&gt;实例属性-&gt;getattr</p>
+<h4 id="非数据描述符的查找">非数据描述符的查找</h4>
+<ul>
+<li>NotdataDes.py</li>
+</ul>
+<pre><code><code>class NoneData():
+    def __get__(self, instance, owner):
+        return &quot;This is get&quot;
+
+class MyAttr():
+    name = NoneData()
+    def __init__(self):
+        self.name = &quot;instance_levy&quot;
+    def __getattribute__(self, item):
+        return &quot;This is getattribute&quot;
+    def __getattr__(self, item):
+        return &quot;This is getattr&quot;
+
+my = MyAttr()
+print(my.name)</code></pre>
+<p>  同上所述的分析方法，我们可以得出查找顺序__getattribute__()-&gt;实例属性-&gt;描述符__get__()-&gt;getattr</p>
+<h4 id="流程图">流程图</h4>
+<p>  以下为三种情况下的流程图，为了理解更容易我将三种情况分别讲述，在大部分的流程讲解中是不为三种情况分别叙述的，容易造成复杂混乱的感觉。<br />
+<img src="./images/Python属性的查找顺序0.png" /></p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

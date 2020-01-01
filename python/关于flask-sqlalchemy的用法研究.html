@@ -1,0 +1,76 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修关于flask-sqlalchemy的用法研究' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>关于flask-sqlalchemy的用法研究</center></div><div class='banquan'>原文出处:本文由博客园博主清虚真人提供。<br/>
+原文连接:https://www.cnblogs.com/windstore/p/12016224.html</div><br>
+    <p>最近使用到flask的sqlalchemy，因为flask对sqlalchemy做了一些封装，加上自己本身对sqlalchemy也不熟悉，用法上走了很多弯路。</p>
+<p>因为没时间去研究sqlalchemy的源码，所以只能简单的测试下用法。</p>
+<p><strong>1、flask-sqlalchemy是线程安全的</strong></p>
+<p>　　具体可以参考文章&nbsp;<a href="https://blog.csdn.net/luffyser/article/details/89380186">https://blog.csdn.net/luffyser/article/details/89380186</a></p>
+<p>&nbsp;</p>
+<p><strong>2、每次查询完以后，记得commit，不然会占用连接池</strong></p>
+<p>　　我在本地做了个简单的测试，如果单次查询请求完，不commit的话，连续请求几次，再发起request就没有响应了，推测是数据库连接池没释放，被占用。导致请求数据库挂起，从而导致没有response。</p>
+<p>&nbsp; &nbsp; &nbsp; 每次请求完，直接commit，可以解决此问题。&nbsp;&nbsp;</p>
+<div class="cnblogs_Highlighter">
+<pre><code><em id="__mceDel">    def queryLast(cls):
+        try:
+            ret = db.session.query(cls).order_by(cls.version.desc()).first()<br />　　　　　　　<span style="background-color: #ffcc00;"><strong>#db.session.expunge(ret)</strong></span>
+            db.session.commit()
+        except:
+            db.session.rollback()
+            ret = None
+
+        return ret
+</em></pre>
+</div>
+<p>&nbsp;</p>
+<p>3、但是，如果Commit后，查询结果可能会从缓存中清掉，如果再使用查询结果的对象，还会再次建立连接查询。所以还会出现上述连接池耗尽的问题。</p>
+<p>　&nbsp; 从下图标黄的日志可以看出，commit后，使用返回的查询结果时，又执行了一次查询任务，并返回结果，my god！</p>
+<div class="cnblogs_Highlighter">
+<pre><code>2019-12-10 12:31:21,650 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2019-12-10 12:31:21,651 INFO sqlalchemy.engine.base.Engine SELECT appversion.id AS appversion_id, appversion.version AS appversion_version, appversion.`appUrl` AS `appversion_appUrl`, appversion.des AS appversion_des, appversion.`createTime` AS `appversion_createTime`, appversion.`lastModiftyTime` AS `appversion_lastModiftyTime`, appversion.type AS appversion_type 
+FROM appversion ORDER BY appversion.version DESC 
+ LIMIT %s
+2019-12-10 12:31:21,651 INFO sqlalchemy.engine.base.Engine (1,)
+2019-12-10 12:31:21,661 INFO sqlalchemy.engine.base.Engine COMMIT<br />
+<span style="background-color: #ffcc00;">2019-12-10 12:31:21,680 INFO sqlalchemy.engine.base.Engine BEGIN (implicit)
+2019-12-10 12:31:21,681 INFO sqlalchemy.engine.base.Engine SELECT appversion.id AS appversion_id, appversion.version AS appversion_version, appversion.`appUrl` AS `appversion_appUrl`, appversion.des AS appversion_des, appversion.`createTime` AS `appversion_createTime`, appversion.`lastModiftyTime` AS `appversion_lastModiftyTime`, appversion.type AS appversion_type 
+FROM appversion 
+WHERE appversion.id = %s
+2019-12-10 12:31:21,681 INFO sqlalchemy.engine.base.Engine (1,)
+</span></pre>
+</div>
+<p>4、但有时候（可能是时间略长些）commit后，再使用查询结果的对象，可能会出现报错：Instance &lt;User at 0x32768d0&gt; is not bound to a Session&nbsp;　　</p>
+<p>　　此种情况可能是因为绑定的session已经被回收，导致无法再进行查询，所以出错。</p>
+<p>&nbsp;</p>
+<p>5、综上所述，为安全起见，需要在查询结果后，加上 <span style="color: #ff9900;">db.session.expunge(ret)</span>，断开查询结果与session的关系。让它成为一个本地实体，不会从缓存中清除，使用时候，就不会再查询。</p>
+<p>6、但测试时候发现一个奇怪的问题，另外一个获取user的接口，和上面的代码几乎没什么区别，居然会自动rollback，这个让我百思不得其解。</p>
+<p>　　我的逻辑是取到查询结果（即用户）后，判断用户的状态字段是否为1，如果为1，就修改用户属性，然后commit，如果不是1，就不做操作，也没有调用rollback。</p>
+<p>　　但是我测试时候发现，如果不是1的时候，它会自动rollback。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 或许这是<strong>sqlalchemy的高级功能？</strong></p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;"><strong>7、总结：</strong></span></p>
+<p><span style="color: #ff0000;"><strong>　　1、<strong>sqlalchemy的对象实体（model），和session建立了联系，你get、set这些model的时候，就算已经commit，也会重新自动和数据库建立连接（get的时候会重新select、set的时候会重新建立连接，等待你提交，如果你不提交，这个连接一直存在，最终会耗尽。），所以要谨慎使用model的字段，除非你确实明白自己在做什么，会发生什么。</strong></strong></span></p>
+<p><span style="color: #ff0000;"><strong><strong>　　2、使用db.session.expunge会切断实体和session的关系。这个是个不错的用法。<br /></strong></strong></span></p>
+<p><span style="color: #ff0000;"><strong><strong>　　3、但我还是强烈建议自己再搞一套model，来做业务层逻辑。<strong><strong>sqlalchemy的对象实体仅用来做数据库的操作。这样会避免很多时候，连接<strong><strong><strong><strong>不小心</strong></strong></strong></strong>没释放的坑。</strong></strong></strong></strong></span></p>
+<div id="gtx-anchor" style="position: absolute; visibility: hidden; left: 108.2px; top: 308.6px; width: 166.6px; height: 13.6px;">&nbsp;</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

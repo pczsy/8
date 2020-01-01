@@ -1,0 +1,83 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修drf源码save以及response' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>drf源码save以及response</center></div><div class='banquan'>原文出处:本文由博客园博主小小咸鱼YwY提供。<br/>
+原文连接:https://www.cnblogs.com/pythonywy/p/11469915.html</div><br>
+    <h1 id="drf源码save以及response">drf源码save以及response</h1>
+<h2 id="一.save">一.save</h2>
+<p><code>其中蛮重要的一段</code></p>
+<pre><code><code>        if self.instance is not None:
+            self.instance = self.update(self.instance, validated_data)
+            assert self.instance is not None, (
+                &#39;`update()` did not return an object instance.&#39;
+            )
+        else:
+            self.instance = self.create(validated_data)
+            assert self.instance is not None, (
+                &#39;`create()` did not return an object instance.&#39;
+            )
+
+        return self.instance</code></pre>
+<p>这里呢很明显就可以看出<code>save</code>我们传参<code>instance</code>的由于决定了他后续是运行<code>create</code>还是<code>updata</code>方法</p>
+<p>我们也可以不用save,可以自定义create 方法和updata方法因为他本质就是调用create和updata方法</p>
+<p><code>注意点</code>:我们自定义优先级必须大于drf自带的方法的优先级,所有我们把这两个方法创建在模型中比较合适</p>
+<h2 id="二.response">二.response</h2>
+<p>其中的参数</p>
+<pre><code><code>#传入的参数
+def __init__(self, data=None, status=None,
+                 template_name=None, headers=None,
+                 exception=False, content_type=None):
+    
+#他对于参数进行的赋值
+        self.data = data
+        self.template_name = template_name
+        self.exception = exception
+        self.content_type = content_type</code></pre>
+<p>我们可以通过类的继承来修改源码</p>
+<pre><code><code>&quot;&quot;&quot;
+返回值
+Response({
+    &#39;status&#39;: 0,
+    &#39;msg&#39;: &#39;ok&#39;,
+    &#39;results&#39;: [],
+    &#39;token&#39;: &#39;&#39;
+}, headers={}, status=200, content_type=&quot;&quot;)
+&quot;&quot;&quot;
+&#39;&#39;&#39;
+比如说我们想要的效果
+APIResponse(0, &#39;ok&#39;, results,其他数据)
+&#39;&#39;&#39;
+
+from rest_framework.response import Response
+class APIResponse(Response):
+    def __init__(self, data_status, data_msg, results=None,
+                 status=None, headers=None, content_type=None, **kwargs):
+        data = {
+            &#39;status&#39;: data_status,
+            &#39;msg&#39;: data_msg
+        }
+        if results is not None:
+            data[&#39;results&#39;] = results
+        data.update(kwargs)
+        super().__init__(data=data, status=status, headers=headers, content_type=content_type)</code></pre>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

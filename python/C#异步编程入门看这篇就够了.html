@@ -1,0 +1,166 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修C#异步编程入门看这篇就够了' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>C#异步编程入门看这篇就够了</center></div><div class='banquan'>原文出处:本文由博客园博主依乐祝提供。<br/>
+原文连接:https://www.cnblogs.com/yilezhu/p/12045018.html</div><br>
+    <p>随着.NET Core的流行，相信你现在的代码中或多或少的会用到<code>async</code>以及<code>await</code>吧！毕竟已成标配。那么我们为什么要用<code>async</code>以及<code>await</code>呢？其实这是微软团队为我们提供的一个语法糖，让我们不用996就可以轻松的编写异步代码，并无太过神奇的地方。那么，问题来了，什么是异步？异步到底又是怎样的一个过程呢？</p>
+<h3 id="从一个故事说起">从一个故事说起</h3>
+<p>在开始讲异步前我们先从一个生活中的小故事说起吧。话说2019年12月15日周日这一天有位程序猿小祝在这天居然没有加班，选择在家休息了，然后他习惯性的用<code>Microsoft To Do</code>罗列了一下这天要做的事情，如下图所示：</p>
+<p><img src="./images/C#异步编程入门看这篇就够了0.png" alt="image-20191215143106499" /></p>
+<p>这一天这个程序猿小祝计划早上九点起床洗澡，然后吃早餐，洗衣服，分享一篇关于<code>C#异步</code>相关的文章，晚上在家加下班~~没错，这个苦逼休息的时候也得工作，不然下周的任务有可能完不成要挨批了。</p>
+<p>这个时候这个程序猿小祝可以选择，1.起床洗澡，2.吃早餐，3.洗衣服，4.写文章，5.打会球然后“远程写代码”。这个过程有严格的执行顺序，这个过程可以视为一个同步的过程。如下图所示：</p>
+<p><img src="./images/C#异步编程入门看这篇就够了1.png" alt="image-20191215144358900" /></p>
+<p>当然，这个程序猿小祝却采用了另一种方式来进行：起床后先把衣服换下来用洗衣机洗了，然后开始洗澡，然后吃饭，写了一会文章，然后等衣服洗好后再把衣服给晾好继续回来写文章，最后在晚上的时候远程写代码。在这个过程中这个程序猿在洗衣服的同时就去洗澡，吃饭写了会文章了，这个过程就是一个异步的过程。</p>
+<p>可能这个故事比喻的不恰当，不过大伙将就着看下吧，总结一下同步跟异步吧：</p>
+<ol>
+<li>同步方法：可以认为程序是按照你写这些代码时所采用的顺序执行相关的指令的。</li>
+<li>异步方法：可以在尚未完成所有指令的时候提前返回（如上面的洗衣服过程没执行完就返回去洗澡了），等到该方法等候的那项任务执行完毕后，在令这个方法从早前还没执行完的那个地方继续往下运行（如：衣服洗好晾好后，继续写文章了）。</li>
+</ol>
+<p>下面我们结合伪代码来进行更加详细的讲解吧。</p>
+<h3 id="伪代码实例讲解">伪代码实例讲解</h3>
+<p>这一节我们就用伪代码来分别实现下同步过程及异步过程吧。</p>
+<h4 id="同步过程">同步过程</h4>
+<p>下面我们用伪代码来实现上述故事中的过程吧。</p>
+<pre><code><code> static void Main(string[] args)
+        {
+            Console.WriteLine(&quot;Main异步演示开始~~~~~&quot;);
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            Bash();//洗澡
+            BreakFast();//吃早餐
+            WashClothes();//洗衣服
+            WriteArticle();//写文章
+            WritingCode();//写代码
+            Console.WriteLine(&quot;Main异步演示结束~~~~~共用时{0}秒！&quot;, stopwatch.ElapsedMilliseconds/1000);
+            Console.ReadKey();
+        }
+
+        private static void Bash()
+        {
+            Console.WriteLine(&quot;洗澡开始~~~~~&quot;);
+            Thread.Sleep(1*1000);//模拟过程
+            Console.WriteLine(&quot;洗澡结束~~~~~&quot;);
+        }
+
+        private static void BreakFast()
+        {
+            Console.WriteLine(&quot;吃早餐开始~~~~~&quot;);
+            Thread.Sleep(1 * 1000);//模拟过程
+            Console.WriteLine(&quot;吃早餐结束~~~~~&quot;);
+        }
+
+        private static void WashClothes()
+        {
+            Console.WriteLine(&quot;洗衣服开始~~~~~&quot;);
+            Thread.Sleep(6 * 1000);//模拟过程
+            Console.WriteLine(&quot;洗衣服结束~~~~~&quot;);
+
+        }
+
+        private static void WriteArticle()
+        {
+            Console.WriteLine(&quot;写文章开始~~~~~&quot;);
+            Thread.Sleep(20 * 1000);//模拟过程
+            Console.WriteLine(&quot;写文章结束~~~~~&quot;);
+        }
+
+        private static void WritingCode()
+        {
+            Console.WriteLine(&quot;写代码开始~~~~~&quot;);
+            Thread.Sleep(12 * 1000);//模拟过程
+            Console.WriteLine(&quot;写代码结束~~~~~&quot;);
+        }</code></pre>
+<p>上面的代码没什么难的，写完代码后我们直接<code>dotnet run</code>一下代码，如下图所示：</p>
+<p><img src="./images/C#异步编程入门看这篇就够了2.png" alt="image-20191215153032564" /></p>
+<p>我们可以看到这个代码的执行过程是严格按照我们编码的顺序执行的，即同步运行的代码。这里用时共40秒！</p>
+<h4 id="异步过程">异步过程</h4>
+<p>我们只需要稍微改造下使得代码异步执行再来看下效果吧！伪代码如下：</p>
+<pre><code><code> static async Task Main(string[] args)
+        {
+            Console.WriteLine(&quot;Main异步演示开始~~~~~&quot;);
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            List&lt;Task&gt; tasks = new List&lt;Task&gt;
+            {
+                Bash(),//洗澡
+            };
+            tasks.Add(BreakFast());//吃早餐
+            tasks.Add(WashClothes());//洗衣服
+            tasks.Add(WriteArticle());//写文章
+            tasks.Add(WritingCode());//写代码
+            await Task.WhenAll(tasks);
+            Console.WriteLine(&quot;Main异步演示结束~~~~~共用时{0}秒！&quot;, stopwatch.ElapsedMilliseconds/1000);
+            Console.ReadKey();
+        }
+
+        private static async Task Bash()
+        {
+            Console.WriteLine(&quot;洗澡开始~~~~~&quot;);
+            await Task.Delay(1*1000);//模拟过程
+            Console.WriteLine(&quot;洗澡结束~~~~~&quot;);
+        }
+
+        private static async Task BreakFast()
+        {
+            Console.WriteLine(&quot;吃早餐开始~~~~~&quot;);
+            await Task.Delay(1 * 1000);//模拟过程
+            Console.WriteLine(&quot;吃早餐结束~~~~~&quot;);
+        }
+
+        private static async Task WashClothes()
+        {
+            Console.WriteLine(&quot;洗衣服开始~~~~~&quot;);
+            await Task.Delay(6 * 1000);//模拟过程
+            Console.WriteLine(&quot;洗衣服结束~~~~~&quot;);
+
+        }
+
+        private static async Task WriteArticle()
+        {
+            Console.WriteLine(&quot;写文章开始~~~~~&quot;);
+            await Task.Delay(20 * 1000);//模拟过程
+            Console.WriteLine(&quot;写文章结束~~~~~&quot;);
+        }
+
+        private static async Task WritingCode()
+        {
+            Console.WriteLine(&quot;写代码开始~~~~~&quot;);
+            await Task.Delay(12 * 1000);//模拟过程
+            Console.WriteLine(&quot;写代码结束~~~~~&quot;);
+        }</code></pre>
+<p>然后我们再直接<code>dotnet run</code>一下代码，如下图所示：</p>
+<p><img src="./images/C#异步编程入门看这篇就够了3.png" alt="image-20191215154823294" /></p>
+<p>我们可以看到这个代码的执行过程中遇到<code>await</code>后就会返回执行了，待await的代码执行完毕后才继续执行接下来的代码的！为了避免有的读者看不懂，我简单分析其中一个方法的执行过程吧。具体的还需要你自己把异步代码拷贝下来，多打几个断点，然后把等待时间*100（时间长点方便我们查看断点的进入顺序，否则时间短，还没来得及进断点可能代码已经执行完了）看看断点的进入步骤吧！</p>
+<p><img src="./images/C#异步编程入门看这篇就够了4.png" alt="image-20191215160556885" /></p>
+<p>我也只列了一部分，具体的你们自行打断点看下吧。</p>
+<h3 id="异步原理解析">异步原理解析</h3>
+<p>通过上面的伪代码分析相信你已经对异步有所了解了。接下来我们就来看看系统到底是怎么实现出这样的效果的。下面只是简单地进行下表述，如果不正确的欢迎大家指正。</p>
+<p>编译器在处理异步方法的时候，会构建一种机制，该机制可以启动<code>await</code> 语句所要等候的那项异步任务，并使得程序在该工作完成之后，能够用某个线程继续执行<code>await</code>语句后面的那些代码。这个<code>await</code>语句正是关键所在。编译器会构建相应的数据结构，并把<code>await</code>之后的指令表示成<code>delegate</code>，使得程序在处理完那项异步任务之后，能够继续执行下面的那些指令。编译器会把当前方法中的每一个局部变量的值都保存在这个数据结构中，并根据<code>await</code>语句所要等候的任务来配置相应的逻辑，让程序能够在该任务完成之后指派某个线程，从<code>await</code>语句的下一条指令开始继续执行。实际上，这相当于编译器生成了一个<code>delegate</code>，用以表示<code>await</code>语句之后的那些代码，并写入了相应的状态信息，用以确保<code>await</code>语句所等候的那项任务执行完毕以后这个<code>delegate</code>能够正确的得到调用。</p>
+<p>这使得该方法看上去好像是从早前暂停的地方继续往下执行了，也就是所，系统会把状态恢复到早前暂停的样式，并且直接把程序中的某个线程放到适当的语句上，令其能够继续向下运行。</p>
+<p>这个过程实际上是由<code>SynchronizationContext</code>类来实现的，该类用来保证异步方法能够在它所等候的任务执行完毕时，从早前停下来的地方继续往下运行，并确保该方法此时所处的环境与上下文能够与当初的情况一样。</p>
+<h3 id="总结">总结</h3>
+<p>通过上面的讲述我们可以知道通过<code>async</code>与<code>await</code>关键字写出来的异步方法并没有太过神奇的地方。只不过编译器会针对这种方法生成许多代码，使得调用这个方法的主调方无需等待该方法完工，就可以继续往下执行，并确保该方法所等候的那项任务在执行过程中发生的错误能够适当的得到回报。这样的好处是，如果异步方法执行到await语句时它所要等候的那项任务还没有完成，那么该方法的执行进度就会暂停在那里，直到那项任务完成之后，才回继续往下执行。</p>
+<p>希望这篇文章对你有所帮助，当然光了解异步没用，还要能够高效的编写异步代码才行哦，接下来我会抽时间讲讲进行异步开发的一些建议。当然我以前也写过相关的文章，你可以提前看下。同时欢迎大家加入.net core两千人交流群637326624`交流。当然我不会告诉你，关注公众号会第一时间收到文章推送。</p>
+<p>很久没写文章了，生疏了后多，大家将就着看吧！</p>
+<h3 id="参考">参考</h3>
+<p>《More Effective C#》机械工业出版社</p>
+<p>依乐祝自己的理解</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

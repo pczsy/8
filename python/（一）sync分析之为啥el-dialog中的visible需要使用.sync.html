@@ -1,0 +1,54 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修（一）sync分析之为啥el-dialog中的visible需要使用.sync' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>（一）sync分析之为啥el-dialog中的visible需要使用.sync</center></div><div class='banquan'>原文出处:本文由博客园博主卫子鱼提供。<br/>
+原文连接:https://www.cnblogs.com/weiziyu/p/12012498.html</div><br>
+    <p>首先，笔者在使用element-ui 中的dialog组件时，发现visible属性在使用时需要添加.sync才生效，心中好奇，所以研究一下原理</p>
+<p>我们先自己创建一个dialog组件，如下</p>
+<p><img src="./images/（一）sync分析之为啥el-dialog中的visible需要使用.sync0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;当我们点击关闭按钮时，会发生警告</p>
+<p><img src="./images/（一）sync分析之为啥el-dialog中的visible需要使用.sync1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<span style="color: #ff0000;"><strong>原因就是在VUE中，prop的传递是单向下行绑定的，也就是说只能父传给子，不能反过来。</strong></span></p>
+<p><span style="color: #000000;">虽然在demo中子组件直接修改visible也能够关闭窗口，但是该变量不能传给父组件，所以并不建议这么做，（如果您任性，觉得父组件拿到这个变量也没用，那您尽管在子组件中修改，但是小心父组件的入参变化时会覆盖你的修改）</span></p>
+<p>现在思考，如果我们将子组件的变化告诉父组件，让父组件帮我们实现是否可行。也就是说我们操作子组件后通知父组件去关闭窗口，答案是可以的</p>
+<p>在VUE中，子组件向父组件通信是通过事件完成的，this.$emit</p>
+<p>我们点击子组件关闭按钮时，调用一下父组件的更新事件，让父组件在这个更新事件中改变visible这个变量，就可以实现子组件关闭了</p>
+<p>.sync这个指令实际上是一个语法糖，在visible属性变化时会调用父组件的update:visible事件，我们将上面的demo修改如下</p>
+<p><img src="./images/（一）sync分析之为啥el-dialog中的visible需要使用.sync2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>在使用该组件时，使用sync与法糖</p>
+<p><img src="./images/（一）sync分析之为啥el-dialog中的visible需要使用.sync3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;该语法糖会扩展为</p>
+<p>&nbsp;<img src="./images/（一）sync分析之为啥el-dialog中的visible需要使用.sync4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>这样一来，visible就实现了父子同步，父组件初始化visible，子组件调用关闭事件，触发父组件update事件，父组件在update事件中更新visible变量，改变子组件可见的状态</p>
+<p>&nbsp;</p>
+<p>我们在实现双向绑定时经常使用v-modal,这里看来，使用.sync也是可以的，不同在于v-modal触发的是父组件的input事件，.sync触发的是父组件的update事件</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

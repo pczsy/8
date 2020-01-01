@@ -1,0 +1,238 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python学习日记(三十)  Socket模块使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python学习日记(三十)  Socket模块使用</center></div><div class='banquan'>原文出处:本文由博客园博主Fantac提供。<br/>
+原文连接:https://www.cnblogs.com/Fantac/p/11521009.html</div><br>
+    <p><span style="font-family: 宋体; font-size: 18pt; color: #ffffff; background-color: #ff0000;"><strong>Socket(套接字)</strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">套接字是一个抽象层,应用程序可以通过它发送或接收数据,可对其进行像文件一样的打开、读写和关闭等操作。套接字允许应用程序将I/O插入到网络中,并与网络中的其他应用程序进行通信。网络套接字是IP地址与端口的组合。</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>发展:</strong>套接字最初是由加利福尼亚大学Berkely分校为Unix系统开发的网络通信接口。后来随着TCP/IP网络的发展,套接字成为最为通用的应用程序接口,也是在Internet上进行应用开发最为通用的API.</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>应用:</strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十)  Socket模块使用0.png" alt="" width="564" height="353" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>实现:</strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px; background-color: #333399; color: #ffff00;">基于TCP协议实现Sever端和Client端的信息互通</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">Sever端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket()            <span style="color: #008000;">#</span><span style="color: #008000;">创建服务器的套接字</span>
+sk.bind((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))     <span style="color: #008000;">#</span><span style="color: #008000;">把地址绑定到套接字</span>
+<span style="color: #000000;">
+sk.listen()                     </span><span style="color: #008000;">#</span><span style="color: #008000;">监听链接</span>
+conn,addr = sk.accept()         <span style="color: #008000;">#</span><span style="color: #008000;">接收到客户端的连接和地址</span>
+ret = conn.recv(1024)           <span style="color: #008000;">#</span><span style="color: #008000;">接收客户端信息</span>
+<span style="color: #0000ff;">print</span>(ret)                      <span style="color: #008000;">#</span><span style="color: #008000;">打印客户端的信息</span>
+<span style="color: #000000;">
+conn.send(b</span><span style="color: #800000;">'</span><span style="color: #800000;">hi</span><span style="color: #800000;">'</span>)                <span style="color: #008000;">#</span><span style="color: #008000;">向客户端发送信息</span>
+conn.close()                    <span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端的连接</span>
+sk.close()                      <span style="color: #008000;">#</span><span style="color: #008000;">关闭服务器套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket()             <span style="color: #008000;">#</span><span style="color: #008000;">创建客户端的套接字</span>
+sk.connect((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))   <span style="color: #008000;">#</span><span style="color: #008000;">尝试连接服务器</span>
+<span style="color: #000000;">
+sk.send(b</span><span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>)                <span style="color: #008000;">#</span><span style="color: #008000;">向服务器发送消息</span>
+ret = sk.recv(1024)              <span style="color: #008000;">#</span><span style="color: #008000;">接收服务器发送的消息</span>
+<span style="color: #0000ff;">print</span>(ret)                       <span style="color: #008000;">#</span><span style="color: #008000;">打印服务器发送的消息</span>
+<span style="color: #000000;">
+sk.close()                       </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端的套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Sever端和Client端两边都要对应接收和发送信息,不能只接不收或只收不接且执行时要先执行Sever端再去执行Client端,执行结果:</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十)  Socket模块使用1.png" alt="" width="470" height="97" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十)  Socket模块使用2.png" alt="" width="470" height="98" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">当重启服务器时遇到地址已被使用的问题</span></p>
+<p><img src="./images/Python学习日记(三十)  Socket模块使用3.png" alt="" width="484" height="106" /></p>
+<p><span style="font-family: 宋体; font-size: 18px;">解决方案:</span></p>
+<p><img src="./images/Python学习日记(三十)  Socket模块使用4.png" alt="" width="532" height="329" /></p>
+<p><em><strong><span style="font-family: 宋体; font-size: 18px;">如何让客户端和服务器能够多次进行对话?</span></strong></em></p>
+<p><span style="font-family: 宋体; font-size: 18px;">Sever端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+</span><span style="color: #0000ff;">from</span> socket <span style="color: #0000ff;">import</span><span style="color: #000000;"> SOL_SOCKET,SO_REUSEADDR
+sk </span>= socket.socket()            　　<span style="color: #008000;">#</span><span style="color: #008000;">创建服务器的套接字</span>
+sk.setsockopt(SOL_SOCKET,SO_REUSEADDR,1<span style="color: #000000;">)
+sk.bind((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))     　　<span style="color: #008000;">#</span><span style="color: #008000;">把地址绑定到套接字</span>
+sk.listen()                     　　<span style="color: #008000;">#</span><span style="color: #008000;">监听链接</span>
+conn,addr = sk.accept()         　　<span style="color: #008000;">#</span><span style="color: #008000;">接收到客户端的连接和地址</span>
+
+<span style="color: #0000ff;">print</span>(addr)                     　　<span style="color: #008000;">#</span><span style="color: #008000;">打印客户端的地址</span>
+ret = conn.recv(1024)           　　<span style="color: #008000;">#</span><span style="color: #008000;">接收客户端信息</span>
+<span style="color: #0000ff;">print</span>(ret)                      　　<span style="color: #008000;">#</span><span style="color: #008000;">打印客户端的信息</span>
+conn.send(b<span style="color: #800000;">'</span><span style="color: #800000;">hi</span><span style="color: #800000;">'</span>)                　　<span style="color: #008000;">#</span><span style="color: #008000;">向客户端发送信息</span>
+<span style="color: #0000ff;">print</span>(addr)                     　　<span style="color: #008000;">#</span><span style="color: #008000;">打印客户端的地址</span>
+ret = conn.recv(1024)           　　<span style="color: #008000;">#</span><span style="color: #008000;">接收客户端信息</span>
+<span style="color: #0000ff;">print</span>(ret)                      　　<span style="color: #008000;">#</span><span style="color: #008000;">打印客户端的信息</span>
+conn.send(b<span style="color: #800000;">'</span><span style="color: #800000;">hi</span><span style="color: #800000;">'</span>)                　　<span style="color: #008000;">#</span><span style="color: #008000;">向客户端发送信息</span>
+<span style="color: #000000;">
+conn.close()                    　　</span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端的连接</span>
+sk.close()                      　　<span style="color: #008000;">#</span><span style="color: #008000;">关闭服务器套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket()                <span style="color: #008000;">#</span><span style="color: #008000;">创建客户端的套接字</span>
+sk.connect((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))      <span style="color: #008000;">#</span><span style="color: #008000;">尝试连接服务器</span>
+<span style="color: #000000;">
+sk.send(b</span><span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>)                   <span style="color: #008000;">#</span><span style="color: #008000;">向服务器发送消息</span>
+ret = sk.recv(1024)                 <span style="color: #008000;">#</span><span style="color: #008000;">接收服务器发送的消息</span>
+<span style="color: #0000ff;">print</span>(ret)                          <span style="color: #008000;">#</span><span style="color: #008000;">打印服务器发送的消息</span>
+sk.send(b<span style="color: #800000;">'</span><span style="color: #800000;">hello</span><span style="color: #800000;">'</span>)                   <span style="color: #008000;">#</span><span style="color: #008000;">向服务器发送消息</span>
+ret = sk.recv(1024)                 <span style="color: #008000;">#</span><span style="color: #008000;">接收服务器发送的消息</span>
+<span style="color: #0000ff;">print</span>(ret)                          <span style="color: #008000;">#</span><span style="color: #008000;">打印服务器发送的消息</span>
+<span style="color: #000000;">
+sk.close()                          </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端的套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">执行结果:</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十)  Socket模块使用5.png" alt="" width="502" height="131" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十)  Socket模块使用6.png" alt="" width="505" height="112" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">因此我们只要在Sever端获取到Client端后让它去循环接收和发送消息、让Client端在连接上Sever端后去循环发送和接收消息就能完成一个一直发送接收消息的过程,但这个过程是一个死循环,我们需要加上一些条件让它更加完善</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">Sever端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">from</span> json <span style="color: #0000ff;">import</span><span style="color: #000000;"> dumps
+</span><span style="color: #0000ff;">from</span> socket <span style="color: #0000ff;">import</span><span style="color: #000000;"> SOL_SOCKET,SO_REUSEADDR
+sk </span>= socket.socket()                                                                    <span style="color: #008000;">#</span><span style="color: #008000;">创建服务器的套接字</span>
+sk.setsockopt(SOL_SOCKET,SO_REUSEADDR,1<span style="color: #000000;">)
+sk.bind((</span><span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))                                                             <span style="color: #008000;">#</span><span style="color: #008000;">把地址绑定到套接字</span>
+sk.listen()                                                                             <span style="color: #008000;">#</span><span style="color: #008000;">监听链接</span>
+conn,addr = sk.accept()                                                                 <span style="color: #008000;">#</span><span style="color: #008000;">接收到客户端的连接和地址</span>
+
+<span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+    ret </span>= conn.recv(1024).decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>)                                               <span style="color: #008000;">#</span><span style="color: #008000;">接收客户端信息</span>
+    <span style="color: #0000ff;">if</span> ret.strip() == <span style="color: #800000;">'</span><span style="color: #800000;">bye</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">or</span> ret.strip() == <span style="color: #800000;">'</span><span style="color: #800000;">bye</span><span style="color: #800000;">'</span>.capitalize():                       <span style="color: #008000;">#</span><span style="color: #008000;">跳出循环的条件</span>
+        conn.send(b<span style="color: #800000;">'</span><span style="color: #800000;">bye</span><span style="color: #800000;">'</span>)                                                               <span style="color: #008000;">#</span><span style="color: #008000;">发送bytes类型的Bye</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Client has disconnected!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">break</span>
+    <span style="color: #0000ff;">print</span>(time.asctime(time.localtime(time.time())) + <span style="color: #800000;">'</span> <span style="color: #800000;">'</span> +  dumps(addr) + <span style="color: #800000;">'</span><span style="color: #800000;">:</span><span style="color: #800000;">'</span> + ret)   <span style="color: #008000;">#</span><span style="color: #008000;">格式化打印客户端发来的消息</span>
+    sendInfo = input(time.asctime(time.localtime(time.time())) + <span style="color: #800000;">'</span><span style="color: #800000;"> &lt;&lt;&lt;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    conn.send(sendInfo.encode(</span><span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>))                                                 <span style="color: #008000;">#</span><span style="color: #008000;">向客户端发送信息</span>
+<span style="color: #000000;">
+conn.close()                                                                            </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端的连接</span>
+sk.close()                                                                              <span style="color: #008000;">#</span><span style="color: #008000;">关闭服务器套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+sk </span>= socket.socket()                                                                <span style="color: #008000;">#</span><span style="color: #008000;">创建客户端的套接字</span>
+sk.connect((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))                                                      <span style="color: #008000;">#</span><span style="color: #008000;">尝试连接服务器</span>
+
+<span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+    sendInfo </span>= input(time.asctime(time.localtime(time.time())) + <span style="color: #800000;">'</span><span style="color: #800000;"> &lt;&lt;&lt;</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    sk.send(sendInfo.encode(</span><span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>))                                               <span style="color: #008000;">#</span><span style="color: #008000;">向服务器发送消息</span>
+    ret = sk.recv(1024).decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>)                                             <span style="color: #008000;">#</span><span style="color: #008000;">接收服务器发送的消息</span>
+    <span style="color: #0000ff;">if</span> ret.strip() == <span style="color: #800000;">'</span><span style="color: #800000;">bye</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">or</span> ret.strip() == <span style="color: #800000;">'</span><span style="color: #800000;">bye</span><span style="color: #800000;">'</span>.capitalize():                   <span style="color: #008000;">#</span><span style="color: #008000;">跳出循环的条件</span>
+        sk.send(b<span style="color: #800000;">'</span><span style="color: #800000;">bye</span><span style="color: #800000;">'</span>)                                                             <span style="color: #008000;">#</span><span style="color: #008000;">发送bytes类型的Bye</span>
+        <span style="color: #0000ff;">print</span>(<span style="color: #800000;">'</span><span style="color: #800000;">Sever has disconnected!</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">break</span>
+    <span style="color: #0000ff;">print</span>(time.asctime(time.localtime(time.time())) + <span style="color: #800000;">'</span><span style="color: #800000;"> ["127.0.0.1", 8080]:</span><span style="color: #800000;">'</span> + ret)<span style="color: #008000;">#</span><span style="color: #008000;">格式化打印服务器发来的消息</span>
+<span style="color: #000000;">
+sk.close()                                                                          </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端的套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">执行结果:</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十)  Socket模块使用7.png" alt="" width="454" height="146" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><img src="./images/Python学习日记(三十)  Socket模块使用8.png" alt="" width="454" height="159" /></span></p>
+<p><span style="font-family: 宋体; font-size: 18px; background-color: #333399; color: #ffff00;">基于UDP协议实现Sever端和Client端的信息互通</span></p>
+<p><span style="font-family: 宋体; font-size: 18px;"><strong>实现简单传递信息</strong></span></p>
+<p><span style="font-family: 宋体; font-size: 18px;">Sever端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket(type=socket.SOCK_DGRAM)      <span style="color: #008000;">#</span><span style="color: #008000;">创建服务器套接字</span>
+sk.bind((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))                     <span style="color: #008000;">#</span><span style="color: #008000;">绑定服务器套接字</span>
+<span style="color: #000000;">
+msg,addr </span>= sk.recvfrom(1024)                    <span style="color: #008000;">#</span><span style="color: #008000;">接收到客户端的信息和地址</span>
+<span style="color: #0000ff;">print</span>(msg.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>))                      <span style="color: #008000;">#</span><span style="color: #008000;">将客户端传递来的信息解码并打印出来</span>
+sk.sendto(b<span style="color: #800000;">'</span><span style="color: #800000;">Hello client!</span><span style="color: #800000;">'</span>,addr)                <span style="color: #008000;">#</span><span style="color: #008000;">将bytes类型的信息发送到客户端的地址</span>
+<span style="color: #000000;">
+sk.close()                                      </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭服务器套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket(type=socket.SOCK_DGRAM)      <span style="color: #008000;">#</span><span style="color: #008000;">创建客户端套接字</span>
+ip_port = (<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">)
+
+sk.sendto(b</span><span style="color: #800000;">'</span><span style="color: #800000;">Hello sever!</span><span style="color: #800000;">'</span>,ip_port)              <span style="color: #008000;">#</span><span style="color: #008000;">客户端发送信息</span>
+ret,addr = sk.recvfrom(1024)                    <span style="color: #008000;">#</span><span style="color: #008000;">接收到服务器的地址和信息</span>
+<span style="color: #0000ff;">print</span>(ret.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span>))                      <span style="color: #008000;">#</span><span style="color: #008000;">打印收到的信息</span>
+<span style="color: #000000;">
+sk.close()                                      </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">执行结果:</span></p>
+<p><img src="./images/Python学习日记(三十)  Socket模块使用9.png" alt="" width="466" height="80" /></p>
+<p><img src="./images/Python学习日记(三十)  Socket模块使用10.png" alt="" width="468" height="82" /></p>
+<p><em><strong><span style="font-family: 宋体; font-size: 18px;">多人版:</span></strong></em></p>
+<p><span style="font-family: 宋体; font-size: 18px;">Sever端:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket(type=socket.SOCK_DGRAM)                  <span style="color: #008000;">#</span><span style="color: #008000;">创建服务器套接字</span>
+sk.bind((<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080))                                 <span style="color: #008000;">#</span><span style="color: #008000;">绑定服务器套接字</span>
+
+<span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+    msg,addr </span>= sk.recvfrom(1024)                            <span style="color: #008000;">#</span><span style="color: #008000;">接收到客户端的信息和地址</span>
+    str_msg = msg.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(addr,str_msg)
+    info </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">&lt;&lt;&lt;</span><span style="color: #800000;">'</span>).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    sk.sendto(info,addr)
+
+sk.close()                                                  </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭服务器套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client1:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket(type=socket.SOCK_DGRAM)                              <span style="color: #008000;">#</span><span style="color: #008000;">创建客户端套接字</span>
+ip_port = (<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+    info </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">Client1:</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    info </span>= (<span style="color: #800000;">'</span><span style="color: #800000;">\033[32m来自Client1的消息:%s\033[0m</span><span style="color: #800000;">'</span>%info).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    sk.sendto(info,ip_port)
+    msg,addr </span>= sk.recvfrom(1024<span style="color: #000000;">)
+    str_msg </span>= msg.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(str_msg)
+
+
+sk.close()                                                              </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">Client2:</span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> socket
+sk </span>= socket.socket(type=socket.SOCK_DGRAM)                              <span style="color: #008000;">#</span><span style="color: #008000;">创建客户端套接字</span>
+ip_port = (<span style="color: #800000;">'</span><span style="color: #800000;">127.0.0.1</span><span style="color: #800000;">'</span>,8080<span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">while</span> 1<span style="color: #000000;">:
+    info </span>= input(<span style="color: #800000;">'</span><span style="color: #800000;">Client2:</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    info </span>= (<span style="color: #800000;">'</span><span style="color: #800000;">\033[36m来自Client2的消息:%s\033[0m</span><span style="color: #800000;">'</span> % info).encode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    sk.sendto(info, ip_port)
+    msg, addr </span>= sk.recvfrom(1024<span style="color: #000000;">)
+    str_msg </span>= msg.decode(<span style="color: #800000;">'</span><span style="color: #800000;">utf-8</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span><span style="color: #000000;">(str_msg)
+
+sk.close()                                                              </span><span style="color: #008000;">#</span><span style="color: #008000;">关闭客户端套接字</span></pre>
+</div>
+<p><span style="font-family: 宋体; font-size: 18px;">执行结果:</span></p>
+<p>&nbsp;<img src="./images/Python学习日记(三十)  Socket模块使用11.png" alt="" width="477" height="101" /></p>
+<p>&nbsp;<img src="./images/Python学习日记(三十)  Socket模块使用12.png" alt="" width="475" height="86" /></p>
+<p>&nbsp;<img src="./images/Python学习日记(三十)  Socket模块使用13.png" alt="" width="477" height="87" /></p>
+<p><span style="font-family: 宋体; font-size: 18px;">udp的Sever不需要进行监听也不需要建立连接,在启动服务之后只能被动得等待客户端发送消息来,客户端发送消息的同时还会自带地址信息,消息回复的时候不仅要发送消息还要把对方的地址给填上</span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

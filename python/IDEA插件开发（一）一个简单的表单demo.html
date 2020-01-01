@@ -1,0 +1,360 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修IDEA插件开发（一）一个简单的表单demo' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>IDEA插件开发（一）一个简单的表单demo</center></div><div class='banquan'>原文出处:本文由博客园博主胖虎1993提供。<br/>
+原文连接:https://www.cnblogs.com/hama1993/p/12034514.html</div><br>
+    <blockquote>
+<p>🐜 版本信息：</p>
+<p>🐞 JDK：1.8+</p>
+<p>🐌 IDEA：2019.3</p>
+<p>🐝 插件项目基于gradle构建。</p>
+<p>🦟 知识背景：swing</p>
+<p>🦇&nbsp;参考文档：</p>
+<p><a class="external-link" href="http://www.jetbrains.org/intellij/sdk/docs/tutorials/build_system/prerequisites.html" rel="nofollow">http://www.jetbrains.org/intellij/sdk/docs/tutorials/build_system/prerequisites.html</a></p>
+<p><a class="external-link" href="http://www.jetbrains.org/intellij/sdk/docs/user_interface_components/tool_windows.html" rel="nofollow">http://www.jetbrains.org/intellij/sdk/docs/user_interface_components/tool_windows.html</a></p>
+<p><a class="external-link" href="http://www.jetbrains.org/intellij/sdk/docs/user_interface_components/dialog_wrapper.html" rel="nofollow">http://www.jetbrains.org/intellij/sdk/docs/user_interface_components/dialog_wrapper.html</a></p>
+<p><a class="external-link" href="https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003338799-Build-compatible-plugin" rel="nofollow">https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003338799-Build-compatible-plugin</a></p>
+</blockquote>
+<h2><strong><span style="color: #008080;">目标</span></strong></h2>
+<p>本实例实现一个Idea的插件，弹出一个表单Dialog，然后点击按钮，获取表单里输入的内容，然后将内容打印在表单的上方。</p>
+<p>成品图展示：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo0.png" alt="" width="424" height="500" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图1&nbsp;</span></strong></p>
+<h2 id="id-一个简单的表单demo-一、项目初始化"><span style="color: #008080;">一、项目初始化</span></h2>
+<p>新建一个gradle项目，修改其build.gradle文件：</p>
+<pre><code><code>
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.4.14' //引入intellij的gradle插件
+}
+ 
+group 'org.example'
+version '1.0' //定义jar包/zip包的版本号
+ 
+sourceCompatibility = 1.8 //限制jdk的使用版本号，这里限制到8，表示生成的idea插件只能运行在jdk8以上的环境中
+ 
+repositories {
+    mavenCentral() //远程仓库
+}
+ 
+dependencies {
+    //这里引别的依赖包
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+ 
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    // 这里是指打插件包的时候用idea什么版本的依赖包打
+    // 比如这里用2019.3打包，如果你的插件实现源码里用了2019.3不存在的依赖包或类，就会报错
+    // 一般就填当前IDEA的版本号即可
+    version "2019.3"
+}
+ 
+patchPluginXml {
+ 
+    //changeNotes里的内容展示位置参考图14
+    changeNotes """
+      1.0版本.<br />
+      <em>第1.0版本：初始化这个测试插件项目</em>"""
+ 
+    // 这个意思是说当前定义的这个插件最早支持到什么版本的IDEA
+    // 这里配置sinceBuild=191，表示插件只能被版本号大于等于2019.1版本的IDEA安装，低于这个版本的将抛无法兼容的错误
+    // &uarr;上方参考这篇问答：https://intellij-support.jetbrains.com/hc/en-us/community/posts/360003338799-Build-compatible-plugin
+    sinceBuild "191"
+}
+</code></pre>
+<p>然后Idea的右边栏gradle将会多出intellij选项：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo1.png" alt="" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图2</span></strong></p>
+<p>这里说下runIde，它用来调试插件，运行它会再次启动一个Idea，这个Idea会自动安装上你当前定义的插件包，让你用来调试。</p>
+<h2 id="id-一个简单的表单demo-二、新增plugin.xml"><strong><span style="color: #008080; font-size: 18px;">二、新增plugin.xml</span></strong></h2>
+<p>这个文件非常重要，它可以指定你定义的插件出现在IDEA的哪个位置，可以指定具体的处理逻辑，还可以定义插件名称、子名称等等。</p>
+<p>这个文件位于MATE-INF下：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo2.png" alt="" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图3</span></strong></p>
+<p>配置内容为：</p>
+<pre><code><code>
+&lt;idea-plugin&gt;
+    &lt;!--插件的id，注意不要跟其他插件重复，这个id全局唯一，尽可能复杂些--&gt;
+    &lt;id&gt;plugin.test&lt;/id&gt;
+    &lt;!--插件的名称--&gt;
+    &lt;name&gt;PluginTest&lt;/name&gt;
+    &lt;vendor email="xxxx@qq.com" url="http://www.bilibili.com"&gt;你公司的名字&lt;/vendor&gt;
+
+    &lt;!--插件的描述信息，支持html，展示的位置参考图14--&gt;
+    &lt;description&gt;&lt;![CDATA[
+    Plugin Test&lt;br&gt;
+    第一行：单纯只是个测试&lt;br&gt;
+    第二行：都说了只是个测试(●￣(ｴ)￣●)&lt;br&gt;
+    &lt;a href='https://www.bilibili.com'&gt;你猜猜这是哪个网站？&lt;/a&gt;
+    &lt;em&gt;v1.0&lt;/em&gt;
+    ]]&gt;&lt;/description&gt;
+    
+    &lt;extensions defaultExtensionNs="com.intellij"&gt;
+        &lt;!-- Add your extensions here --&gt;
+    &lt;/extensions&gt;
+
+    &lt;!--跟build.gradle里的sinceBuild一致即可，意义相同，必须配置--&gt;
+    &lt;idea-version since-build="191"/&gt;
+
+    &lt;actions&gt;
+        &lt;!--下面的group是分组，分组需要有一个唯一的id标识，text用来控制分组出现在IDEA时呈现的文案，description是描述，不会展现出来，简单描述下分组就行--&gt;
+        &lt;group id="PluginTest" text="插件测试组" description="插件测试描述"&gt;
+            &lt;!--add-to-group控制把该分组加到IDEA里，group-id用来描述加在哪个位置，MainMenu表示加在IDEA上方的主菜单栏里，
+            anchor表示顺序，last表示最后一个，所以下面的配置可以描述为：将该插件加到IDEA上方主菜单栏的最后一位--&gt;
+            &lt;add-to-group group-id="MainMenu" anchor="last"/&gt;
+            &lt;!--这个用来指定一个分组下的触发动作，同样的需要一个id，自定义；class就是用来处理这个动作的逻辑类，具体的插件逻辑都会写到对应的action类里，text用来控制文案，description为描述--&gt;
+            &lt;action id="Plugin.Test.Action"
+                    class="plugin.test.FromAction"
+                    text="表单测试" description="表单测试描述"/&gt;
+        &lt;/group&gt;
+    &lt;/actions&gt;
+&lt;/idea-plugin&gt;
+</code></pre>
+<p>然后定义一个Action类，记为FormAction，继承AnAction，实现其抽象方法actionPerformed即可：</p>
+<pre class="java"><code>
+public class FromAction extends AnAction {
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+        //TODO 这里放插件逻辑
+    }
+}
+</code></pre>
+<h2><span style="color: #008080;">三、启动 </span></h2>
+<p>现在双击<span style="color: #ff0000;"><strong>runIde</strong></span>即可调出另外一个安装了这个插件的IDEA界面，然后可以看运行结果进行调试。 runIde还支持debug模式，不过运行时要<strong><span style="color: #ff0000;">右击</span></strong>选择：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo3.png" alt="" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图4</span></strong></p>
+<p>来看下调试IDEA的界面运行效果：</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/IDEA插件开发（一）一个简单的表单demo4.png" alt="" width="840" /></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图5</span></strong></p>
+<h2 id="id-一个简单的表单demo-四、定义Action"><span style="color: #008080;">四、定义Action</span></h2>
+<h3 id="id-一个简单的表单demo-4.1：定义会话框类"><span style="color: #808000;">4.1：定义会话框类</span></h3>
+<p>经过上面三步的配置，插件的基本样式已经展示出来，但是点击下方&ldquo;表单测试&rdquo;的action，并没有什么用，因为其绑定的FormAction类里没有任何有意义的实现。现在来实现开始的目标，点击&ldquo;表单测试&rdquo;后，弹出一个自定义的表单会话框，然后点击按钮，获取表单内容后打印在会话框内。</p>
+<p>会话框（Dialog）需要定义一个继承了IDEA的DialogWrapper抽象类的子类，这个子类就是自定义的会话框实现，所有的样式定义、功能触发都是放到这个子类里的，现定于如下子类：</p>
+<pre class="java"><code>
+public class FormTestDialog extends DialogWrapper {
+ 
+    private String projectName; //假如需要获取到项目名，作为该类的属性放进来
+ 
+    // DialogWrapper没有默认的无参构造方法，所以需要重写构造方法，它提供了很多重载构造方法，
+    // 这里使用传project类型参数的那个，通过Project对象可以获取当前IDEA内打开的项目的一些属性，
+    // 比如项目名，项目路径等
+    public FormTestDialog(@Nullable Project project) {
+        super(project);
+        setTitle("表单测试~~"); // 设置会话框标题
+        this.projectName = project.getName();
+    }
+ 
+    // 重写下面的方法，返回一个自定义的swing样式，该样式会展示在会话框的最上方的位置
+    @Override
+    protected JComponent createNorthPanel() {
+        return null;
+    }
+ 
+    // 重写下面的方法，返回一个自定义的swing样式，该样式会展示在会话框的最下方的位置
+    @Override
+    protected JComponent createSouthPanel() {
+        return null;
+    }
+ 
+    // 重写下面的方法，返回一个自定义的swing样式，该样式会展示在会话框的中央位置
+    @Override
+    protected JComponent createCenterPanel() {
+        return null;
+    }
+}
+</code>
+</pre>
+<h3><span style="color: #808000;">4.2：会话框模块&amp;类元素对照</span></h3>
+<p>找个实际的会话框为例，针对上述中几个方法所控制的会话框里的元素如下：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo5.png" alt="" width="840" height="385" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图6</span></strong></p>
+<h3 id="id-一个简单的表单demo-4.3：自定义会话框元素"><span style="color: #808000;">4.3：自定义会话框元素</span></h3>
+<h4 id="id-一个简单的表单demo-4.3.1：会话框方法重定义">4.3.1：会话框方法重定义</h4>
+<p>按照本文的实现目标，自定义的表单主体部分可以位于createCenterPanel里，然后表单的大标题可以放到createNorthPanel里，提交按钮可以放到createSouthPanel里，现在改写如下：</p>
+<pre class="java"><code>
+public class FormTestDialog extends DialogWrapper {
+ 
+    private String projectName;
+     
+    //swing样式类，定义在4.3.2
+    private FormTestSwing formTestSwing = new FormTestSwing();
+ 
+    public FormTestDialog(@Nullable Project project) {
+        super(true);
+        setTitle("表单测试~~"); //设置会话框标题
+        this.projectName = project.getName(); //获取到当前项目的名称
+        init(); //触发一下init方法，否则swing样式将无法展示在会话框
+    }
+ 
+    @Override
+    protected JComponent createNorthPanel() {
+        return formTestSwing.initNorth(); //返回位于会话框north位置的swing样式
+    }
+ 
+    // 特别说明：不需要展示SouthPanel要重写返回null，否则IDEA将展示默认的"Cancel"和"OK"按钮
+    @Override
+    protected JComponent createSouthPanel() {
+        return formTestSwing.initSouth();
+    }
+ 
+    @Override
+    protected JComponent createCenterPanel() {
+        //定义表单的主题，放置到IDEA会话框的中央位置
+        return formTestSwing.initCenter();
+    }
+}
+</code></pre>
+<h4>4.3.2：自定义swing样式</h4>
+<p>下面是放置swing样式的类：</p>
+<pre class="java"><code>
+public class FormTestSwing {
+ 
+    private JPanel north = new JPanel();
+ 
+    private JPanel center = new JPanel();
+ 
+    private JPanel south = new JPanel();
+ 
+    //为了让位于底部的按钮可以拿到组件内容，这里把表单组件做成类属性
+    private JLabel r1 = new JLabel("输出：");
+    private JLabel r2 = new JLabel("NULL");
+ 
+    private JLabel name = new JLabel("姓名：");
+    private JTextField nameContent = new JTextField();
+ 
+    private JLabel age = new JLabel("年龄：");
+    private JTextField ageContent = new JTextField();
+ 
+    public JPanel initNorth() {
+ 
+        //定义表单的标题部分，放置到IDEA会话框的顶部位置
+ 
+        JLabel title = new JLabel("表单标题");
+        title.setFont(new Font("微软雅黑", Font.PLAIN, 26)); //字体样式
+        title.setHorizontalAlignment(SwingConstants.CENTER); //水平居中
+        title.setVerticalAlignment(SwingConstants.CENTER); //垂直居中
+        north.add(title);
+ 
+        return north;
+    }
+ 
+    public JPanel initCenter() {
+ 
+        //定义表单的主体部分，放置到IDEA会话框的中央位置
+ 
+        //一个简单的3行2列的表格布局
+        center.setLayout(new GridLayout(3, 2));
+ 
+        //row1：按钮事件触发后将结果打印在这里
+        r1.setForeground(new Color(255, 47, 93)); //设置字体颜色
+        center.add(r1);
+        r2.setForeground(new Color(139, 181, 20)); //设置字体颜色
+        center.add(r2);
+ 
+        //row2：姓名+文本框
+        center.add(name);
+        center.add(nameContent);
+ 
+        //row3：年龄+文本框
+        center.add(age);
+        center.add(ageContent);
+ 
+        return center;
+    }
+ 
+    public JPanel initSouth() {
+ 
+        //定义表单的提交按钮，放置到IDEA会话框的底部位置
+ 
+        JButton submit = new JButton("提交");
+        submit.setHorizontalAlignment(SwingConstants.CENTER); //水平居中
+        submit.setVerticalAlignment(SwingConstants.CENTER); //垂直居中
+        south.add(submit);
+ 
+        return south;
+    }
+}
+</code></pre>
+<p>现在点击下runIde按钮，同样的，在调试IDE里点击&ldquo;表单测试&rdquo;，然后就会弹出如下表单框：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo6.png" alt="" width="397" height="505" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图7</span></strong></p>
+<blockquote>
+<p>🌿 除非有特殊情况需要自定义swing样式，否则建议不加任何swing样式，这样自定义的swing界面是会随着IDEA的主题改变而去自适应的，比如将图7中的调试IDE的主题设置成Darcula，自定义的表单也会自适应的变成黑色背景：</p>
+<p style="text-align: center;"><img src="./images/IDEA插件开发（一）一个简单的表单demo7.png" alt="" /></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图8</span></strong></p>
+</blockquote>
+<h4>4.3.3：事件绑定</h4>
+<p>定义好了样式，现在给&ldquo;提交&rdquo;按钮绑定一个事件，现在改写下FormTestSwing.initSouth方法：</p>
+<pre class="java"><code>
+
+public JPanel initSouth() {
+ 
+    //定义表单的提交按钮，放置到IDEA会话框的底部位置
+ 
+    JButton submit = new JButton("提交");
+    submit.setHorizontalAlignment(SwingConstants.CENTER); //水平居中
+    submit.setVerticalAlignment(SwingConstants.CENTER); //垂直居中
+    south.add(submit);
+ 
+    //按钮事件绑定
+    submit.addActionListener(e -&gt; {
+        //获取到name和age
+        String name = nameContent.getText();
+        String age = ageContent.getText();
+        //刷新r2标签里的内容，替换为name和age
+        r2.setText(String.format("name:%s, age:%s", name, age));
+    });
+ 
+    return south;
+}
+</code></pre>
+<p>现在再来点击下&ldquo;提交&rdquo;按钮，就可以输出表单内容了：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo8.png" alt="" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图9</span></strong></p>
+<h2 id="id-一个简单的表单demo-五、插件的打包&amp;安装"><span style="color: #008080;"><strong>五、插件的打包&amp;安装</strong></span></h2>
+<p>截止到第四步，都只是在调试IDE里查看效果，如果一个插件开发完成后，需要被实际的IDEA安装，这个时候就需要借助打包选项来打包你的插件，点击下面的选项构建插件：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo9.png" alt="" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图10</span></strong></p>
+<p>构建完成后，查看build包下的distributions目录，里面的zip包就可以直接安装进你的IDEA：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo10.png" alt="" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图11</span></strong></p>
+<p>然后选择IDEA的Preferences下的plugins选项，弹出如下框，按照图里的指示选择zip包安装即可：</p>
+<p style="text-align: center;"><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo11.png" alt="" width="840" /></span></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图12</span></strong></p>
+<p>然后安装完成，重启IDEA即可：</p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;"><img src="./images/IDEA插件开发（一）一个简单的表单demo12.png" alt="" /></span></strong></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图13</span></strong></p>
+<p>各个展示模块对应插件项目里配置的来源参考下图：</p>
+<p style="text-align: center;"><img src="./images/IDEA插件开发（一）一个简单的表单demo13.png" alt="" width="840" /></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图14</span></strong></p>
+<p>重启后出现了跟调试IDEA里一样的菜单栏，选中后运行成功：</p>
+<p style="text-align: center;"><img src="./images/IDEA插件开发（一）一个简单的表单demo14.png" alt="" width="423" height="499" /></p>
+<p style="text-align: center;"><strong><span style="font-family: 黑体;">图15</span></strong></p>
+<h2><span style="color: #008080;">写在最后</span></h2>
+<p>截止到这里，一个插件的开发、调试、安装就完成了，理论上通过这个简单的例子就可以实现一些实际的功能了，因为其完整展示了数据输入到数据获取整个过程。</p>
+<p>因为工作当中需要写一个代码生成器，想要以一个IDEA插件的方式提供服务，所以在这里做个记录，防止以后再次用到时从零开始。。</p>
+<p>要有一定的swing基础，我在开发代码生成器的时候，就是因为swing基础太差，布局花了非常多的时间。</p>
+<blockquote>
+<p>🍒&nbsp;之后不会深入去研究插件的开发，如果后续工作中有用到插件开发的其他的功能点，会更新在这个系列里，如果想深入搞IDEA插件开发，建议看<a href="http://www.jetbrains.org/intellij/sdk/docs/welcome.html" target="_blank">IDEA的官方文档</a>，官方文档有点乱，有很多只是简单介绍几句甚至没有示例，好在他们有个问答社区，建议搜索时用google搜英文关键词（google对英文搜索支持强大，没试过度娘，应该也可以搜到），里面会有人提问，比如版本兼容的问题就是google出来的，社区里正好有一篇问答。（链接放到开头里了）</p>
+</blockquote>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

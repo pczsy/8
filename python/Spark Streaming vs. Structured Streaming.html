@@ -1,0 +1,104 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spark Streaming vs. Structured Streaming' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spark Streaming vs. Structured Streaming</center></div><div class='banquan'>原文出处:本文由博客园博主upupfeng提供。<br/>
+原文连接:https://www.cnblogs.com/upupfeng/p/12079462.html</div><br>
+    <h2 id="简介">简介</h2>
+<h3 id="spark-streaming">Spark Streaming</h3>
+<p>Spark Streaming是spark最初的流处理框架，使用了微批的形式来进行流处理。</p>
+<p>提供了基于RDDs的Dstream API，每个时间间隔内的数据为一个RDD，源源不断对RDD进行处理来实现流计算</p>
+<h3 id="structured-streaming">Structured Streaming</h3>
+<p>Spark 2.X出来的流框架，采用了无界表的概念，流数据相当于往一个表上不断追加行。</p>
+<p>基于Spark SQL引擎实现，可以使用大多数Spark SQL的function</p>
+<h2 id="区别">区别</h2>
+<h3 id="流模型">1. 流模型</h3>
+<h4 id="spark-streaming-1">Spark Streaming</h4>
+<p><img src="./images/Spark Streaming vs. Structured Streaming0.png" alt="在这里插入图片描述" /><br />
+Spark Streaming采用<strong>微批</strong>的处理方法。每一个批处理间隔的为一个批，也就是一个RDD，我们对RDD进行操作就可以源源不断的接收、处理数据。</p>
+<p>spark streaming微批终是批</p>
+<h4 id="structured-streaming-1">Structured Streaming</h4>
+<p><img src="./images/Spark Streaming vs. Structured Streaming1.png" alt="在这里插入图片描述" /></p>
+<p>Structured Streaming is to treat a live data stream as a table that is being continuously appended</p>
+<p>Structured Streaming将实时数据当做<strong>被连续追加的表</strong>。流上的每一条数据都类似于将一行新数据添加到表中。</p>
+<p><img src="./images/Spark Streaming vs. Structured Streaming2.png" alt="在这里插入图片描述" /></p>
+<p>以上图为例，每隔1秒从输入源获取数据到Input Table，并触发Query计算，然后将结果写入Result Table，之后根据指定的Output模式进行写出。</p>
+<p>上面的1秒是指定的触发间隔（trigger interval），如果不指定的话，先前数据的处理完成后，系统将立即检查是否有新数据。</p>
+<p>需要注意的是，Spark Streaming本身设计就是一批批的以批处理间隔划分RDD；而Structured Streaming中并没有提出批的概念，Structured Streaming按照每个Trigger Interval接收数据到Input Table，将数据处理后再追加到无边界的Result Table中，想要何种方式输出结果取决于指定的模式。所以，虽说Structured Streaming也有类似于Spark Streaming的Interval，其本质概念是不一样的。Structured Streaming更像流模式。</p>
+<h3 id="rdd-vs.-dataframedataset">2. RDD vs. DataFrame、DataSet</h3>
+<p>Spark Streaming中的DStream编程接口是RDD，我们需要对RDD进行处理，处理起来较为费劲且不美观。</p>
+<pre><code><code>stream.foreachRDD(rdd =&gt; {
+    balabala(rdd)
+})</code></pre>
+<p>Structured Streaming使用DataFrame、DataSet的编程接口，处理数据时可以使用Spark SQL中提供的方法，数据的转换和输出会变得更加简单。</p>
+<pre><code><code>spark
+    .readStream
+    .format(&quot;kafka&quot;)
+    .option(&quot;kafka.bootstrap.servers&quot;, &quot;hadoop01:9092&quot;)
+    .option(&quot;subscribe&quot;, &quot;order_data&quot;)
+    .load()
+    .select($&quot;value&quot;.cast(&quot;string&quot;))
+    .as[String]
+    .writeStream
+    .outputMode(&quot;complete&quot;)
+    .format(&quot;console&quot;)</code></pre>
+<h3 id="process-time-vs.-event-time">3. Process Time vs. Event Time</h3>
+<p>Process Time：流处理引擎接收到数据的时间</p>
+<p>Event Time：时间真正发生的时间</p>
+<p>Spark Streaming中由于其微批的概念，会将一段时间内接收的数据放入一个批内，进而对数据进行处理。划分批的时间是Process Time，而不是Event Time，Spark Streaming没有提供对Event Time的支持。</p>
+<p>Structured Streaming提供了基于事件时间处理数据的功能，如果数据包含事件的时间戳，就可以基于事件时间进行处理。</p>
+<p>这里以<strong>窗口计数</strong>为例说明一下区别：</p>
+<blockquote>
+<p>我们这里以10分钟为窗口间隔，5分钟为滑动间隔，每隔5分钟统计过去10分钟网站的pv</p>
+</blockquote>
+<p>假设有一些迟到的点击数据，其本身事件时间是12:01，被spark接收到的时间是12:11；在spark streaming的统计中，会毫不犹豫的将它算作是12:05-12:15这个范围内的pv，这显然是不恰当的；在structured streaming中，可以使用事件时间将它划分到12:00-12:10的范围内，这才是我们想要的效果。</p>
+<h3 id="可靠性保障">4. 可靠性保障</h3>
+<p>两者在可靠性保证方面都是使用了checkpoint机制。</p>
+<p>checkpoint通过设置检查点，将数据保存到文件系统，在出现出故障的时候进行数据恢复。</p>
+<p>在spark streaming中，如果我们需要修改流程序的代码，在修改代码重新提交任务时，是不能从checkpoint中恢复数据的（程序就跑不起来），是因为spark不认识修改后的程序了。</p>
+<p>在structured streaming中，对于指定的代码修改操作，是不影响修改后从checkpoint中恢复数据的。具体可参见<a href="https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#recovery-semantics-after-changes-in-a-streaming-query">文档</a>。</p>
+<h3 id="sink">5. sink</h3>
+<p>二者的输出数据（写入下游）的方式有很大的不同。</p>
+<p>spark streaming中提供了<code>foreachRDD()</code>方法，通过自己编程实现将每个批的数据写出。</p>
+<pre><code><code>stream.foreachRDD(rdd =&gt; {
+    save(rdd)
+})</code></pre>
+<p>structured streaming自身提供了一些sink(Console Sink、File Sink、Kafka Sink等)，只要通过option配置就可以使用；对于需要自定义的Sink，提供了ForeachWriter的编程接口，实现相关方法就可以完成。</p>
+<pre><code><code>// console sink
+val query = res
+    .writeStream
+    .outputMode(&quot;append&quot;)
+    .format(&quot;console&quot;)
+    .start()</code></pre>
+<h3 id="最后">最后</h3>
+<p>总体来说，structured streaming有更简洁的API、更完善的流功能、更适用于流处理。而spark streaming，更适用于与偏批处理的场景。</p>
+<p>在流处理引擎方面，flink最近也很火，值得我们去学习一番。</p>
+<h3 id="reference">reference</h3>
+<p><a href="https://blog.knoldus.com/spark-streaming-vs-structured-streaming/" class="uri">https://blog.knoldus.com/spark-streaming-vs-structured-streaming/</a></p>
+<p><a href="https://dzone.com/articles/spark-streaming-vs-structured-streaming" class="uri">https://dzone.com/articles/spark-streaming-vs-structured-streaming</a></p>
+<p><a href="https://spark.apache.org/docs/2.0.2/streaming-programming-guide.html" class="uri">https://spark.apache.org/docs/2.0.2/streaming-programming-guide.html</a></p>
+<p><a href="https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html" class="uri">https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html</a></p>
+<p><br></p>
+<p><font color='red'>以上为个人理解，如有不对的地方，欢迎交流指正。</font></p>
+<p><img src="./images/Spark Streaming vs. Structured Streaming3.png" alt="在这里插入图片描述" /><br />
+个人公众号：码农峰，推送最新行业资讯，每周发布原创技术文章，欢迎大家关注。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

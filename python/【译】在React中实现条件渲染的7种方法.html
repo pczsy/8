@@ -1,0 +1,398 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【译】在React中实现条件渲染的7种方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【译】在React中实现条件渲染的7种方法</center></div><div class='banquan'>原文出处:本文由博客园博主hanks_yao提供。<br/>
+原文连接:https://www.cnblogs.com/hanksyao/p/12066412.html</div><br>
+    <p><img src="./images/【译】在React中实现条件渲染的7种方法0.png" /></p>
+<blockquote>
+<p>原文地址：<a href="https://scotch.io/tutorials/7-ways-to-implement-conditional-rendering-in-react-applications" class="uri">https://scotch.io/tutorials/7-ways-to-implement-conditional-rendering-in-react-applications</a></p>
+</blockquote>
+<p>借助React，我们可以构建动态且高度交互的单页应用程序，充分利用这种交互性的一种方法是通过<strong>条件渲染</strong>。</p>
+<h2 id="目录"><span id="contents">目录</span></h2>
+<ul>
+<li><a href="#challenge">挑战</a></li>
+<li><a href="#solution">解决方法</a>
+<ol>
+<li><a href="#mark1">使用if…else语句</a></li>
+<li><a href="#mark2">使用元素变量</a></li>
+<li><a href="#mark3">使用switch语句</a></li>
+<li><a href="#mark4">三元运算符</a></li>
+<li><a href="#mark5">逻辑运算符&amp;&amp;</a></li>
+<li><a href="#mark6">使用立即调用函数表达式（IIFE）</a></li>
+<li><a href="#mark7">使用增强的JSX</a></li>
+</ol></li>
+<li><a href="#performance">性能问题</a></li>
+<li><a href="#conclusion">总结</a></li>
+</ul>
+<p><strong>条件渲染</strong>一词描述了根据某些条件渲染不同UI标签的能力。在React文档中，这是一种根据条件渲染不同元素或组件的方法。此概念通常被应用到如下情况中：</p>
+<ul>
+<li>从API渲染外部数据</li>
+<li>显示/隐藏元素</li>
+<li>切换应用程序功能</li>
+<li>实现权限级别</li>
+<li>认证与授权</li>
+</ul>
+<p>在本文中，我们将研究在React应用程序中实现条件渲染的7种方法。</p>
+<h2 id="挑战"><span id="challenge">挑战</span></h2>
+<p>首先，根据在组件state中<code>isLoggedIn</code>的值，我们希望能够在用户未登入时显示<code>Login</code>按钮，在用户登入时显示<code>Logout</code>按钮。</p>
+<p>下图是我们初始组件的截图：<br />
+<img src="./images/【译】在React中实现条件渲染的7种方法1.png" /></p>
+<p>代码如下：</p>
+<pre><code><code>import React, { Component } from &quot;react&quot;;
+import ReactDOM from &quot;react-dom&quot;;
+import &quot;./styles.css&quot;;
+
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoggedIn: true
+    };
+  }
+  render() {
+    return (
+      &lt;div className=&quot;App&quot;&gt;
+        &lt;h1&gt;
+          This is a Demo showing several ways to implement Conditional Rendering in React.
+        &lt;/h1&gt;
+        &lt;button&gt;Login&lt;/button&gt;
+        &lt;button&gt;Logout&lt;/button&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+
+const rootElement = document.getElementById(&quot;root&quot;);
+ReactDOM.render(&lt;App /&gt;, rootElement);</code></pre>
+<p>在线测试：<a href="https://codesandbox.io/s/conditional-rendering-demo-ei72f">CodeSandBox</a></p>
+<h2 id="解决方法"><span id="solution">解决方法</span></h2>
+<blockquote>
+<p>在代码段中，…表示某些与所解释要点没有直接联系的代码。</p>
+</blockquote>
+<h3 id="使用ifelse语句"><span id="mark1">1. 使用if…else语句</span></h3>
+<p>使用<code>if…else</code>语句允许我们可以指出，如果条件为<code>true</code>，则执行特定的操作，否则将执行其他操作。使用示例，我将测试<code>if…else</code>通常用于在React中条件渲染的两种方法。</p>
+<ul>
+<li>将条件渲染提取到函数中</li>
+</ul>
+<p>在JSX中，我们可以将JS代码和HTML标签放在一起，以确保程序内具有惊人的交互性。为此，我们使用大括号<code>{}</code>并在其中编写我们的JS。但在括号内能做事情也是有限的。例如，下面代码的结果并不能实现我们想要的结果。</p>
+<pre><code><code>// index.js
+...
+render() {
+  let {isLoggedIn} = this.state;
+  return (
+    &lt;div className=&quot;App&quot;&gt;
+      &lt;h1&gt;
+        This is a Demo showing several ways to implement Conditional Rendering in React.
+      &lt;/h1&gt;
+      {
+        if(isLoggedIn){
+          return &lt;button&gt;Logout&lt;/button&gt;
+        } else{
+          return &lt;button&gt;Login&lt;/button&gt;
+        }
+      }
+    &lt;/div&gt;
+  );
+}
+...</code></pre>
+<p>要了解更多相关信息，请访问<a href="https://react-cn.github.io/react/tips/if-else-in-JSX.html">此链接</a>。</p>
+<p>为了解决这个问题，我们将条件逻辑提取到一个函数中，如下所示：</p>
+<pre><code><code>// index.js
+...
+render() {
+  let {isLoggedIn} = this.state;
+  const renderAuthButton = ()=&gt;{
+    if(isLoggedIn){
+      return &lt;button&gt;Logout&lt;/button&gt;
+    } else{
+      return &lt;button&gt;Login&lt;/button&gt;
+    }
+  }
+  return (
+    &lt;div className=&quot;App&quot;&gt;
+      &lt;h1&gt;
+        This is a Demo showing several ways to implement Conditional Rendering
+        in React.
+      &lt;/h1&gt;
+      {renderAuthButton()}
+    &lt;/div&gt;
+  );
+}
+...</code></pre>
+<p>注意，我们将逻辑从JSX提取到函数<code>renderAuthButton</code>中。因此，我们只需要在JSX大括号内执行函数即可。</p>
+<ul>
+<li>多个返回语句</li>
+</ul>
+<p>在使用此方法时，组件必须尽可能的简单，以避免兄弟或父组件的重新渲染。因此，我们创建了一个名为<code>AuthButton</code>的新组件。</p>
+<pre><code><code>// AuthButton.js
+
+import React from &quot;react&quot;;
+
+const AuthButton = props =&gt; {
+  let { isLoggedIn } = props;
+  if (isLoggedIn) {
+    return &lt;button&gt;Logout&lt;/button&gt;;
+  } else {
+    return &lt;button&gt;Login&lt;/button&gt;;
+  }
+};
+export default AuthButton;</code></pre>
+<p><code>AuthButton</code>根据通过组件属性<code>isLoggedIn</code>传入的状态值，返回不同的元素和组件。因此，我们将其导入<code>index.js</code>并将状态值传入，如下所示：</p>
+<pre><code><code>// index.js
+...
+import AuthButton from &quot;./AuthButton&quot;;
+
+...
+  render() {
+    let { isLoggedIn } = this.state;
+    return (
+      &lt;div className=&quot;App&quot;&gt;
+      ...
+        &lt;AuthButton isLoggedIn={isLoggedIn} /&gt;
+      &lt;/div&gt;
+    );
+  }
+...</code></pre>
+<p>一定要避免下面的操作：</p>
+<pre><code><code>// index.js
+...
+render() {
+  let { isLoggedIn } = this.state;
+  if (isLoggedIn) {
+    return (
+      &lt;div className=&quot;App&quot;&gt;
+        &lt;h1&gt;
+          This is a Demo showing several ways to implement Conditional
+          Rendering in React.
+        &lt;/h1&gt;
+        &lt;button&gt;Logout&lt;/button&gt;;
+      &lt;/div&gt;
+    );
+  } else {
+    return (
+      &lt;div className=&quot;App&quot;&gt;
+        &lt;h1&gt;
+          This is a Demo showing several ways to implement Conditional
+          Rendering in React.
+        &lt;/h1&gt;
+        &lt;button&gt;Login&lt;/button&gt;
+      &lt;/div&gt;
+    );
+  }
+}
+...</code></pre>
+<p>虽然上述代码将实现相同的结果，但使得组件不必要的臃肿，同时由于不断重新渲染一个不变的组件而导致性能问题。</p>
+<h3 id="使用元素变量"><span id="mark2">2. 使用元素变量</span></h3>
+<p>元素变量是上述的将条件渲染提取到函数中的一个扩展。元素变量只是保存JSX元素的变量。因此，我们可以在JSX外部根据条件将元素/组件赋值给这些变量，仅在JSX渲染变量即可。</p>
+<pre><code><code>// index.js
+...
+render() {
+  let { isLoggedIn } = this.state;
+  let AuthButton;
+  if (isLoggedIn) {
+    AuthButton = &lt;button&gt;Logout&lt;/button&gt;;
+  } else {
+    AuthButton = &lt;button&gt;Login&lt;/button&gt;;
+  }
+  return (
+    &lt;div className=&quot;App&quot;&gt;
+      &lt;h1&gt;
+        This is a Demo showing several ways to implement Conditional Rendering in React.
+      &lt;/h1&gt;
+      {AuthButton}
+    &lt;/div&gt;
+  );
+}
+...</code></pre>
+<p>注意我们如何有条件地将值（组件）分配给<code>AuthButton</code>，然后我们只需要在JSX中渲染它即可。</p>
+<h3 id="使用switch语句"><span id="mark3">3. 使用switch语句</span></h3>
+<p>如前所示，我们可以使用if…else语句根据设置的条件从组件返回不同的标签。使用switch语句也可以达到相同的效果，在该语句中我们可以为不同的条件指定标签。看看如下代码：</p>
+<pre><code><code>// AuthButton.js
+import React from &quot;react&quot;;
+
+const AuthButton = props =&gt; {
+  let { isLoggedIn } = props;
+  switch (isLoggedIn) {
+    case true:
+      return &lt;button&gt;Logout&lt;/button&gt;;
+      break;
+    case false:
+      return &lt;button&gt;Login&lt;/button&gt;;
+      break;
+    default:
+      return null;
+  }
+};
+
+export default AuthButton;</code></pre>
+<p>注意我们如何根据<code>isLoggedIn</code>的值返回不同的按钮。当存在两个以上可能的值或结果时，采用此方法更为合理。你也可以通过break语句取消，正如return语句自动终止执行一样。</p>
+<p>注意：从组件返回<code>null</code>会使它隐藏自身/不显示任何内容。这是切换组件可见性的好方法。</p>
+<h3 id="三元运算符"><span id="mark4">4. 三元运算符</span></h3>
+<p>如果你熟悉三元运算符，那么你应该知道这是编写if语句的一种更简洁的方法。因此我们也许会这样写：</p>
+<pre class="javacript"><code>// index.js
+...
+render() {
+  let { isLoggedIn } = this.state;
+  return (
+    &lt;div className=&quot;App&quot;&gt;
+      &lt;h1&gt;
+        This is a Demo showing several ways to implement Conditional Rendering
+        in React.
+      &lt;/h1&gt;
+      {isLoggedIn ? &lt;button&gt;Logout&lt;/button&gt; : &lt;button&gt;Login&lt;/button&gt;}
+    &lt;/div&gt;
+  );
+}
+...</code></pre>
+<p>但在上例中，这种方法会使组件臃肿，笨重和难以理解，你可以将条件封装在纯函数组件中。如下所示：</p>
+<pre><code><code>// AuthButton.js
+import React from &quot;react&quot;;
+
+const AuthButton = props =&gt; {
+  let { isLoggedIn } = props;
+  return isLoggedIn ? &lt;button&gt;Logout&lt;/button&gt; : &lt;button&gt;Login&lt;/button&gt;;
+};
+
+export default AuthButton;</code></pre>
+<h3 id="逻辑运算符"><span id="mark5">5. 逻辑运算符&amp;&amp;</span></h3>
+<p>短路运算是一种用于确保在表达式运算过程中没有副作用的技术。逻辑&amp;&amp;帮助我们指定仅在一种情况下执行，否则将被完全忽略。这对于仅在特定条件为真时才需要执行的情况下是很有用的。</p>
+<p>例如，如果是登录状态，我们只需显示<code>Logout</code>按钮，否则我们什么也不做。如下：</p>
+<pre><code><code>// index.js
+...
+render() {
+  let { isLoggedIn } = this.state;
+  return (
+    &lt;div className=&quot;App&quot;&gt;
+      &lt;h1&gt;
+        This is a Demo showing several ways to implement Conditional Rendering
+        in React.
+      &lt;/h1&gt;
+      {isLoggedIn &amp;&amp; &lt;button&gt;Logout&lt;/button&gt;}
+    &lt;/div&gt;
+  );
+}
+...</code></pre>
+<p>如果<code>isLoggedIn</code>为true，则将显示<code>Logout</code>按钮，否则将不显示任何内容。我们用相同方法就可以实现最终结果，如下所示。</p>
+<pre><code><code>// index.js
+...
+return (
+  &lt;div className=&quot;App&quot;&gt;
+    &lt;h1&gt;
+      This is a Demo showing several ways to implement Conditional Rendering
+      in React.
+    &lt;/h1&gt;
+    {isLoggedIn &amp;&amp; &lt;button&gt;Logout&lt;/button&gt;}
+    {!isLoggedIn &amp;&amp; &lt;button&gt;Login&lt;/button&gt;}
+  &lt;/div&gt;
+);
+...</code></pre>
+<p>这是基于<code>isLoggedIn</code>的值渲染正确的按钮。但是，<strong>不建议这样做</strong>，因为有更好、更清洁的方法可以达到相同的效果。而且，一旦组件稍大一些，这很容易使你代码看起来混乱和难以理解。</p>
+<h3 id="使用立即调用函数表达式iife"><span id="mark6">6. 使用立即调用函数表达式（IIFE）</span></h3>
+<p>还记的刚才说的JSX局限性吗，在其中无法执行所有JavaScript代码。嗯...这并不完全正确的，因为有很多方法可以绕过这种行为。一种方法是使用IIFE。</p>
+<pre><code><code>(function () {
+  statements
+})();</code></pre>
+<p>点击<a href="https://developer.mozilla.org/zh-CN/docs/Glossary/%E7%AB%8B%E5%8D%B3%E6%89%A7%E8%A1%8C%E5%87%BD%E6%95%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F">链接</a>了解更多</p>
+<p>通过这种技术，我们能够直接在JSX内编写条件逻辑，但将其包装在匿名函数中，该匿名函数在运行该部分代码后立即被调用。请参见下面的示例：</p>
+<pre><code><code>//index.js
+...
+render() {
+  let { isLoggedIn } = this.state;
+  return (
+    &lt;div className=&quot;App&quot;&gt;
+      &lt;h1&gt;
+        This is a Demo showing several ways to implement Conditional Rendering
+        in React.
+      &lt;/h1&gt;
+      {(function() {
+        if (isLoggedIn) {
+          return &lt;button&gt;Logout&lt;/button&gt;;
+        } else {
+          return &lt;button&gt;Login&lt;/button&gt;;
+        }
+      })()}
+    &lt;/div&gt;
+  );
+}
+...</code></pre>
+<p>也可以使用箭头功能，通过更加简洁的方式编写该代码，如下所示：</p>
+<pre><code><code>// index.js
+...
+return (
+  &lt;div className=&quot;App&quot;&gt;
+    &lt;h1&gt;
+      This is a Demo showing several ways to implement Conditional Rendering in React.
+    &lt;/h1&gt;
+    {(()=&gt; {
+      if (isLoggedIn) {
+        return &lt;button&gt;Logout&lt;/button&gt;;
+      } else {
+        return &lt;button&gt;Login&lt;/button&gt;;
+      }
+    })()}
+  &lt;/div&gt;
+);
+...</code></pre>
+<h3 id="使用增强的jsx"><span id="mark7">7. 使用增强的JSX</span></h3>
+<p>某些库公开了扩展JSX的功能，因此可以直接用JSX实现条件渲染。此类库之一是<a href="https://github.com/AlexGilleran/jsx-control-statements">JSX Control Statements</a>。它是Babel插件，可在编译过程中将类似组件的控制语句转换为JavaScript对应的语句。请参阅下面的示例以了解如何实现。</p>
+<pre><code><code>// index.js
+...
+return (
+  &lt;div className=&quot;App&quot;&gt;
+    &lt;h1&gt;
+      This is a Demo showing several ways to implement Conditional Rendering in React.
+    &lt;/h1&gt;
+    &lt;Choose&gt;
+      &lt;When condition={isLoggedIn}&gt;
+         &lt;button&gt;Logout&lt;/button&gt;;
+      &lt;/When&gt;
+      &lt;When condition={!isLoggedIn}&gt;
+         &lt;button&gt;Login&lt;/button&gt;;
+      &lt;/When&gt;
+    &lt;/Choose&gt;
+  &lt;/div&gt;
+);
+...</code></pre>
+<p>但是，不建议使用这种方法，因为您编写的代码最终会转换为常规JavaScript条件。仅仅编写JavaScript可能总比对如此琐碎的事情增加额外的依赖要好。</p>
+<h2 id="性能问题"><span id="performance">性能问题</span></h2>
+<p>作为通用规则，最好确保在实现条件渲染时：</p>
+<ul>
+<li>请勿随意更改组件的位置，以防止不必要地卸卸和重载组件。</li>
+<li>仅更改与条件渲染有关的标签，而不改变组件中没有变动的部分。</li>
+<li>不要在render方法中使组件不必要的臃肿，从而导致组件延迟渲染。</li>
+</ul>
+<h2 id="总结"><span id="conclusion">总结</span></h2>
+<p>我们已经成功研究了在React中实现条件渲染的7种方法。每种方法都有其自身的优势，选择哪种方法主要取决于实际情况。要考虑的事项包括：</p>
+<ul>
+<li>条件渲染标签的大小</li>
+<li>可能结果的数目</li>
+<li>哪个会更直观和可读</li>
+</ul>
+<p>通常，我建议：</p>
+<ul>
+<li>当只有一个预期的结果时，使用<strong>逻辑&amp;&amp;运算符</strong>非常方便。</li>
+<li>对于布尔型情况或只有两个可能结果的用例，可以使用<strong>if…else</strong>，<strong>Element变量</strong>，<strong>三元运算符</strong>和<strong>IIFE</strong>。</li>
+<li>如果结果超过2个，则可以使用<strong>Switch语句</strong>，<strong>提取成函数</strong>或提<strong>取成纯函数组件</strong>。</li>
+</ul>
+<p>但是，这些仅是建议，最终还是根据实际情况选择。</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

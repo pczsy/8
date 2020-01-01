@@ -1,0 +1,127 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修回归损失函数1：L1 loss, L2 loss以及Smooth L1 Loss的对比' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>回归损失函数1：L1 loss, L2 loss以及Smooth L1 Loss的对比</center></div><div class='banquan'>原文出处:本文由博客园博主Brook_icv提供。<br/>
+原文连接:https://www.cnblogs.com/wangguchangqing/p/12021638.html</div><br>
+    <p>总结对比下<span class="math inline">\(L_1\)</span> 损失函数，<span class="math inline">\(L_2\)</span> 损失函数以及<span class="math inline">\(\text{Smooth} L_1\)</span> 损失函数的优缺点。</p>
+<h3 id="均方误差mse-l_2-loss">均方误差MSE (<span class="math inline">\(L_2\)</span> Loss)</h3>
+<p>均方误差（Mean Square Error,MSE）是模型预测值<span class="math inline">\(f(x)\)</span> 与真实样本值<span class="math inline">\(y\)</span> 之间差值平方的平均值，其公式如下<br />
+<span class="math display">\[
+MSE = \frac{\sum_{i=1}^n(f_{x_i} - y_i)^2}{n}
+\]</span><br />
+其中，<span class="math inline">\(y_i\)</span>和<span class="math inline">\(f(x_i)\)</span>分别表示第<span class="math inline">\(i\)</span>个样本的真实值及其对应的预测值，<span class="math inline">\(n\)</span>为样本的个数。</p>
+<p>忽略下标<span class="math inline">\(i\)</span> ，设<span class="math inline">\(n=1\)</span>，以<span class="math inline">\(f(x) - y\)</span>为横轴，MSE的值为纵轴，得到函数的图形如下：</p>
+<p><img src="./images/回归损失函数1：L1 loss, L2 loss以及Smooth L1 Loss的对比0.png" /></p>
+<p>MSE的函数曲线光滑、连续，处处可导，便于使用梯度下降算法，是一种常用的损失函数。 而且，随着误差的减小，梯度也在减小，这有利于收敛，即使使用固定的学习速率，也能较快的收敛到最小值。</p>
+<p>当<span class="math inline">\(y\)</span>和<span class="math inline">\(f(x)\)</span>也就是真实值和预测值的差值大于1时，会放大误差；而当差值小于1时，则会缩小误差，这是平方运算决定的。MSE对于较大的误差（<span class="math inline">\(&gt;1\)</span>）给予较大的惩罚，较小的误差（<span class="math inline">\(&lt;1\)</span>）给予较小的惩罚。也就是说，对离群点比较敏感，受其影响较大。</p>
+<p>如果样本中存在离群点，MSE会给离群点更高的权重，这就会牺牲其他正常点数据的预测效果，最终降低整体的模型性能。 如下图：</p>
+<p><img src="./images/回归损失函数1：L1 loss, L2 loss以及Smooth L1 Loss的对比1.png" /></p>
+<p>可见，使用 MSE 损失函数，受离群点的影响较大，虽然样本中只有 5 个离群点，但是拟合的直线还是比较偏向于离群点。</p>
+<h3 id="平均绝对误差l_1-loss">平均绝对误差(<span class="math inline">\(L_1\)</span> Loss)</h3>
+<p>平均绝对误差（Mean Absolute Error,MAE) 是指模型预测值<span class="math inline">\(f(x)\)</span>和真实值<span class="math inline">\(y\)</span>之间距离的平均值，其公式如下：<br />
+<span class="math display">\[
+MAE = \frac{\sum_{n=1}^n\mid f(x_i) - y_i\mid}{n}
+\]</span><br />
+忽略下标<span class="math inline">\(i\)</span> ，设<span class="math inline">\(n=1\)</span>，以<span class="math inline">\(f(x) - y\)</span>为横轴，MAE的值为纵轴，得到函数的图形如下：</p>
+<p><img src="./images/回归损失函数1：L1 loss, L2 loss以及Smooth L1 Loss的对比2.png" /></p>
+<p>MAE曲线连续，但是在<span class="math inline">\(y-f(x)=0\)</span>处不可导。而且 MAE 大部分情况下梯度都是相等的，这意味着即使对于小的损失值，其梯度也是大的。这不利于函数的收敛和模型的学习。但是，无论对于什么样的输入值，都有着稳定的梯度，不会导致梯度爆炸问题，具有较为稳健性的解。</p>
+<p>相比于MSE，MAE有个优点就是，对于离群点不那么敏感。因为MAE计算的是误差<span class="math inline">\(y-f(x)\)</span>的绝对值，对于任意大小的差值，其惩罚都是固定的。</p>
+<p>针对上面带有离群点的数据，MAE的效果要好于MSE。</p>
+<p><img src="./images/回归损失函数1：L1 loss, L2 loss以及Smooth L1 Loss的对比3.png" /></p>
+<p>显然，使用 MAE 损失函数，受离群点的影响较小，拟合直线能够较好地表征正常数据的分布情况。</p>
+<h3 id="mse和mae的选择">MSE和MAE的选择</h3>
+<ul>
+<li><p>从梯度的求解以及收敛上，MSE是由于MAE的。MSE处处可导，而且梯度值也是动态变化的，能够快速的收敛；而MAE在0点处不可导，且其梯度保持不变。对于很小的损失值其梯度也很大，在深度学习中，就需要使用变化的学习率，在损失值很小时降低学习率。</p></li>
+<li><p>对离群（异常）值得处理上，MAE要明显好于MSE。</p></li>
+</ul>
+<p>如果离群点（异常值）需要被检测出来，则可以选择MSE作为损失函数；如果离群点只是当做受损的数据处理，则可以选择MAE作为损失函数。</p>
+<p>总之，MAE作为损失函数更稳定，并且对离群值不敏感，但是其导数不连续，求解效率低。另外，在深度学习中，收敛较慢。MSE导数求解速度高，但是其对离群值敏感，不过可以将离群值的导数设为0（导数值大于某个阈值）来避免这种情况。</p>
+<p>在某些情况下，上述两种损失函数都不能满足需求。例如，若数据中90%的样本对应的目标值为150，剩下10%在0到30之间。那么使用MAE作为损失函数的模型可能会忽视10%的异常点，而对所有样本的预测值都为150。这是因为模型会按中位数来预测。而使用MSE的模型则会给出很多介于0到30的预测值，因为模型会向异常点偏移。</p>
+<p>这种情况下，MSE和MAE都是不可取的，简单的办法是对目标变量进行变换，或者使用别的损失函数，例如：Huber,Log-Cosh以及分位数损失等。</p>
+<h3 id="smooth-l_1-loss">Smooth <span class="math inline">\(L_1\)</span> Loss</h3>
+<p>在Faster R-CNN以及SSD中对边框的回归使用的损失函数都是Smooth <span class="math inline">\(L_1\)</span> 作为损失函数，<br />
+<span class="math display">\[
+\text{Smooth}{L_1}(x) =\left \{ \begin{array}{c} 0.5x^2 &amp; if \mid x \mid &lt;1 \\ \mid x \mid - 0.5 &amp; otherwise  \end{array} \right.
+\]</span><br />
+其中，<span class="math inline">\(x = f(x_i) - y_i\)</span> 为真实值和预测值的差值。</p>
+<p>Smooth <span class="math inline">\(L_1\)</span> 能从两个方面限制梯度：</p>
+<ol>
+<li>当预测框与 ground truth 差别过大时，梯度值不至于过大；</li>
+<li>当预测框与 ground truth 差别很小时，梯度值足够小。</li>
+</ol>
+<h4 id="对比l_1-loss-和-l_2-loss">对比<span class="math inline">\(L_1\)</span> Loss 和 <span class="math inline">\(L_2\)</span> Loss</h4>
+<p>其中<span class="math inline">\(x\)</span>为预测框与groud truth之间的差异：</p>
+<p><span class="math display">\[
+\begin{align}
+L_2(x) &amp;= x^2  \\
+L_1(x) &amp;= x \\
+smooth_{L_1}(x) &amp;=\left \{ \begin{array}{c} 0.5x^2 &amp; if \mid x \mid &lt;1 \\ \mid x \mid - 0.5 &amp; otherwise  \end{array} \right.
+\end{align}
+\]</span></p>
+<p>上面损失函数对<span class="math inline">\(x\)</span>的导数为：<br />
+<span class="math display">\[
+\begin{align}
+\frac{\partial L_2(x)}{\partial x} &amp;= 2x \\
+\frac{\partial L_1(x)}{\partial x} &amp;= \left \{ \begin{array}{c} 1 &amp; \text{if }  x \geq 0 \\ -1 &amp; \text{otherwise} \end{array} \right. \\
+\frac{\partial smooth_{L_1}(x)}{\partial x} &amp;=\left \{ \begin{array}{c} x &amp; if \mid x \mid &lt;1 \\ \pm1 &amp; otherwise  \end{array} \right.
+\end{align}
+\]</span></p>
+<p>上面导数可以看出：</p>
+<ul>
+<li><p>根据公式-4，当<span class="math inline">\(x\)</span>增大时，<span class="math inline">\(L_2\)</span>的损失也增大。 这就导致在训练初期，预测值与 groud truth 差异过于大时，损失函数对预测值的梯度十分大，训练不稳定。</p></li>
+<li><p>根据公式-5,<span class="math inline">\(L_1\)</span>对<span class="math inline">\(x\)</span>的导数为常数，在训练的后期，预测值与ground truth差异很小时，<span class="math inline">\(L_1\)</span>的导数的绝对值仍然为1，而 learning rate 如果不变，损失函数将在稳定值附近波动，难以继续收敛以达到更高精度。</p></li>
+<li><p>根据公式-6，<span class="math inline">\(\text{Smotth } L_1\)</span>在<span class="math inline">\(x\)</span>较小时，对<span class="math inline">\(x\)</span>的梯度也会变小。 而当<span class="math inline">\(x\)</span>较大时，对<span class="math inline">\(x\)</span>的梯度的上限为1，也不会太大以至于破坏网络参数。<span class="math inline">\(Smooth L_1\)</span>完美的避开了<span class="math inline">\(L_1\)</span>和<span class="math inline">\(L_2\)</span>作为损失函数的缺陷。</p></li>
+</ul>
+<p><span class="math inline">\(L_1\)</span> Loss ,<span class="math inline">\(L_2\)</span> Loss以及<span class="math inline">\(Smooth L_1\)</span> 放在一起的函数曲线对比</p>
+<p><img src="./images/回归损失函数1：L1 loss, L2 loss以及Smooth L1 Loss的对比4.png" /></p>
+<p>从上面可以看出，该函数实际上就是一个分段函数，在[-1,1]之间实际上就是L2损失，这样解决了L1的不光滑问题，在[-1,1]区间外，实际上就是L1损失，这样就解决了离群点梯度爆炸的问题</p>
+<h4 id="实现-pytorch">实现 (PyTorch)</h4>
+<pre><code><code>def _smooth_l1_loss(input, target, reduction=&#39;none&#39;):
+    # type: (Tensor, Tensor) -&gt; Tensor
+    t = torch.abs(input - target)
+    ret = torch.where(t &lt; 1, 0.5 * t ** 2, t - 0.5)
+    if reduction != &#39;none&#39;:
+        ret = torch.mean(ret) if reduction == &#39;mean&#39; else torch.sum(ret)
+    return ret      </code></pre>
+<p>也可以添加个参数<code>beta</code> 这样就可以控制，什么范围的误差使用MSE，什么范围内的误差使用MAE了。</p>
+<pre><code><code>def smooth_l1_loss(input, target, beta=1. / 9, reduction = &#39;none&#39;):
+    &quot;&quot;&quot;
+    very similar to the smooth_l1_loss from pytorch, but with
+    the extra beta parameter
+    &quot;&quot;&quot;
+    n = torch.abs(input - target)
+    cond = n &lt; beta
+    ret = torch.where(cond, 0.5 * n ** 2 / beta, n - 0.5 * beta)
+    if reduction != &#39;none&#39;:
+        ret = torch.mean(ret) if reduction == &#39;mean&#39; else torch.sum(ret)
+    return ret</code></pre>
+<h3 id="总结">总结</h3>
+<p>对于大多数CNN网络，我们一般是使用L2-loss而不是L1-loss，因为L2-loss的收敛速度要比L1-loss要快得多。</p>
+<p>对于边框预测回归问题，通常也可以选择平方损失函数（L2损失），但L2范数的缺点是当存在离群点（outliers)的时候，这些点会占loss的主要组成部分。比如说真实值为1，预测10次，有一次预测值为1000，其余次的预测值为1左右，显然loss值主要由1000决定。所以FastRCNN采用稍微缓和一点绝对损失函数（smooth L1损失），它是随着误差线性增长，而不是平方增长。</p>
+<p>　　Smooth L1 和 L1 Loss 函数的区别在于，L1 Loss 在0点处导数不唯一，可能影响收敛。Smooth L1的解决办法是在 0 点附近使用平方函数使得它更加平滑。</p>
+<p>Smooth L1的优点</p>
+<ul>
+<li>相比于L1损失函数，可以收敛得更快。</li>
+<li>相比于L2损失函数，对离群点、异常值不敏感，梯度变化相对更小，训练时不容易跑飞。</li>
+</ul>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

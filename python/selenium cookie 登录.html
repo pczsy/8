@@ -1,0 +1,150 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修selenium cookie 登录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>selenium cookie 登录</center></div><div class='banquan'>原文出处:本文由博客园博主风，又奈何提供。<br/>
+原文连接:https://www.cnblogs.com/CYHISTW/p/11685846.html</div><br>
+    <h1>前言</h1>
+<p>爬虫方向的小伙伴们都知道网页爬虫经常遇到的问题就是登录账户，有些简单的网站我们可以简单的send key来输入账户密码就可以登录，但是有很多网站需要验证码之类的就不太好用了，这时候就体现到了cookie登录的优点了，前段时间网上搜了搜，发现没有什么完整的教程，本文就使用selenium来cookie登录为例做一个简单的教程。</p>
+<hr />
+<p>&nbsp;</p>
+<h2>环境准备</h2>
+<ul>
+<li>python3</li>
+<li>selenium</li>
+<li>chromedriver</li>
+</ul>
+<p>selenium就不再过多解释了，我们在使用的过程中唯一需要注意的就是自己浏览器版本与driver版本的问题，至于具体对应版本，在chromedriver下载页面中会有显示</p>
+<hr />
+<h2>代码编写</h2>
+<p>这次就以 百度 为例，www.baidu.com 首先使用 selenium 打开百度看一下未登录是什么样子</p>
+<p>代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">填写webdriver的保存目录</span>
+driver = webdriver.Chrome(<span style="color: #800000;">'</span><span style="color: #800000;">../chromedriver.exe</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">记得写完整的url 包括http和https</span>
+driver.get(<span style="color: #800000;">'</span><span style="color: #800000;">https://www.baidu.com</span><span style="color: #800000;">'</span>)</pre>
+</div>
+<p><img src="./images/selenium cookie 登录0.png" alt="" width="853" height="656" /></p>
+<p>这就是直接打开的样子，我们想要将网页变成登录后的样子，如下图</p>
+<p><img src="./images/selenium cookie 登录1.png" alt="" width="838" height="464" /></p>
+<p>这是登录账号后的样子，那么我们该怎么获取cookie以达到登录效果呢？</p>
+<p>我们可以直接使用F12查看当前网页的cookie，但是你会发现直接获取到的并不是那么好插入到selenium中，因为cookie在浏览器中实际是这个样子的</p>
+<p><img src="./images/selenium cookie 登录2.png" alt="" width="1081" height="257" /></p>
+<p>它需要额外添加一些东西，那么我们该如何获取呢？其实也很简单，最简单的方法就是我们首先使用selenium手动登录一下然后获取cookie值保存到本地，之后再登陆的时候直接调用本地cookie就可以了</p>
+<p>怎么获取呢？selenium有一个&nbsp;get_cookies() 函数可以帮我们获取当前网页的cookie值，所以我们首先编写一个 getcookies.py 文件来获取cookie值</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">填写webdriver的保存目录</span>
+driver = webdriver.Chrome(<span style="color: #800000;">'</span><span style="color: #800000;">../chromedriver.exe</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">记得写完整的url 包括http和https</span>
+driver.get(<span style="color: #800000;">'</span><span style="color: #800000;">https://www.baidu.com</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">程序打开网页后20秒内手动登陆账户</span>
+time.sleep(20<span style="color: #000000;">)
+
+with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">cookies.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">w</span><span style="color: #800000;">'</span><span style="color: #000000;">) as cookief:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">将cookies保存为json格式</span>
+<span style="color: #000000;">    cookief.write(json.dumps(driver.get_cookies()))
+
+driver.close()</span></pre>
+</div>
+<p>运行程序后如下图 点击登录 输入账号密码，输入验证码（程序内写的20秒完成操作，因为20秒后程序将获得cookies）</p>
+<p><img src="./images/selenium cookie 登录3.png" alt="" width="683" height="479" /></p>
+<p>现在发现项目目录下已经有了一个名称为 cookies.txt 的文件 ，现在我们已经将cookies保存到了本地，现在我们来编写程序使用cookies</p>
+<p>编写 addcookies.py 文件</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> time
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">填写webdriver的保存目录</span>
+driver = webdriver.Chrome(<span style="color: #800000;">'</span><span style="color: #800000;">../chromedriver.exe</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">记得写完整的url 包括http和https</span>
+driver.get(<span style="color: #800000;">'</span><span style="color: #800000;">https://www.baidu.com</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">首先清除由于浏览器打开已有的cookies</span>
+<span style="color: #000000;">driver.delete_all_cookies()
+
+with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">cookies.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span><span style="color: #000000;">) as cookief:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">使用json读取cookies 注意读取的是文件 所以用load而不是loads</span>
+    cookieslist =<span style="color: #000000;"> json.load(cookief)
+    </span><span style="color: #0000ff;">for</span> cookie <span style="color: #0000ff;">in</span><span style="color: #000000;"> cookieslist:
+        driver.add_cookie(cookie)</span></pre>
+</div>
+<p>运行，有小伙伴可能会发现现在出问题了，在插入cookie的时候 返回错误</p>
+<div class="cnblogs_code">
+<pre><code>selenium.common.exceptions.InvalidArgumentException: Message: invalid argument: invalid <span style="color: #800000;">'</span><span style="color: #800000;">expiry</span><span style="color: #800000;">'</span></pre>
+</div>
+<p>这个 expiry 是什么呢？ 它是cookie的生命周期，也就是失效时间，为什么在这里会报错呢？我们有两种解决办法</p>
+<ul>
+<li>#方法1 将expiry类型变为int（其实不太清楚为什么变为int就可以）</li>
+</ul>
+<ul>
+<li class="_mce_tagged_br">#方法2删除该字段</li>
+</ul>
+<p>重新编写代码：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> selenium <span style="color: #0000ff;">import</span><span style="color: #000000;"> webdriver
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> json
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">填写webdriver的保存目录</span>
+driver = webdriver.Chrome(<span style="color: #800000;">'</span><span style="color: #800000;">../chromedriver.exe</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">记得写完整的url 包括http和https</span>
+driver.get(<span style="color: #800000;">'</span><span style="color: #800000;">https://www.baidu.com</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">首先清除由于浏览器打开已有的cookies</span>
+<span style="color: #000000;">driver.delete_all_cookies()
+
+with open(</span><span style="color: #800000;">'</span><span style="color: #800000;">cookies.txt</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">r</span><span style="color: #800000;">'</span><span style="color: #000000;">) as cookief:
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">使用json读取cookies 注意读取的是文件 所以用load而不是loads</span>
+    cookieslist =<span style="color: #000000;"> json.load(cookief)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 方法1 将expiry类型变为int</span>
+    <span style="color: #0000ff;">for</span> cookie <span style="color: #0000ff;">in</span><span style="color: #000000;"> cookieslist:
+        </span><span style="color: #008000;">#</span><span style="color: #008000;">并不是所有cookie都含有expiry 所以要用dict的get方法来获取</span>
+        <span style="color: #0000ff;">if</span> isinstance(cookie.get(<span style="color: #800000;">'</span><span style="color: #800000;">expiry</span><span style="color: #800000;">'</span><span style="color: #000000;">), float):
+            cookie[</span><span style="color: #800000;">'</span><span style="color: #800000;">expiry</span><span style="color: #800000;">'</span>] = int(cookie[<span style="color: #800000;">'</span><span style="color: #800000;">expiry</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+        driver.add_cookie(cookie)
+
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">方法2删除该字段</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> for cookie in cookieslist:</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     #该字段有问题所以删除就可以  浏览器打开后记得刷新页面 有的网页注入cookie后仍需要刷新一下</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     if 'expiry' in cookie:</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">         del cookie['expiry']</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;">     driver.add_cookie(cookie)</span></pre>
+</div>
+<p>这时候发现没有报错了，可以发现，怎么还是登录之前的页面啊?为什么cookies插入成功了却不是登陆后的页面?&nbsp;</p>
+<p>别急，这时候我们点击一下浏览器的刷新就会发现其实已经登录上去了只不过页面没有变化而已，所以一定记得点刷新，现在我们就成功的使用cookie完成了登录操作。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

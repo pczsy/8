@@ -1,0 +1,103 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python—时间模块(time)和随机模块(random)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python—时间模块(time)和随机模块(random)</center></div><div class='banquan'>原文出处:本文由博客园博主刘_love_田提供。<br/>
+原文连接:https://www.cnblogs.com/liuhaidon/p/11670208.html</div><br>
+    <p><span style="font-size: 18px; background-color: #ffff00; color: #ff00ff;"><strong>时间模块</strong></span></p>
+<p><span style="background-color: #ffffff; color: #0000ff; font-size: 16px;"><strong>time模块</strong></span></p>
+<p><span style="font-size: 12px; background-color: #ffffff; color: #000000;"><strong>获取秒级时间戳、毫秒级时间戳、微秒级时间戳</strong></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>import time
+t = time.time()
+print t                         # 原始时间数据         1574502460.90
+print int(t)                    # 秒级时间戳：10位     1574502460
+print int(round(t * 1000))      # 毫秒级时间戳：13位   1574502460904
+print int(round(t * 1000000))   # 微秒级时间戳：16位   1574502460903997
+</pre>
+</div>
+<p><span style="color: #000000;"><strong><span style="font-size: 12px;">格式化日期与秒级时间戳之间的转换</span></strong></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code>import time
+
+# 将日期转为秒级时间戳
+dt = '2019-08-08 10:00:00'
+ts = int(time.mktime(time.strptime(dt, "%Y-%m-%d %H:%M:%S")))
+print ts      # 结果：1565229600
+  
+# 将秒级时间戳转为日期
+ts = 1565229600
+dt = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts))
+print dt      # 结果：2019-08-08 10:00:00
+  
+# 将当前秒级时间戳转为日期，下面两种写法的结果是一样的
+ct = time.strftime('%Y-%m-%d %H:%M:%S')
+ct = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+print ct, type(ct)      # 结果：2019-11-25 09:45:09   &lt;type 'str'&gt;
+</pre>
+</div>
+<p><span style="font-size: 12px;"><strong>转结构体时间struct_time</strong></span></p>
+<div class="cnblogs_Highlighter">
+<pre><code># 日期时间转结构体
+ta_dt = time.strptime("2019-11-25 10:20:50", '%Y-%m-%d %H:%M:%S')  
+print ta_dt      # time.struct_time(tm_year=2019, tm_mon=11, tm_mday=25, tm_hour=10, tm_min=20, tm_sec=50, tm_wday=0, tm_yday=329, tm_isdst=-1)
+
+# 时间戳转结构体，注意时间戳要求为int，也可以不带参数：ta_ms = time.localtime()
+ta_ms = time.localtime(1574648450) 
+print ta_ms      # time.struct_time(tm_year=2019, tm_mon=11, tm_mday=25, tm_hour=10, tm_min=20, tm_sec=50, tm_wday=0, tm_yday=329, tm_isdst=0)
+print ta_ms[0], ta_ms[1], ta_ms[2], ta_ms[3], ta_ms[4], ta_ms[5]
+</pre>
+</div>
+<p><strong><span style="font-size: 12px;">其他用法</span></strong></p>
+<div class="cnblogs_Highlighter">
+<pre><code>print time.time()                               # 结果：1574655005.15，现在距离计算机元年过去了多少秒。
+print time.ctime()                              # 结果：Mon Nov 25 12:10:05 2019
+print time.sleep(3)                             # 结果：程序运行到这儿，暂停3秒，休眠3秒。
+                                
+print time.asctime((2019,5,7,20,8,8,6,3,1))     # 结果：Sun May 7 20:08:08 2019 
+print time.mktime((2019,5,9,20,8,8,0,0,0))      # 结果：1557403688.0
+ 
+print time.gmtime(7200)                         # 结果：time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=2, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, tm_isdst=0)  
+print time.gmtime(1557403688)                   # 结果：time.struct_time(tm_year=2019, tm_mon=5, tm_mday=9, tm_hour=12, tm_min=8, tm_sec=8, tm_wday=3, tm_yday=129, tm_isdst=0)  
+print time.localtime(1557403688.0)              # 结果：time.struct_time(tm_year=2019, tm_mon=5, tm_mday=9, tm_hour=20, tm_min=8, tm_sec=8, tm_wday=3, tm_yday=129, tm_isdst=0)           
+print time.localtime()                          # 结果：time.struct_time(tm_year=2019, tm_mon=11, tm_mday=25, tm_hour=12, tm_min=10, tm_sec=8, tm_wday=0, tm_yday=329, tm_isdst=0)</pre>
+</div>
+<p><strong><span style="font-size: 16px; color: #0000ff;">datetime模块</span></strong></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">dateutil模块</span></strong></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;">from dateutil.parser import parse
+
+t1 = parse('2019-10-01 10:10:10')
+t2 = parse('2019-10-01/10:10:10')
+t3 = parse('2019/12/01 10:10:10')
+t4 = parse('2019/12/01/10:10:10')
+
+print t1, type(t1)                # 2019-10-01 10:10:10   &lt;type 'datetime.datetime'&gt;
+print t2, type(t2)                # 2019-10-01 10:10:10   &lt;type 'datetime.datetime'&gt;
+print t3, type(t3)                # 2019-12-01 10:10:10   &lt;type 'datetime.datetime'&gt;
+print (t3-t1).days                # 61
+print (t3-t1).seconds             # 0
+print (t3-t1).total_seconds()     # 5270400.0</pre>
+</div>
+<p><strong><span style="font-size: 16px; color: #0000ff;"><a href="https://www.cnblogs.com/mashuqi/p/11576705.html">https://www.cnblogs.com/mashuqi/p/11576705.html</a></span></strong></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;"><a href="https://www.jianshu.com/p/f29dddce3a9a">https://www.jianshu.com/p/f29dddce3a9a</a></span></strong></p>
+<p><span style="font-size: 18px; background-color: #ffff00; color: #ff00ff;"><strong>随机模块</strong></span></p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

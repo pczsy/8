@@ -1,0 +1,315 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Python使用Flask实现RESTful API，使用Postman工具、requests库测试接口' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Python使用Flask实现RESTful API，使用Postman工具、requests库测试接口</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11485223.html</div><br>
+    <p>RESTful是一种API设计规范。<br />在RESTful架构中，主要使用POST，DELETE，PUT和GET四种HTTP请求方式分别对指定的URL资源进行增删改查操作。</p>
+<p>RESTful之前的做法：</p>
+<div class="cnblogs_code">
+<pre><code>/users/query/1 GET 根据用户id查询用户数据
+/users/save POST 新增用户
+/users/update POST 修改用户信息
+/users/delete GET/POST 删除用户信息</pre>
+</div>
+<p>RESTful做法：</p>
+<div class="cnblogs_code">
+<pre><code>/users/1 GET 根据用户id查询用户数据
+/users POST 新增用户
+/users PUT 修改用户信息
+/users DELETE 删除用户信息</pre>
+</div>
+<p>客户端的每一次请求，服务器都会给出回应，回应包括 HTTP 状态码和数据两部分。<br />部分状态码：<br />GET: 200 OK<br />POST: 201 Created<br />PUT: 200 OK<br />DELETE: 204 No Content</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>使用Flask实现一个RESTful API服务的例子</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> flask <span style="color: #0000ff;">import</span><span style="color: #000000;"> Flask,jsonify,abort,make_response,request
+</span><span style="color: #0000ff;">from</span> flask_httpauth <span style="color: #0000ff;">import</span><span style="color: #000000;"> HTTPBasicAuth
+
+app </span>= Flask(<span style="color: #800080;">__name__</span><span style="color: #000000;">)
+auth </span>=<span style="color: #000000;"> HTTPBasicAuth()
+
+users </span>=<span style="color: #000000;"> [
+    {
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>: 1<span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">小明</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span>: 1<span style="color: #000000;">
+    },
+    {
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>: 2<span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">小红</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span><span style="color: #000000;">: 0
+    }
+]
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">访问前需要提供用户名和密码</span>
+<span style="color: #000000;">@auth.get_password
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_password(username):
+    </span><span style="color: #0000ff;">if</span> username == <span style="color: #800000;">'</span><span style="color: #800000;">admin</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">友好的错误提示：没有权限</span>
+<span style="color: #000000;">@auth.error_handler
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> unauthorized():
+    </span><span style="color: #0000ff;">return</span> make_response(jsonify({<span style="color: #800000;">'</span><span style="color: #800000;">error</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">未授权</span><span style="color: #800000;">'</span>}), 403<span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">友好的错误提示：找不到资源页面</span>
+@app.errorhandler(404<span style="color: #000000;">)
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> not_found(error):
+    </span><span style="color: #0000ff;">return</span> make_response(jsonify({<span style="color: #800000;">'</span><span style="color: #800000;">error</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">找不到资源</span><span style="color: #800000;">'</span>}), 404<span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">返回所有用户的记录</span>
+@app.route(<span style="color: #800000;">'</span><span style="color: #800000;">/api/v1.0/users</span><span style="color: #800000;">'</span>, methods=[<span style="color: #800000;">'</span><span style="color: #800000;">GET</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+@auth.login_required </span><span style="color: #008000;">#</span><span style="color: #008000;">需要认证</span>
+<span style="color: #0000ff;">def</span><span style="color: #000000;"> get_users():
+    </span><span style="color: #0000ff;">return</span> jsonify({<span style="color: #800000;">'</span><span style="color: #800000;">users</span><span style="color: #800000;">'</span><span style="color: #000000;">: users})
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">返回一个用户的记录记录</span>
+@app.route(<span style="color: #800000;">'</span><span style="color: #800000;">/api/v1.0/users/&lt;int:user_id&gt;</span><span style="color: #800000;">'</span>, methods=[<span style="color: #800000;">'</span><span style="color: #800000;">GET</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+@auth.login_required
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_user(user_id):
+    user </span>= list(u <span style="color: #0000ff;">for</span> u <span style="color: #0000ff;">in</span> users <span style="color: #0000ff;">if</span> u[<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] ==<span style="color: #000000;"> user_id)
+    </span><span style="color: #0000ff;">if</span> len(user) ==<span style="color: #000000;"> 0:
+        abort(</span>404<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">return</span> jsonify({<span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span><span style="color: #000000;">: user[0]})
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">插入一条用户记录</span>
+@app.route(<span style="color: #800000;">'</span><span style="color: #800000;">/api/v1.0/users</span><span style="color: #800000;">'</span>, methods=[<span style="color: #800000;">'</span><span style="color: #800000;">POST</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+@auth.login_required
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> create_user():
+    </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span> request.json <span style="color: #0000ff;">or</span> <span style="color: #0000ff;">not</span> <span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">in</span> request.json <span style="color: #0000ff;">or</span> <span style="color: #0000ff;">not</span> <span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">in</span><span style="color: #000000;"> request.json:
+        abort(</span>400<span style="color: #000000;">)
+    user </span>=<span style="color: #000000;"> {
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>: users[-1][<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] + 1<span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>: request.json[<span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span><span style="color: #000000;">],
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span>: request.json[<span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+    }
+    users.append(user)
+    </span><span style="color: #0000ff;">return</span> jsonify({<span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span>: user}), 201
+
+<span style="color: #008000;">#</span><span style="color: #008000;">更新一个用户的记录</span>
+@app.route(<span style="color: #800000;">'</span><span style="color: #800000;">/api/v1.0/users/&lt;int:user_id&gt;</span><span style="color: #800000;">'</span>, methods=[<span style="color: #800000;">'</span><span style="color: #800000;">PUT</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+@auth.login_required
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> update_user(user_id):
+    user </span>= list(u <span style="color: #0000ff;">for</span> u <span style="color: #0000ff;">in</span> users <span style="color: #0000ff;">if</span> u[<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] ==<span style="color: #000000;"> user_id)
+    </span><span style="color: #0000ff;">if</span> len(user) ==<span style="color: #000000;"> 0:
+        abort(</span>404<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">if</span> <span style="color: #0000ff;">not</span><span style="color: #000000;"> request.json:
+        abort(</span>400<span style="color: #000000;">)   
+    user[0][</span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>] = request.json.get(<span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>, user[0][<span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    user[0][</span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span>] = request.json.get(<span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span>, user[0][<span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+    </span><span style="color: #0000ff;">return</span> jsonify({<span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span><span style="color: #000000;">: user[0]})
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">删除一个用户的记录</span>
+@app.route(<span style="color: #800000;">'</span><span style="color: #800000;">/api/v1.0/users/&lt;int:user_id&gt;</span><span style="color: #800000;">'</span>, methods=[<span style="color: #800000;">'</span><span style="color: #800000;">DELETE</span><span style="color: #800000;">'</span><span style="color: #000000;">])
+@auth.login_required
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> delete_user(user_id):
+    user </span>= list(u <span style="color: #0000ff;">for</span> u <span style="color: #0000ff;">in</span> users <span style="color: #0000ff;">if</span> u[<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] ==<span style="color: #000000;"> user_id)
+    </span><span style="color: #0000ff;">if</span> len(user) ==<span style="color: #000000;"> 0:
+        abort(</span>404<span style="color: #000000;">)
+    users.remove(user[0])
+    </span><span style="color: #0000ff;">return</span> jsonify({<span style="color: #800000;">'</span><span style="color: #800000;">result</span><span style="color: #800000;">'</span>: True}),204
+
+
+<span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    app.run(debug</span>=True)</pre>
+</div>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>上面例子，也可以使用Flask-RESTful实现</strong></span></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">from</span> flask <span style="color: #0000ff;">import</span><span style="color: #000000;"> Flask,jsonify,abort,make_response,request
+</span><span style="color: #0000ff;">from</span> flask_httpauth <span style="color: #0000ff;">import</span><span style="color: #000000;"> HTTPBasicAuth
+</span><span style="color: #0000ff;">from</span> flask_restful <span style="color: #0000ff;">import</span><span style="color: #000000;"> Api,Resource,reqparse
+
+app </span>= Flask(<span style="color: #800080;">__name__</span><span style="color: #000000;">)
+api </span>=<span style="color: #000000;"> Api(app)
+auth </span>=<span style="color: #000000;"> HTTPBasicAuth()
+
+users </span>=<span style="color: #000000;"> [
+    {
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>: 1<span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">小明</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span>: 1<span style="color: #000000;">
+    },
+    {
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>: 2<span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>: <span style="color: #800000;">'</span><span style="color: #800000;">小红</span><span style="color: #800000;">'</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span><span style="color: #000000;">: 0
+    }
+]
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">验证字段的合法性</span>
+parser =<span style="color: #000000;"> reqparse.RequestParser()
+parser.add_argument(</span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>, type = str, required = True, help = <span style="color: #800000;">'</span><span style="color: #800000;">此字段格式有问题</span><span style="color: #800000;">'</span>, location = <span style="color: #800000;">'</span><span style="color: #800000;">json</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+parser.add_argument(</span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span>, type = int, default = <span style="color: #800000;">"</span><span style="color: #800000;">1</span><span style="color: #800000;">"</span>, location = <span style="color: #800000;">'</span><span style="color: #800000;">json</span><span style="color: #800000;">'</span><span style="color: #000000;">)  
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">访问前需要提供用户名和密码</span>
+<span style="color: #000000;">@auth.get_password
+</span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get_password(username):
+    </span><span style="color: #0000ff;">if</span> username == <span style="color: #800000;">'</span><span style="color: #800000;">admin</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span>
+    <span style="color: #0000ff;">return</span><span style="color: #000000;"> None
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> UserListAPI(Resource):
+    decorators </span>=<span style="color: #000000;"> [auth.login_required]   
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self):
+        </span><span style="color: #0000ff;">return</span> {<span style="color: #800000;">'</span><span style="color: #800000;">users</span><span style="color: #800000;">'</span><span style="color: #000000;">: users}
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> post(self):
+        args </span>=<span style="color: #000000;"> parser.parse_args()
+        user </span>=<span style="color: #000000;"> {        
+            </span><span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>: users[-1][<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] + 1<span style="color: #000000;">,
+            </span><span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span>: args[<span style="color: #800000;">'</span><span style="color: #800000;">username</span><span style="color: #800000;">'</span><span style="color: #000000;">],
+            </span><span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span>: args[<span style="color: #800000;">'</span><span style="color: #800000;">sex</span><span style="color: #800000;">'</span><span style="color: #000000;">]
+        }
+        users.append(user)
+        </span><span style="color: #0000ff;">return</span> {<span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span>: user}, 201
+
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> UserAPI(Resource):
+    decorators </span>=<span style="color: #000000;"> [auth.login_required]    
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> get(self, id):        
+        user </span>= list(u <span style="color: #0000ff;">for</span> u <span style="color: #0000ff;">in</span> users <span style="color: #0000ff;">if</span> u[<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] ==<span style="color: #000000;"> id)
+        </span><span style="color: #0000ff;">if</span> len(user) ==<span style="color: #000000;"> 0:
+            abort(</span>404<span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span> {<span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span><span style="color: #000000;">: user[0]}
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> put(self, id):
+        user </span>= list(u <span style="color: #0000ff;">for</span> u <span style="color: #0000ff;">in</span> users <span style="color: #0000ff;">if</span> u[<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] ==<span style="color: #000000;"> id)
+        </span><span style="color: #0000ff;">if</span> len(user) ==<span style="color: #000000;"> 0:
+            abort(</span>404<span style="color: #000000;">)
+        user </span>=<span style="color: #000000;"> user[0]
+        args </span>=<span style="color: #000000;"> parser.parse_args()
+        </span><span style="color: #0000ff;">for</span> k, v <span style="color: #0000ff;">in</span><span style="color: #000000;"> args.items():
+            </span><span style="color: #0000ff;">if</span> v !=<span style="color: #000000;"> None:
+                user[k] </span>=<span style="color: #000000;"> v
+        </span><span style="color: #0000ff;">return</span>  { <span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span><span style="color: #000000;">: user }
+
+    </span><span style="color: #0000ff;">def</span><span style="color: #000000;"> delete(self, id):
+        user </span>= list(u <span style="color: #0000ff;">for</span> u <span style="color: #0000ff;">in</span> users <span style="color: #0000ff;">if</span> u[<span style="color: #800000;">'</span><span style="color: #800000;">id</span><span style="color: #800000;">'</span>] ==<span style="color: #000000;"> id)
+        </span><span style="color: #0000ff;">if</span> len(user) ==<span style="color: #000000;"> 0:
+            abort(</span>404<span style="color: #000000;">)
+        users.remove(user[0])
+        </span><span style="color: #0000ff;">return</span> {<span style="color: #800000;">'</span><span style="color: #800000;">result</span><span style="color: #800000;">'</span><span style="color: #000000;">: True}
+
+api.add_resource(UserListAPI, </span><span style="color: #800000;">'</span><span style="color: #800000;">/api/v1.0/users</span><span style="color: #800000;">'</span>, endpoint = <span style="color: #800000;">'</span><span style="color: #800000;">users</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+api.add_resource(UserAPI, </span><span style="color: #800000;">'</span><span style="color: #800000;">/api/v1.0/users/&lt;int:id&gt;</span><span style="color: #800000;">'</span>, endpoint = <span style="color: #800000;">'</span><span style="color: #800000;">user</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #0000ff;">if</span> <span style="color: #800080;">__name__</span> == <span style="color: #800000;">'</span><span style="color: #800000;">__main__</span><span style="color: #800000;">'</span><span style="color: #000000;">:
+    app.run(debug</span>=True)</pre>
+</div>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 18px;">使用Postman测试接口</span></strong></p>
+<p>创建一个新的Request，Request name和Create Collection都随便输入如RESTfulAPI，保存后，自动打开名称为RESTfulAPI的标签页。</p>
+<p>（1）测试/api/v1.0/users的GET请求</p>
+<p>RESTfulAPI标签页默认选择 GET，输入：localhost:5000/api/v1.0/users，这里直接点击Send按钮,Postman返回码：Status:403 FORBIDDEN，返回内容</p>
+<div class="cnblogs_code">
+<pre><code>{
+"error": "未授权"
+}</pre>
+</div>
+<p>在Authorization标签里面TYPE选择Basic Auth，右边Username和Password分别输入admin和123456。</p>
+<p><img src="./images/Python使用Flask实现RESTful API，使用Postman工具、requests库测试接口0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;点击Send按钮，Postman返回码：Status:201 CREATED，返回内容：</p>
+<div class="cnblogs_code">
+<pre><code>{
+  "users": [
+    {
+      "id": 1,
+      "sex": 1,
+      "username": "小明"
+    },
+    {
+      "id": 2,
+      "sex": 0,
+      "username": "小红"
+    }
+  ]
+}</pre>
+</div>
+<p>（2）测试/api/v1.0/users/&lt;int:user_id&gt;的GET请求</p>
+<p>修改Postman的请求方法和地址为：GET localhost:5000/api/v1.0/users/2</p>
+<p>（3）测试/api/v1.0/users的POST请求</p>
+<p>修改Postman的请求方法和地址为：POST localhost:5000/api/v1.0/users<br />在Body标签里面选择raw、修改最后的默认Text为JSON(application/json)，下面输入框填写：</p>
+<div class="cnblogs_code">
+<pre><code>{
+	"id": 3,
+	"sex": 1,
+	"username": "小强"
+}</pre>
+</div>
+<p>点击Send按钮，Postman返回码：Status:201 CREATED<br />把POST方法直接改为GET方法，可见返回3条记录。</p>
+<p>（4）测试/api/v1.0/users/&lt;int:user_id&gt;的PUT请求</p>
+<p>修改Postman的请求方法和地址为：PUT localhost:5000/api/v1.0/users/3<br />在Body标签里面选择raw、修改最后的默认Text为JSON(application/json)，下面输入框填写：</p>
+<div class="cnblogs_code">
+<pre><code>{
+	"id": 3,
+	"sex": 1,
+	"username": "小刚"
+}</pre>
+</div>
+<p>点击Send按钮，Postman返回码：Status:200 OK</p>
+<p>（5）测试/api/v1.0/users/&lt;int:user_id&gt;的DELETE请求</p>
+<p>修改Postman的请求方法和地址为：DELETE localhost:5000/api/v1.0/users/3<br />点击Send按钮，Postman返回码：Status:204 NOT CONTENT</p>
+<p>&nbsp;</p>
+<p><strong style="font-size: 18px;">使用Python的第三方库requests测试接口</strong></p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> requests,json
+
+url </span>= <span style="color: #800000;">'</span><span style="color: #800000;">http://localhost:5000/api/v1.0</span><span style="color: #800000;">'</span><span style="color: #000000;">
+auth </span>= (<span style="color: #800000;">'</span><span style="color: #800000;">admin</span><span style="color: #800000;">'</span>,<span style="color: #800000;">'</span><span style="color: #800000;">123456</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">查询</span>
+r=requests.get(url + <span style="color: #800000;">'</span><span style="color: #800000;">/users</span><span style="color: #800000;">'</span>, auth=<span style="color: #000000;">auth)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(r.status_code, r.text)
+</span><span style="color: #008000;">#</span><span style="color: #008000;">在控制台输出时中文会用unicode显示，可用下面方法显示中文</span><span style="color: #008000;">
+#</span><span style="color: #008000;">print(json.dumps(json.loads(r.text),ensure_ascii=False))</span>
+<span style="color: #000000;">
+r</span>=requests.get(url + <span style="color: #800000;">'</span><span style="color: #800000;">/users/1</span><span style="color: #800000;">'</span>, auth=<span style="color: #000000;">auth)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(r.status_code, r.text)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">更新</span>
+data =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>: 3<span style="color: #000000;">,
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">sex</span><span style="color: #800000;">"</span>: 1<span style="color: #000000;">,
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">username</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">小强</span><span style="color: #800000;">"</span><span style="color: #000000;">
+}
+r</span>=requests.post(url + <span style="color: #800000;">'</span><span style="color: #800000;">/users</span><span style="color: #800000;">'</span>, auth=auth, json=<span style="color: #000000;">data)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(r.status_code, r.text)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">修改</span>
+data =<span style="color: #000000;"> {
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>: 3<span style="color: #000000;">,
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">sex</span><span style="color: #800000;">"</span>: 1<span style="color: #000000;">,
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">username</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">小刚</span><span style="color: #800000;">"</span><span style="color: #000000;">
+}
+r</span>=requests.put(url + <span style="color: #800000;">'</span><span style="color: #800000;">/users/3</span><span style="color: #800000;">'</span>, auth=auth, json=<span style="color: #000000;">data)
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;">(r.status_code, r.text)
+
+</span><span style="color: #008000;">#</span><span style="color: #008000;">删除</span>
+r=requests.delete(url + <span style="color: #800000;">'</span><span style="color: #800000;">/users/3</span><span style="color: #800000;">'</span>, auth=<span style="color: #000000;">auth)
+</span><span style="color: #0000ff;">print</span>(r.status_code, r.text)</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,257 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis面试热点之底层实现篇' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis面试热点之底层实现篇</center></div><div class='banquan'>原文出处:本文由博客园博主后端技术指南针提供。<br/>
+原文连接:https://www.cnblogs.com/backnullptr/p/12028566.html</div><br>
+    <p>通过本文你将了解到以下内容：</p>
+<ul>
+<li>Redis的作者、发展演进和江湖地位</li>
+<li>Redis面试问题的概况</li>
+<li>Redis底层实现相关的问题包括：<br />常用数据类型底层实现、SDS的原理和优势、字典的实现原理、跳表和有序集合的原理、Redis的线程模式和服务模型</li>
+
+</ul>
+<p><strong>温馨提示：内容并不难，就怕你不看。</strong></p>
+<p>看不懂可以先收藏先Mark，等到深入研究的时间再翻出来看看，你就发现真是24K干货呀！停止吹嘘，写点不一样的文字吧！</p>
+<h3><span style="font-size: 18px;">1.Redis往事</span></h3>
+<p>Redis是一个使用ANSI C编写的开源、支持网络、基于内存、可选持久化的高性能键值对数据库。Redis的之父是来自意大利的西西里岛的Salvatore Sanfilippo，Github网名antirez，笔者找了作者的一些简要信息并翻译了一下，如图：</p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇0.png" alt="" width="545" height="315" data-caption="" data-size="normal" data-rawwidth="912" data-rawheight="527" data-original="https://pic3.zhimg.com/v2-e8a45fd8fd1c71f85ca2913fa6b32cc2_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-e8a45fd8fd1c71f85ca2913fa6b32cc2_b.jpg" data-lazy-status="ok" /></p>
+<p>从2009年第一个版本起Redis已经走过了10个年头，目前Redis仍然是最流行的key-value型内存数据库的之一。</p>
+<p>优秀的开源项目离不开大公司的支持，在2013年5月之前，其开发由VMware赞助，而2013年5月至2015年6月期间，其开发由毕威拓赞助，从2015年6月开始，Redis的开发由Redis Labs赞助。</p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇1.png" alt="" width="527" height="117" data-caption="" data-size="normal" data-rawwidth="924" data-rawheight="205" data-original="https://pic1.zhimg.com/v2-492f5c0f97414daa46116a41c3e9df00_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-492f5c0f97414daa46116a41c3e9df00_b.jpg" data-lazy-status="ok" /></p>
+<p>笔者也使用过一些其他的NoSQL，有的支持的value类型非常单一，因此很多操作都必须在客户端实现，比如value是一个结构化的数据，需要修改其中某个字段就需要整体读出来修改再整体写入，显得很笨重，但是Redis的value支持多种类型，实现了很多操作在服务端就可以完成了，这个对客户端而言非常方便。</p>
+<p>当然Redis由于是内存型的数据库，数据量存储量有限而且分布式集群成本也会非常高，因此有很多公司开发了基于SSD的类Redis系统，比如360开发的SSDB、Pika等数据库，但是笔者认为从0到1的难度是大于从1到2的难度的，毋庸置疑Redis是NoSQL中浓墨重彩的一笔，值得我们去深入研究和使用。</p>
+<h3><span style="font-size: 18px;">2.Redis的江湖地位</span></h3>
+<p>Redis提供了Java、C/C++、C#、 PHP 、JavaScript、 Perl 、Object-C、Python、Ruby、Erlang、Golang等多种主流语言的客户端，因此无论使用者是什么语言栈总会找到属于自己的那款客户端，受众非常广。</p>
+<p>笔者查了<a class=" external" href="https://link.zhihu.com/?target=http%3A//datanyze.com" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">http://<span class="visible">datanyze.com</span></span></a>网站看了下Redis和MySQL的最新市场份额和排名对比以及全球Top站点的部署量对比(网站数据更新到写作当日2019.12.11)：</p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇2.png" alt="" width="681" height="266" data-caption="" data-size="normal" data-rawwidth="1080" data-rawheight="421" data-original="https://pic4.zhimg.com/v2-c235d7a52cf384a731d1a31e503da173_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-c235d7a52cf384a731d1a31e503da173_b.jpg" data-lazy-status="ok" /></p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇3.png" alt="" width="679" height="188" data-caption="" data-size="normal" data-rawwidth="1080" data-rawheight="298" data-original="https://pic4.zhimg.com/v2-78fbe49581dd734abfe30bb078473cc3_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-78fbe49581dd734abfe30bb078473cc3_b.jpg" data-lazy-status="ok" /></p>
+<p>可以看到Redis总体份额排名第9并且在全球Top100站点中部署数量与MySQL基本持平，所以Redis还是有一定的江湖地位的。</p>
+<h3><span style="font-size: 18px;">3.聊聊实战</span></h3>
+<p>目前Redis发布的稳定版本已经到了5.x，功能也越来越强大，从国内外互联网公司来看Redis几乎是标配了。作为开发人员在日常笔试面试和工作中遇到Redis相关问题的概率非常大，掌握Redis的相关知识点都十分有必要。</p>
+<p>学习和梳理一个复杂的东西肯定不能胡子眉毛一把抓，每个人都有自己的认知思路，笔者认为要从充分掌握Redis需要从底向上、从外到内去理解Redis。</p>
+<p>Redis的实战知识点可以简单分为三个层次：</p>
+<ul>
+<li>底层实现：主要是从Redis的源码中提炼的问题，包括但不限于底层数据结构、服务模型、算法设计等。</li>
+<li>基础架构：可用概况为Redis整体对外的功能点和表现，包括但不限于单机版主从架构实现、主从数据同步、哨兵机制、集群实现、分布式一致性、故障迁移等。</li>
+<li>实际应用：实战中Redis可用帮你做什么，包括但不限于单机缓存、分布式缓存、分布式锁、一些应用。</li>
+
+</ul>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇4.png" alt="" width="420" height="386" data-caption="" data-size="normal" data-rawwidth="551" data-rawheight="506" data-original="https://pic2.zhimg.com/v2-020bbd7e8ea15703f7ed83d7183473a1_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-020bbd7e8ea15703f7ed83d7183473a1_b.jpg" data-lazy-status="ok" /></p>
+<p>深入理解和熟练使用Redis需要时间锤炼，要做到信手拈来着实不易，想在短时间内突破只能从热点题目入手，虽然这样感觉有些功利，不过也算无可厚非吧，为了吃饭我们还是倾向于原谅懒惰的自己，要不然吃土喝风？</p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇5.png" alt="" width="426" data-caption="" data-size="normal" data-rawwidth="426" data-rawheight="103" data-original="https://pic2.zhimg.com/v2-505e1c171b384b8f0ccc75dd4e2629ed_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-505e1c171b384b8f0ccc75dd4e2629ed_b.jpg" data-lazy-status="ok" /></p>
+<h3><span style="font-size: 18px;">4.底层实现热点题目</span></h3>
+<p>底层实现篇的题目主要是与Redis的源码和设计相关，可以说是Redis功能的基石，了解底层实现可以让我们更好地掌握功能，由于底层代码很多，在后续的基础架构篇中仍然会穿插源码来分析，因此本篇只列举一些热点的问题。</p>
+<p><span style="color: #ff0000; font-size: 18px;"><strong>Q1:&nbsp;Redis常用五种数据类型是如何实现的？</strong></span><br />Redis支持的常用5种数据类型指的是value类型，分别为：<strong>字符串String、列表List、哈希Hash、集合Set、有序集合Zset</strong>，但是Redis后续又丰富了几种数据类型分别是Bitmaps、HyperLogLogs、GEO。</p>
+<p>由于Redis是基于标准C写的，只有最基础的数据类型，因此Redis为了满足对外使用的5种数据类型，开发了属于自己独有的一套基础数据结构，使用这些数据结构来实现5种数据类型。</p>
+<p>Redis底层的数据结构包括：<strong>简单动态数组SDS、链表、哈希表、跳跃链表、整数集合、压缩列表、对象。</strong></p>
+<p>Redis为了平衡空间和时间效率，针对value的具体类型在底层会采用不同的数据结构来实现，其中哈希表和压缩列表是复用比较多的数据结构，如下图展示了对外数据类型和底层数据结构之间的映射关系：</p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇6.png" alt="" width="601" height="234" data-caption="" data-size="normal" data-rawwidth="909" data-rawheight="353" data-original="https://pic1.zhimg.com/v2-35053fa98f1d65f67b73eecb707d7f44_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-35053fa98f1d65f67b73eecb707d7f44_b.jpg" data-lazy-status="ok" /></p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇7.png" alt="" width="541" height="424" data-caption="" data-size="normal" data-rawwidth="670" data-rawheight="525" data-original="https://pic1.zhimg.com/v2-feee2a57e3341cef9606149d40e4a170_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-feee2a57e3341cef9606149d40e4a170_b.jpg" data-lazy-status="ok" /></p>
+<p>从图中可以看到ziplist压缩列表可以作为Zset、Set、List三种数据类型的底层实现，看来很强大，压缩列表是一种为了节约内存而开发的且经过特殊编码之后的连续内存块顺序型数据结构，底层结构还是比较复杂的。</p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000; font-size: 18px;"><strong>Q2:&nbsp;Redis的SDS和C中字符串相比有什么优势？</strong></span><br />在C语言中使用N+1长度的字符数组来表示字符串，尾部使用'\0'作为结尾标志，对于此种实现无法满足Redis对于安全性、效率、丰富的功能的要求，因此Redis单独封装了SDS简单动态字符串结构。</p>
+<p>在理解SDS的优势之前需要先看下SDS的实现细节，找了github最新的src/sds.h的定义看下：</p>
+<div class="cnblogs_code">
+<pre><code>typedef <span style="color: #0000ff;">char</span> *<span style="color: #000000;">sds;
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">这个用不到 忽略即可</span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">struct</span><span style="color: #000000;"> __attribute__ ((__packed__)) sdshdr5 {
+    unsigned </span><span style="color: #0000ff;">char</span> flags; <span style="color: #008000;">/*</span><span style="color: #008000;"> 3 lsb of type, and 5 msb of string length </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">char</span><span style="color: #000000;"> buf[];
+};
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">不同长度的header 8 16 32 64共4种 都给出了四个成员
+len：当前使用的空间大小；alloc去掉header和结尾空字符的最大空间大小
+flags:8位的标记 下面关于SDS_TYPE_x的宏定义只有5种 3bit足够了 5bit没有用
+buf:这个跟C语言中的字符数组是一样的，从typedef char* sds可以知道就是这样的。
+buf的最大长度是2^n 其中n为sdshdr的类型，如当选择sdshdr16，buf_max=2^16。
+</span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">struct</span><span style="color: #000000;"> __attribute__ ((__packed__)) sdshdr8 {
+    uint8_t len; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> used </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    uint8_t alloc; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> excluding the header and null terminator </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    unsigned </span><span style="color: #0000ff;">char</span> flags; <span style="color: #008000;">/*</span><span style="color: #008000;"> 3 lsb of type, 5 unused bits </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">char</span><span style="color: #000000;"> buf[];
+};
+</span><span style="color: #0000ff;">struct</span><span style="color: #000000;"> __attribute__ ((__packed__)) sdshdr16 {
+    uint16_t len; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> used </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    uint16_t alloc; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> excluding the header and null terminator </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    unsigned </span><span style="color: #0000ff;">char</span> flags; <span style="color: #008000;">/*</span><span style="color: #008000;"> 3 lsb of type, 5 unused bits </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">char</span><span style="color: #000000;"> buf[];
+};
+</span><span style="color: #0000ff;">struct</span><span style="color: #000000;"> __attribute__ ((__packed__)) sdshdr32 {
+    uint32_t len; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> used </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    uint32_t alloc; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> excluding the header and null terminator </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    unsigned </span><span style="color: #0000ff;">char</span> flags; <span style="color: #008000;">/*</span><span style="color: #008000;"> 3 lsb of type, 5 unused bits </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">char</span><span style="color: #000000;"> buf[];
+};
+</span><span style="color: #0000ff;">struct</span><span style="color: #000000;"> __attribute__ ((__packed__)) sdshdr64 {
+    uint64_t len; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> used </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    uint64_t alloc; </span><span style="color: #008000;">/*</span><span style="color: #008000;"> excluding the header and null terminator </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    unsigned </span><span style="color: #0000ff;">char</span> flags; <span style="color: #008000;">/*</span><span style="color: #008000;"> 3 lsb of type, 5 unused bits </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">char</span><span style="color: #000000;"> buf[];
+};
+
+</span><span style="color: #0000ff;">#define</span> SDS_TYPE_5  0
+<span style="color: #0000ff;">#define</span> SDS_TYPE_8  1
+<span style="color: #0000ff;">#define</span> SDS_TYPE_16 2
+<span style="color: #0000ff;">#define</span> SDS_TYPE_32 3
+<span style="color: #0000ff;">#define</span> SDS_TYPE_64 4
+<span style="color: #0000ff;">#define</span> SDS_TYPE_MASK 7
+<span style="color: #0000ff;">#define</span> SDS_TYPE_BITS 3</pre>
+</div>
+<p>看了前面的定义，笔者画了个图：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇8.png" alt="" width="732" height="169" data-caption="" data-size="normal" data-rawwidth="992" data-rawheight="229" data-original="https://pic4.zhimg.com/v2-d53a736fe41c1236351faaf1a8365457_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-d53a736fe41c1236351faaf1a8365457_b.jpg" data-lazy-status="ok" /></p>
+<p>从图中可以知道sds本质分为三部分：header、buf、null结尾符，其中header可以认为是整个sds的指引部分，给定了使用的空间大小、最大分配大小等信息，再用一张网上的图来清晰看下sdshdr8的实例：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇9.png" alt="" width="470" data-caption="" data-size="normal" data-rawwidth="470" data-rawheight="279" data-original="https://pic3.zhimg.com/v2-5f63bd199d35243e2cad542a7cb77c02_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-5f63bd199d35243e2cad542a7cb77c02_b.jpg" data-lazy-status="ok" /></p>
+<p>在sds.h/sds.c源码中可清楚地看到sds完整的实现细节，本文就不展开了要不然篇幅就过长了，快速进入主题说下sds的优势：</p>
+<ul>
+<li>O(1)获取长度: C字符串需要遍历而sds中有len可以直接获得；</li>
+<li>防止缓冲区溢出bufferoverflow: 当sds需要对字符串进行修改时，首先借助于len和alloc检查空间是否满足修改所需的要求，如果空间不够的话，SDS会自动扩展空间，避免了像C字符串操作中的覆盖情况；</li>
+<li>有效降低内存分配次数：C字符串在涉及增加或者清除操作时会改变底层数组的大小造成重新分配、sds使用了空间预分配和惰性空间释放机制，说白了就是每次在扩展时是成倍的多分配的，在缩容是也是先留着并不正式归还给OS，这两个机制也是比较好理解的；</li>
+<li>二进制安全：C语言字符串只能保存ascii码，对于图片、音频等信息无法保存，sds是二进制安全的，写入什么读取就是什么，不做任何过滤和限制；</li>
+</ul>
+<p>老规矩上一张<strong>黄健宏大神</strong>总结好的图：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇10.png" alt="" width="719" height="151" data-caption="" data-size="normal" data-rawwidth="809" data-rawheight="170" data-original="https://pic3.zhimg.com/v2-caa3691898d6e9720c582fb0c3d74232_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-caa3691898d6e9720c582fb0c3d74232_b.jpg" data-lazy-status="ok" /></p>
+<p><span style="font-size: 18px;"><strong><span style="color: #ff0000;">Q3:Redis的字典是如何实现的？简述渐进式rehash的过程。</span></strong></span><br />字典算是Redis5中常用数据类型中的明星成员了，前面说过字典可以基于ziplist和hashtable来实现，我们只讨论基于hashtable实现的原理。</p>
+<p>字典是个层次非常明显的数据类型，如图：</p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇11.png" alt="" width="644" height="192" data-caption="" data-size="normal" data-rawwidth="919" data-rawheight="275" data-original="https://pic4.zhimg.com/v2-26815516d9629034bbc1963c415bf413_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-26815516d9629034bbc1963c415bf413_b.jpg" data-lazy-status="ok" /></p>
+<p>有了个大概的概念，我们看下最新的src/dict.h源码定义：</p>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">哈希节点结构</span>
+typedef <span style="color: #0000ff;">struct</span><span style="color: #000000;"> dictEntry {
+    </span><span style="color: #0000ff;">void</span> *<span style="color: #000000;">key;
+    union {
+        </span><span style="color: #0000ff;">void</span> *<span style="color: #000000;">val;
+        uint64_t u64;
+        int64_t s64;
+        </span><span style="color: #0000ff;">double</span><span style="color: #000000;"> d;
+    } v;
+    </span><span style="color: #0000ff;">struct</span> dictEntry *<span style="color: #000000;">next;
+} dictEntry;
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">封装的是字典的操作函数指针</span>
+typedef <span style="color: #0000ff;">struct</span><span style="color: #000000;"> dictType {
+    uint64_t (</span>*hashFunction)(<span style="color: #0000ff;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">key);
+    </span><span style="color: #0000ff;">void</span> *(*keyDup)(<span style="color: #0000ff;">void</span> *privdata, <span style="color: #0000ff;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">key);
+    </span><span style="color: #0000ff;">void</span> *(*valDup)(<span style="color: #0000ff;">void</span> *privdata, <span style="color: #0000ff;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">obj);
+    </span><span style="color: #0000ff;">int</span> (*keyCompare)(<span style="color: #0000ff;">void</span> *privdata, <span style="color: #0000ff;">const</span> <span style="color: #0000ff;">void</span> *key1, <span style="color: #0000ff;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">key2);
+    </span><span style="color: #0000ff;">void</span> (*keyDestructor)(<span style="color: #0000ff;">void</span> *privdata, <span style="color: #0000ff;">void</span> *<span style="color: #000000;">key);
+    </span><span style="color: #0000ff;">void</span> (*valDestructor)(<span style="color: #0000ff;">void</span> *privdata, <span style="color: #0000ff;">void</span> *<span style="color: #000000;">obj);
+} dictType;
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;"> This is our hash table structure. Every dictionary has two of this as we
+ * implement incremental rehashing, for the old to the new table. </span><span style="color: #008000;">*/</span>
+<span style="color: #008000;">//</span><span style="color: #008000;">哈希表结构 该部分是理解字典的关键</span>
+typedef <span style="color: #0000ff;">struct</span><span style="color: #000000;"> dictht {
+    dictEntry </span>**<span style="color: #000000;">table;
+    unsigned </span><span style="color: #0000ff;">long</span><span style="color: #000000;"> size;
+    unsigned </span><span style="color: #0000ff;">long</span><span style="color: #000000;"> sizemask;
+    unsigned </span><span style="color: #0000ff;">long</span><span style="color: #000000;"> used;
+} dictht;
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">字典结构</span>
+typedef <span style="color: #0000ff;">struct</span><span style="color: #000000;"> dict {
+    dictType </span>*<span style="color: #000000;">type;
+    </span><span style="color: #0000ff;">void</span> *<span style="color: #000000;">privdata;
+    dictht ht[</span><span style="color: #800080;">2</span><span style="color: #000000;">];
+    </span><span style="color: #0000ff;">long</span> rehashidx; <span style="color: #008000;">/*</span><span style="color: #008000;"> rehashing not in progress if rehashidx == -1 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    unsigned </span><span style="color: #0000ff;">long</span> iterators; <span style="color: #008000;">/*</span><span style="color: #008000;"> number of iterators currently running </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+} dict;</span></pre>
+</div>
+<p>C语言的好处在于定义必须是由最底层向外的，因此我们可以看到一个明显的层次变化，于是笔者又画一图来展现具体的<strong>层次概念</strong>：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇12.png" alt="" width="715" height="206" data-caption="" data-size="normal" data-rawwidth="1080" data-rawheight="310" data-original="https://pic3.zhimg.com/v2-8ef8f90bd7886c14063cdc9ff92f3ef2_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-8ef8f90bd7886c14063cdc9ff92f3ef2_b.jpg" data-lazy-status="ok" /></p>
+<ul>
+<li><strong>关于dictEntry</strong></li>
+</ul>
+<p>dictEntry是哈希表节点，也就是我们存储数据地方，其保护的成员有：key,v,next指针。key保存着键值对中的键，v保存着键值对中的值，值可以是一个指针或者是uint64_t或者是int64_t。next是指向另一个哈希表节点的指针，这个指针可以将多个哈希值相同的键值对连接在一次，以此来解决哈希冲突的问题。</p>
+<p>如图为两个冲突的哈希节点的连接关系：</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇13.png" alt="" width="427" data-caption="" data-size="normal" data-rawwidth="427" data-rawheight="86" data-original="https://pic4.zhimg.com/v2-e01cdbbca5251e5dd6c71b76c3dc3153_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-e01cdbbca5251e5dd6c71b76c3dc3153_b.jpg" data-lazy-status="ok" /></p>
+<ul>
+<li><strong>关于dictht</strong></li>
+</ul>
+<p>从源码看哈希表包括的成员有table、size、used、sizemask。table是一个数组，数组中的每个元素都是一个指向dictEntry结构的指针， 每个dictEntry结构保存着一个键值对；size 属性记录了哈希表table的大小，而used属性则记录了哈希表目前已有节点的数量。sizemask等于size-1和哈希值计算一个键在table数组的索引，也就是计算index时用到的。</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇14.png" alt="" width="760" data-caption="" data-size="normal" data-rawwidth="760" data-rawheight="283" data-original="https://pic3.zhimg.com/v2-45c04e6b696a50b6b8e8e4a6f5178d6a_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-45c04e6b696a50b6b8e8e4a6f5178d6a_b.jpg" data-lazy-status="ok" /></p>
+<p>如上图展示了一个大小为4的table中的哈希节点情况，其中k1和k0在index=2发生了哈希冲突，进行开链表存在，本质上是先存储的k0，k1放置是发生冲突为了保证效率直接放在冲突链表的最前面，因为该链表没有尾指针。</p>
+<ul>
+<li><strong>关于dict</strong></li>
+</ul>
+<p>从源码中看到dict结构体就是字典的定义，包含的成员有type，privdata、ht、rehashidx。其中dictType指针类型的type指向了操作字典的api，理解为函数指针即可，ht是包含2个dictht的数组，也就是字典包含了2个哈希表，rehashidx进行rehash时使用的变量，privdata配合dictType指向的函数作为参数使用，这样就对字典的几个成员有了初步的认识。</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇15.png" alt="" width="726" data-caption="" data-size="normal" data-rawwidth="726" data-rawheight="467" data-original="https://pic1.zhimg.com/v2-918db34123d7e4aeec2711180d1255a4_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-918db34123d7e4aeec2711180d1255a4_b.jpg" data-lazy-status="ok" /></p>
+<ul>
+<ul>
+<li><strong>字典的哈希算法</strong></li>
+</ul>
+</ul>
+<div class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">伪码：使用哈希函数，计算键key的哈希值</span>
+hash = dict-&gt;type-&gt;<span style="color: #000000;">hashFunction(key);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">伪码：使用哈希表的sizemask和哈希值，计算出在ht[0]或许ht[1]的索引值</span>
+index = hash &amp; dict-&gt;<span style="color: #000000;">ht[x].sizemask;
+</span><span style="color: #008000;">//</span><span style="color: #008000;">源码定义</span>
+<span style="color: #0000ff;">#define</span> dictHashKey(d, key) (d)-&gt;type-&gt;hashFunction(key)</pre>
+</div>
+<p>redis使用MurmurHash算法计算哈希值，该算法最初由Austin Appleby在2008年发明，MurmurHash算法的无论数据输入情况如何都可以给出随机分布性较好的哈希值并且计算速度非常快，目前有MurmurHash2和MurmurHash3等版本。</p>
+<ul>
+<li><strong>普通Rehash重新散列</strong></li>
+</ul>
+<p>哈希表保存的键值对数量是动态变化的，为了让哈希表的负载因子维持在一个合理的范围之内，就需要对哈希表进行扩缩容。</p>
+<p>扩缩容是通过执行rehash重新散列来完成，对字典的哈希表执行普通rehash的基本步骤为分配空间-&gt;逐个迁移-&gt;交换哈希表，详细过程如下：</p>
+<ol>
+<li>为字典的ht[1]哈希表分配空间，分配的空间大小取决于要执行的操作以及ht[0]当前包含的键值对数量：<br />扩展操作时ht[1]的大小为第一个大于等于ht[0].used*2的2^n；<br />收缩操作时ht[1]的大小为第一个大于等于ht[0].used的2^n ；<br />扩展时比如h[0].used=200，那么需要选择大于400的第一个2的幂，也就是2^9=512。</li>
+<li>将保存在ht[0]中的所有键值对重新计算键的哈希值和索引值rehash到ht[1]上；</li>
+<li>重复rehash直到ht[0]包含的所有键值对全部迁移到了ht[1]之后释放 ht[0]， 将ht[1]设置为 ht[0]，并在ht[1]新创建一个空白哈希表， 为下一次rehash做准备。</li>
+
+</ol>
+<ul>
+<li><strong>渐进Rehash过程</strong></li>
+
+</ul>
+<p>Redis的rehash动作并不是一次性完成的，而是分多次、渐进式地完成的，原因在于当哈希表里保存的键值对数量很大时， 一次性将这些键值对全部rehash到ht[1]可能会导致服务器在一段时间内停止服务，这个是无法接受的。</p>
+<p>针对这种情况Redis采用了渐进式rehash，过程的详细步骤：</p>
+<ol>
+<li>为ht[1]分配空间，这个过程和普通Rehash没有区别；</li>
+<li>将rehashidx设置为0，表示rehash工作正式开始，同时这个rehashidx是递增的，从0开始表示从数组第一个元素开始rehash。</li>
+<li>在rehash进行期间，每次对字典执行增删改查操作时，顺带将ht[0]哈希表在rehashidx索引上的键值对rehash到 ht[1]，完成后将rehashidx加1，指向下一个需要rehash的键值对。</li>
+<li>随着字典操作的不断执行，最终ht[0]的所有键值对都会被rehash至ht[1]，再将rehashidx属性的值设为-1来表示 rehash操作已完成。</li>
+
+</ol>
+<p>渐进式 rehash的思想在于将rehash键值对所需的计算工作分散到对字典的每个添加、删除、查找和更新操作上，从而避免了集中式rehash而带来的阻塞问题。</p>
+<p>看到这里不禁去想这种捎带脚式的rehash会不会导致整个过程非常漫长？如果某个value一直没有操作那么需要扩容时由于一直不用所以影响不大，需要缩容时如果一直不处理可能造成内存浪费，具体的还没来得及研究，先埋个问题吧！</p>
+<p><span style="font-size: 18px;"><strong><span style="color: #ff0000;">Q4:跳跃链表了解吗？Redis的Zset如何使用跳表实现的？</span></strong></span><br />ZSet这种数据类型也非常有用，在做排行榜需求时非常有用，笔者就曾经使用这种数据类型来实现某日活2000w的app的排行榜，所以了解下ZSet的底层实现很有必要，之前笔者写过两篇文章介绍跳跃链表和ZSet的实现，因此查阅即可。<br /><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzI1MzYzMTI2Ng%3D%3D%26mid%3D2247483919%26idx%3D1%26sn%3D1b62c9a125be1bed7970aae906639d21%26scene%3D21%23wechat_redirect" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">深入理解跳跃链表[一]</a><br /><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzI1MzYzMTI2Ng%3D%3D%26mid%3D2247483948%26idx%3D1%26sn%3D83c1ef41690a60d0b70fa4374d6e64b8%26scene%3D21%23wechat_redirect" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">深入理解跳表在Redis中的应用</a></p>
+<p><strong><span style="font-size: 18px; color: #ff0000;">Q5:Redis为什么使用单线程？讲讲Redis网络模型以及单线程如何协调各种事件运行起来的？</span></strong><br />Redis在新版本中并不是单纯的单线程服务，一些辅助工作会有BIO后台线程来完成，并且Redis底层使用epoll来实现了基于事件驱动的反应堆模式，在整个主线程运行工程中不断协调时间事件和文件事件来完成整个系统的运行，笔者之前写过两篇相关的文章，查阅即可得到更深层次的答案。<br /><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzI1MzYzMTI2Ng%3D%3D%26mid%3D2247483755%26idx%3D1%26sn%3D20496502810f53409b1274afcc76a997%26scene%3D21%23wechat_redirect" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">理解Redis单线程运行模式</a><br /><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzI1MzYzMTI2Ng%3D%3D%26mid%3D2247483747%26idx%3D1%26sn%3D184f86ec27472736f9d0f808b54fe753%26scene%3D21%23wechat_redirect" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">理解Redis的反应堆模式</a><br /><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//mp.weixin.qq.com/s%3F__biz%3DMzI1MzYzMTI2Ng%3D%3D%26mid%3D2247483717%26idx%3D1%26sn%3Ddfa5cafa7695f2d0dfb8bc51b414d46b%26scene%3D21%23wechat_redirect" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">浅析Redis 4.0新特性之LazyFree</a></p>
+<p>
+<img class="origin_image zh-lightbox-thumb lazy" style="display: block; margin-left: auto; margin-right: auto;" src="./images/Redis面试热点之底层实现篇16.png" alt="" width="223" height="64" data-caption="" data-size="normal" data-rawwidth="677" data-rawheight="194" data-original="https://pic2.zhimg.com/v2-4919f689b6289a15ce8033c0b402a6bd_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-4919f689b6289a15ce8033c0b402a6bd_b.jpg" data-lazy-status="ok" /></p>
+<h3>5.巨人的肩膀</h3>
+<ul>
+<ul>
+<li><a class=" external" href="https://link.zhihu.com/?target=https%3A//lynnapan.github.io/2017/07/14/redis_sds/" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">lynnapan.github.io/2017<span class="invisible">/07/14/redis_sds/</span></span></span></a></li>
+<li><a class=" external" href="https://link.zhihu.com/?target=http%3A//redisbook.com/index.html" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">http://<span class="visible">redisbook.com/index.htm<span class="invisible">l</span></span></span></a></li>
+
+</ul>
+</ul>
+<div class="highlight">&nbsp;</div>
+</div>
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>
